@@ -44,6 +44,22 @@ Before any other action, say verbatim:
 3. Each pass dispatches security-reviewer with ONLY the artifact (no prior findings)
 4. After each pass, classify novelty
 
+### Honest Convergence (mandatory clause in every reviewer prompt)
+
+Strict-binary novelty prevents premature convergence, but it has a failure mode: reviewers fabricate findings to justify their existence. Every reviewer dispatch MUST include this clause verbatim:
+
+> **Honest convergence is required.** If you find fewer than 3 substantive items, declare convergence and emit no updated file — say "converged, no file emitted." Do not invent findings to justify this pass. Fabricating findings wastes analyst time, erodes trust in the review process, and is strictly worse than stopping. The orchestrator prefers an honest NITPICK over a padded SUBSTANTIVE.
+
+### Known Review Hallucination Classes
+
+Round 1 review outputs are systematically susceptible to these failure modes. Round 2+ prompts should instruct the reviewer to audit prior findings for these classes:
+
+1. **Over-extrapolated bias signals** — reviewer flags "confirmation bias" based on a single piece of supporting evidence, ignoring that the analyst documented 3 alternatives. Check: did the analyst actually exhibit the bias, or just reach a conclusion?
+2. **Miscounted checklist scores** — reviewer claims "3 of 8 dimensions incomplete" when recounting shows 2. Always re-derive scores from the checklist items, not from prior narrative.
+3. **Phantom findings from template structure** — reviewer flags "missing Executive Summary" when the section exists under a slightly different heading. Check: is the content present, even if the heading doesn't match exactly?
+4. **Conflated severity and quality** — reviewer downgrades quality score because the vulnerability is low-severity. Quality measures the analysis, not the vuln. A P5 informational CVE can have a 10/10 enrichment.
+5. **Prior-pass contamination** — reviewer references details from a prior pass it should not have seen. This indicates information asymmetry was breached — re-dispatch with clean context.
+
 ### Strict-Binary Novelty Classification
 
 After each pass, classify every finding as one of:
@@ -92,6 +108,18 @@ Reference: `${CLAUDE_PLUGIN_ROOT}/data/cognitive-bias-patterns.md`
 - **Critical findings:** 0 (all must be resolved before sign-off)
 
 If thresholds not met after convergence: flag for analyst rework with specific guidance.
+
+## Subagent Delivery Protocol (inline-by-default)
+
+The security-reviewer may run in a sandbox where Write is denied. Every reviewer dispatch MUST include this instruction verbatim:
+
+> **CRITICAL DELIVERY INSTRUCTION**: Do NOT use the Write tool. Return all deliverables inline, delimited with `=== FILE: <filename> ===` on its own line followed by the complete file content. Use ASCII only — no HTML entity encoding. The orchestrator persists the files after receiving your return. This is NOT a fallback — this IS the approved delivery mode for this dispatch.
+
+The orchestrator parses the return for `=== FILE: ... ===` delimiters and writes each block to disk.
+
+## Canonical Source
+
+The adversarial review convergence workflow lives in `agents/orchestrator/review-convergence-workflow.md` and is the authoritative source. This skill is the entry point; the orchestrator file is the playbook. If the two disagree, the orchestrator file wins.
 
 ## Output
 

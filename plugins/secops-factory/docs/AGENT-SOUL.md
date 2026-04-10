@@ -116,3 +116,21 @@ The goal is not perfect analysis -- it is analysis that converges to a stable, d
 - Strict binary novelty: SUBSTANTIVE changes the model, NITPICK means converged
 - Quality thresholds: >= 7.0/10 overall, no dimension < 5.0
 - When converged: sign off. Do not gold-plate.
+
+> **Footnote: principled pragmatism vs rationalization.** This principle is the most
+> frequently abused in the document, because "being pragmatic" is also the exact
+> phrase analysts use to skip enrichment stages, cognitive bias audits, or multi-factor
+> assessment. The distinction:
+>
+> - **Principled pragmatism** happens at **design time**, with the human in the loop,
+>   with the trade-off documented. Example: "This P5 informational CVE doesn't need
+>   full ATT&CK mapping — documented in the enrichment notes with human approval."
+>
+> - **Rationalization** happens at **execution time**, to skip a rule that applies.
+>   Example: "CVSS 9.8 is obviously P1, I'm being pragmatic by skipping the
+>   multi-factor assessment." That skips the EPSS/KEV/business-context factors that
+>   might reveal the vuln is unexploitable in this environment.
+>
+> The test: if you find yourself invoking "pragmatism" mid-enrichment to bypass an
+> Iron Law or skip a Red Flags checkpoint, you are rationalizing, not being pragmatic.
+> Stop, surface the trade-off to your human partner, and let them make the call.

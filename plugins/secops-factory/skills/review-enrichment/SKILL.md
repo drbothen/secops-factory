@@ -2,6 +2,8 @@
 name: review-enrichment
 description: "Use when reviewing a security analyst's enrichment or investigation. Polymorphic: auto-detects CVE enrichment (8-dimension scoring) or event investigation (7-dimension weighted scoring). Blameless, constructive feedback."
 argument-hint: "<ticket-id> [--type=auto|cve|event]"
+context: fork
+agent: security-reviewer
 ---
 
 # Review Security Enrichment

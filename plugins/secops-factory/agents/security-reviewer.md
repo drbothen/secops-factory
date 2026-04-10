@@ -5,14 +5,9 @@ model: opus
 color: red
 tools:
   - Read
-  - Write
-  - Edit
-  - Bash
   - Grep
   - Glob
   - mcp__atlassian__getJiraIssue
-  - mcp__atlassian__updateJiraIssue
-  - mcp__atlassian__addCommentToJiraIssue
   - mcp__perplexity__perplexity_search
   - mcp__perplexity__perplexity_reason
 ---

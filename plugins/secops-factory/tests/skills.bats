@@ -125,3 +125,91 @@ PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
         ! grep -qiF "bmad" "$data_file"
     done
 }
+
+# --- Honest convergence and hallucination classes ---
+
+@test "adversarial-review-secops has Honest Convergence clause" {
+    grep -qF "Honest Convergence" "$PLUGIN_ROOT/skills/adversarial-review-secops/SKILL.md"
+    grep -qF "fewer than 3 substantive" "$PLUGIN_ROOT/skills/adversarial-review-secops/SKILL.md"
+}
+
+@test "adversarial-review-secops has Known Review Hallucination Classes" {
+    grep -qF "Known Review Hallucination" "$PLUGIN_ROOT/skills/adversarial-review-secops/SKILL.md"
+}
+
+@test "adversarial-review-secops has Subagent Delivery Protocol" {
+    grep -qF "Subagent Delivery Protocol" "$PLUGIN_ROOT/skills/adversarial-review-secops/SKILL.md"
+    grep -qF "=== FILE:" "$PLUGIN_ROOT/skills/adversarial-review-secops/SKILL.md"
+}
+
+@test "adversarial-review-secops has Canonical Source pointer" {
+    grep -qF "review-convergence-workflow.md" "$PLUGIN_ROOT/skills/adversarial-review-secops/SKILL.md"
+}
+
+# --- Template file existence tests ---
+
+@test "every referenced template actually exists" {
+    missing=0
+    while IFS= read -r ref; do
+        [ -z "$ref" ] && continue
+        if [ ! -f "${PLUGIN_ROOT}/${ref}" ]; then
+            echo "MISSING: ${ref}" >&2
+            missing=$((missing + 1))
+        fi
+    done < <(grep -rho '\${CLAUDE_PLUGIN_ROOT}/templates/[a-zA-Z0-9_/-]*\.\(md\|yaml\)' \
+               "${PLUGIN_ROOT}/skills" "${PLUGIN_ROOT}/agents" \
+               2>/dev/null | sed 's|${CLAUDE_PLUGIN_ROOT}/||' | sort -u)
+    [ "$missing" -eq 0 ]
+}
+
+@test "every referenced data file actually exists" {
+    missing=0
+    while IFS= read -r ref; do
+        [ -z "$ref" ] && continue
+        if [ ! -f "${PLUGIN_ROOT}/${ref}" ]; then
+            echo "MISSING: ${ref}" >&2
+            missing=$((missing + 1))
+        fi
+    done < <(grep -rho '\${CLAUDE_PLUGIN_ROOT}/data/[a-zA-Z0-9_/-]*\.md' \
+               "${PLUGIN_ROOT}/skills" "${PLUGIN_ROOT}/agents" \
+               2>/dev/null | sed 's|${CLAUDE_PLUGIN_ROOT}/||' | sort -u)
+    [ "$missing" -eq 0 ]
+}
+
+@test "every referenced checklist actually exists" {
+    missing=0
+    while IFS= read -r ref; do
+        [ -z "$ref" ] && continue
+        if [ ! -f "${PLUGIN_ROOT}/${ref}" ]; then
+            echo "MISSING: ${ref}" >&2
+            missing=$((missing + 1))
+        fi
+    done < <(grep -rho '\${CLAUDE_PLUGIN_ROOT}/checklists/[a-zA-Z0-9_/-]*\.md' \
+               "${PLUGIN_ROOT}/skills" "${PLUGIN_ROOT}/agents" \
+               2>/dev/null | sed 's|${CLAUDE_PLUGIN_ROOT}/||' | sort -u)
+    [ "$missing" -eq 0 ]
+}
+
+# --- Agent structural tests ---
+
+@test "security-analyst has required frontmatter fields" {
+    grep -qF "name:" "$PLUGIN_ROOT/agents/security-analyst.md"
+    grep -qF "description:" "$PLUGIN_ROOT/agents/security-analyst.md"
+    grep -qF "model:" "$PLUGIN_ROOT/agents/security-analyst.md"
+    grep -qF "color:" "$PLUGIN_ROOT/agents/security-analyst.md"
+}
+
+@test "security-reviewer has required frontmatter fields" {
+    grep -qF "name:" "$PLUGIN_ROOT/agents/security-reviewer.md"
+    grep -qF "description:" "$PLUGIN_ROOT/agents/security-reviewer.md"
+    grep -qF "model:" "$PLUGIN_ROOT/agents/security-reviewer.md"
+    grep -qF "color:" "$PLUGIN_ROOT/agents/security-reviewer.md"
+}
+
+@test "security-reviewer uses opus model" {
+    grep -qF "model: opus" "$PLUGIN_ROOT/agents/security-reviewer.md"
+}
+
+@test "security-reviewer does not have Write tool" {
+    ! grep -qF "Write" "$PLUGIN_ROOT/agents/security-reviewer.md"
+}

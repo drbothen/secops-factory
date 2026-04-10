@@ -1,20 +1,34 @@
-[
-  {
-    "hook_type": "PreToolUse",
-    "tool_name": "mcp__atlassian__updateJiraIssue",
-    "script": "hooks/require-review.sh",
-    "description": "Blocks JIRA updates without review approval marker"
-  },
-  {
-    "hook_type": "PreToolUse",
-    "tool_name": "Write",
-    "script": "hooks/enrichment-completeness.sh",
-    "description": "Blocks saving partial enrichment as complete"
-  },
-  {
-    "hook_type": "PostToolUse",
-    "tool_name": "mcp__perplexity__perplexity_search",
-    "script": "hooks/bias-check-reminder.sh",
-    "description": "Non-blocking reminder to check cognitive bias after research"
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__atlassian__updateJiraIssue|mcp__atlassian__addCommentToJiraIssue",
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/require-review.sh", "timeout": 5 }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/enrichment-completeness.sh", "timeout": 5 },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/disposition-guard.sh", "timeout": 5 }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "mcp__perplexity__perplexity_search|mcp__perplexity__perplexity_ask|mcp__perplexity__perplexity_reason|mcp__perplexity__perplexity_research",
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/bias-check-reminder.sh", "timeout": 5 }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/handoff-validator.sh", "timeout": 5 }
+        ]
+      }
+    ]
   }
-]
+}

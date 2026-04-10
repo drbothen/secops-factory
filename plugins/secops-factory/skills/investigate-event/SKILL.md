@@ -37,7 +37,7 @@ Before any other action, say verbatim:
 
 - Atlassian MCP server connected
 - Valid JIRA ticket ID with security event alert
-- Perplexity MCP available (optional, for threat intelligence)
+- Perplexity MCP available (optional — enriches threat intelligence; investigation proceeds without it using web search fallback)
 
 ## Workflow: 7 Stages
 
@@ -61,7 +61,7 @@ Before any other action, say verbatim:
 
 1. Extract source and destination: IP, hostname, asset type, criticality, zone
 2. Capture protocol, port, service identification
-3. For external IPs: lookup ASN, geolocation, reputation via Perplexity
+3. For external IPs: lookup ASN, geolocation, reputation (via Perplexity if available, otherwise via `WebSearch` using WHOIS/BGP lookup services)
 4. If data missing from ticket: prompt user for required fields
 
 ### Stage 4: Evidence Collection (5-8 min)
@@ -70,14 +70,14 @@ Before any other action, say verbatim:
 2. Prompt user for log excerpts (with PII handling notice)
 3. Collect correlated events
 4. Gather historical context
-5. Optional: AI-assisted threat intelligence via Perplexity
+5. Optional: AI-assisted threat intelligence (via Perplexity if available, otherwise via `WebSearch` for threat feeds and IOC databases)
 
 ### Stage 5: Technical Analysis (4-6 min)
 
 1. Protocol/port validation and legitimacy assessment
 2. Attack vector analysis with MITRE ATT&CK reference
 3. Log interpretation and IOC identification
-4. Optional: threat intelligence correlation via Perplexity
+4. Optional: threat intelligence correlation (Perplexity if available, `WebSearch` otherwise)
 5. Asset context assessment (function, business impact, environment)
 
 ### Stage 6: Disposition Determination (3-5 min)

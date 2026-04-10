@@ -35,8 +35,8 @@ Before any other action, say verbatim:
 
 ## Prerequisites
 
-- Atlassian MCP server connected (for JIRA operations)
-- Perplexity MCP server connected (for CVE research)
+- Atlassian MCP server connected (required — for JIRA read/write)
+- Perplexity MCP server connected (recommended — for AI-assisted CVE research; graceful fallback to web search if not configured)
 - Valid JIRA ticket ID provided as argument
 
 ## Workflow: 8 Stages
@@ -50,10 +50,10 @@ Before any other action, say verbatim:
 
 **Outputs:** cve_id, all_cves, affected_systems, initial_severity, ticket_summary
 
-### Stage 2: AI-Assisted CVE Research (3-5 min)
+### Stage 2: CVE Research (3-5 min with Perplexity, 5-10 min manual)
 
 1. Execute `/research-cve <cve-id>` for primary CVE
-2. Use Perplexity MCP for comprehensive intelligence gathering
+2. The research-cve skill auto-detects Perplexity availability and uses it or falls back to direct web queries (NVD API, FIRST EPSS API, CISA KEV feed)
 3. Collect: CVSS, EPSS, KEV status, exploits, patches, ATT&CK suggestions
 
 **Outputs:** cvss_score, cvss_vector, epss_score, kev_status, affected_versions, patched_versions, exploit_status, sources

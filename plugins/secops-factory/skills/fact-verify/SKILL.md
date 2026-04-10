@@ -6,7 +6,7 @@ argument-hint: "<ticket-id>"
 
 # Fact Verification
 
-Verify factual claims in security documents against authoritative sources using Perplexity MCP.
+Verify factual claims in security documents against authoritative sources. Uses Perplexity MCP when available; falls back to direct web queries when it is not.
 
 ## Process
 
@@ -34,10 +34,14 @@ Verify factual claims in security documents against authoritative sources using 
 ### Step 3: Verify Each Claim
 
 For each claim:
-1. Query Perplexity with specific verification question
-2. Cross-reference with authoritative source
-3. Record: claim, source, verification result (Verified/Unverified/Incorrect)
-4. For incorrect claims: document the correct value and source
+1. If Perplexity MCP is available: query with specific verification question
+2. If Perplexity is not available: use `WebSearch` or `WebFetch` to query authoritative APIs directly:
+   - NVD API for CVSS: `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=<CVE-ID>`
+   - FIRST API for EPSS: `https://api.first.org/data/v1/epss?cve=<CVE-ID>`
+   - MITRE ATT&CK for technique IDs: `https://attack.mitre.org/techniques/<T-ID>/`
+3. Cross-reference with authoritative source
+4. Record: claim, source, verification result (Verified/Unverified/Incorrect), research method (perplexity|web-search)
+5. For incorrect claims: document the correct value and source
 
 ### Step 4: Generate Report
 

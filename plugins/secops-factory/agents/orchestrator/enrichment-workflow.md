@@ -14,7 +14,7 @@ For each JIRA ticket containing a CVE:
 
 1. **Triage** — Read the JIRA ticket via Atlassian MCP. Extract CVE ID, affected asset, initial severity, and any analyst notes. Validate the CVE ID format (CVE-YYYY-NNNNN).
 
-2. **CVE Research** — Dispatch Perplexity research (tool tier by severity: `perplexity_research` for CVSS 9.0+, `perplexity_reason` for 7.0-8.9, `perplexity_search` for <7.0). Collect: NVD description, affected versions, attack vector, exploit availability, patch status.
+2. **CVE Research** — Dispatch `/research-cve`. If Perplexity MCP is available, uses severity-tiered tool selection (`perplexity_research` for CVSS 9.0+, `perplexity_reason` for 7.0-8.9, `perplexity_search` for <7.0). If Perplexity is not configured, falls back to direct API queries (NVD, FIRST EPSS, CISA KEV) via `WebSearch`/`WebFetch`. Collect: NVD description, affected versions, attack vector, exploit availability, patch status.
 
 3. **Business Context** — Assess asset criticality using the organization's asset inventory. ICS/SCADA assets get elevated priority due to safety implications. Document: asset type, network zone (IT/OT/DMZ), business function, compensating controls.
 

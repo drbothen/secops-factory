@@ -64,4 +64,8 @@ echo ""
 bats "$SCRIPT_DIR/hooks.bats"
 echo ""
 
+echo "--- Integration tests (Claude Code protocol) ---"
+bats "$SCRIPT_DIR/integration.bats"
+echo ""
+
 echo "=== All tests passed ==="

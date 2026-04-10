@@ -28,10 +28,18 @@ SecOps Factory connects directly to your JIRA instance for ticket intake and enr
 
 ### 1. Install the plugin
 
-Install secops-factory from the Claude Code plugin marketplace, or clone the repository and register it locally:
+**From the marketplace:**
+
+```shell
+/plugin marketplace add drbothen/secops-factory
+/plugin install secops-factory@secops-factory
+```
+
+**From source (local development):**
 
 ```bash
 git clone https://github.com/drbothen/secops-factory.git
+claude --plugin-dir ./secops-factory/plugins/secops-factory
 ```
 
 ### 2. Configure MCP servers

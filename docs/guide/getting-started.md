@@ -44,16 +44,18 @@ Before you begin, ensure you have:
 
 ## Installation
 
-### From the Claude Code plugin marketplace
+### From the marketplace
 
-Search for `secops-factory` in the Claude Code plugin marketplace and install it.
+```shell
+/plugin marketplace add drbothen/secops-factory
+/plugin install secops-factory@secops-factory
+```
 
-### From source
-
-Clone the repository and register it as a local plugin:
+### From source (local development)
 
 ```bash
 git clone https://github.com/drbothen/secops-factory.git
+claude --plugin-dir ./secops-factory/plugins/secops-factory
 ```
 
 ## JIRA Configuration (jr CLI)

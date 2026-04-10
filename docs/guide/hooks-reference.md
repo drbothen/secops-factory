@@ -7,7 +7,7 @@ SecOps Factory uses 3 hooks to enforce quality gates automatically. Hooks fire o
 | Property | Value |
 |----------|-------|
 | Type | PreToolUse |
-| Trigger | `mcp__atlassian__updateJiraIssue` |
+| Trigger | Bash commands containing `jr issue edit`, `jr issue move`, `jr issue assign`, `jr issue create` |
 | Script | `hooks/require-review.sh` |
 | Blocking | Yes |
 
@@ -15,7 +15,7 @@ SecOps Factory uses 3 hooks to enforce quality gates automatically. Hooks fire o
 
 **Why:** JIRA field updates represent the official record. Posting unvalidated analysis as authoritative creates false confidence in incomplete or incorrect data.
 
-**When it triggers:** Every call to `mcp__atlassian__updateJiraIssue` that includes field updates (not just comments).
+**When it triggers:** Every Bash command containing `jr issue edit`, `jr issue move`, `jr issue assign`, or `jr issue create`. Read-only commands (`jr issue view`, `jr issue list`, `jr issue comments`) and `jr issue comment` (posting results) are allowed without review.
 
 **How to satisfy it:** Run `/review-enrichment <ticket-id>` before `/update-jira <ticket-id>`. The review skill sets the approval marker when quality thresholds are met.
 

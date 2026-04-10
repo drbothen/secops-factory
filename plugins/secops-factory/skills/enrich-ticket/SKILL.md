@@ -35,7 +35,7 @@ Before any other action, say verbatim:
 
 ## Prerequisites
 
-- Atlassian MCP server connected (required — for JIRA read/write)
+- `jr` CLI installed and authenticated (`jr auth login`) — for JIRA read/write
 - Perplexity MCP server connected (recommended — for AI-assisted CVE research; graceful fallback to web search if not configured)
 - Valid JIRA ticket ID provided as argument
 

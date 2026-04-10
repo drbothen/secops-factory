@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # require-review.sh — PreToolUse hook that blocks JIRA field updates
-# without review approval.
+# via jr CLI without review approval.
 #
-# The update-jira skill requires review approval before modifying tickets.
-# This hook enforces that gate by checking for a review_approved flag in
-# the tool input metadata.
+# Matches Bash tool calls. Only intervenes when the command contains
+# `jr issue edit` or `jr issue move` (field-modifying operations).
+# Allows `jr issue view`, `jr issue comment`, and all non-jr commands.
 #
 # Emits a PreToolUse JSON envelope with permissionDecision.
 # Deterministic, <100ms, no LLM.
@@ -35,20 +35,40 @@ emit_deny() {
   exit 0
 }
 
-# Extract fields from tool input
-TOOL_INPUT=$(echo "$INPUT" | jq -r '.tool_input // {}')
-HAS_FIELDS=$(echo "$TOOL_INPUT" | jq -r 'if (.fields // {} | length) > 0 then "true" else "false" end')
+# Extract the command being run
+COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
 
-# Comment-only operations (no field updates) are allowed without review
-if [ "$HAS_FIELDS" = "false" ]; then
+# Fast path: not a jr command → allow immediately
+if [[ "$COMMAND" != *"jr "* ]]; then
   emit_allow
 fi
 
-# For field updates, check for review approval marker in metadata
-HAS_REVIEW=$(echo "$TOOL_INPUT" | jq -r '.metadata.review_approved // false')
-
-if [ "$HAS_REVIEW" = "true" ]; then
+# Allow read-only jr operations without review
+if [[ "$COMMAND" == *"jr issue view"* ]] || \
+   [[ "$COMMAND" == *"jr issue list"* ]] || \
+   [[ "$COMMAND" == *"jr issue comments"* ]] || \
+   [[ "$COMMAND" == *"jr issue assets"* ]] || \
+   [[ "$COMMAND" == *"jr issue transitions"* ]] || \
+   [[ "$COMMAND" == *"jr sprint"* ]] || \
+   [[ "$COMMAND" == *"jr board"* ]] || \
+   [[ "$COMMAND" == *"jr project"* ]] || \
+   [[ "$COMMAND" == *"jr me"* ]] || \
+   [[ "$COMMAND" == *"jr auth"* ]]; then
   emit_allow
 fi
 
-emit_deny "JIRA field updates require review approval. Run /review-enrichment or /adversarial-review-secops first to validate analysis quality before updating ticket fields. The review-enrichment skill sets a review_approved marker in metadata when quality thresholds are met."
+# Allow jr issue comment (posting enrichment/review results)
+if [[ "$COMMAND" == *"jr issue comment"* ]]; then
+  emit_allow
+fi
+
+# Block field-modifying operations without review approval
+if [[ "$COMMAND" == *"jr issue edit"* ]] || \
+   [[ "$COMMAND" == *"jr issue move"* ]] || \
+   [[ "$COMMAND" == *"jr issue assign"* ]] || \
+   [[ "$COMMAND" == *"jr issue create"* ]]; then
+  emit_deny "JIRA field modifications require review approval. Run /review-enrichment or /adversarial-review-secops first to validate analysis quality. The jr issue edit/move/assign/create commands are blocked until review passes quality thresholds."
+fi
+
+# Unknown jr command — allow (fail-open for unrecognized subcommands)
+emit_allow

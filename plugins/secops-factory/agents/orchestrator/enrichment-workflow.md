@@ -12,7 +12,7 @@ disable-model-invocation: true
 
 For each JIRA ticket containing a CVE:
 
-1. **Triage** — Read the JIRA ticket via Atlassian MCP. Extract CVE ID, affected asset, initial severity, and any analyst notes. Validate the CVE ID format (CVE-YYYY-NNNNN).
+1. **Triage** — Read the JIRA ticket via `jr issue view <ticket-id>`. Extract CVE ID, affected asset, initial severity, and any analyst notes. Validate the CVE ID format (CVE-YYYY-NNNNN). If linked CMDB assets exist, fetch via `jr issue assets <ticket-id>`.
 
 2. **CVE Research** — Dispatch `/research-cve`. If Perplexity MCP is available, uses severity-tiered tool selection (`perplexity_research` for CVSS 9.0+, `perplexity_reason` for 7.0-8.9, `perplexity_search` for <7.0). If Perplexity is not configured, falls back to direct API queries (NVD, FIRST EPSS, CISA KEV) via `WebSearch`/`WebFetch`. Collect: NVD description, affected versions, attack vector, exploit availability, patch status.
 

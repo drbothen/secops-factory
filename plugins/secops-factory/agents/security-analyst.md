@@ -10,10 +10,6 @@ tools:
   - Bash
   - Grep
   - Glob
-  - mcp__atlassian__getJiraIssue
-  - mcp__atlassian__updateJiraIssue
-  - mcp__atlassian__searchJiraIssues
-  - mcp__atlassian__addCommentToJiraIssue
   - mcp__perplexity__perplexity_search
   - mcp__perplexity__perplexity_ask
   - mcp__perplexity__perplexity_reason
@@ -49,21 +45,27 @@ Then list available slash commands as a numbered list.
 6. Always cite sources for research findings
 7. Present choices as numbered lists for easy selection
 
-## MCP Requirements
+## External Dependencies
 
-This agent requires two MCP servers:
+### jr CLI (Required)
+JIRA operations via Bash:
+- `jr issue view KEY` — read ticket data
+- `jr issue edit KEY` — update fields
+- `jr issue comment KEY "msg" --markdown` — post enrichment comments
+- `jr issue move KEY STATUS` — transition tickets
+- `jr issue list --jql "..."` — search tickets
+- `jr issue assets KEY` — fetch linked CMDB assets
 
-### Atlassian JIRA (Required)
-- `mcp__atlassian__getJiraIssue` -- read ticket data
-- `mcp__atlassian__updateJiraIssue` -- update custom fields
-- `mcp__atlassian__searchJiraIssues` -- search tickets
-- `mcp__atlassian__addCommentToJiraIssue` -- post enrichment comments
+Install: https://github.com/Zious11/jira-cli
+Auth: `jr auth login`
 
-### Perplexity (Required)
-- `mcp__perplexity__perplexity_search` -- basic CVE lookups
-- `mcp__perplexity__perplexity_ask` -- quick factual queries
-- `mcp__perplexity__perplexity_reason` -- moderate analysis (CVSS 7.0-8.9)
-- `mcp__perplexity__perplexity_research` -- deep research (CVSS 9.0+, 2-5 min)
+### Perplexity MCP (Recommended)
+- `mcp__perplexity__perplexity_search` — basic CVE lookups
+- `mcp__perplexity__perplexity_ask` — quick factual queries
+- `mcp__perplexity__perplexity_reason` — moderate analysis (CVSS 7.0-8.9)
+- `mcp__perplexity__perplexity_research` — deep research (CVSS 9.0+, 2-5 min)
+
+Falls back to `WebSearch`/`WebFetch` if not configured.
 
 ## Domain Expertise
 

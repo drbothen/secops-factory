@@ -6,23 +6,35 @@ PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
 
 # --- require-review hook ---
 
-@test "require-review allows comment-only operations" {
-    run bash -c 'echo "{\"tool_input\": {}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+@test "require-review allows non-jr commands" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"ls -la\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
     [ "$status" -eq 0 ]
     [[ "$output" == *'"permissionDecision":"allow"'* ]]
 }
 
-@test "require-review blocks field updates without review" {
-    run bash -c 'echo "{\"tool_input\": {\"fields\": {\"priority\": {\"name\": \"Critical\"}}}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+@test "require-review allows jr read-only commands" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr issue view SEC-123\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"allow"'* ]]
+}
+
+@test "require-review allows jr issue comment" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr issue comment SEC-123 \\\"enrichment complete\\\"\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"allow"'* ]]
+}
+
+@test "require-review blocks jr issue edit without review" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr issue edit SEC-123 --priority Critical\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
     [ "$status" -eq 0 ]
     [[ "$output" == *'"permissionDecision":"deny"'* ]]
     [[ "$output" == *"review approval"* ]]
 }
 
-@test "require-review allows field updates with review approval" {
-    run bash -c 'echo "{\"tool_input\": {\"fields\": {\"priority\": {\"name\": \"Critical\"}}, \"metadata\": {\"review_approved\": true}}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+@test "require-review blocks jr issue move without review" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr issue move SEC-123 Enriched\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
     [ "$status" -eq 0 ]
-    [[ "$output" == *'"permissionDecision":"allow"'* ]]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
 }
 
 # --- enrichment-completeness hook ---

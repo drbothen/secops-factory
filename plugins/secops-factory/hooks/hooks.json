@@ -2,7 +2,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "mcp__atlassian__updateJiraIssue|mcp__atlassian__addCommentToJiraIssue",
+        "matcher": "Bash",
         "hooks": [
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/require-review.sh", "timeout": 5 }
         ]
@@ -17,7 +17,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "mcp__perplexity__perplexity_search|mcp__perplexity__perplexity_ask|mcp__perplexity__perplexity_reason|mcp__perplexity__perplexity_research",
+        "matcher": "Bash|mcp__perplexity__perplexity_search|mcp__perplexity__perplexity_ask|mcp__perplexity__perplexity_reason|mcp__perplexity__perplexity_research",
         "hooks": [
           { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/bias-check-reminder.sh", "timeout": 5 }
         ]

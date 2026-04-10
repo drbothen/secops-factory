@@ -37,9 +37,10 @@ graph LR
 Before you begin, ensure you have:
 
 - **Claude Code** installed and running
+- **jr CLI** installed ([github.com/Zious11/jira-cli](https://github.com/Zious11/jira-cli)) — Rust CLI for JIRA Cloud
 - **JIRA Cloud** access with API credentials (email + API token)
 - **Perplexity API key** (recommended for AI-assisted CVE research; plugin falls back to web search if not configured)
-- A JIRA project configured for security tickets with custom fields for CVSS, EPSS, KEV status, and priority
+- A JIRA project configured for security tickets
 
 ## Installation
 
@@ -55,25 +56,33 @@ Clone the repository and register it as a local plugin:
 git clone https://github.com/drbothen/secops-factory.git
 ```
 
+## JIRA Configuration (jr CLI)
+
+SecOps Factory uses the `jr` CLI for all JIRA operations. Install and authenticate:
+
+```bash
+# Install jr (Rust, single binary)
+cargo install jira-cli-rs
+# or download from https://github.com/Zious11/jira-cli/releases
+
+# Authenticate with JIRA Cloud
+jr auth login
+```
+
+This stores your credentials in the system keychain. Configuration lives at `~/.config/jr/config.toml`.
+
+The plugin uses these `jr` commands via Bash:
+
+| Command | Purpose |
+|---------|---------|
+| `jr issue view KEY` | Read ticket data |
+| `jr issue edit KEY` | Update fields (priority, labels, etc.) |
+| `jr issue comment KEY "msg"` | Post enrichment and review comments |
+| `jr issue move KEY STATUS` | Transition ticket status |
+| `jr issue list --jql "..."` | Search for tickets |
+| `jr issue assets KEY` | Fetch linked CMDB assets |
+
 ## MCP Server Configuration
-
-SecOps Factory requires two MCP servers. Both must be configured before the plugin will function.
-
-### Atlassian MCP Server
-
-The Atlassian MCP server provides JIRA integration. You need:
-
-1. **JIRA Cloud ID** -- find this in your Atlassian admin settings or by inspecting any JIRA API URL
-2. **API credentials** -- your Atlassian email address and an API token generated from [id.atlassian.com](https://id.atlassian.com/manage-profile/security/api-tokens)
-
-Add the Atlassian MCP server to your Claude Code configuration. The plugin uses these tools:
-
-| Tool | Purpose |
-|------|---------|
-| `mcp__atlassian__getJiraIssue` | Read ticket data |
-| `mcp__atlassian__updateJiraIssue` | Update custom fields |
-| `mcp__atlassian__searchJiraIssues` | Search for tickets |
-| `mcp__atlassian__addCommentToJiraIssue` | Post enrichment and review comments |
 
 ### Perplexity MCP Server
 
@@ -98,7 +107,7 @@ Run the health check to confirm both servers are reachable:
 /secops-health
 ```
 
-You should see PASS for both Atlassian MCP and Perplexity MCP. If either fails, verify your credentials and MCP configuration.
+You should see PASS for jr CLI and Perplexity MCP. If jr fails, run `jr auth login`. If Perplexity fails, the plugin will fall back to web search.
 
 ## First Enrichment Walkthrough
 

@@ -14,22 +14,17 @@ PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
 # require-review.sh — BC-DRAFT-H11 permissionDecision envelope
 # ==========================================================================
 
-@test "integration: require-review denies JIRA update with full Claude Code payload" {
-    # Simulates what Claude Code sends when the agent calls mcp__atlassian__updateJiraIssue
+@test "integration: require-review denies jr issue edit with full Claude Code payload" {
+    # Simulates what Claude Code sends when the agent calls Bash with jr issue edit
     PAYLOAD='{
       "session_id": "sess_abc123",
       "transcript_path": "/tmp/transcript.jsonl",
       "cwd": "/Users/test/project",
       "permission_mode": "default",
       "hook_event_name": "PreToolUse",
-      "tool_name": "mcp__atlassian__updateJiraIssue",
+      "tool_name": "Bash",
       "tool_input": {
-        "issueIdOrKey": "SEC-1234",
-        "fields": {
-          "customfield_10100": "9.8",
-          "customfield_10101": "0.95",
-          "priority": {"name": "Critical"}
-        }
+        "command": "jr issue edit SEC-1234 --priority Critical"
       }
     }'
     run bash -c "echo '$PAYLOAD' | \"\$1/hooks/require-review.sh\"" -- "$PLUGIN_ROOT"
@@ -39,22 +34,16 @@ PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
     echo "$output" | jq -e '.hookSpecificOutput.permissionDecisionReason | length > 0'
 }
 
-@test "integration: require-review allows JIRA update with review marker in full payload" {
+@test "integration: require-review allows jr issue view with full payload" {
     PAYLOAD='{
       "session_id": "sess_abc123",
       "transcript_path": "/tmp/transcript.jsonl",
       "cwd": "/Users/test/project",
       "permission_mode": "default",
       "hook_event_name": "PreToolUse",
-      "tool_name": "mcp__atlassian__updateJiraIssue",
+      "tool_name": "Bash",
       "tool_input": {
-        "issueIdOrKey": "SEC-1234",
-        "fields": {
-          "priority": {"name": "Critical"}
-        },
-        "metadata": {
-          "review_approved": true
-        }
+        "command": "jr issue view SEC-1234"
       }
     }'
     run bash -c "echo '$PAYLOAD' | \"\$1/hooks/require-review.sh\"" -- "$PLUGIN_ROOT"
@@ -199,8 +188,8 @@ PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
 # ==========================================================================
 
 @test "integration: all blocking hooks emit valid JSON with hookSpecificOutput" {
-    # require-review deny
-    out1=$(echo '{"tool_input":{"fields":{"x":"y"}}}' | bash "$PLUGIN_ROOT/hooks/require-review.sh")
+    # require-review deny (jr issue edit)
+    out1=$(echo '{"tool_input":{"command":"jr issue edit SEC-1 --priority High"}}' | bash "$PLUGIN_ROOT/hooks/require-review.sh")
     echo "$out1" | jq -e '.hookSpecificOutput.hookEventName == "PreToolUse"'
     echo "$out1" | jq -e '.hookSpecificOutput | has("permissionDecision")'
 
@@ -214,8 +203,8 @@ PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
 }
 
 @test "integration: all allow envelopes emit valid JSON with hookSpecificOutput" {
-    # require-review allow (no fields)
-    out1=$(echo '{"tool_input":{}}' | bash "$PLUGIN_ROOT/hooks/require-review.sh")
+    # require-review allow (non-jr command)
+    out1=$(echo '{"tool_input":{"command":"ls -la"}}' | bash "$PLUGIN_ROOT/hooks/require-review.sh")
     echo "$out1" | jq -e '.hookSpecificOutput.permissionDecision == "allow"'
 
     # enrichment-completeness allow (non-enrichment file)

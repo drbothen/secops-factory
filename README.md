@@ -36,13 +36,13 @@ git clone https://github.com/drbothen/secops-factory.git
 
 ### 2. Configure MCP servers
 
-SecOps Factory requires two MCP servers. Add them to your Claude Code MCP configuration.
+SecOps Factory uses `jr` CLI for JIRA and Perplexity MCP for AI-assisted research.
 
-**Atlassian (required):**
-Configure the Atlassian MCP server with your JIRA Cloud ID and API credentials. The plugin uses `getJiraIssue`, `updateJiraIssue`, `searchJiraIssues`, and `addCommentToJiraIssue`.
+**jr CLI (required):**
+Install the [jira-cli](https://github.com/Zious11/jira-cli) Rust CLI and authenticate with `jr auth login`. The plugin calls `jr issue view`, `jr issue edit`, `jr issue comment`, `jr issue move`, `jr issue list`, and `jr issue assets` via Bash.
 
-**Perplexity (required):**
-Configure the Perplexity MCP server with your API key. The plugin uses `perplexity_search`, `perplexity_ask`, `perplexity_reason`, and `perplexity_research` at different tiers based on CVE severity.
+**Perplexity MCP (recommended):**
+Configure the Perplexity MCP server with your API key. The plugin uses `perplexity_search`, `perplexity_ask`, `perplexity_reason`, and `perplexity_research` at different tiers based on CVE severity. If not configured, skills fall back to web search.
 
 ### 3. Verify setup
 
@@ -253,21 +253,32 @@ plugins/secops-factory/
     run-all.sh
 ```
 
-## MCP Requirements
+## External Dependencies
 
-### Atlassian MCP Server
+### jr CLI (Required)
 
-Provides JIRA integration for ticket reading, field updates, and comment posting.
+[jira-cli](https://github.com/Zious11/jira-cli) — Rust CLI for JIRA Cloud. Provides ticket reading, field updates, comment posting, status transitions, and CMDB asset queries.
 
-**Required tools:**
-- `mcp__atlassian__getJiraIssue` -- read ticket data
-- `mcp__atlassian__updateJiraIssue` -- update custom fields
-- `mcp__atlassian__searchJiraIssues` -- search tickets
-- `mcp__atlassian__addCommentToJiraIssue` -- post enrichment and review comments
+**Install:**
+```bash
+cargo install jira-cli-rs
+# or download binary from https://github.com/Zious11/jira-cli/releases
+```
 
-**Configuration:** You need your JIRA Cloud ID and API credentials (email + API token).
+**Authenticate:**
+```bash
+jr auth login
+```
 
-### Perplexity MCP Server
+**Key commands used by the plugin:**
+- `jr issue view KEY` — read ticket data
+- `jr issue edit KEY --priority X` — update fields
+- `jr issue comment KEY "msg" --markdown` — post enrichment/review comments
+- `jr issue move KEY STATUS` — transition ticket status
+- `jr issue list --jql "..."` — search tickets
+- `jr issue assets KEY` — fetch linked CMDB assets
+
+### Perplexity MCP Server (Recommended)
 
 Provides AI-assisted CVE research and fact verification with web-grounded results.
 

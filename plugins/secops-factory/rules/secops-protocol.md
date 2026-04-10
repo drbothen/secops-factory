@@ -1,18 +1,18 @@
 # SecOps Factory Protocol
 
-## MCP Requirements
+## External Dependencies
 
-This plugin requires two MCP servers:
+### jr CLI (Required)
+- JIRA operations: read tickets, update fields, post comments, transition status
+- Install: https://github.com/Zious11/jira-cli
+- Auth: `jr auth login` (API token stored in system keychain)
+- Config: `~/.config/jr/config.toml` or `.jr.toml` (project-level)
+- Key commands: `jr issue view`, `jr issue edit`, `jr issue comment`, `jr issue move`, `jr issue list --jql`, `jr issue assets`
 
-### Atlassian JIRA (Required)
-- Used for reading/updating security tickets
-- Tools: `mcp__atlassian__getJiraIssue`, `mcp__atlassian__updateJiraIssue`, `mcp__atlassian__addCommentToJiraIssue`
-- Configuration: JIRA Cloud ID, API credentials, custom field mappings
-
-### Perplexity (Required)
+### Perplexity MCP (Recommended)
 - Used for CVE research and fact verification
 - Tools: `mcp__perplexity__perplexity_search`, `mcp__perplexity__perplexity_ask`, `mcp__perplexity__perplexity_reason`, `mcp__perplexity__perplexity_research`
-- Available by default in Claude Code
+- Graceful fallback: if not configured, skills use `WebSearch`/`WebFetch` to query NVD, FIRST, CISA APIs directly
 
 ## Field Conventions
 

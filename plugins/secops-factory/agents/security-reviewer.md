@@ -5,11 +5,9 @@ model: opus
 color: red
 tools:
   - Read
+  - Bash
   - Grep
   - Glob
-  - mcp__atlassian__getJiraIssue
-  - mcp__perplexity__perplexity_search
-  - mcp__perplexity__perplexity_reason
 ---
 
 # Security Review Specialist

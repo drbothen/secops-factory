@@ -1,12 +1,12 @@
 ---
 name: update-jira
-description: "Use when updating JIRA security ticket custom fields with enrichment data. Validates data, maps to configured field IDs, and updates via Atlassian MCP."
+description: "Use when updating JIRA security ticket custom fields with enrichment data. Validates data, maps to configured field IDs, and updates via jr CLI."
 argument-hint: "<ticket-id>"
 ---
 
 # Update JIRA Fields
 
-Update JIRA security alert custom fields with enrichment data via Atlassian MCP.
+Update JIRA security alert custom fields with enrichment data via `jr` CLI.
 
 ## The Iron Law
 
@@ -53,9 +53,22 @@ Skip invalid fields with warning. Continue with valid fields.
 ### Step 3: Build and Execute Update
 
 1. Map priority to JIRA priority name (P1->Critical, P2->High, P3->Medium, P4->Low, P5->Trivial)
-2. Build fields payload with validated data
-3. Execute `mcp__atlassian__updateJiraIssue`
-4. Verify update success
+2. Update fields via `jr` CLI:
+   ```bash
+   jr issue edit <ticket-id> --priority <priority-name>
+   ```
+3. Post enrichment summary as a comment:
+   ```bash
+   jr issue comment <ticket-id> "Enrichment complete. CVSS: X.X, EPSS: X.XX, KEV: Y/N, Priority: PX" --markdown
+   ```
+4. If status transition needed:
+   ```bash
+   jr issue move <ticket-id> "Enriched"
+   ```
+5. Verify update by re-reading the ticket:
+   ```bash
+   jr issue view <ticket-id>
+   ```
 
 ### Step 4: Report Results
 

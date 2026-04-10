@@ -35,7 +35,7 @@ Before any other action, say verbatim:
 
 ## Prerequisites
 
-- Atlassian MCP server connected
+- `jr` CLI installed and authenticated (`jr auth login`)
 - Valid JIRA ticket ID with security event alert
 - Perplexity MCP available (optional — enriches threat intelligence; investigation proceeds without it using web search fallback)
 

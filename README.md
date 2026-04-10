@@ -62,7 +62,7 @@ Configure the Perplexity MCP server with your API key. The plugin uses `perplexi
 ### 3. Verify setup
 
 ```
-/secops-health
+/secops-factory:secops-health
 ```
 
 This checks MCP server availability, data files, templates, checklists, and skills.
@@ -70,7 +70,7 @@ This checks MCP server availability, data files, templates, checklists, and skil
 ### 4. Run your first enrichment
 
 ```
-/enrich-ticket SEC-1234
+/secops-factory:enrich-ticket SEC-1234
 ```
 
 The plugin reads the JIRA ticket, extracts CVE IDs, researches vulnerability intelligence via Perplexity, assesses business context and priority, maps to MITRE ATT&CK, generates a structured enrichment document, and updates the JIRA ticket.
@@ -133,40 +133,40 @@ flowchart TD
 
 | Command | Arguments | Description |
 |---------|-----------|-------------|
-| `/enrich-ticket` | `<ticket-id>` | Complete 8-stage enrichment workflow for a security ticket |
-| `/research-cve` | `<cve-id>` | Deep CVE research using Perplexity (NVD, EPSS, KEV, exploits) |
-| `/assess-priority` | `<ticket-id>` | Calculate multi-factor priority P1-P5 with SLA |
-| `/map-attack` | `<cve-id>` | Map CVE to MITRE ATT&CK tactics and techniques |
+| `/secops-factory:enrich-ticket` | `<ticket-id>` | Complete 8-stage enrichment workflow for a security ticket |
+| `/secops-factory:research-cve` | `<cve-id>` | Deep CVE research using Perplexity (NVD, EPSS, KEV, exploits) |
+| `/secops-factory:assess-priority` | `<ticket-id>` | Calculate multi-factor priority P1-P5 with SLA |
+| `/secops-factory:map-attack` | `<cve-id>` | Map CVE to MITRE ATT&CK tactics and techniques |
 
 ### Investigation Workflow
 
 | Command | Arguments | Description |
 |---------|-----------|-------------|
-| `/investigate-event` | `<ticket-id>` | Complete 7-stage investigation for security event alerts |
+| `/secops-factory:investigate-event` | `<ticket-id>` | Complete 7-stage investigation for security event alerts |
 
 ### Review Workflow
 
 | Command | Arguments | Description |
 |---------|-----------|-------------|
-| `/review-enrichment` | `<ticket-id> [--type=auto\|cve\|event]` | Polymorphic quality review (auto-detects CVE vs event) |
-| `/adversarial-review-secops` | `<ticket-id>` | Multi-pass adversarial convergence review |
-| `/fact-verify` | `<ticket-id>` | Verify factual claims against authoritative sources |
+| `/secops-factory:review-enrichment` | `<ticket-id> [--type=auto\|cve\|event]` | Polymorphic quality review (auto-detects CVE vs event) |
+| `/secops-factory:adversarial-review-secops` | `<ticket-id>` | Multi-pass adversarial convergence review |
+| `/secops-factory:fact-verify` | `<ticket-id>` | Verify factual claims against authoritative sources |
 
 ### Advisory Workflow
 
 | Command | Arguments | Description |
 |---------|-----------|-------------|
-| `/scan-threats` | `[--sector] [--severity] [--days]` | Scan for emerging threats and identify advisory-worthy items |
-| `/create-advisory` | `<topic\|CVE-ID\|URL> [--template path] [--type it\|ics\|combined]` | Create a structured security advisory from a CVE, URL, or topic with IT/ICS/OT/Combined audience support |
+| `/secops-factory:scan-threats` | `[--sector] [--severity] [--days]` | Scan for emerging threats and identify advisory-worthy items |
+| `/secops-factory:create-advisory` | `<topic\|CVE-ID\|URL> [--template path] [--type it\|ics\|combined]` | Create a structured security advisory from a CVE, URL, or topic with IT/ICS/OT/Combined audience support |
 
 ### Utility
 
 | Command | Arguments | Description |
 |---------|-----------|-------------|
-| `/read-ticket` | `<ticket-id>` | Read and extract data from a JIRA security ticket |
-| `/update-jira` | `<ticket-id>` | Update JIRA custom fields with enrichment data |
-| `/generate-metrics` | `[--period=7d\|30d\|90d]` | Generate security operations metrics and KPIs |
-| `/secops-health` | -- | Check plugin health: MCP servers, data files, templates |
+| `/secops-factory:read-ticket` | `<ticket-id>` | Read and extract data from a JIRA security ticket |
+| `/secops-factory:update-jira` | `<ticket-id>` | Update JIRA custom fields with enrichment data |
+| `/secops-factory:generate-metrics` | `[--period=7d\|30d\|90d]` | Generate security operations metrics and KPIs |
+| `/secops-factory:secops-health` | -- | Check plugin health: MCP servers, data files, templates |
 
 ## What's Inside
 
@@ -339,7 +339,7 @@ bats tests/skills.bats   # 23 skill tests
 ### Plugin health check
 
 ```
-/secops-health
+/secops-factory:secops-health
 ```
 
 Verifies MCP server availability, all 8 data files, 4 templates, 15 checklists, and 11 skills.

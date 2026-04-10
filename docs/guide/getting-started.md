@@ -7,20 +7,20 @@ This guide walks you through installing SecOps Factory, configuring MCP servers,
 ```mermaid
 graph LR
     subgraph "Vulnerability Management"
-        TICKET["JIRA Ticket\n(CVE)"] --> ENRICH["/enrich-ticket\n8 stages"]
-        ENRICH --> REVIEW["/adversarial-review-secops\nConvergence loop"]
-        REVIEW --> UPDATE["/update-jira"]
+        TICKET["JIRA Ticket\n(CVE)"] --> ENRICH["/secops-factory:enrich-ticket\n8 stages"]
+        ENRICH --> REVIEW["/secops-factory:adversarial-review-secops\nConvergence loop"]
+        REVIEW --> UPDATE["/secops-factory:update-jira"]
     end
 
     subgraph "Event Investigation"
-        ALERT["Security Alert"] --> INVESTIGATE["/investigate-event\n7 stages"]
-        INVESTIGATE --> REVIEW2["/adversarial-review-secops"]
-        REVIEW2 --> UPDATE2["/update-jira"]
+        ALERT["Security Alert"] --> INVESTIGATE["/secops-factory:investigate-event\n7 stages"]
+        INVESTIGATE --> REVIEW2["/secops-factory:adversarial-review-secops"]
+        REVIEW2 --> UPDATE2["/secops-factory:update-jira"]
     end
 
     subgraph "Advisory Creation"
-        SCAN["/scan-threats"] --> CANDIDATES["Candidates"]
-        CANDIDATES --> ADVISORY["/create-advisory\nIT / ICS / Combined"]
+        SCAN["/secops-factory:scan-threats"] --> CANDIDATES["Candidates"]
+        CANDIDATES --> ADVISORY["/secops-factory:create-advisory\nIT / ICS / Combined"]
         ADVISORY --> VERIFY["Source Verification"]
     end
 
@@ -106,7 +106,7 @@ The plugin selects the Perplexity tool tier based on CVE severity:
 Run the health check to confirm both servers are reachable:
 
 ```
-/secops-health
+/secops-factory:secops-health
 ```
 
 You should see PASS for jr CLI and Perplexity MCP. If jr fails, run `jr auth login`. If Perplexity fails, the plugin will fall back to web search.
@@ -118,7 +118,7 @@ This walkthrough enriches a JIRA security ticket containing a CVE.
 ### Step 1: Read the ticket
 
 ```
-/read-ticket SEC-1234
+/secops-factory:read-ticket SEC-1234
 ```
 
 The plugin fetches the JIRA ticket and extracts CVE IDs, affected systems, asset criticality, and other metadata. Review the extracted data to confirm the CVE ID and affected systems are correct.
@@ -126,7 +126,7 @@ The plugin fetches the JIRA ticket and extracts CVE IDs, affected systems, asset
 ### Step 2: Run the full enrichment
 
 ```
-/enrich-ticket SEC-1234
+/secops-factory:enrich-ticket SEC-1234
 ```
 
 The plugin executes all 8 stages automatically:
@@ -145,7 +145,7 @@ The entire workflow takes 10-15 minutes. Do not interrupt mid-workflow -- partia
 ### Step 3: Review the enrichment
 
 ```
-/review-enrichment SEC-1234
+/secops-factory:review-enrichment SEC-1234
 ```
 
 The security-reviewer agent (Riley) evaluates the enrichment across 8 quality dimensions and produces a scored review report. If the score meets the 7.0/10 threshold, the enrichment is approved. If not, the review identifies specific gaps to fix.
@@ -153,7 +153,7 @@ The security-reviewer agent (Riley) evaluates the enrichment across 8 quality di
 ### Step 4: Run adversarial convergence (optional)
 
 ```
-/adversarial-review-secops SEC-1234
+/secops-factory:adversarial-review-secops SEC-1234
 ```
 
 This dispatches the security-reviewer in fresh-context passes until convergence. Use this for high-priority tickets (P1/P2) or when extra confidence is needed.
@@ -165,7 +165,7 @@ This walkthrough investigates a security event alert from an ICS, IDS, or SIEM p
 ### Step 1: Read the alert ticket
 
 ```
-/read-ticket SEC-5678
+/secops-factory:read-ticket SEC-5678
 ```
 
 The plugin reads the JIRA ticket and auto-detects the alert platform type (ICS, IDS, or SIEM) from keywords in the ticket content.
@@ -173,7 +173,7 @@ The plugin reads the JIRA ticket and auto-detects the alert platform type (ICS, 
 ### Step 2: Run the full investigation
 
 ```
-/investigate-event SEC-5678
+/secops-factory:investigate-event SEC-5678
 ```
 
 The plugin executes all 7 stages:
@@ -191,7 +191,7 @@ The plugin will prompt you for log excerpts and evidence during Stage 4. Have yo
 ### Step 3: Review the investigation
 
 ```
-/review-enrichment SEC-5678
+/secops-factory:review-enrichment SEC-5678
 ```
 
 The review skill auto-detects the event investigation type and applies the 7-dimension weighted rubric. The reviewer independently forms a disposition before reading the analyst's conclusion, ensuring genuine quality validation.

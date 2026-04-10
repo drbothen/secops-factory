@@ -11,13 +11,13 @@ SecOps Factory uses 3 hooks to enforce quality gates automatically. Hooks fire o
 | Script | `hooks/require-review.sh` |
 | Blocking | Yes |
 
-**What it enforces:** Blocks JIRA field updates unless a review-approval marker is present. Comment-only operations (posting enrichment text) are allowed. Field updates (CVSS, priority, KEV status) are blocked until `/review-enrichment` has been run and the analysis passes quality thresholds.
+**What it enforces:** Blocks JIRA field updates unless a review-approval marker is present. Comment-only operations (posting enrichment text) are allowed. Field updates (CVSS, priority, KEV status) are blocked until `/secops-factory:review-enrichment` has been run and the analysis passes quality thresholds.
 
 **Why:** JIRA field updates represent the official record. Posting unvalidated analysis as authoritative creates false confidence in incomplete or incorrect data.
 
 **When it triggers:** Every Bash command containing `jr issue edit`, `jr issue move`, `jr issue assign`, or `jr issue create`. Read-only commands (`jr issue view`, `jr issue list`, `jr issue comments`) and `jr issue comment` (posting results) are allowed without review.
 
-**How to satisfy it:** Run `/review-enrichment <ticket-id>` before `/update-jira <ticket-id>`. The review skill sets the approval marker when quality thresholds are met.
+**How to satisfy it:** Run `/secops-factory:review-enrichment <ticket-id>` before `/secops-factory:update-jira <ticket-id>`. The review skill sets the approval marker when quality thresholds are met.
 
 ## enrichment-completeness
 

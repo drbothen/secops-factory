@@ -111,7 +111,7 @@ If the same SUBSTANTIVE finding appears across multiple passes:
 ## Running the Adversarial Review
 
 ```
-/adversarial-review-secops SEC-1234
+/secops-factory:adversarial-review-secops SEC-1234
 ```
 
 The command dispatches the security-reviewer agent (Riley) with a forked context. After each pass, findings are classified and the loop continues or terminates per the protocol above.

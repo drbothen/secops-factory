@@ -4,7 +4,7 @@ This guide covers the complete security event investigation pipeline -- from ale
 
 ## When to Use
 
-Use `/investigate-event` when you have a JIRA ticket containing a security event alert from an ICS, IDS/IPS, or SIEM platform that needs investigation, evidence-based disposition, and documentation.
+Use `/secops-factory:investigate-event` when you have a JIRA ticket containing a security event alert from an ICS, IDS/IPS, or SIEM platform that needs investigation, evidence-based disposition, and documentation.
 
 ## Pipeline Overview
 
@@ -77,7 +77,7 @@ When the alert originates from an ICS/SCADA platform:
 ### Stage 1: Triage and Alert Type Detection (2-3 min)
 
 ```
-/investigate-event SEC-5678
+/secops-factory:investigate-event SEC-5678
 ```
 
 The plugin reads the JIRA ticket and auto-detects the alert platform type. It extracts the initial alert metadata: name, severity, timestamp, source system, and rule ID.
@@ -176,7 +176,7 @@ The bias-check-reminder hook fires after every Perplexity research query, remind
 For high-severity events or when confidence in the disposition is Medium or Low:
 
 ```
-/review-enrichment SEC-5678
+/secops-factory:review-enrichment SEC-5678
 ```
 
 The review skill auto-detects the event investigation type and applies the 7-dimension weighted rubric. The reviewer independently forms a disposition before reading the analyst's conclusion.
@@ -184,13 +184,13 @@ The review skill auto-detects the event investigation type and applies the 7-dim
 For convergence-level assurance:
 
 ```
-/adversarial-review-secops SEC-5678
+/secops-factory:adversarial-review-secops SEC-5678
 ```
 
 ## Example Session
 
 ```
-> /investigate-event SEC-5678
+> /secops-factory:investigate-event SEC-5678
 
 I am using the investigate-event skill to run the complete 7-stage
 event investigation workflow for SEC-5678.

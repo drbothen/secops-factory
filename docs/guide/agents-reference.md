@@ -25,7 +25,7 @@ SecOps Factory uses two agents with distinct roles and deliberate information as
 - Atlassian: `getJiraIssue`, `updateJiraIssue`, `searchJiraIssues`, `addCommentToJiraIssue`
 - Perplexity: `perplexity_search`, `perplexity_ask`, `perplexity_reason`, `perplexity_research`
 
-**Available commands:** `/enrich-ticket`, `/research-cve`, `/assess-priority`, `/map-attack`, `/investigate-event`, `/read-ticket`, `/update-jira`
+**Available commands:** `/secops-factory:enrich-ticket`, `/secops-factory:research-cve`, `/secops-factory:assess-priority`, `/secops-factory:map-attack`, `/secops-factory:investigate-event`, `/secops-factory:read-ticket`, `/secops-factory:update-jira`
 
 ## Security Reviewer -- Riley
 
@@ -50,7 +50,7 @@ SecOps Factory uses two agents with distinct roles and deliberate information as
 - Atlassian: `getJiraIssue`, `updateJiraIssue`, `addCommentToJiraIssue`
 - Perplexity: `perplexity_search`, `perplexity_reason`
 
-**Available commands:** `/review-enrichment`, `/fact-verify`, `/adversarial-review-secops`
+**Available commands:** `/secops-factory:review-enrichment`, `/secops-factory:fact-verify`, `/secops-factory:adversarial-review-secops`
 
 ## Information Asymmetry
 
@@ -61,4 +61,4 @@ The reviewer does NOT see:
 
 The reviewer evaluates only the artifact as presented. This asymmetry is the mechanism that catches blind spots. Do not summarize prior reviews for the reviewer -- doing so destroys the quality guarantee.
 
-When dispatched via `/adversarial-review-secops`, the reviewer runs in a forked context. Each pass starts fresh with no memory of previous passes.
+When dispatched via `/secops-factory:adversarial-review-secops`, the reviewer runs in a forked context. Each pass starts fresh with no memory of previous passes.

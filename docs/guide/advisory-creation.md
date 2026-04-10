@@ -6,13 +6,13 @@ Create structured, actionable security advisories for IT, ICS/OT, or combined au
 
 ```mermaid
 graph TD
-    START["Threat Intelligence"] --> SCAN["/scan-threats"]
+    START["Threat Intelligence"] --> SCAN["/secops-factory:scan-threats"]
     SCAN --> CANDIDATES["Advisory Candidates\n(prioritized table)"]
     CANDIDATES --> SELECT["Select candidate"]
     SELECT --> TYPE{"Advisory type?"}
-    TYPE -->|IT| DRAFT_IT["/create-advisory --type it"]
-    TYPE -->|ICS/OT| DRAFT_OT["/create-advisory --type ics"]
-    TYPE -->|Combined| DRAFT_BOTH["/create-advisory --type combined"]
+    TYPE -->|IT| DRAFT_IT["/secops-factory:create-advisory --type it"]
+    TYPE -->|ICS/OT| DRAFT_OT["/secops-factory:create-advisory --type ics"]
+    TYPE -->|Combined| DRAFT_BOTH["/secops-factory:create-advisory --type combined"]
     DRAFT_IT --> RESEARCH["Research\n(Perplexity / WebSearch)"]
     DRAFT_OT --> RESEARCH
     DRAFT_BOTH --> RESEARCH
@@ -20,7 +20,7 @@ graph TD
     VERIFY --> DRAFT["Draft Advisory"]
     DRAFT --> REVIEW["User Review"]
     REVIEW -->|Changes| DRAFT
-    REVIEW -->|Approved| ADVERSARIAL{"/adversarial-review-secops\n(recommended for CVSS >= 7.0)"}
+    REVIEW -->|Approved| ADVERSARIAL{"/secops-factory:adversarial-review-secops\n(recommended for CVSS >= 7.0)"}
     ADVERSARIAL --> PUBLISH["Save Advisory"]
 
     style START fill:#d4edda
@@ -33,13 +33,13 @@ graph TD
 ### Scan for threats first
 
 ```
-/scan-threats --severity critical --days 7
+/secops-factory:scan-threats --severity critical --days 7
 ```
 
 The scan returns a prioritized table of advisory-worthy items. Pick one and create an advisory:
 
 ```
-/create-advisory CVE-2024-1234
+/secops-factory:create-advisory CVE-2024-1234
 ```
 
 ### Direct advisory creation
@@ -47,18 +47,18 @@ The scan returns a prioritized table of advisory-worthy items. Pick one and crea
 If you already know the topic:
 
 ```
-/create-advisory CVE-2024-1234 --type ics
+/secops-factory:create-advisory CVE-2024-1234 --type ics
 ```
 
 ### Using a custom template
 
 ```
-/create-advisory CVE-2024-1234 --template ./our-org-advisory-template.md
+/secops-factory:create-advisory CVE-2024-1234 --template ./our-org-advisory-template.md
 ```
 
 ## Advisory Types
 
-When you run `/create-advisory`, the agent asks which audience to target:
+When you run `/secops-factory:create-advisory`, the agent asks which audience to target:
 
 | Type | Audience | Key Differences |
 |------|----------|----------------|
@@ -139,7 +139,7 @@ This is enforced by the Iron Law: **NO ADVISORY PUBLICATION WITHOUT SOURCE VERIF
 
 ## Threat Scanning
 
-`/scan-threats` searches multiple intelligence sources and scores each candidate:
+`/secops-factory:scan-threats` searches multiple intelligence sources and scores each candidate:
 
 | Factor | Weight | Scoring |
 |--------|--------|---------|
@@ -157,7 +157,7 @@ Items scoring >= 6.0 are recommended for advisory creation.
 For ICS/OT scans, filter by critical infrastructure sector:
 
 ```
-/scan-threats --sector energy --severity high --days 14
+/secops-factory:scan-threats --sector energy --severity high --days 14
 ```
 
 Available sectors: energy, water, manufacturing, transportation, healthcare, all.

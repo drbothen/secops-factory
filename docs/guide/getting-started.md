@@ -2,13 +2,43 @@
 
 This guide walks you through installing SecOps Factory, configuring MCP servers, and running your first vulnerability enrichment and event investigation.
 
+## SecOps Factory Workflows
+
+```mermaid
+graph LR
+    subgraph "Vulnerability Management"
+        TICKET["JIRA Ticket\n(CVE)"] --> ENRICH["/enrich-ticket\n8 stages"]
+        ENRICH --> REVIEW["/adversarial-review-secops\nConvergence loop"]
+        REVIEW --> UPDATE["/update-jira"]
+    end
+
+    subgraph "Event Investigation"
+        ALERT["Security Alert"] --> INVESTIGATE["/investigate-event\n7 stages"]
+        INVESTIGATE --> REVIEW2["/adversarial-review-secops"]
+        REVIEW2 --> UPDATE2["/update-jira"]
+    end
+
+    subgraph "Advisory Creation"
+        SCAN["/scan-threats"] --> CANDIDATES["Candidates"]
+        CANDIDATES --> ADVISORY["/create-advisory\nIT / ICS / Combined"]
+        ADVISORY --> VERIFY["Source Verification"]
+    end
+
+    style TICKET fill:#cce5ff
+    style ALERT fill:#cce5ff
+    style SCAN fill:#cce5ff
+    style REVIEW fill:#f8d7da
+    style REVIEW2 fill:#f8d7da
+    style VERIFY fill:#f8d7da
+```
+
 ## Prerequisites
 
 Before you begin, ensure you have:
 
 - **Claude Code** installed and running
 - **JIRA Cloud** access with API credentials (email + API token)
-- **Perplexity API key** for AI-assisted CVE research
+- **Perplexity API key** (recommended for AI-assisted CVE research; plugin falls back to web search if not configured)
 - A JIRA project configured for security tickets with custom fields for CVSS, EPSS, KEV status, and priority
 
 ## Installation

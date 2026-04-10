@@ -3,7 +3,7 @@
 ICS/OT security operations plugin for Claude Code -- CVE enrichment, event investigation, and adversarial quality review.
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
-![Version: 0.1.0](https://img.shields.io/badge/version-0.1.0-green.svg)
+![Version: 0.3.0](https://img.shields.io/badge/version-0.3.0-green.svg)
 
 ## What is SecOps Factory?
 
@@ -137,6 +137,13 @@ flowchart TD
 | `/adversarial-review-secops` | `<ticket-id>` | Multi-pass adversarial convergence review |
 | `/fact-verify` | `<ticket-id>` | Verify factual claims against authoritative sources |
 
+### Advisory Workflow
+
+| Command | Arguments | Description |
+|---------|-----------|-------------|
+| `/scan-threats` | `[--sector] [--severity] [--days]` | Scan for emerging threats and identify advisory-worthy items |
+| `/create-advisory` | `<topic\|CVE-ID> [--template path] [--type it\|ics\|combined]` | Create a structured security advisory with IT/ICS/OT/Combined audience support |
+
 ### Utility
 
 | Command | Arguments | Description |
@@ -150,9 +157,9 @@ flowchart TD
 
 | Category | Count | Contents |
 |----------|-------|----------|
-| Agents | 2 | security-analyst (Alex, Sonnet), security-reviewer (Riley, Opus) |
-| Skills | 11 | enrich-ticket, research-cve, assess-priority, map-attack, investigate-event, review-enrichment, fact-verify, read-ticket, update-jira, generate-metrics, adversarial-review-secops |
-| Commands | 12 | 11 skill commands + secops-health |
+| Agents | 3 | security-analyst (Sonnet), security-reviewer (Opus), advisory-writer (Sonnet) |
+| Skills | 13 | enrich-ticket, research-cve, assess-priority, map-attack, investigate-event, review-enrichment, fact-verify, read-ticket, update-jira, generate-metrics, adversarial-review-secops, create-advisory, scan-threats |
+| Commands | 14 | 13 skill commands + secops-health |
 | Hooks | 3 | require-review, enrichment-completeness, bias-check-reminder |
 | Knowledge Bases | 8 | CVSS, EPSS, KEV, MITRE ATT&CK, cognitive bias, ICS best practices, priority framework, review standards |
 | Templates | 4 | Enrichment, investigation, CVE review report, event review report |

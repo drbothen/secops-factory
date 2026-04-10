@@ -1,7 +1,7 @@
 {
   "name": "secops-factory",
   "description": "ICS/OT Security Operations — CVE enrichment, event investigation, MITRE ATT&CK mapping, and adversarial quality review with convergence-driven analysis.",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "author": { "name": "drbothen" },
   "homepage": "https://github.com/drbothen/secops-factory",
   "repository": "https://github.com/drbothen/secops-factory",

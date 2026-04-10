@@ -126,6 +126,70 @@ PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
     done
 }
 
+# --- create-advisory skill ---
+
+@test "create-advisory has Iron Law" {
+    grep -qF "NO ADVISORY PUBLICATION WITHOUT SOURCE VERIFICATION FIRST" "$PLUGIN_ROOT/skills/create-advisory/SKILL.md"
+}
+
+@test "create-advisory has Announce at Start" {
+    grep -qF "Announce at Start" "$PLUGIN_ROOT/skills/create-advisory/SKILL.md"
+}
+
+@test "create-advisory has >= 6 Red Flag rows" {
+    count=$(grep -c '^| "' "$PLUGIN_ROOT/skills/create-advisory/SKILL.md" || true)
+    [ "$count" -ge 6 ]
+}
+
+@test "create-advisory supports custom template via --template" {
+    grep -qF -- "--template" "$PLUGIN_ROOT/skills/create-advisory/SKILL.md"
+}
+
+@test "create-advisory presents interactive advisory type choice" {
+    grep -qF "What advisory type?" "$PLUGIN_ROOT/skills/create-advisory/SKILL.md"
+    grep -qF "ICS/OT" "$PLUGIN_ROOT/skills/create-advisory/SKILL.md"
+    grep -qF "Combined" "$PLUGIN_ROOT/skills/create-advisory/SKILL.md"
+}
+
+@test "create-advisory has Source Verification Gate" {
+    grep -qF "Source Verification Gate" "$PLUGIN_ROOT/skills/create-advisory/SKILL.md"
+}
+
+# --- scan-threats skill ---
+
+@test "scan-threats presents environment choice" {
+    grep -qF "What environment should I focus on?" "$PLUGIN_ROOT/skills/scan-threats/SKILL.md"
+}
+
+@test "scan-threats has prioritization scoring" {
+    grep -qF "Score each candidate" "$PLUGIN_ROOT/skills/scan-threats/SKILL.md"
+    grep -qF "Advisory threshold" "$PLUGIN_ROOT/skills/scan-threats/SKILL.md"
+}
+
+@test "scan-threats supports Perplexity fallback" {
+    grep -qF "Web search fallback" "$PLUGIN_ROOT/skills/scan-threats/SKILL.md" || grep -qF "WebSearch" "$PLUGIN_ROOT/skills/scan-threats/SKILL.md"
+}
+
+# --- advisory template exists ---
+
+@test "security-advisory-tmpl.md exists and has required sections" {
+    [ -f "$PLUGIN_ROOT/templates/security-advisory-tmpl.md" ]
+    grep -qF "Executive Summary" "$PLUGIN_ROOT/templates/security-advisory-tmpl.md"
+    grep -qF "Affected Products" "$PLUGIN_ROOT/templates/security-advisory-tmpl.md"
+    grep -qF "Remediation" "$PLUGIN_ROOT/templates/security-advisory-tmpl.md"
+    grep -qF "ICS/OT Context" "$PLUGIN_ROOT/templates/security-advisory-tmpl.md"
+    grep -qF "Detection Guidance" "$PLUGIN_ROOT/templates/security-advisory-tmpl.md"
+    grep -qF "TLP" "$PLUGIN_ROOT/templates/security-advisory-tmpl.md"
+}
+
+# --- advisory-writer agent ---
+
+@test "advisory-writer agent has required frontmatter" {
+    grep -qF "name:" "$PLUGIN_ROOT/agents/advisory-writer.md"
+    grep -qF "model:" "$PLUGIN_ROOT/agents/advisory-writer.md"
+    grep -qF "color:" "$PLUGIN_ROOT/agents/advisory-writer.md"
+}
+
 # --- Honest convergence and hallucination classes ---
 
 @test "adversarial-review-secops has Honest Convergence clause" {

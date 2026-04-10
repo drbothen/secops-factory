@@ -25,6 +25,13 @@ All commands available in SecOps Factory, grouped by workflow.
 | `/adversarial-review-secops` | `<ticket-id>` | Multi-pass adversarial convergence review. Dispatches security-reviewer in fresh-context passes with strict-binary novelty classification. Minimum 2 passes, maximum 5. Quality threshold: >= 7.0/10, no dimension < 5.0. |
 | `/fact-verify` | `<ticket-id>` | Verify factual claims in security analyses against authoritative sources. Checks CVSS, EPSS, KEV values against NVD/FIRST/CISA. For events, verifies IP ownership, geolocation, and threat intelligence associations. |
 
+## Advisory Workflow
+
+| Command | Arguments | Description |
+|---------|-----------|-------------|
+| `/scan-threats` | `[--sector energy\|water\|...] [--severity critical\|high\|medium] [--days 7]` | Scan for emerging security threats across CISA, NVD, KEV, vendor PSIRTs, and ICS-CERT. Returns a prioritized table of advisory-worthy candidates scored by severity, exploit status, KEV listing, sector relevance, and recency. Items scoring >= 6.0 are recommended for advisory creation. Supports IT, ICS/OT, and combined environment filtering. |
+| `/create-advisory` | `<topic\|CVE-ID> [--template path] [--type it\|ics\|combined]` | Create a structured security advisory. Prompts for advisory type (IT/ICS-OT/Combined) unless `--type` is specified. Uses the built-in CSAF-inspired template by default; accepts custom organization templates via `--template`. Researches the topic, verifies all data against NVD/CISA/FIRST, and presents a draft for review. Iron Law: no advisory publication without source verification first. |
+
 ## Utility
 
 | Command | Arguments | Description |
@@ -42,3 +49,7 @@ All commands available in SecOps Factory, grouped by workflow.
 | `<cve-id>` | `CVE-YYYY-NNNNN` (case-insensitive) | `CVE-2024-12345`, `cve-2023-4567` |
 | `--type` | `auto`, `cve`, or `event` | `--type=event` |
 | `--period` | Duration with unit | `7d`, `30d`, `90d` |
+| `--sector` | Critical infra sector | `energy`, `water`, `manufacturing`, `all` |
+| `--severity` | Minimum severity | `critical`, `high`, `medium` |
+| `--days` | Lookback window | `7`, `14`, `30` |
+| `--template` | Path to custom template | `./our-advisory.md` |

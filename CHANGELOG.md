@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.3.0 — Advisory creation + threat scanning
+
+New advisory workflow for creating structured security advisories targeting IT, ICS/OT, or combined audiences.
+
+### New agent
+- **advisory-writer** (Sonnet, blue) — researches threats and generates advisories using built-in or custom templates
+
+### New skills
+- **create-advisory** — discipline skill with Iron Law: `NO ADVISORY PUBLICATION WITHOUT SOURCE VERIFICATION FIRST`. Supports `--type it|ics|combined` for audience selection, `--template <path>` for custom organization templates, source verification gate, and interactive advisory type prompt
+- **scan-threats** — scans CISA, NVD, KEV, vendor PSIRTs, and ICS-CERT for advisory-worthy items. Scored by severity, exploit status, KEV listing, sector relevance, recency, and asset prevalence (threshold >= 6.0). Supports `--sector`, `--severity`, `--days` filters
+
+### New template
+- **security-advisory-tmpl.md** — CSAF Security Advisory profile + CISA ICS-CERT format. 12 sections with conditional ICS/OT block. Supports TLP marking, dual remediation timelines, detection rules (Snort/Sigma/YARA), and revision history
+
+### New commands
+- `/create-advisory` — create a security advisory with audience selection
+- `/scan-threats` — scan for emerging threats with sector/severity filtering
+
+### Documentation
+- **advisory-creation.md** — full walkthrough with Mermaid diagram
+- **getting-started.md** — added workflow overview diagram
+- **commands-reference.md** — updated with advisory commands
+- **README.md** — updated commands table, agent/skill/command counts, version badge
+
+### Tests
+- 11 new tests: Iron Law, Announce, Red Flags, custom template support, interactive type choice, source verification gate, advisory template existence, agent frontmatter, scan-threats scoring/fallback
+- Total: 72 tests (45 skills + 16 hooks + 11 integration)
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),

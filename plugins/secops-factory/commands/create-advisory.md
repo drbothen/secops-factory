@@ -3,6 +3,6 @@ description: Create a structured security advisory for a CVE, threat campaign, o
 argument-hint: "<topic|CVE-ID> [--template path] [--type it|ics|combined]"
 ---
 
-Use the `create-advisory` skill via the Skill tool to draft a security advisory for `$ARGUMENTS`.
+Use the `create-advisory` skill via the Skill tool.
 
-Researches the topic, selects or loads a template, verifies all data against authoritative sources, and presents a draft for review. Supports custom organization templates via `--template`.
+Arguments: $ARGUMENTS

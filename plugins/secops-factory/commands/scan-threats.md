@@ -3,6 +3,6 @@ description: Scan for emerging security threats and identify advisory-worthy ite
 argument-hint: "[--sector energy|water|manufacturing|all] [--severity critical|high|medium] [--days 7]"
 ---
 
-Use the `scan-threats` skill via the Skill tool to scan recent security intelligence for `$ARGUMENTS`.
+Use the `scan-threats` skill via the Skill tool.
 
-Returns a prioritized table of advisory candidates scored by severity, exploit status, KEV listing, sector relevance, and recency. Recommends which items warrant a full advisory.
+Arguments: $ARGUMENTS

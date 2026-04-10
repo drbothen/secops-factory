@@ -1,0 +1,98 @@
+# Security Review Report Template
+#
+# Structures security enrichment review findings into comprehensive
+# constructive feedback reports with blameless, educational feedback.
+
+template:
+  id: security-review-report-v1
+  name: Security Enrichment Review Report
+  version: "1.0"
+  output:
+    format: markdown
+    filename: review-{{ticket_id}}.md
+    title: "Security Review: {{ticket_id}} - {{cve_id}}"
+
+workflow:
+  mode: automated
+
+instructions: |
+  BLAMELESS LANGUAGE REQUIREMENTS:
+  - Always acknowledge strengths BEFORE identifying gaps
+  - Use "we" language (collaborative), not "you" language (accusatory)
+  - Frame gaps as "opportunities for improvement" not "failures"
+  - Provide specific, actionable recommendations for every gap
+  - Link gaps to learning resources
+
+  AVOID: "You missed...", "This is wrong...", "You failed to..."
+  USE: "Adding X would strengthen...", "Consider including...", "This section could benefit from..."
+
+sections:
+  - id: review_metadata
+    title: Review Metadata
+    template: |
+      **Ticket:** {{ticket_id}}
+      **CVE:** {{cve_id}}
+      **Analyst:** {{analyst_name}}
+      **Reviewer:** {{reviewer_name}}
+      **Review Date:** {{review_date}}
+      **Overall Quality Score:** {{quality_score}}% ({{quality_classification}})
+
+  - id: executive_summary
+    title: Executive Summary
+    template: |
+      {{executive_summary}}
+
+  - id: strengths
+    title: Strengths & What Went Well
+    template: |
+      {{#each strengths}}
+      - {{this}}
+      {{/each}}
+
+  - id: quality_scores
+    title: Quality Dimension Scores
+    template: |
+      | Dimension | Score | Assessment |
+      |-----------|-------|------------|
+      {{#each quality_dimensions}}
+      | {{this.name}} | {{this.score}}% | {{this.assessment}} |
+      {{/each}}
+
+  - id: critical_findings
+    title: Critical Findings (Must Fix)
+    template: |
+      {{#each critical_findings}}
+      ### {{this.id}}: {{this.title}}
+      **Location:** {{this.location}}
+      **Issue:** {{this.issue}}
+      **Impact:** {{this.impact}}
+      **Fix:** {{this.fix}}
+      **Resource:** [{{this.resource_title}}]({{this.resource_url}})
+      {{/each}}
+
+  - id: significant_findings
+    title: Significant Findings (Should Fix)
+    template: |
+      {{#each significant_findings}}
+      ### {{this.id}}: {{this.title}}
+      **Location:** {{this.location}}
+      **Issue:** {{this.issue}}
+      **Fix:** {{this.fix}}
+      {{/each}}
+
+  - id: minor_findings
+    title: Minor Improvements (Nice to Have)
+    template: |
+      {{#each minor_findings}}
+      - **{{this.id}}:** {{this.title}} -- {{this.fix}}
+      {{/each}}
+
+  - id: bias_detection
+    title: Cognitive Bias Assessment
+    template: |
+      {{bias_assessment}}
+
+  - id: recommendations
+    title: Recommendations & Next Steps
+    template: |
+      {{recommendations}}

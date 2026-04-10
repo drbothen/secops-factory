@@ -1,0 +1,96 @@
+# Event Investigation Template
+#
+# Structures security event alert investigation findings into comprehensive
+# documentation for JIRA ticket updates.
+
+template:
+  id: event-investigation-template-v1
+  name: Security Event Investigation
+  version: "1.0"
+  output:
+    format: markdown
+    filename: event-investigation-{{ticket_id}}.md
+    title: "Event Investigation: {{alert_name}} - {{ticket_id}}"
+
+workflow:
+  mode: automated
+
+sections:
+  - id: executive-summary
+    title: Executive Summary
+    template: |
+      **{{alert_name}}** ({{alert_severity}} severity) detected by {{alert_platform}} from {{source_ip}} to {{destination_ip}}. Investigation determined disposition: **{{disposition}}** with {{confidence_level}} confidence. Recommendation: {{escalation_decision}} - {{next_actions_summary}}.
+
+  - id: metadata
+    title: Investigation Metadata
+    template: |
+      | Field | Value |
+      |-------|-------|
+      | **Ticket ID** | {{ticket_id}} |
+      | **Alert Platform** | {{alert_platform}} ({{alert_platform_type}}) |
+      | **Alert ID** | {{alert_id}} |
+      | **Detection Timestamp** | {{detection_timestamp}} |
+      | **Analyst** | {{analyst_name}} |
+      | **Investigation Date** | {{investigation_date}} |
+      | **Investigation Duration** | {{investigation_duration}} |
+
+  - id: alert-details
+    title: Alert Details
+    template: |
+      **Alert Name:** {{alert_name}}
+      **Alert Severity:** {{alert_severity}}
+      **Alert Source:** {{alert_source}}
+      **Alert Rule ID:** {{alert_id}}
+      **Alert Category:** {{alert_category}}
+      **Raw Alert Data:** {{raw_alert_data}}
+
+  - id: network-identifiers
+    title: Network/Host Identifiers
+    template: |
+      | Field | Source | Destination |
+      |-------|--------|-------------|
+      | **IP Address** | {{source_ip}} | {{destination_ip}} |
+      | **Hostname** | {{source_hostname}} | {{destination_hostname}} |
+      | **Asset Type** | {{source_asset_type}} | {{destination_asset_type}} |
+      | **Asset Criticality** | {{source_asset_criticality}} | {{destination_asset_criticality}} |
+      | **Zone** | {{source_zone}} | {{destination_zone}} |
+      | **Protocol/Port** | {{protocol}}/{{port}} | |
+
+  - id: evidence
+    title: Evidence Collected
+    template: |
+      **Log Sources Reviewed:** {{log_sources_reviewed}}
+      **Relevant Log Excerpts:**
+      {{relevant_log_excerpts}}
+      **Correlated Events:** {{correlated_events}}
+      **Historical Context:** {{historical_context}}
+      **Threat Intelligence:** {{threat_intelligence_findings}}
+
+  - id: technical-analysis
+    title: Technical Analysis
+    template: |
+      **Protocol/Port Analysis:** {{protocol_port_analysis}}
+      **Attack Vector Analysis:** {{attack_vector_analysis}}
+      **Log Interpretation:** {{log_interpretation}}
+      **IOC Analysis:** {{ioc_analysis}}
+      **Asset Context:** {{asset_function}} ({{business_impact}})
+      **Environmental Factors:** {{environmental_factors}}
+
+  - id: disposition
+    title: Disposition
+    template: |
+      **Disposition:** {{disposition}}
+      **Confidence Level:** {{confidence_level}}
+      **Reasoning:** {{disposition_reasoning}}
+      **Alternative Dispositions Considered:** {{alternative_dispositions_considered}}
+      **Escalation Decision:** {{escalation_decision}}
+
+  - id: next-actions
+    title: Next Actions
+    template: |
+      {{#each next_actions}}
+      - {{this}}
+      {{/each}}
+      **Containment Required:** {{containment_required}}
+      **Tuning Recommendations:** {{tuning_recommendations}}
+      **Monitoring Recommendations:** {{monitoring_recommendations}}

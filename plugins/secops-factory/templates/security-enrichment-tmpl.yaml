@@ -1,0 +1,125 @@
+# Security Enrichment Template
+#
+# Structures CVE research findings into comprehensive security enrichment
+# documents for JIRA ticket updates. Consumes YAML output from research-cve
+# and produces formatted markdown enrichment comments.
+
+template:
+  id: security-enrichment-template-v1
+  name: Security Alert Enrichment
+  version: "1.0"
+  output:
+    format: markdown
+    filename: enrichment-{{cve_id}}.md
+    title: "Security Enrichment: {{cve_id}} - {{vulnerability_title}}"
+
+workflow:
+  mode: automated
+
+sections:
+  - id: executive-summary
+    title: Executive Summary
+    instruction: |
+      Provide a concise executive summary in 2-3 sentences:
+      - Sentence 1: CVE ID, severity, vulnerability type, affected product/versions
+      - Sentence 2: CVSS/EPSS scores and KEV status
+      - Sentence 3: Recommended priority and SLA timeline
+    template: |
+      {{cve_id}} is a **{{cvss.severity}}** severity {{vulnerability_type}} affecting {{affected_product}} versions {{affected_versions_summary}}. The vulnerability has a CVSS score of {{cvss.score}}, EPSS score of {{epss.score}}, and is {{kev_status_text}} on the CISA KEV catalog. Recommended priority: **{{priority}}** ({{sla_timeline}}).
+
+  - id: vulnerability-details
+    title: Vulnerability Details
+    instruction: |
+      CVE identifier, vulnerability type, affected product, versions, patches, description.
+    template: |
+      **CVE ID:** {{cve_id}}
+      **Vulnerability Title:** {{vulnerability_title}}
+      **Type:** {{vulnerability_type}}
+      **Affected Product:** {{affected_product}}
+      **Affected Versions:** {{affected_versions_list}}
+      **Patched Versions:** {{patched_versions_list}}
+      **Description:** {{vulnerability_description}}
+
+  - id: severity-metrics
+    title: Severity Metrics
+    instruction: |
+      CVSS score, vector, severity label, EPSS score and percentile, KEV status.
+    template: |
+      | Metric | Value | Source |
+      |--------|-------|--------|
+      | CVSS Base Score | {{cvss.score}} ({{cvss.severity}}) | NVD |
+      | CVSS Vector | {{cvss.vector}} | NVD |
+      | EPSS Score | {{epss.score}} ({{epss.percentile}}th percentile) | FIRST |
+      | CISA KEV Status | {{kev.status}} | CISA |
+      | Exploit Status | {{exploit_status}} | Multiple |
+
+  - id: exploit-intelligence
+    title: Exploit Intelligence
+    instruction: |
+      PoC availability, public exploit code, active exploitation, exploit frameworks.
+    template: |
+      **PoC Available:** {{exploit.poc_available}}
+      **Public Exploit Code:** {{exploit.code_public}}
+      **Active Exploitation:** {{exploit.active}}
+      **Exploit Frameworks:** {{exploit.frameworks}}
+
+  - id: business-impact
+    title: Business Impact Assessment
+    instruction: |
+      Asset criticality, system exposure, business impact dimensions.
+    template: |
+      **Asset Criticality Rating:** {{acr_rating}}
+      **System Exposure:** {{system_exposure}}
+      **Business Impact:** {{business_impact}}
+
+  - id: attack-mapping
+    title: MITRE ATT&CK Mapping
+    instruction: |
+      Tactics and techniques with T-numbers and detection recommendations.
+    template: |
+      **Tactics:** {{attack_tactics}}
+      **Techniques:**
+      {{#each attack_techniques}}
+      - {{this.id}} - {{this.name}} ({{this.confidence}})
+      {{/each}}
+
+  - id: remediation-guidance
+    title: Remediation Guidance
+    instruction: |
+      Patches, workarounds, compensating controls, step-by-step remediation.
+    template: |
+      **Patch Available:** {{patch_available}}
+      **Patch Version:** {{patch_version}}
+      **Vendor Advisory:** {{patch_url}}
+      **Workarounds:** {{workarounds}}
+      **Compensating Controls:** {{compensating_controls}}
+      **Remediation Steps:**
+      {{remediation_steps}}
+
+  - id: priority-assessment
+    title: Priority Assessment
+    instruction: |
+      Priority level, risk score, SLA deadline, factor breakdown, rationale.
+    template: |
+      **Priority Level:** {{priority}} - {{priority_label}}
+      **Risk Score:** {{total_score}}/24 points
+      **SLA Deadline:** {{sla_deadline}}
+      **Rationale:** {{priority_rationale}}
+
+  - id: references
+    title: References
+    instruction: |
+      Authoritative source citations with URLs.
+    template: |
+      {{#each sources}}
+      - [{{this.type}}]({{this.url}})
+      {{/each}}
+
+  - id: enrichment-metadata
+    title: Enrichment Metadata
+    instruction: |
+      Timestamp, analyst, data completeness.
+    template: |
+      **Enriched:** {{enrichment_timestamp}}
+      **Analyst:** {{analyst_name}}
+      **Data Completeness:** {{data_completeness}}

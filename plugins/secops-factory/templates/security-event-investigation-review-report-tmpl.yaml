@@ -1,0 +1,111 @@
+# Security Event Investigation Review Report Template
+#
+# Structures event investigation review findings with disposition
+# agreement/disagreement tracking and blameless feedback.
+
+template:
+  id: security-event-investigation-review-report-v2
+  name: Security Event Investigation Review Report
+  version: "2.0"
+  output:
+    format: markdown
+    filename: event-investigation-review-{{ticket_id}}.md
+    title: "Event Investigation Review: {{ticket_id}}"
+
+workflow:
+  mode: automated
+
+instructions: |
+  BLAMELESS LANGUAGE REQUIREMENTS:
+  - Always acknowledge strengths BEFORE identifying gaps
+  - Use "we" language, not "you" language
+  - Frame gaps as "opportunities for improvement"
+  - Provide specific, actionable recommendations for every gap
+
+  DISPOSITION AGREEMENT/DISAGREEMENT HANDLING:
+  - If agreeing: Confirm with supporting evidence
+  - If disagreeing: Explain with specific evidence and logic
+  - Avoid blame -- frame as collaborative analysis
+  - Use "Reviewer assessment suggests..." not "You got it wrong..."
+
+sections:
+  - id: review_metadata
+    title: Review Metadata
+    template: |
+      **Ticket:** {{ticket_id}}
+      **Alert ID:** {{alert_id}}
+      **Alert Type:** {{alert_type}}
+      **Investigation Date:** {{investigation_timestamp}}
+      **Analyst:** {{analyst_name}}
+      **Reviewer:** {{reviewer_name}}
+      **Review Date:** {{review_date}}
+      **Overall Quality Score:** {{overall_score}}% ({{quality_classification}})
+
+  - id: executive_summary
+    title: Executive Summary
+    template: |
+      {{executive_summary}}
+
+  - id: strengths
+    title: Strengths & What Went Well
+    template: |
+      {{#each strengths}}
+      - {{this}}
+      {{/each}}
+
+  - id: quality_scores
+    title: Quality Dimension Scores (Weighted)
+    template: |
+      | Dimension | Weight | Score | Weighted |
+      |-----------|--------|-------|----------|
+      {{#each quality_dimensions}}
+      | {{this.name}} | {{this.weight}}% | {{this.score}}% | {{this.weighted}}% |
+      {{/each}}
+      | **Overall** | **100%** | | **{{overall_score}}%** |
+
+  - id: disposition_review
+    title: Disposition Review
+    template: |
+      **Analyst Disposition:** {{analyst_disposition}} ({{analyst_confidence}})
+      **Reviewer Disposition:** {{reviewer_disposition}} ({{reviewer_confidence}})
+      **Agreement:** {{disposition_agreement}}
+      {{#if disposition_disagreement_reasoning}}
+      **Reviewer Assessment:** {{disposition_disagreement_reasoning}}
+      {{/if}}
+
+  - id: critical_findings
+    title: Critical Findings
+    template: |
+      {{#each critical_findings}}
+      ### {{this.id}}: {{this.title}}
+      **Location:** {{this.location}}
+      **Issue:** {{this.issue}}
+      **Impact:** {{this.impact}}
+      **Fix:** {{this.fix}}
+      {{/each}}
+
+  - id: significant_findings
+    title: Significant Findings
+    template: |
+      {{#each significant_findings}}
+      ### {{this.id}}: {{this.title}}
+      **Issue:** {{this.issue}}
+      **Fix:** {{this.fix}}
+      {{/each}}
+
+  - id: minor_findings
+    title: Minor Improvements
+    template: |
+      {{#each minor_findings}}
+      - **{{this.id}}:** {{this.title}} -- {{this.fix}}
+      {{/each}}
+
+  - id: bias_detection
+    title: Cognitive Bias Assessment
+    template: |
+      {{bias_assessment}}
+
+  - id: recommendations
+    title: Recommendations & Next Steps
+    template: |
+      {{recommendations}}

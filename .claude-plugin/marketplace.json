@@ -1,0 +1,16 @@
+{
+  "name": "secops-factory",
+  "owner": { "name": "drbothen" },
+  "metadata": {
+    "description": "SecOps Factory marketplace — ICS/OT security operations plugins for Claude Code."
+  },
+  "plugins": [
+    {
+      "name": "secops-factory",
+      "source": "./plugins/secops-factory",
+      "description": "CVE enrichment, event investigation, MITRE ATT&CK mapping, adversarial quality review for ICS/OT security teams.",
+      "category": "security",
+      "tags": ["security", "ics", "vulnerability", "secops"]
+    }
+  ]
+}

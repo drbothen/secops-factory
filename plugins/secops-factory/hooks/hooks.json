@@ -1,0 +1,20 @@
+[
+  {
+    "hook_type": "PreToolUse",
+    "tool_name": "mcp__atlassian__updateJiraIssue",
+    "script": "hooks/require-review.sh",
+    "description": "Blocks JIRA updates without review approval marker"
+  },
+  {
+    "hook_type": "PreToolUse",
+    "tool_name": "Write",
+    "script": "hooks/enrichment-completeness.sh",
+    "description": "Blocks saving partial enrichment as complete"
+  },
+  {
+    "hook_type": "PostToolUse",
+    "tool_name": "mcp__perplexity__perplexity_search",
+    "script": "hooks/bias-check-reminder.sh",
+    "description": "Non-blocking reminder to check cognitive bias after research"
+  }
+]

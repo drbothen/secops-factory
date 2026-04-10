@@ -3,6 +3,6 @@ description: Create a structured security advisory for a CVE, threat campaign, o
 argument-hint: "<topic|CVE-ID> [--template path] [--type it|ics|combined]"
 ---
 
-Use the `create-advisory` skill via the Skill tool.
+Use the `secops-factory create-advisory` skill via the Skill tool.
 
 Arguments: $ARGUMENTS

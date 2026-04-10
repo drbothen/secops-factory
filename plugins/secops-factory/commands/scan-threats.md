@@ -3,6 +3,6 @@ description: Scan for emerging security threats and identify advisory-worthy ite
 argument-hint: "[--sector energy|water|manufacturing|all] [--severity critical|high|medium] [--days 7]"
 ---
 
-Use the `scan-threats` skill via the Skill tool.
+Use the `secops-factory scan-threats` skill via the Skill tool.
 
 Arguments: $ARGUMENTS

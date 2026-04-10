@@ -35,6 +35,13 @@ SecOps Factory connects directly to your JIRA instance for ticket intake and enr
 /plugin install secops-factory@secops-factory
 ```
 
+**Update to latest version:**
+
+```shell
+/plugin marketplace update drbothen/secops-factory
+/plugin update secops-factory@secops-factory
+```
+
 **From source (local development):**
 
 ```bash

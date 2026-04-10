@@ -30,7 +30,7 @@ All commands available in SecOps Factory, grouped by workflow.
 | Command | Arguments | Description |
 |---------|-----------|-------------|
 | `/scan-threats` | `[--sector energy\|water\|...] [--severity critical\|high\|medium] [--days 7]` | Scan for emerging security threats across CISA, NVD, KEV, vendor PSIRTs, and ICS-CERT. Returns a prioritized table of advisory-worthy candidates scored by severity, exploit status, KEV listing, sector relevance, and recency. Items scoring >= 6.0 are recommended for advisory creation. Supports IT, ICS/OT, and combined environment filtering. |
-| `/create-advisory` | `<topic\|CVE-ID> [--template path] [--type it\|ics\|combined]` | Create a structured security advisory. Prompts for advisory type (IT/ICS-OT/Combined) unless `--type` is specified. Uses the built-in CSAF-inspired template by default; accepts custom organization templates via `--template`. Researches the topic, verifies all data against NVD/CISA/FIRST, and presents a draft for review. Iron Law: no advisory publication without source verification first. |
+| `/create-advisory` | `<topic\|CVE-ID\|URL> [--template path] [--type it\|ics\|combined]` | Create a structured security advisory from a CVE ID, a URL (fetches and parses the page), or a topic/campaign name. Prompts for advisory type (IT/ICS-OT/Combined) unless `--type` is specified. Uses the built-in CSAF-inspired template by default; accepts custom templates via `--template`. Verifies all data against NVD/CISA/FIRST. |
 
 ## Utility
 

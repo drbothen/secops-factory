@@ -3,7 +3,7 @@
 ICS/OT security operations plugin for Claude Code -- CVE enrichment, event investigation, and adversarial quality review.
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
-![Version: 0.4.2](https://img.shields.io/badge/version-0.4.2-green.svg)
+![Version: 0.5.0](https://img.shields.io/badge/version-0.5.0-green.svg)
 
 ## What is SecOps Factory?
 
@@ -157,7 +157,7 @@ flowchart TD
 | Command | Arguments | Description |
 |---------|-----------|-------------|
 | `/scan-threats` | `[--sector] [--severity] [--days]` | Scan for emerging threats and identify advisory-worthy items |
-| `/create-advisory` | `<topic\|CVE-ID> [--template path] [--type it\|ics\|combined]` | Create a structured security advisory with IT/ICS/OT/Combined audience support |
+| `/create-advisory` | `<topic\|CVE-ID\|URL> [--template path] [--type it\|ics\|combined]` | Create a structured security advisory from a CVE, URL, or topic with IT/ICS/OT/Combined audience support |
 
 ### Utility
 

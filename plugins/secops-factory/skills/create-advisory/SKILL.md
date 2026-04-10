@@ -1,7 +1,7 @@
 ---
 name: create-advisory
 description: "Use when creating a structured security advisory for a CVE, threat campaign, or vendor bulletin. Supports IT, ICS/OT, and combined audiences. Accepts built-in or custom templates."
-argument-hint: "<topic|CVE-ID> [--template path] [--type it|ics|combined]"
+argument-hint: "<topic|CVE-ID|URL> [--template path] [--type it|ics|combined]"
 disable-model-invocation: true
 ---
 
@@ -36,7 +36,10 @@ Before any other action, say verbatim:
 
 ## Input
 
-- `$ARGUMENTS[0]` — topic: a CVE ID (e.g., `CVE-2024-1234`), threat campaign name, or vendor advisory reference
+- `$ARGUMENTS[0]` — topic: one of the following:
+  - A **CVE ID** (e.g., `CVE-2024-1234`) — triggers CVE research pipeline
+  - A **URL** (e.g., `https://www.cisa.gov/...`) — fetches the page content with `WebFetch`, extracts CVEs, severity, affected products, and generates an advisory from it
+  - A **threat campaign name** or vendor advisory reference — triggers search-based research
 - `--template <path>` — optional: path to a custom template file. If omitted, uses the built-in default at `${CLAUDE_PLUGIN_ROOT}/templates/security-advisory-tmpl.md`
 - `--type <it|ics|combined>` — optional: pre-select advisory type. If omitted, prompt the user interactively.
 
@@ -81,8 +84,14 @@ Custom templates allow organizations to:
 
 ### Step 1: Research (3-8 min with Perplexity, 5-15 min with web search)
 
-1. If topic is a CVE ID: run `/research-cve <CVE-ID>` for structured intelligence (research-cve handles its own Perplexity fallback)
-2. If topic is a threat campaign or vendor advisory:
+1. **If topic is a URL** (starts with `http://` or `https://`):
+   - Fetch the page with `WebFetch` and extract advisory content
+   - Parse for CVE IDs, CVSS scores, affected products, remediation guidance
+   - For each CVE ID found, also run `/research-cve <CVE-ID>` to cross-reference against NVD/EPSS/KEV
+   - Use the fetched page as the primary source; supplement with research data
+   - Note in the advisory References section: `Source: <URL>`
+2. **If topic is a CVE ID** (matches `CVE-\d{4}-\d{4,7}`): run `/research-cve <CVE-ID>` for structured intelligence (research-cve handles its own Perplexity fallback)
+3. **If topic is a threat campaign or vendor advisory name:**
    - **Try Perplexity first:** call any `mcp__perplexity__*` tool. If it works, use `perplexity_research` for deep analysis.
    - **If Perplexity fails or is not available:** switch to `WebSearch` immediately. Do NOT stop or ask the user to configure Perplexity. Use these queries:
      - `WebSearch` for "<campaign name> CVE advisory [year]"

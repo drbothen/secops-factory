@@ -39,6 +39,18 @@ Before any other action, say verbatim:
 - Valid JIRA ticket ID with security event alert
 - Perplexity MCP available (optional — enriches threat intelligence; investigation proceeds without it using web search fallback)
 
+## Research Tool Selection
+
+Before Stage 3, determine which research path to use for the entire investigation:
+
+1. **Try calling any `mcp__perplexity__*` tool** (e.g., `mcp__perplexity__perplexity_search` with a simple test query)
+2. **If it succeeds:** use Perplexity for all threat intelligence queries in Stages 3-5
+3. **If it fails (unknown tool, MCP error, timeout):** use `WebSearch` and `WebFetch` for all threat intelligence queries. Do NOT retry Perplexity, do NOT ask the user to configure it, do NOT stop the investigation.
+
+Announce which path: "Using Perplexity for threat intelligence" or "Perplexity not available — using web search for threat intelligence."
+
+This decision is made ONCE at the start and applies to all stages. Do not re-check per stage.
+
 ## Workflow: 7 Stages
 
 ### Stage 1: Triage and Alert Type Detection (2-3 min)

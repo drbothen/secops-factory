@@ -79,15 +79,17 @@ Custom templates allow organizations to:
 
 ## Workflow
 
-### Step 1: Research (3-8 min)
+### Step 1: Research (3-8 min with Perplexity, 5-15 min with web search)
 
-1. If topic is a CVE ID: run `/research-cve <CVE-ID>` for structured intelligence
-2. If topic is a threat campaign or vendor advisory: use Perplexity/WebSearch to collect:
-   - All associated CVEs
-   - Affected products and versions
-   - Exploit status and timeline
-   - IOCs if available
-   - Vendor remediation guidance
+1. If topic is a CVE ID: run `/research-cve <CVE-ID>` for structured intelligence (research-cve handles its own Perplexity fallback)
+2. If topic is a threat campaign or vendor advisory:
+   - **Try Perplexity first:** call any `mcp__perplexity__*` tool. If it works, use `perplexity_research` for deep analysis.
+   - **If Perplexity fails or is not available:** switch to `WebSearch` immediately. Do NOT stop or ask the user to configure Perplexity. Use these queries:
+     - `WebSearch` for "<campaign name> CVE advisory [year]"
+     - `WebSearch` for "<vendor> security advisory <product>"
+     - `WebFetch` on NVD API: `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=<CVE-ID>`
+     - `WebFetch` on EPSS API: `https://api.first.org/data/v1/epss?cve=<CVE-ID>`
+   - Collect: all associated CVEs, affected products/versions, exploit status, IOCs, vendor remediation
 3. Verify all data against authoritative sources (NVD, CISA, FIRST)
 
 ### Step 2: Template Selection

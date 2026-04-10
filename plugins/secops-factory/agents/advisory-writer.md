@@ -54,12 +54,20 @@ The selection determines:
 
 ## Research Strategy
 
-### With Perplexity MCP
+**At the start of every session, determine your research path:**
+
+1. Try calling `mcp__perplexity__perplexity_search` with a simple test query (e.g., "CISA advisory")
+2. If it succeeds → use **Path A** for all research in this session
+3. If it fails (unknown tool, MCP error) → use **Path B** for all research. Do NOT retry Perplexity, do NOT ask the user to configure it, do NOT stop working.
+
+Announce: "Using Perplexity for research" or "Perplexity not available — using web search."
+
+### Path A: With Perplexity MCP
 - `perplexity_research` for critical/high severity (deep analysis)
 - `perplexity_reason` for medium severity or complex attack chains
 - `perplexity_search` for quick lookups and verification
 
-### Without Perplexity (fallback)
+### Path B: Without Perplexity (WebSearch/WebFetch)
 - `WebSearch` for CVE details, vendor advisories, exploit status
 - `WebFetch` for direct API queries:
   - NVD: `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=<CVE-ID>`

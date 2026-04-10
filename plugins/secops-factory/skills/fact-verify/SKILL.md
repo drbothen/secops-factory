@@ -33,8 +33,10 @@ Verify factual claims in security documents against authoritative sources. Uses 
 
 ### Step 3: Verify Each Claim
 
+Before verifying any claims, determine research path: try calling any `mcp__perplexity__*` tool with a simple test. If it fails (unknown tool, MCP error), use `WebSearch`/`WebFetch` for ALL claims. Do not retry Perplexity or stop. Announce which path.
+
 For each claim:
-1. If Perplexity MCP is available: query with specific verification question
+1. If Perplexity is available: query with specific verification question
 2. If Perplexity is not available: use `WebSearch` or `WebFetch` to query authoritative APIs directly:
    - NVD API for CVSS: `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=<CVE-ID>`
    - FIRST API for EPSS: `https://api.first.org/data/v1/epss?cve=<CVE-ID>`

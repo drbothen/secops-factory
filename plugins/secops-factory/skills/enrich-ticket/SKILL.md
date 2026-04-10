@@ -36,8 +36,10 @@ Before any other action, say verbatim:
 ## Prerequisites
 
 - `jr` CLI installed and authenticated (`jr auth login`) — for JIRA read/write
-- Perplexity MCP server connected (recommended — for AI-assisted CVE research; graceful fallback to web search if not configured)
+- Perplexity MCP (optional — AI-assisted CVE research). If not available, `/research-cve` automatically falls back to web search. No configuration needed.
 - Valid JIRA ticket ID provided as argument
+
+**Note:** This skill delegates CVE research to `/research-cve`, which handles the Perplexity/WebSearch fallback internally. You do not need to check Perplexity availability yourself — just call `/research-cve` and it handles it.
 
 ## Workflow: 8 Stages
 

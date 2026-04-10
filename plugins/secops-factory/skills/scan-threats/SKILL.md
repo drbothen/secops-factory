@@ -48,18 +48,27 @@ The selection shapes which sources are prioritized and how results are filtered.
 
 ## Research Method
 
-Use Perplexity MCP if available (recommended for comprehensive scanning). Fall back to `WebSearch` with targeted queries per source category.
+**Step 1: Check Perplexity availability.** Try calling any `mcp__perplexity__*` tool. If the tool exists and responds, use the Perplexity path. If the tool call fails with "unknown tool", "not found", or any MCP error, switch immediately to the web search path. Do NOT retry Perplexity or ask the user to configure it — proceed with web search.
 
-**Perplexity queries (examples):**
+### Path A: With Perplexity MCP
+
+Use these queries (adapt to sector/severity/days args):
 - "CISA cybersecurity advisories published in the last 7 days"
 - "critical CVEs affecting ICS SCADA systems published this week"
 - "new additions to CISA Known Exploited Vulnerabilities catalog this month"
 - "active ransomware campaigns targeting [sector] infrastructure 2024"
 
-**Web search fallback queries:**
-- Search CISA RSS feeds
-- Search NVD recent entries
-- Search vendor PSIRT pages
+### Path B: Without Perplexity (WebSearch fallback)
+
+If Perplexity is not available, use `WebSearch` for each source category:
+
+1. **CISA alerts:** `WebSearch` for "site:cisa.gov cybersecurity advisory 2024"
+2. **NVD recent CVEs:** `WebSearch` for "site:nvd.nist.gov CVE critical [days] days"
+3. **KEV additions:** `WebFetch` on `https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json` and filter by dateAdded
+4. **Vendor PSIRTs:** `WebSearch` for "site:msrc.microsoft.com OR site:sec.cloudapps.cisco.com security advisory [month] [year]"
+5. **ICS-CERT:** `WebSearch` for "site:cisa.gov ics advisory ICSA [year]"
+
+Announce which path you are using: "Using Perplexity for threat scanning" or "Perplexity not available — using web search for threat scanning."
 
 ## Prioritization Criteria
 

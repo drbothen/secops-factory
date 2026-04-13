@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.1] - 2026-04-13
+## [0.5.2] - 2026-04-13
 
 Release infrastructure and CI/CD.
 
@@ -19,6 +19,9 @@ Release infrastructure and CI/CD.
 ### Changed
 - CHANGELOG backfilled with complete entries for all 7 prior releases
 - Bump `actions/checkout` from v4 to v6 in all workflows (Node.js 20 deprecation)
+
+### Fixed
+- Release workflow CHANGELOG extraction regex (was matching version header as both start and end pattern)
 
 ## [0.5.0] - 2026-04-12
 

@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "secops-factory",
-      "version": "0.5.1",
+      "version": "0.5.2",
       "source": "./plugins/secops-factory",
       "description": "CVE enrichment, event investigation, MITRE ATT&CK mapping, adversarial quality review for ICS/OT security teams.",
       "category": "security",

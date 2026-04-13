@@ -3,7 +3,7 @@
 ICS/OT security operations plugin for Claude Code -- CVE enrichment, event investigation, and adversarial quality review.
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
-![Version: 0.5.0](https://img.shields.io/badge/version-0.5.2-green.svg)
+![Version: 0.5.0](https://img.shields.io/badge/version-0.5.3-green.svg)
 
 ## What is SecOps Factory?
 

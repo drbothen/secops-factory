@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2026-04-13
+
+Release infrastructure and CI/CD.
+
+### Added
+- **CI workflow** (`.github/workflows/ci.yml`) — BATS tests, plugin structure validation, shellcheck on hooks (3 parallel jobs on push/PR)
+- **Release workflow** (`.github/workflows/release.yml`) — tag-triggered validation + GitHub Release creation with CHANGELOG excerpt
+- **Release config** (`.factory/release-config.yaml`) — declarative manifest for vsdd-factory release skill
+- Retroactive git tags and GitHub Releases for all prior versions (v0.1.0 through v0.5.0)
+- Version field in marketplace.json for release validation
+
+### Changed
+- CHANGELOG backfilled with complete entries for all 7 prior releases
+- Bump `actions/checkout` from v4 to v6 in all workflows (Node.js 20 deprecation)
+
 ## [0.5.0] - 2026-04-12
 
 URL input support for advisory creation and Perplexity fallback hardening.

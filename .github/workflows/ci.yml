@@ -10,7 +10,7 @@ jobs:
     name: BATS Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install bats
         run: |
@@ -24,7 +24,7 @@ jobs:
     name: Plugin Structure Validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Validate plugin.json is valid JSON
         run: jq . plugins/secops-factory/.claude-plugin/plugin.json
@@ -74,7 +74,7 @@ jobs:
     name: Shellcheck Hooks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run shellcheck on hook scripts
         run: shellcheck plugins/secops-factory/hooks/*.sh

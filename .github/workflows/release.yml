@@ -12,7 +12,7 @@ jobs:
     name: Pre-release Validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install bats
         run: |
@@ -48,7 +48,7 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Extract changelog for this version
         id: changelog

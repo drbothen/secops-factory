@@ -12,6 +12,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Mount factory artifacts
+        run: |
+          git fetch origin factory-artifacts
+          git worktree add .factory origin/factory-artifacts
+
       - name: Install bats
         run: |
           sudo apt-get update
@@ -25,6 +30,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+
+      - name: Mount factory artifacts
+        run: |
+          git fetch origin factory-artifacts
+          git worktree add .factory origin/factory-artifacts
 
       - name: Validate plugin.json is valid JSON
         run: jq . plugins/secops-factory/.claude-plugin/plugin.json
@@ -75,6 +85,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+
+      - name: Mount factory artifacts
+        run: |
+          git fetch origin factory-artifacts
+          git worktree add .factory origin/factory-artifacts
 
       - name: Run shellcheck on hook scripts
         run: shellcheck plugins/secops-factory/hooks/*.sh

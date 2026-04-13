@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: BATS Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install bats
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats
+
+      - name: Run test suite
+        run: cd plugins/secops-factory/tests && ./run-all.sh
+
+  structure:
+    name: Plugin Structure Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate plugin.json is valid JSON
+        run: jq . plugins/secops-factory/.claude-plugin/plugin.json
+
+      - name: Validate hooks.json is valid JSON
+        run: jq . plugins/secops-factory/hooks/hooks.json
+
+      - name: Validate all skills have SKILL.md
+        run: |
+          status=0
+          for dir in plugins/secops-factory/skills/*/; do
+            if [ ! -f "$dir/SKILL.md" ]; then
+              echo "MISSING: $dir/SKILL.md"
+              status=1
+            fi
+          done
+          exit $status
+
+      - name: Validate all commands reference existing skills
+        run: |
+          status=0
+          for cmd in plugins/secops-factory/commands/*.md; do
+            skill_name=$(basename "$cmd" .md)
+            if [ "$skill_name" != "secops-health" ]; then
+              if [ ! -d "plugins/secops-factory/skills/$skill_name" ]; then
+                echo "Command $cmd references missing skill $skill_name"
+                status=1
+              fi
+            fi
+          done
+          exit $status
+
+      - name: Validate data files exist
+        run: |
+          status=0
+          for f in cvss-guide epss-guide kev-catalog-guide mitre-attack-mapping-guide \
+                   cognitive-bias-patterns event-investigation-best-practices \
+                   priority-framework review-best-practices; do
+            if [ ! -f "plugins/secops-factory/data/$f.md" ]; then
+              echo "MISSING: data/$f.md"
+              status=1
+            fi
+          done
+          exit $status
+
+  shellcheck:
+    name: Shellcheck Hooks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run shellcheck on hook scripts
+        run: shellcheck plugins/secops-factory/hooks/*.sh

@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    name: Pre-release Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install bats
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats
+
+      - name: Run test suite
+        run: cd plugins/secops-factory/tests && ./run-all.sh
+
+      - name: Shellcheck hooks
+        run: shellcheck plugins/secops-factory/hooks/*.sh
+
+      - name: Validate tag matches plugin.json version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PLUGIN_VERSION=$(jq -r '.version' plugins/secops-factory/.claude-plugin/plugin.json)
+          if [ "$TAG_VERSION" != "$PLUGIN_VERSION" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match plugin.json version $PLUGIN_VERSION"
+            exit 1
+          fi
+
+      - name: Validate tag matches marketplace.json version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          MKT_VERSION=$(jq -r '.plugins[0].version // empty' .claude-plugin/marketplace.json)
+          if [ -n "$MKT_VERSION" ] && [ "$TAG_VERSION" != "$MKT_VERSION" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match marketplace.json version $MKT_VERSION"
+            exit 1
+          fi
+
+  release:
+    name: Create GitHub Release
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          awk "/^## \[${VERSION}\]/,/^## \[/" CHANGELOG.md | head -n -1 > /tmp/release-notes.md
+          if [ ! -s /tmp/release-notes.md ]; then
+            echo "Release ${GITHUB_REF_NAME}" > /tmp/release-notes.md
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: /tmp/release-notes.md
+          prerelease: ${{ contains(github.ref_name, '-') }}

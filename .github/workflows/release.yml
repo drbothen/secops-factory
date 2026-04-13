@@ -14,6 +14,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Mount factory artifacts
+        run: |
+          git fetch origin factory-artifacts
+          git worktree add .factory origin/factory-artifacts
+
       - name: Install bats
         run: |
           sudo apt-get update
@@ -49,6 +54,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+
+      - name: Mount factory artifacts
+        run: |
+          git fetch origin factory-artifacts
+          git worktree add .factory origin/factory-artifacts
 
       - name: Extract changelog for this version
         id: changelog

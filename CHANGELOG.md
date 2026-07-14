@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.6.0] - 2026-07-14
+
+Orchestrator companion and per-project activation flow.
 
 ### Added
 - **Orchestrator agent** (`agents/orchestrator/orchestrator.md`) — main-session SOC companion (Morgan, the SOC Operations Coordinator) that guides analysts through factory workflows: intent triage and routing table for all 14 workflow commands, pipeline position tracking with next-step recommendations, quality gate and hook explanations, and on-demand loading of the canonical pipeline playbooks.

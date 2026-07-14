@@ -124,3 +124,51 @@ PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
     [ "$status" -eq 0 ]
     [[ "$output" == *'"permissionDecision":"allow"'* ]]
 }
+
+# --- session-greeting hook (SessionStart, activation-gated) ---
+
+setup_greeting_project() {
+    GREET_DIR=$(mktemp -d)
+    mkdir -p "$GREET_DIR/.claude"
+}
+
+@test "session-greeting is silent when settings.local.json is absent" {
+    GREET_DIR=$(mktemp -d)
+    run bash -c 'echo "{\"cwd\": \"$2\"}" | "$1/hooks/session-greeting.sh"' -- "$PLUGIN_ROOT" "$GREET_DIR"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
+@test "session-greeting is silent when factory is not activated" {
+    setup_greeting_project
+    echo '{"agent": "vsdd-factory:orchestrator:orchestrator"}' > "$GREET_DIR/.claude/settings.local.json"
+    run bash -c 'echo "{\"cwd\": \"$2\"}" | "$1/hooks/session-greeting.sh"' -- "$PLUGIN_ROOT" "$GREET_DIR"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
+@test "session-greeting greets when factory is activated" {
+    setup_greeting_project
+    echo '{"agent": "secops-factory:orchestrator:orchestrator"}' > "$GREET_DIR/.claude/settings.local.json"
+    run bash -c 'echo "{\"cwd\": \"$2\"}" | "$1/hooks/session-greeting.sh"' -- "$PLUGIN_ROOT" "$GREET_DIR"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"systemMessage"'* ]]
+    [[ "$output" == *"Morgan here"* ]]
+    [[ "$output" == *'"hookEventName":"SessionStart"'* ]]
+    [[ "$output" == *'"additionalContext"'* ]]
+}
+
+@test "session-greeting emits valid JSON when activated" {
+    setup_greeting_project
+    echo '{"agent": "secops-factory:orchestrator:orchestrator"}' > "$GREET_DIR/.claude/settings.local.json"
+    run bash -c 'echo "{\"cwd\": \"$2\"}" | "$1/hooks/session-greeting.sh" | jq .' -- "$PLUGIN_ROOT" "$GREET_DIR"
+    [ "$status" -eq 0 ]
+}
+
+@test "session-greeting survives corrupt settings.local.json" {
+    setup_greeting_project
+    echo 'this is not json {' > "$GREET_DIR/.claude/settings.local.json"
+    run bash -c 'echo "{\"cwd\": \"$2\"}" | "$1/hooks/session-greeting.sh"' -- "$PLUGIN_ROOT" "$GREET_DIR"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}

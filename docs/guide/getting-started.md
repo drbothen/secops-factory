@@ -137,7 +137,7 @@ The fastest way to learn the factory is to let it guide you. Opt this project in
 /secops-factory:activate
 ```
 
-This sets the orchestrator agent as the project's default main-thread agent (in `.claude/settings.local.json` — per-project, per-person, reversible with `/secops-factory:deactivate`). From your next session onward, Morgan, the SOC Operations Coordinator, greets you, checks that your tooling is healthy, and presents a numbered menu of workflows. Describe what you're working on ("we got a Claroty alert on SEC-5678", "enrich this CVE ticket") and the companion routes you to the right command, tracks where you are in the pipeline, and recommends the next step after each stage completes.
+This sets the orchestrator agent as the project's default main-thread agent (in `.claude/settings.local.json` — per-project, per-person, reversible with `/secops-factory:deactivate`). From your next session onward, Morgan, the SOC Operations Coordinator, greets you the moment the session opens (a session-greeting hook shows the workflow menu before you type anything), checks that your tooling is healthy, and guides you from there. Describe what you're working on ("we got a Claroty alert on SEC-5678", "enrich this CVE ticket") and the companion routes you to the right command, tracks where you are in the pipeline, and recommends the next step after each stage completes.
 
 Installing the plugin alone does not change your persona — activation is always an explicit opt-in. The walkthroughs below show the same workflows invoked manually, command by command; they work identically with or without the companion active.
 

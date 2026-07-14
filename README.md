@@ -193,11 +193,11 @@ flowchart TD
 | Agents | 4 | orchestrator (main-session companion), security-analyst (Sonnet), security-reviewer (Opus), advisory-writer (Sonnet) |
 | Skills | 15 | activate, deactivate, enrich-ticket, research-cve, assess-priority, map-attack, investigate-event, review-enrichment, fact-verify, read-ticket, update-jira, generate-metrics, adversarial-review-secops, create-advisory, scan-threats |
 | Commands | 16 | 15 skill commands + secops-health |
-| Hooks | 3 | require-review, enrichment-completeness, bias-check-reminder |
+| Hooks | 6 | session-greeting, require-review, enrichment-completeness, disposition-guard, bias-check-reminder, handoff-validator — each as a `.sh`/`.ps1` sibling pair (macOS/Linux/Windows) |
 | Knowledge Bases | 8 | CVSS, EPSS, KEV, MITRE ATT&CK, cognitive bias, ICS best practices, priority framework, review standards |
 | Templates | 4 | Enrichment, investigation, CVE review report, event review report |
 | Checklists | 15 | 8 CVE dimensions, 7 event dimensions |
-| Tests | 90 | bats test suite (18 hook tests, 61 skill tests, 11 integration tests) |
+| Tests | 109 | bats test suite (23 hook tests, 61 skill tests, 11 integration tests, 14 cross-platform parity tests) |
 
 ## Plugin Structure
 

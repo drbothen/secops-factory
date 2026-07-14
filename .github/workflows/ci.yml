@@ -42,6 +42,21 @@ jobs:
       - name: Validate hooks.json is valid JSON
         run: jq . plugins/secops-factory/hooks/hooks.json
 
+      - name: Validate hooks.json.windows is valid JSON
+        run: jq . plugins/secops-factory/hooks/hooks.json.windows
+
+      - name: Validate every hook ships as a .sh/.ps1 sibling pair
+        run: |
+          status=0
+          for sh_hook in plugins/secops-factory/hooks/*.sh; do
+            base=$(basename "$sh_hook" .sh)
+            if [ ! -f "plugins/secops-factory/hooks/$base.ps1" ]; then
+              echo "MISSING: hooks/$base.ps1"
+              status=1
+            fi
+          done
+          exit $status
+
       - name: Validate all skills have SKILL.md
         run: |
           status=0

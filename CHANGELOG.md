@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Session greeting** (`hooks/session-greeting.sh`/`.ps1`) — SessionStart hook that greets the analyst with Morgan's banner and workflow menu the moment a session opens, before any input. Activation-gated: silent no-op unless `.claude/settings.local.json` sets the orchestrator as default agent. Injects `additionalContext` so Morgan's first reply continues in-flow.
+- **Cross-platform hooks (macOS/Linux/Windows)** — every hook now ships as a `.sh`/`.ps1` sibling pair with identical JSON envelopes, warnings, and exit codes. PowerShell siblings use built-in JSON parsing (no `jq` on Windows). New `hooks.json.windows` variant invokes the `.ps1` siblings; `/secops-factory:activate` copies it into place on native Windows hosts.
+- **Parity test suite** (`tests/parity.bats`) — 14 tests feeding identical payloads to both siblings and requiring normalized-identical output; runs in CI (pwsh preinstalled on ubuntu runners), skips gracefully where pwsh is absent. `run-all.sh` also syntax-checks all `.ps1` files when pwsh is available.
+- `.gitattributes` enforcing LF endings on `.sh`/`.ps1`/`.bats` files (CRLF would break hooks on Unix hosts).
+
+### Fixed
+- `docs/guide/hooks-reference.md` was stale (documented 3 of 5 hooks) and contained leftover generation artifacts; rewritten covering all 6 hooks plus a Cross-Platform Support section.
+
 ## [0.6.0] - 2026-07-14
 
 Orchestrator companion and per-project activation flow.

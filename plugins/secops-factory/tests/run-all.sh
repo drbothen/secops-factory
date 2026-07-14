@@ -68,4 +68,28 @@ echo "--- Integration tests (Claude Code protocol) ---"
 bats "$SCRIPT_DIR/integration.bats"
 echo ""
 
+echo "--- Cross-platform parity tests (.sh vs .ps1) ---"
+if command -v pwsh &>/dev/null; then
+    # Syntax-check the PowerShell siblings first
+    PS_ERRORS=0
+    for script in "$PLUGIN_ROOT"/hooks/*.ps1; do
+        if [ -f "$script" ]; then
+            if pwsh -NoProfile -Command "[void][System.Management.Automation.Language.Parser]::ParseFile('$script', [ref]\$null, [ref]\$err); if (\$err.Count -gt 0) { exit 1 }" 2>/dev/null; then
+                echo "  PASS: $(basename "$script")"
+            else
+                echo "  FAIL: $(basename "$script")"
+                PS_ERRORS=$((PS_ERRORS + 1))
+            fi
+        fi
+    done
+    if [ "$PS_ERRORS" -gt 0 ]; then
+        echo "FAIL: $PS_ERRORS PowerShell script(s) have syntax errors"
+        exit 1
+    fi
+else
+    echo "  pwsh not installed — .ps1 syntax checks will run in CI"
+fi
+bats "$SCRIPT_DIR/parity.bats"
+echo ""
+
 echo "=== All tests passed ==="

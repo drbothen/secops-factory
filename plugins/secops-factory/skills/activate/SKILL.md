@@ -34,18 +34,30 @@ Before any other action, say verbatim:
    }
    ```
 
-5. **Confirm activation.** Print:
+5. **Apply the per-platform hooks variant.** The plugin ships two `hooks.json` variants: the committed default invokes the `.sh` hook scripts (macOS, Linux, WSL, Git Bash — no action needed), and `hooks.json.windows` invokes the `.ps1` siblings via `powershell.exe`.
+
+   Detect the host: if running on native Windows (PowerShell/cmd shell, `$env:OS` = `Windows_NT`, and not inside WSL or Git Bash), copy the Windows variant into place:
+
+   ```powershell
+   Copy-Item "${CLAUDE_PLUGIN_ROOT}/hooks/hooks.json.windows" "${CLAUDE_PLUGIN_ROOT}/hooks/hooks.json" -Force
+   ```
+
+   On macOS/Linux/WSL/Git Bash, leave `hooks.json` untouched. Note for Windows users: a plugin update restores the default `hooks.json`, so re-run `/secops-factory:activate` after updating the plugin.
+
+6. **Confirm activation.** Print:
    - File written (`.claude/settings.local.json`)
    - New default agent (`secops-factory:orchestrator:orchestrator`)
+   - Hooks variant applied (default `.sh` or Windows `.ps1`)
+   - That Morgan will greet at the start of each new session in this project (the session-greeting SessionStart hook is activation-gated)
    - That the change takes effect on the next session (restart Claude Code or start a new session in this project)
    - How to reverse it (`/secops-factory:deactivate`)
    - Reminder that this only affects the current project — `settings.local.json` is per-project and typically gitignored, so teammates opt in individually
 
-6. **Suggest a health check.** Recommend running `/secops-factory:secops-health` once in the new session to verify jr CLI and Perplexity MCP before the first enrichment.
+7. **Suggest a health check.** Recommend running `/secops-factory:secops-health` once in the new session to verify jr CLI and Perplexity MCP before the first enrichment.
 
 ## Dry-run mode
 
-If the user invokes the skill with `--dry-run` (or asks for a preview), perform steps 1–3 but skip the file write. Print the proposed `settings.local.json` diff, then exit.
+If the user invokes the skill with `--dry-run` (or asks for a preview), perform steps 1–3 but skip the file write and the hooks variant copy. Print the proposed `settings.local.json` diff and which hooks variant would be applied, then exit.
 
 ## Red Flags
 

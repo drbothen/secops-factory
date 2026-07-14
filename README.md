@@ -140,6 +140,13 @@ flowchart TD
 
 ## Commands
 
+### Companion
+
+| Command | Arguments | Description |
+|---------|-----------|-------------|
+| `/secops-factory:activate` | `[--dry-run]` | Set the orchestrator agent (Morgan, the SOC companion) as this project's default agent — sessions then start as a guided SOC companion that routes tasks and tracks pipeline position |
+| `/secops-factory:deactivate` | -- | Remove the default-agent override and restore the normal Claude persona |
+
 ### Enrichment Workflow
 
 | Command | Arguments | Description |
@@ -183,14 +190,14 @@ flowchart TD
 
 | Category | Count | Contents |
 |----------|-------|----------|
-| Agents | 3 | security-analyst (Sonnet), security-reviewer (Opus), advisory-writer (Sonnet) |
-| Skills | 13 | enrich-ticket, research-cve, assess-priority, map-attack, investigate-event, review-enrichment, fact-verify, read-ticket, update-jira, generate-metrics, adversarial-review-secops, create-advisory, scan-threats |
-| Commands | 14 | 13 skill commands + secops-health |
+| Agents | 4 | orchestrator (main-session companion), security-analyst (Sonnet), security-reviewer (Opus), advisory-writer (Sonnet) |
+| Skills | 15 | activate, deactivate, enrich-ticket, research-cve, assess-priority, map-attack, investigate-event, review-enrichment, fact-verify, read-ticket, update-jira, generate-metrics, adversarial-review-secops, create-advisory, scan-threats |
+| Commands | 16 | 15 skill commands + secops-health |
 | Hooks | 3 | require-review, enrichment-completeness, bias-check-reminder |
 | Knowledge Bases | 8 | CVSS, EPSS, KEV, MITRE ATT&CK, cognitive bias, ICS best practices, priority framework, review standards |
 | Templates | 4 | Enrichment, investigation, CVE review report, event review report |
 | Checklists | 15 | 8 CVE dimensions, 7 event dimensions |
-| Tests | 32 | bats test suite (9 hook tests, 23 skill tests) |
+| Tests | 90 | bats test suite (18 hook tests, 61 skill tests, 11 integration tests) |
 
 ## Plugin Structure
 

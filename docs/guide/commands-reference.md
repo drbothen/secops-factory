@@ -2,6 +2,13 @@
 
 All commands available in SecOps Factory, grouped by workflow.
 
+## Companion
+
+| Command | Arguments | Description |
+|---------|-----------|-------------|
+| `/secops-factory:activate` | `[--dry-run]` | Opt this project into the SOC companion. Writes `.claude/settings.local.json` to set the orchestrator agent (Morgan, the SOC Operations Coordinator) as the default main-thread agent — every new session in this project then starts as the companion: it greets you, routes tasks to the right workflow, tracks pipeline position, and explains quality gates. Per-project and per-person; takes effect on the next session. |
+| `/secops-factory:deactivate` | -- | Reverse activation: remove the orchestrator default-agent override and restore your normal Claude persona. The plugin stays enabled — all commands remain individually invokable. |
+
 ## Enrichment Workflow
 
 | Command | Arguments | Description |

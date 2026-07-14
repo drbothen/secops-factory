@@ -277,3 +277,83 @@ PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
 @test "security-reviewer does not have Write tool" {
     ! grep -qF "Write" "$PLUGIN_ROOT/agents/security-reviewer.md"
 }
+
+# --- orchestrator agent (main-session SOC companion) ---
+
+@test "orchestrator agent exists with required frontmatter" {
+    [ -f "$PLUGIN_ROOT/agents/orchestrator/orchestrator.md" ]
+    grep -qF "name: orchestrator" "$PLUGIN_ROOT/agents/orchestrator/orchestrator.md"
+    grep -qF "description:" "$PLUGIN_ROOT/agents/orchestrator/orchestrator.md"
+}
+
+@test "orchestrator agent is invokable (no disable-model-invocation)" {
+    ! grep -qF "disable-model-invocation: true" "$PLUGIN_ROOT/agents/orchestrator/orchestrator.md"
+}
+
+@test "orchestrator agent has Iron Law" {
+    grep -qF "NO FREELANCE ANALYSIS" "$PLUGIN_ROOT/agents/orchestrator/orchestrator.md"
+}
+
+@test "orchestrator agent has Announce at Start" {
+    grep -qF "Announce at Start" "$PLUGIN_ROOT/agents/orchestrator/orchestrator.md"
+}
+
+@test "orchestrator agent has >= 6 Red Flag rows" {
+    count=$(grep -c '^| "' "$PLUGIN_ROOT/agents/orchestrator/orchestrator.md" || true)
+    [ "$count" -ge 6 ]
+}
+
+@test "orchestrator agent has routing table covering all workflow entry points" {
+    for cmd in enrich-ticket investigate-event scan-threats create-advisory review-enrichment adversarial-review-secops update-jira secops-health; do
+        grep -qF "/$cmd" "$PLUGIN_ROOT/agents/orchestrator/orchestrator.md"
+    done
+}
+
+@test "orchestrator agent references pipeline playbooks" {
+    grep -qF '${CLAUDE_PLUGIN_ROOT}/agents/orchestrator/' "$PLUGIN_ROOT/agents/orchestrator/orchestrator.md"
+}
+
+# --- activate / deactivate skills ---
+
+@test "activate skill exists and sets the orchestrator default agent" {
+    [ -f "$PLUGIN_ROOT/skills/activate/SKILL.md" ]
+    grep -qF '"agent": "secops-factory:orchestrator:orchestrator"' "$PLUGIN_ROOT/skills/activate/SKILL.md"
+}
+
+@test "activate skill targets settings.local.json (never shared settings)" {
+    grep -qF "settings.local.json" "$PLUGIN_ROOT/skills/activate/SKILL.md"
+}
+
+@test "activate skill is user-invoked only" {
+    grep -qF "disable-model-invocation: true" "$PLUGIN_ROOT/skills/activate/SKILL.md"
+}
+
+@test "activate skill has Announce at Start" {
+    grep -qF "Announce at Start" "$PLUGIN_ROOT/skills/activate/SKILL.md"
+}
+
+@test "activate skill has >= 6 Red Flag rows" {
+    count=$(grep -c '^| "' "$PLUGIN_ROOT/skills/activate/SKILL.md" || true)
+    [ "$count" -ge 6 ]
+}
+
+@test "deactivate skill exists and reverses activation" {
+    [ -f "$PLUGIN_ROOT/skills/deactivate/SKILL.md" ]
+    grep -qF "del(.agent)" "$PLUGIN_ROOT/skills/deactivate/SKILL.md"
+}
+
+@test "deactivate skill guards against clobbering non-secops agents" {
+    grep -qF "secops-factory:" "$PLUGIN_ROOT/skills/deactivate/SKILL.md"
+}
+
+@test "deactivate skill has >= 6 Red Flag rows" {
+    count=$(grep -c '^| "' "$PLUGIN_ROOT/skills/deactivate/SKILL.md" || true)
+    [ "$count" -ge 6 ]
+}
+
+@test "activate and deactivate command wrappers exist" {
+    [ -f "$PLUGIN_ROOT/commands/activate.md" ]
+    [ -f "$PLUGIN_ROOT/commands/deactivate.md" ]
+    grep -qF "activate" "$PLUGIN_ROOT/commands/activate.md"
+    grep -qF "deactivate" "$PLUGIN_ROOT/commands/deactivate.md"
+}

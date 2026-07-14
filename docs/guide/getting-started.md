@@ -129,6 +129,18 @@ Run the health check to confirm both servers are reachable:
 
 You should see PASS for jr CLI and Perplexity MCP. If jr fails, run `jr auth login`. If Perplexity fails, the plugin will fall back to web search.
 
+## Meet the Companion
+
+The fastest way to learn the factory is to let it guide you. Opt this project into the SOC companion:
+
+```
+/secops-factory:activate
+```
+
+This sets the orchestrator agent as the project's default main-thread agent (in `.claude/settings.local.json` — per-project, per-person, reversible with `/secops-factory:deactivate`). From your next session onward, Morgan, the SOC Operations Coordinator, greets you, checks that your tooling is healthy, and presents a numbered menu of workflows. Describe what you're working on ("we got a Claroty alert on SEC-5678", "enrich this CVE ticket") and the companion routes you to the right command, tracks where you are in the pipeline, and recommends the next step after each stage completes.
+
+Installing the plugin alone does not change your persona — activation is always an explicit opt-in. The walkthroughs below show the same workflows invoked manually, command by command; they work identically with or without the companion active.
+
 ## First Enrichment Walkthrough
 
 This walkthrough enriches a JIRA security ticket containing a CVE.

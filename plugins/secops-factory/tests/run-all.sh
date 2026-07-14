@@ -74,7 +74,7 @@ if command -v pwsh &>/dev/null; then
     PS_ERRORS=0
     for script in "$PLUGIN_ROOT"/hooks/*.ps1; do
         if [ -f "$script" ]; then
-            if pwsh -NoProfile -Command "[void][System.Management.Automation.Language.Parser]::ParseFile('$script', [ref]\$null, [ref]\$err); if (\$err.Count -gt 0) { exit 1 }" 2>/dev/null; then
+            if pwsh -NoProfile -Command "\$t = \$null; \$e = \$null; [void][System.Management.Automation.Language.Parser]::ParseFile('$script', [ref]\$t, [ref]\$e); if (\$e.Count -gt 0) { \$e | ForEach-Object { Write-Error \$_.Message }; exit 1 }" 2>/dev/null; then
                 echo "  PASS: $(basename "$script")"
             else
                 echo "  FAIL: $(basename "$script")"

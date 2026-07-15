@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Jira-native metrics suite** — 4 new skills converting the ticket effort & cost analysis methodology into the plugin: `/analyze-ticket-effort` (session reconstruction from event timestamps — works with empty worklogs), `/model-ticket-cost` (OSINT sizing + Low/Base/High annual cost scenarios), `/extract-severity` (whitelisted regex over analyst comments with coverage counts), `/verify-metrics-report` (window archaeology against Jira ground truth).
+- **metrics-analyst agent** (Quinn) — bias-aware measurement specialist; every number ships with method, biases, and coverage.
+- **osint-researcher agent** (Harper) — centralizes external research with citation discipline and source-trust ranking (company sizing, infrastructure reputation, threat actors, advisories).
+- **Effort-analysis method doc** (`data/effort-analysis-method.md`) — generalized 6-phase methodology (schema discovery, volume baseline, session reconstruction, OSINT sizing, cost model, severity extraction, report verification). Org-sensitive parameters (rates, client field IDs, measured priors) live in a local, never-committed priors file (`templates/effort-priors-tmpl.yaml`).
+- **generate-metrics expanded** — Jira ground-truth categories: SLA breach rates, status dwell/cycle time, backlog aging and net flow, reopen rate, alert-storm detection, false-positive burden, workload distribution; routes deep-dives to the new skills.
+- Orchestrator routing for all metrics intents; 14 new BATS tests including a no-client-data leak check on committed content.
+
 ## [0.7.0] - 2026-07-14
 
 Cross-platform hooks (macOS/Linux/Windows) and Morgan's session greeting.

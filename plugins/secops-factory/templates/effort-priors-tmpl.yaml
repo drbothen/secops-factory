@@ -1,0 +1,40 @@
+# effort-priors.yaml — LOCAL org-specific parameters for ticket effort/cost analysis.
+#
+# Copy to artifacts/metrics/effort-priors.yaml in your working project and fill in.
+# This file contains business-sensitive data (rates, client names, measured volumes).
+# NEVER commit it to a shared repository. Keep artifacts/ gitignored.
+
+schema: 1
+
+jira:
+  project_key: ""              # e.g. OPS
+  client_field: ""             # e.g. customfield_10110 (from Phase 0.2 schema discovery)
+  client_object_type: "Client" # Assets objectType for client enumeration
+  exclusions: []               # demo/test/internal client labels to exclude
+    # - "Acme Industries"
+
+method:
+  session_gap_minutes: 30      # >gap between events = new work session
+  overhead_minutes_per_session: 5
+  rate_setting_window_days: 365   # >=180 recommended; 30d snapshots run light
+
+rates:                         # get exact figures from finance when it matters
+  burdened_per_hour: 0         # cost basis — leads in finance docs
+  opportunity_per_hour: 0      # billable basis — show as upside only
+
+# Measured per-type effort priors from your last full Phase-2 run.
+# touch = total burst minutes (lower bound); with_overhead = touch + sessions*overhead
+effort_priors:
+  measured_on: ""              # client/sample + window, e.g. "top client, 365d, N=252"
+  measured_at: ""              # ISO date of the run
+  types: {}
+    # "Event Alert":     { touch_avg: 0, touch_median: 0, sessions_avg: 0, with_overhead: 0 }
+    # "Service Request": { touch_avg: 0, touch_median: 0, sessions_avg: 0, with_overhead: 0 }
+
+# Volume benchmarks from your last Phase-1 run, for sanity-checking future runs.
+volume_benchmarks:
+  window: ""                   # e.g. "2026-01..2026-07"
+  desk_tickets_per_month: ""   # e.g. "130-160 steady-state"
+  type_mix: {}
+    # "Event Alert": 0.73
+    # "Service Request": 0.22

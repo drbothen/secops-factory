@@ -52,6 +52,30 @@ SecOps Factory uses two agents with distinct roles and deliberate information as
 
 **Available commands:** `/secops-factory:review-enrichment`, `/secops-factory:fact-verify`, `/secops-factory:adversarial-review-secops`
 
+## Metrics Analyst -- Quinn
+
+| Property | Value |
+|----------|-------|
+| Name | Quinn |
+| Role | SecOps Metrics Analyst |
+| Model | Sonnet |
+| Color | Green |
+| File | `agents/metrics-analyst.md` |
+
+Measures analyst effort from Jira event timestamps (session reconstruction), baselines ticket volume, models ticket-administration cost, extracts severity from comments, and verifies external metrics reports. Every number ships with its method, known biases, and coverage counts. Dispatched by the metrics skills (`/analyze-ticket-effort`, `/model-ticket-cost`, `/extract-severity`, `/verify-metrics-report`).
+
+## OSINT Researcher -- Harper
+
+| Property | Value |
+|----------|-------|
+| Name | Harper |
+| Role | OSINT Researcher |
+| Model | Sonnet |
+| Color | Cyan |
+| File | `agents/osint-researcher.md` |
+
+Centralizes external open-source research: company/organization sizing, IP/domain/ASN reputation, threat actor research, and advisory lookups. Owns the source-trust rules (primary sources > press > data brokers; headcount over data-broker revenue for private companies; disambiguate via CMDB before researching) and returns cited, trust-ranked findings. Delivers findings only — judgment stays with the calling skill or agent.
+
 ## Information Asymmetry
 
 The reviewer does NOT see:

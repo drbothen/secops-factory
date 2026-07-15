@@ -22,7 +22,8 @@ SecOps Factory connects directly to your JIRA instance for ticket intake and enr
 - **MITRE ATT&CK mapping** -- Enterprise and ICS matrices with T-number references and detection recommendations
 - **Multi-factor priority scoring** -- 6-factor algorithm (CVSS + EPSS + KEV + ACR + exposure + exploit status) producing P1-P5 with SLA deadlines
 - **8 quality dimensions for CVE enrichment** and **7 weighted dimensions for event investigation** -- scored via dedicated checklists
-- **3 enforcement hooks** -- block JIRA updates without review, block saving incomplete enrichment, remind analysts to check cognitive bias after research
+- **6 enforcement hooks (cross-platform)** -- session greeting, review-gated JIRA updates, enrichment completeness, disposition guard, bias reminders, subagent handoff validation — each as .sh/.ps1 sibling pairs for macOS/Linux/Windows
+- **Jira-native metrics suite** -- analyst effort reconstruction from event timestamps, volume baselining, OSINT client sizing, annual cost modeling, severity extraction, and metrics-report verification via the jr CLI
 
 ## Quick Start
 
@@ -177,6 +178,15 @@ flowchart TD
 | `/secops-factory:scan-threats` | `[--sector] [--severity] [--days]` | Scan for emerging threats and identify advisory-worthy items |
 | `/secops-factory:create-advisory` | `<topic\|CVE-ID\|URL> [--template path] [--type it\|ics\|combined]` | Create a structured security advisory from a CVE, URL, or topic with IT/ICS/OT/Combined audience support |
 
+### Metrics & Cost Analysis
+
+| Command | Arguments | Description |
+|---------|-----------|-------------|
+| `/secops-factory:analyze-ticket-effort` | `[--window 180d\|365d] [--client <label>]` | Measure analyst effort and ticket volume from Jira event history (session reconstruction — works with empty worklogs) |
+| `/secops-factory:model-ticket-cost` | `<client-or-prospect> [--analog <client>]` | OSINT-size a client/prospect and model annual ticket-administration cost (Low/Base/High) |
+| `/secops-factory:extract-severity` | `[--window 180d] [--client <label>]` | Extract severity/criticality distributions from analyst comments when no native field exists |
+| `/secops-factory:verify-metrics-report` | `<figures>` | Verify external/automated metrics reports against Jira ground truth |
+
 ### Utility
 
 | Command | Arguments | Description |
@@ -190,14 +200,14 @@ flowchart TD
 
 | Category | Count | Contents |
 |----------|-------|----------|
-| Agents | 4 | orchestrator (main-session companion), security-analyst (Sonnet), security-reviewer (Opus), advisory-writer (Sonnet) |
-| Skills | 15 | activate, deactivate, enrich-ticket, research-cve, assess-priority, map-attack, investigate-event, review-enrichment, fact-verify, read-ticket, update-jira, generate-metrics, adversarial-review-secops, create-advisory, scan-threats |
-| Commands | 16 | 15 skill commands + secops-health |
+| Agents | 6 | orchestrator (main-session companion), security-analyst (Sonnet), security-reviewer (Opus), advisory-writer (Sonnet), metrics-analyst (Sonnet), osint-researcher (Sonnet) |
+| Skills | 19 | activate, deactivate, enrich-ticket, research-cve, assess-priority, map-attack, investigate-event, review-enrichment, fact-verify, read-ticket, update-jira, generate-metrics, adversarial-review-secops, create-advisory, scan-threats, analyze-ticket-effort, model-ticket-cost, extract-severity, verify-metrics-report |
+| Commands | 20 | 19 skill commands + secops-health |
 | Hooks | 6 | session-greeting, require-review, enrichment-completeness, disposition-guard, bias-check-reminder, handoff-validator — each as a `.sh`/`.ps1` sibling pair (macOS/Linux/Windows) |
-| Knowledge Bases | 8 | CVSS, EPSS, KEV, MITRE ATT&CK, cognitive bias, ICS best practices, priority framework, review standards |
-| Templates | 4 | Enrichment, investigation, CVE review report, event review report |
+| Knowledge Bases | 9 | CVSS, EPSS, KEV, MITRE ATT&CK, cognitive bias, ICS best practices, priority framework, review standards, effort-analysis method |
+| Templates | 5 | Enrichment, investigation, CVE review report, event review report, effort-priors (local, never committed) |
 | Checklists | 15 | 8 CVE dimensions, 7 event dimensions |
-| Tests | 109 | bats test suite (23 hook tests, 61 skill tests, 11 integration tests, 14 cross-platform parity tests) |
+| Tests | 123 | bats test suite (23 hook tests, 75 skill tests, 11 integration tests, 14 cross-platform parity tests) |
 
 ## Plugin Structure
 

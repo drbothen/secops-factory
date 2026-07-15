@@ -39,13 +39,22 @@ All commands available in SecOps Factory, grouped by workflow.
 | `/secops-factory:scan-threats` | `[--sector energy\|water\|...] [--severity critical\|high\|medium] [--days 7]` | Scan for emerging security threats across CISA, NVD, KEV, vendor PSIRTs, and ICS-CERT. Returns a prioritized table of advisory-worthy candidates scored by severity, exploit status, KEV listing, sector relevance, and recency. Items scoring >= 6.0 are recommended for advisory creation. Supports IT, ICS/OT, and combined environment filtering. |
 | `/secops-factory:create-advisory` | `<topic\|CVE-ID\|URL> [--template path] [--type it\|ics\|combined]` | Create a structured security advisory from a CVE ID, a URL (fetches and parses the page), or a topic/campaign name. Prompts for advisory type (IT/ICS-OT/Combined) unless `--type` is specified. Uses the built-in CSAF-inspired template by default; accepts custom templates via `--template`. Verifies all data against NVD/CISA/FIRST. |
 
+## Metrics & Cost Analysis
+
+| Command | Arguments | Description |
+|---------|-----------|-------------|
+| `/secops-factory:analyze-ticket-effort` | `[--window 180d\|365d] [--client <label>]` | Measure analyst effort and ticket volume from Jira event history. Reconstructs work sessions from creation/edit/comment timestamps (30-min gap, +5 min/session overhead) — works with empty worklogs. Reports per-type effort with mandatory bias statements. |
+| `/secops-factory:model-ticket-cost` | `<client-or-prospect> [--analog <client>]` | Size a client or prospect via OSINT (dispatches the osint-researcher agent) and model annual ticket-administration cost from measured effort priors. Always Low/Base/High scenarios with the excludes-execution caveat. |
+| `/secops-factory:extract-severity` | `[--window 180d] [--client <label>]` | Extract severity/criticality distributions from analyst worksheet comments when no native Jira field exists. Whitelisted regex over ADF bodies; coverage counts are part of the result. |
+| `/secops-factory:verify-metrics-report` | `<figures to verify>` | Verify an external or automated metrics report against Jira ground truth: window archaeology, boundary-noise tolerance (>5% flags), derived-column detection. |
+
 ## Utility
 
 | Command | Arguments | Description |
 |---------|-----------|-------------|
 | `/secops-factory:read-ticket` | `<ticket-id>` | Read a JIRA security ticket and extract CVE IDs, affected systems, asset criticality, system exposure, and metadata. Returns structured data for downstream skills. |
 | `/secops-factory:update-jira` | `<ticket-id>` | Update JIRA custom fields with enrichment data (CVSS, EPSS, KEV, priority). Validates all data ranges before update. Blocked by the require-review hook until review approval is obtained. |
-| `/secops-factory:generate-metrics` | `[--period=7d\|30d\|90d]` | Generate security operations metrics and KPIs from enrichment and investigation data. Reports on enrichment volume, quality scores, priority distribution, disposition breakdown, and SLA compliance. Default period: 30 days. |
+| `/secops-factory:generate-metrics` | `[--period=7d\|30d\|90d] [--category=artifacts\|jira\|all]` | Generate security operations metrics and KPIs from local artifacts and Jira ground truth: enrichment/review/investigation KPIs plus SLA breach rates, status dwell and cycle time, backlog aging and net flow, reopen rate, alert-storm detection, false-positive burden, and workload distribution. Routes deep-dives to the Metrics & Cost Analysis commands. Default period: 30 days. |
 | `/secops-factory:secops-health` | -- | Check plugin health. Verifies MCP server availability (Atlassian + Perplexity), all 8 data files, 4 templates, 15 checklists, and 11 skills. Reports PASS/FAIL for each category. |
 
 ## Argument Formats

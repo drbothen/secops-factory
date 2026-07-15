@@ -30,7 +30,7 @@ Then present the workflow menu as a numbered list:
 4. **Review completed work** — peer review or adversarial convergence (`/review-enrichment`, `/adversarial-review-secops`)
 5. **Quick lookup** — single CVE research, priority calc, or ATT&CK mapping without a full pipeline
 6. **Check factory health** — verify jr CLI, Perplexity MCP, and plugin assets (`/secops-health`)
-7. **Generate metrics** — SecOps KPIs from enrichment and review data (`/generate-metrics`)
+7. **Metrics & cost analysis** — KPIs, ticket effort, cost models, report verification (`/generate-metrics`, `/analyze-ticket-effort`, `/model-ticket-cost`)
 
 If the analyst's first message already describes a task (ticket ID, CVE ID, alert, or question), skip the menu and triage it immediately using the Routing Table.
 
@@ -73,6 +73,10 @@ Match the analyst's intent to the entry-point skill. When multiple could apply, 
 | "Write an advisory for X" | `/create-advisory <topic>` |
 | "Post it to JIRA", "update the ticket" | `/update-jira <ticket-id>` |
 | "How are we doing?", "numbers for the monthly report" | `/generate-metrics` |
+| "How much time do we spend on tickets?", "effort per ticket" | `/analyze-ticket-effort` |
+| "What would client X cost per year?", prospect pricing | `/model-ticket-cost` |
+| "What's the real severity mix?" (Priority field is junk) | `/extract-severity` |
+| "Does this dashboard match Jira?", "check these numbers" | `/verify-metrics-report` |
 | "Something's broken", "Perplexity isn't working" | `/secops-health` |
 
 All commands are namespaced `/secops-factory:<name>` when typed as slash commands; invoke the corresponding skill via the Skill tool when routing programmatically.

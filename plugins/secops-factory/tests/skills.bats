@@ -357,3 +357,83 @@ PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
     grep -qF "activate" "$PLUGIN_ROOT/commands/activate.md"
     grep -qF "deactivate" "$PLUGIN_ROOT/commands/deactivate.md"
 }
+
+# --- metrics suite (analyze-ticket-effort, model-ticket-cost, extract-severity, verify-metrics-report) ---
+
+@test "analyze-ticket-effort has Iron Law" {
+    grep -qF "NO EFFORT REPORT WITHOUT STATED BIASES FIRST" "$PLUGIN_ROOT/skills/analyze-ticket-effort/SKILL.md"
+}
+
+@test "model-ticket-cost has Iron Law" {
+    grep -qF "NO COST FIGURE WITHOUT SCENARIOS AND STATED EXCLUSIONS FIRST" "$PLUGIN_ROOT/skills/model-ticket-cost/SKILL.md"
+}
+
+@test "extract-severity has Iron Law" {
+    grep -qF "NO SEVERITY STATS WITHOUT COVERAGE COUNTS FIRST" "$PLUGIN_ROOT/skills/extract-severity/SKILL.md"
+}
+
+@test "verify-metrics-report has Iron Law" {
+    grep -qF "NO VERIFICATION VERDICT WITHOUT WINDOW ARCHAEOLOGY FIRST" "$PLUGIN_ROOT/skills/verify-metrics-report/SKILL.md"
+}
+
+@test "metrics skills have Announce at Start and >= 6 Red Flag rows" {
+    for skill in analyze-ticket-effort model-ticket-cost extract-severity verify-metrics-report; do
+        grep -qF "Announce at Start" "$PLUGIN_ROOT/skills/$skill/SKILL.md"
+        count=$(grep -c '^| "' "$PLUGIN_ROOT/skills/$skill/SKILL.md" || true)
+        [ "$count" -ge 6 ]
+    done
+}
+
+@test "metrics skills reference the canonical method doc" {
+    for skill in analyze-ticket-effort model-ticket-cost extract-severity verify-metrics-report; do
+        grep -qF 'data/effort-analysis-method.md' "$PLUGIN_ROOT/skills/$skill/SKILL.md"
+    done
+}
+
+@test "effort-analysis method doc and priors template exist" {
+    [ -f "$PLUGIN_ROOT/data/effort-analysis-method.md" ]
+    [ -f "$PLUGIN_ROOT/templates/effort-priors-tmpl.yaml" ]
+}
+
+@test "method doc contains the session-reconstruction anchors" {
+    grep -qF "GAP = 30 * 60" "$PLUGIN_ROOT/data/effort-analysis-method.md"
+    grep -qF "OVERHEAD_MIN = 5" "$PLUGIN_ROOT/data/effort-analysis-method.md"
+    grep -qF "adf_text" "$PLUGIN_ROOT/data/effort-analysis-method.md"
+}
+
+@test "method doc and priors template contain no client-identifying data" {
+    for f in "$PLUGIN_ROOT/data/effort-analysis-method.md" "$PLUGIN_ROOT/templates/effort-priors-tmpl.yaml" "$PLUGIN_ROOT/agents/metrics-analyst.md" "$PLUGIN_ROOT/agents/osint-researcher.md"; do
+        ! grep -qiE "weyerhaeuser|monroe|fairview|lea county|michigan power|1898|jpud|avon" "$f"
+    done
+}
+
+@test "generate-metrics routes to the specialized metrics skills" {
+    for cmd in analyze-ticket-effort model-ticket-cost extract-severity verify-metrics-report; do
+        grep -qF "/$cmd" "$PLUGIN_ROOT/skills/generate-metrics/SKILL.md"
+    done
+}
+
+@test "metrics command wrappers exist and reference their skills" {
+    for cmd in analyze-ticket-effort model-ticket-cost extract-severity verify-metrics-report; do
+        [ -f "$PLUGIN_ROOT/commands/$cmd.md" ]
+        grep -qF "$cmd" "$PLUGIN_ROOT/commands/$cmd.md"
+    done
+}
+
+@test "metrics-analyst agent has required frontmatter" {
+    grep -qF "name: metrics-analyst" "$PLUGIN_ROOT/agents/metrics-analyst.md"
+    grep -qF "model:" "$PLUGIN_ROOT/agents/metrics-analyst.md"
+    grep -qF "color:" "$PLUGIN_ROOT/agents/metrics-analyst.md"
+}
+
+@test "osint-researcher agent has required frontmatter and citation discipline" {
+    grep -qF "name: osint-researcher" "$PLUGIN_ROOT/agents/osint-researcher.md"
+    grep -qF "model:" "$PLUGIN_ROOT/agents/osint-researcher.md"
+    grep -qF "citation" "$PLUGIN_ROOT/agents/osint-researcher.md"
+}
+
+@test "orchestrator routes metrics intents" {
+    for cmd in analyze-ticket-effort model-ticket-cost extract-severity verify-metrics-report; do
+        grep -qF "/$cmd" "$PLUGIN_ROOT/agents/orchestrator/orchestrator.md"
+    done
+}

@@ -204,10 +204,10 @@ flowchart TD
 | Skills | 19 | activate, deactivate, enrich-ticket, research-cve, assess-priority, map-attack, investigate-event, review-enrichment, fact-verify, read-ticket, update-jira, generate-metrics, adversarial-review-secops, create-advisory, scan-threats, analyze-ticket-effort, model-ticket-cost, extract-severity, verify-metrics-report |
 | Commands | 20 | 19 skill commands + secops-health |
 | Hooks | 6 | session-greeting, require-review, enrichment-completeness, disposition-guard, bias-check-reminder, handoff-validator — each as a `.sh`/`.ps1` sibling pair (macOS/Linux/Windows) |
-| Knowledge Bases | 9 | CVSS, EPSS, KEV, MITRE ATT&CK, cognitive bias, ICS best practices, priority framework, review standards, effort-analysis method |
+| Knowledge Bases | 10 | CVSS, EPSS, KEV, MITRE ATT&CK, cognitive bias, ICS best practices, priority framework, review standards, effort-analysis method, Jira metrics recipes |
 | Templates | 5 | Enrichment, investigation, CVE review report, event review report, effort-priors (local, never committed) |
 | Checklists | 15 | 8 CVE dimensions, 7 event dimensions |
-| Tests | 123 | bats test suite (23 hook tests, 75 skill tests, 11 integration tests, 14 cross-platform parity tests) |
+| Tests | 129 | bats test suite (23 hook tests, 81 skill tests, 11 integration tests, 14 cross-platform parity tests) |
 
 ## Plugin Structure
 

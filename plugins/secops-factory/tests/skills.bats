@@ -437,3 +437,34 @@ PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
         grep -qF "/$cmd" "$PLUGIN_ROOT/agents/orchestrator/orchestrator.md"
     done
 }
+
+# --- jira-metrics-recipes ---
+
+@test "jira-metrics-recipes doc exists with all recipe categories" {
+    [ -f "$PLUGIN_ROOT/data/jira-metrics-recipes.md" ]
+    for anchor in "Shared fetch layer" "SLA & responsiveness" "Flow & backlog health" "Signal quality & noise" "Workload & distribution"; do
+        grep -qF "$anchor" "$PLUGIN_ROOT/data/jira-metrics-recipes.md"
+    done
+}
+
+@test "recipes doc probes changelog shape before extraction" {
+    grep -qF "Probe the changelog shape" "$PLUGIN_ROOT/data/jira-metrics-recipes.md"
+}
+
+@test "recipes doc has the priority-source rule and workload sensitivity rule" {
+    grep -qF "Priority source rule" "$PLUGIN_ROOT/data/jira-metrics-recipes.md"
+    grep -qF "Never rank individuals" "$PLUGIN_ROOT/data/jira-metrics-recipes.md"
+}
+
+@test "generate-metrics references the recipes doc" {
+    grep -qF 'data/jira-metrics-recipes.md' "$PLUGIN_ROOT/skills/generate-metrics/SKILL.md"
+}
+
+@test "priors template has terminal statuses and business hours" {
+    grep -qF "terminal_statuses" "$PLUGIN_ROOT/templates/effort-priors-tmpl.yaml"
+    grep -qF "business_hours" "$PLUGIN_ROOT/templates/effort-priors-tmpl.yaml"
+}
+
+@test "recipes doc contains no client-identifying data" {
+    ! grep -qiE "weyerhaeuser|monroe|fairview|lea county|michigan power|1898|jpud|avon" "$PLUGIN_ROOT/data/jira-metrics-recipes.md"
+}

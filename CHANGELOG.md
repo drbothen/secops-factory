@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.9.0] - 2026-07-14
+
+Concrete recipes for all Jira ground-truth metrics in generate-metrics.
 
 ### Added
 - **Jira metrics recipes** (`data/jira-metrics-recipes.md`) — concrete query-and-computation recipes for every Jira ground-truth metric in `/generate-metrics`: SLA/first-touch/breach rates with the priority-source rule, status dwell and cycle time with a changelog-shape probe, net flow and aging WIP, reopen rate, trailing-baseline alert-storm detection, repeat-offender clustering with digest projections, false-positive burden (FP rate × measured effort), and workload distribution with an explicit never-rank-individuals sensitivity rule.

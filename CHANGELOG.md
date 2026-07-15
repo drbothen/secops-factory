@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Jira metrics recipes** (`data/jira-metrics-recipes.md`) — concrete query-and-computation recipes for every Jira ground-truth metric in `/generate-metrics`: SLA/first-touch/breach rates with the priority-source rule, status dwell and cycle time with a changelog-shape probe, net flow and aging WIP, reopen rate, trailing-baseline alert-storm detection, repeat-offender clustering with digest projections, false-positive burden (FP rate × measured effort), and workload distribution with an explicit never-rank-individuals sensitivity rule.
+- Priors template extended: `priority_field`, `terminal_statuses`, business hours/timezone for after-hours share.
+
 ## [0.8.0] - 2026-07-14
 
 Jira-native metrics suite: effort measurement, cost modeling, severity extraction, report verification, plus metrics-analyst and OSINT-researcher agents.

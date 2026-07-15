@@ -12,6 +12,14 @@ jira:
   client_object_type: "Client" # Assets objectType for client enumeration
   exclusions: []               # demo/test/internal client labels to exclude
     # - "Acme Industries"
+  priority_field: ""           # plugin-managed priority custom field, if the native
+                               # Priority field is an intake artifact (see recipes 0.4)
+  terminal_statuses: ["Done", "Closed", "Resolved", "Completed"]
+
+metrics:
+  business_hours: "08:00-18:00"   # for after-hours share
+  business_days: "Mon-Fri"
+  timezone: ""                    # e.g. America/Chicago
 
 method:
   session_gap_minutes: 30      # >gap between events = new work session

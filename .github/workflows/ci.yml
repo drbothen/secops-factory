@@ -40,7 +40,8 @@ jobs:
           pwsh -NoProfile -Command "
             Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
             Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser -ErrorAction Stop
-            \$results = Invoke-ScriptAnalyzer -Path 'plugins/secops-factory/hooks' -Recurse -Severity Error,Warning
+            \$results = Invoke-ScriptAnalyzer -Path 'plugins/secops-factory/hooks' -Recurse -Severity Error,Warning \`
+              -Settings '.github/PSScriptAnalyzerSettings.psd1'
             if (\$results) {
               \$results | Format-Table -AutoSize
               exit 1

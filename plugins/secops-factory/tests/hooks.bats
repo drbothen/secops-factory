@@ -92,6 +92,94 @@ PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
     [[ "$output" == *'"permissionDecision":"deny"'* ]]
 }
 
+# --- ADV-0-801: precedence-bypass tests ---
+# Write commands whose ARGUMENTS contain read-only allowlist tokens must still be DENIED.
+# Previously the allowlist was evaluated before the write-block, so a write command
+# whose argument string contained e.g. "jr board" would fire emit_allow before reaching
+# the deny block. Correct ordering: write-block (deny) BEFORE allowlist (allow).
+
+@test "require-review blocks edit with jr board in args (ADV-0-801 bypass)" {
+    # 'jr board' substring appears in --summary arg; must still deny
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr issue edit SEC-1 --summary \\\"see jr board\\\"\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+@test "require-review blocks comment with jr me in args (ADV-0-801 bypass — defeats SEC-001)" {
+    # 'jr me' substring appears in comment body; must still deny
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr issue comment SEC-1 \\\"resolved per jr me policy\\\"\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+@test "require-review blocks create with jr sprint in args (ADV-0-801 bypass)" {
+    # 'jr sprint' substring appears in --summary arg; must still deny
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr issue create --project SEC --summary \\\"jr sprint planning\\\"\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+@test "require-review blocks move with jr project in args (ADV-0-801 bypass)" {
+    # 'jr project' substring appears in destination arg; must still deny
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr issue move SEC-1 \\\"jr project X\\\"\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+# --output json write forms — Invariant #4: plain write substring does NOT match
+# when --output json global flag appears between "jr" and "issue".
+# These must be explicitly listed in the write-block.
+
+@test "require-review blocks jr --output json issue edit (write via --output json)" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr --output json issue edit SEC-1 --priority Critical\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+@test "require-review blocks jr --output json issue create (write via --output json)" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr --output json issue create --project SEC --summary test\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+@test "require-review blocks jr --output json issue comment (write via --output json)" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr --output json issue comment SEC-1 \\\"test\\\"\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+@test "require-review blocks jr --output json issue move (write via --output json)" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr --output json issue move SEC-1 Done\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+@test "require-review blocks jr --output json issue assign (write via --output json)" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr --output json issue assign SEC-1 user@example.com\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+# Regression: legitimate read-only must still be ALLOWED after the fix.
+
+@test "require-review regression: jr issue view still allowed after ADV-0-801 fix" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr issue view SEC-1\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"allow"'* ]]
+}
+
+@test "require-review regression: jr --output json issue list still allowed after ADV-0-801 fix" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr --output json issue list --jql project=SEC\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"allow"'* ]]
+}
+
+@test "require-review regression: jr issue changelog still allowed after ADV-0-801 fix" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr issue changelog SEC-1\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"allow"'* ]]
+}
+
 # --- enrichment-completeness hook ---
 
 @test "enrichment-completeness allows non-enrichment files" {

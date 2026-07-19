@@ -142,8 +142,8 @@ Every SKILL.md (except thin utility skills) follows this canonical section order
 | Input ingestion | `INPUT=$(cat)` — read full stdin once | `hooks/require-review.sh:19` |
 | Allow function name | `emit_allow()` — prints JSON envelope, exits 0 | `hooks/require-review.sh:21-24` |
 | Deny function name | `emit_deny()` — takes reason arg, prints JSON via `jq -nc`, exits 0 | `hooks/require-review.sh:26-34` |
-| Fast path ordering | Whitelist/allow conditions first, deny conditions at bottom | `hooks/require-review.sh:41-74` |
-| Fail-open default | Unknown/unmatched commands: `emit_allow` (not `emit_deny`) | `hooks/require-review.sh:73-74` |
+| Fast path ordering | Whitelist/allow conditions first (non-jr fast-path, then read-only jr allowlist), deny conditions at bottom | `hooks/require-review.sh:47-81` |
+| Fail-open for non-jr inputs | Non-jr commands take fast-path `emit_allow` immediately (line 49); unrecognized `jr` subcommands `emit_deny` (fail-CLOSED, SEC-002, PR #13) — prevents future jr write subcommands from bypassing the gate | `hooks/require-review.sh:47-49` (allow), `hooks/require-review.sh:96-98` (deny) |
 | Advisory hooks | Write to stderr only; always exit 0; never emit `permissionDecision` JSON | `hooks/bias-check-reminder.sh`, `hooks/handoff-validator.sh` |
 
 ### PowerShell Hook Pattern (`*.ps1`)
@@ -404,7 +404,7 @@ Files over ~1000 lines require chunked reading (500-line chunks via Read tool of
 6. **Command wrappers:** Thin — body is always `Use the \`secops-factory <name>\` skill via the Skill tool.\n\nArguments: $ARGUMENTS`.
 7. **Hook parity:** Every `.sh` hook must have a `.ps1` sibling with identical JSON output structure and exit codes.
 8. **Hook exit codes:** Exit 0 always for business logic (allow and deny alike). Exit 1 only for missing infrastructure (jq absent).
-9. **Fail-open hooks:** Unknown/unrecognized inputs emit allow, not deny.
+9. **Hook fail-open/fail-closed scoping:** Non-jr commands always emit allow (fast-path). Advisory hooks (bias-check-reminder, handoff-validator, session-greeting) always exit 0. The `require-review` blocking gate is fail-CLOSED for unrecognized `jr` subcommands (SEC-002, PR #13) — unknown jr operations emit deny rather than allow to prevent future write subcommands from bypassing the gate. Do not conflate these two behaviors.
 10. **Commit messages:** Conventional Commits format; no Co-Authored-By or AI attribution.
 11. **Version sync:** plugin.json + marketplace.json + git tag must all carry identical version strings before a release is valid.
 12. **CHANGELOG:** Keep-a-Changelog format; one-line summary directly under `## [X.Y.Z] - YYYY-MM-DD` heading (used by release.yml for notes extraction).
@@ -412,7 +412,7 @@ Files over ~1000 lines require chunked reading (500-line chunks via Read tool of
 ### MUST AVOID (Detected Anti-Patterns)
 
 1. **Hardcoded paths in SKILL.md/agent files:** Use `${CLAUDE_PLUGIN_ROOT}/` — hardcoded paths break portability across plugin install locations.
-2. **Denying on unknown commands in hooks:** The fail-open convention (`emit_allow` at the end) is intentional and consistent — do not add catch-all denies.
+2. **Misapplying fail-open to the require-review blocking gate:** Advisory hooks (bias-check-reminder, handoff-validator, session-greeting) and non-jr inputs should fail-open. Do NOT add catch-all denies to advisory hooks. Equally, do NOT revert the final `emit_deny` in `require-review` back to `emit_allow` — that fail-CLOSED fallthrough is an intentional security fix (SEC-002, PR #13) that prevents unrecognized `jr` subcommands from bypassing the review gate. Reverting it reintroduces the vulnerability.
 3. **Adding `Write` tool to security-reviewer agent:** Riley is read-only by design; this is tested by `skills.bats:277-279`.
 4. **Skipping Iron Law on new workflow skills:** Iron Laws are structurally tested; missing one fails CI.
 5. **Skipping Red Flags or having < 6 rows:** Row count is tested by `skills.bats` for all pipeline skills.
@@ -543,13 +543,19 @@ enforceable_rules:
       - "hooks/enrichment-completeness.sh:24, 35"
 
   - id: CONV-013
-    description: "Hooks must be fail-open: unknown inputs emit allow"
-    pattern: "final line before EOF is emit_allow (Bash) or Emit-Allow (PowerShell)"
+    description: "Hook fail-open/fail-closed scoping — advisory hooks and non-jr inputs fail-open; require-review jr fallthrough is fail-CLOSED (SEC-002)"
+    pattern: |
+      advisory hooks (bias-check-reminder, handoff-validator, session-greeting): final action exits 0 with no permissionDecision deny.
+      require-review: fast-path allow for non-jr commands; final fallthrough emits emit_deny for unrecognized jr subcommands (fail-CLOSED).
+      A final emit_allow in require-review is a security regression — must not be introduced.
     scope: "plugins/secops-factory/hooks/*"
-    severity: warning
+    severity: error
+    notes: "Updated 2026-07-19 — SEC-002 (PR #13) changed require-review final fallthrough from emit_allow to emit_deny. SEC-001 (PR #14) moved jr issue comment from allowed to blocked. Implementers following pre-PR #13 conventions.md would revert a security fix."
     evidence:
-      - "hooks/require-review.sh:73-74"
-      - "hooks/require-review.ps1:60-61"
+      - "hooks/require-review.sh:47-49 (non-jr fast-path emit_allow)"
+      - "hooks/require-review.sh:96-98 (fail-closed emit_deny for unrecognized jr subcommand, SEC-002)"
+      - "hooks/require-review.ps1 line 41-42 (non-jr fast-path Emit-Allow)"
+      - "hooks/require-review.ps1 final line (fail-closed Emit-Deny for unrecognized jr subcommand, SEC-002)"
 
   - id: CONV-014
     description: "plugin.json and marketplace.json versions must match"

@@ -3,7 +3,8 @@
 > Analyzed by Dark Factory Phase 0e (Verification Gap Analysis)
 > Agent: formal-verifier (T3)
 > Source codebase: `/Users/jmagady/Dev/secops-factory`
-> Date: 2026-07-19
+> Date: 2026-07-19 (original) · **re-synced 2026-07-19 post PR #12 / #13 / #14**
+> **Reconciliation note (ADV-0-003):** The original analysis reflected the pre-remediation baseline. Between authoring and adversarial pass 1, PR #12 (gitignore secrets), PR #13 (SEC-001/002 fail-closed + `jr issue comment` gated), and PR #14 (read-only allowlist expansion) merged. This revision re-verifies every affected finding against the current code/tests (post-PR-14) and marks resolved items with evidence. Findings not affected by those PRs (notably the disposition-guard false-pass) remain open and are re-confirmed live.
 > Scope note: This is a **declarative Claude Code plugin** (markdown + JSON + shell/PowerShell hooks + YAML templates). There is no compiled/interpreted production language, hence no conventional line/branch/function coverage, no Kani/CBMC target, and no cargo-mutants/mutmut/stryker target. This report re-frames every template section around the actual verification surface: **executable checks (BATS, CI validation, hook self-behavior) mapped to the 13 recovered behavioral contracts.**
 > Security scanning is intentionally **excluded** here — it is owned by Step 0e-sec (DF-031). See the deferral note under "Security Posture".
 
@@ -19,9 +20,10 @@
 | BCs verified **structural-only** (skill text/config/reference presence checked; behavioral enforcement of the Iron Law NOT executably verified) — counted under "partial" | **7** — BC-4.01.001, BC-4.02.001, BC-4.03.001, BC-4.04.001, BC-5.01.001, BC-6.01.001, BC-6.01.002 |
 | BCs **un-verified** (no check of any kind) | **0** |
 | **Three-bucket roll-up** | **Fully 2 / Partially 11 / Un-verified 0** |
-| Total automated tests | **129** BATS `@test` cases (hooks 23, skills 81, integration 11, parity 14) — all pass locally |
+| Total automated tests | **138** BATS `@test` cases (hooks 32, skills 81, integration 11, parity 14) — all pass locally. (+9 hook tests from PR #13/#14: expanded read-only allowlist + SEC-001/SEC-002.) |
 | Tests that silently skip without `pwsh` (PowerShell parity) | **12 of 14** parity tests |
-| Highest-value confirmed defect | **disposition-guard false-pass** — anti-confirmation-bias gate is trivially defeated (live-demonstrated below) |
+| Highest-value confirmed defect (still OPEN post-PR-14) | **disposition-guard false-pass** — anti-confirmation-bias gate is trivially defeated (re-confirmed live 2026-07-19: negating text containing the phrase still returns `allow`) |
+| Resolved since original (verified) | **SM-3 fail-open** → fail-closed (PR #13, SEC-002); **DI-001 secrets** → gitignored (PR #12); **SM-2 assign/create** → largely mitigated by fail-closed default (PR #13) |
 
 **The verification asymmetry is the headline finding.** The six **hooks** (deterministic shell) are directly executable and are genuinely behaviorally tested. The seven **skills** (LLM-executed markdown) are verified *structurally only*: BATS proves the Iron Law text, "Announce at Start", Red-Flag row counts, `${CLAUDE_PLUGIN_ROOT}` reference portability, referenced-file existence, and agent frontmatter/tool constraints are present — but **no executable check confirms the skills actually enforce their preconditions/postconditions/invariants at runtime**, because that enforcement is LLM behavior. The structural gate is real and valuable (it catches deletions and drift), but it must not be mistaken for behavioral verification of the Iron Laws.
 
@@ -36,8 +38,8 @@
 | Metric | Value | Tool |
 |--------|-------|------|
 | Line/branch/function coverage | **not measurable / not meaningful** | no coverage tool applies to declarative plugin (no `package.json`/`Cargo.toml`) |
-| Total automated tests | 129 `@test` cases | bats-core 1.13.0 |
-| Test suites | 4 (`hooks.bats` 23, `skills.bats` 81, `integration.bats` 11, `parity.bats` 14) | bats-core |
+| Total automated tests | 138 `@test` cases | bats-core 1.13.0 |
+| Test suites | 4 (`hooks.bats` 32, `skills.bats` 81, `integration.bats` 11, `parity.bats` 14) | bats-core |
 | Test execution (local, ex-parity-skips) | ~seconds; all green | `tests/run-all.sh` |
 | Static soundness of `.sh` hooks | shellcheck **CLEAN** (0 findings) | shellcheck |
 | Static soundness of `.ps1` hooks | **only if `pwsh` present** (parse-only; no PSScriptAnalyzer) | `run-all.sh` conditional block |
@@ -48,7 +50,7 @@
 
 | BC | Component | Layer | Executable checks | Contract-element coverage | Verdict |
 |----|-----------|-------|-------------------|---------------------------|---------|
-| BC-3.01.001 | require-review hook | hook (pure) | hooks.bats ×5, integration ×2, parity ×3 | non-jr allow ✓; read-only `view` ✓ (9 other read verbs untested); comment allow ✓; `edit`/`move` deny ✓; **`assign`/`create` deny untested**; **fail-open unknown-jr untested**; **jq-missing exit-1 untested**; malformed-JSON allow untested | **PARTIAL** |
+| BC-3.01.001 | require-review hook | hook (pure) | hooks.bats ×14, integration ×2, parity ×3 | **[post-PR-13/14]** non-jr allow ✓; read-only allowlist now broadly tested (view, changelog plain+json, `--output json` view/list/comments, assets search/view, `--version`) ✓; `jr issue comment` now **deny** ✓ (SEC-001 — behavior changed from allow); `edit`/`move` deny ✓; **fail-CLOSED** on unknown-jr subcommand now deny ✓ (SEC-002); **`assign`/`create` deny still lack a dedicated positive test** but are now double-protected (explicit blocklist + fail-closed default); jq-missing exit-1 untested; malformed-JSON untested | **PARTIAL** (materially improved) |
 | BC-3.02.001 | enrichment-completeness hook | hook (pure) | hooks.bats ×3, integration ×3, parity ×2 | non-matching allow ✓; enrichment 5-section deny ✓ (missing-name-in-reason not asserted); complete allow ✓; **investigation 4-section branch entirely untested**; case-sensitivity untested; both-pattern precedence untested; jq-missing untested | **PARTIAL** |
 | BC-3.03.001 | disposition-guard hook | hook (pure) | hooks.bats ×4, integration ×2, parity ×2 | non-investigation allow ✓; in-progress (no Disposition) allow ✓; Disposition+no-Alternatives deny ✓; Disposition+Alternatives allow ✓ — all 3 declared VPs + 3-state core exercised. Gaps: case-insensitive lowercase untested; **substring false-pass untested (confirmed defect, below)** | **FULLY** (core); false-pass edge open |
 | BC-3.04.001 | bias-check-reminder hook | hook (pure) | hooks.bats ×3, parity ×1 | exit-0 ✓; Confirmation ✓; Anchoring ✓; **Availability + Automation biases not asserted**; **reference-path not asserted** | **PARTIAL** |
@@ -139,7 +141,7 @@
 
 | Component | Verifiable now? | Blocking issue | Effort to ready |
 |-----------|-----------------|----------------|-----------------|
-| 5 pure hooks | **yes** | none — already pure, BATS in place | ~0.5 day to add missing partitions (assign/create, fail-open, jq-missing, investigation-branch, 39/40 boundary, false-pass) |
+| 5 pure hooks | **yes** | none — already pure, BATS in place | ~0.3 day to add remaining partitions (dedicated assign/create positive test, jq-missing, investigation-branch, 39/40 boundary, false-pass fix). *fail-open closed by PR #13.* |
 | session-greeting jq-fallback path | mostly | needs a PATH-without-`jq` fixture | ~1 hr |
 | Skill pure sub-functions (validation/scoring/merge) | no (not extracted) | logic lives only as prose in `SKILL.md`; not callable | ~1–2 days each to extract to a testable shim, OR accept as unverifiable LLM behavior |
 | Skill behavioral Iron-Law enforcement | **no** | inherently LLM-mediated; not formally verifiable | out of scope — mitigate with hook-layer gates + structural tests |
@@ -147,8 +149,8 @@
 ### Recommended Verification Targets (priority-ordered)
 
 1. **disposition-guard false-pass** — security-relevant anti-bias gate; live-confirmed defeatable. Add a failing BATS vector, then decide fix (require section-heading match, not substring).
-2. **require-review completeness** — add `assign`, `create`, fail-open, and jq-missing vectors; this hook is the infra half of the "NO JIRA UPDATE WITHOUT REVIEW APPROVAL" Iron Law.
-3. **enrichment-completeness investigation branch** — 4-section (Alert Details / Disposition / Next Actions) path is entirely untested.
+2. **require-review completeness** — [mostly done post-PR-13/14: fail-closed + expanded allowlist + SEC-001/002 tests] remaining: add dedicated `assign`/`create` positive vectors and a jq-missing vector; this hook is the infra half of the "NO JIRA UPDATE WITHOUT REVIEW APPROVAL" Iron Law.
+3. **enrichment-completeness investigation branch** — the 4-section investigation path (**Executive Summary, Alert Details, Disposition, Next Actions**) is entirely untested (still open post-PR-14).
 4. **hook↔template section-list sync** — static CI check that hook-hardcoded section lists equal template headings.
 5. **handoff-validator boundary** — 39/40 char threshold + missing-`result` field.
 
@@ -156,7 +158,9 @@
 
 ## Security Posture
 
-**Deferred to Step 0e-sec (DF-031).** Per the Step 0e specification, security scanning (Semgrep, dependency/secret audit, `.envrc`/`.mcp.json` credential exposure) is out of scope for this step. Tool availability note for 0e-sec handoff: `semgrep` is installed locally; `security.yml` runs Semgrep (config auto) weekly + on push. The HIGH-severity plaintext-credentials finding from Step 0a (§8.1 of project-discovery.md — `.envrc`/`.mcp.json` untracked but not gitignored) is flagged for 0e-sec triage.
+**Deferred to Step 0e-sec (DF-031).** Per the Step 0e specification, security scanning (Semgrep, dependency/secret audit, `.envrc`/`.mcp.json` credential exposure) is out of scope for this step. Tool availability note for 0e-sec handoff: `semgrep` is installed locally; `security.yml` runs Semgrep (config auto) weekly + on push.
+
+**DI-001 update (RESOLVED — PR #12):** The HIGH-severity plaintext-credentials exposure from Step 0a (§8.1 of project-discovery.md — `.envrc`/`.mcp.json` untracked but not gitignored) has been **remediated**. Verified against the current `.gitignore`, which now lists `.envrc`, `.env`, `.mcp.json`, and `.claude/settings.local.json` — the secret-bearing files are no longer at risk of accidental commit. Residual action for 0e-sec: confirm any keys previously exposed on disk were rotated (out of scope for this step).
 
 ---
 
@@ -169,21 +173,21 @@
 | cargo-mutants / mutmut / stryker | **N/A** | no Rust/Python/JS production code to mutate |
 | **Manual mutation probe of pure hooks** | **applied** (below) | flip allow/deny, drop guard clauses, alter thresholds; check whether BATS catches |
 
-Automated mutation tooling does not exist for bash-as-config. A manual mutation probe was run against the 5 pure hooks by reasoning about which source mutations the current 129-test suite would fail to kill. Concrete **surviving mutants** (test-suite blind spots) were confirmed with live hook execution:
+Automated mutation tooling does not exist for bash-as-config. A manual mutation probe was run against the 5 pure hooks by reasoning about which source mutations the current 138-test suite would fail to kill (re-run post PR #13/#14). Concrete **surviving mutants** (test-suite blind spots) were confirmed with live hook execution:
 
 ### Surviving Mutants (confirmed)
 
 | # | Component | Mutation | Survives because | Risk |
 |---|-----------|----------|------------------|------|
 | SM-1 | `disposition-guard.sh:54` | change substring match to always-true / weaken it | **No test uses a negating sentence containing the phrase.** Live-confirmed: content `"## Disposition\nTrue Positive. No Alternatives Considered because it is obvious."` → **allow** (should deny). The anti-confirmation-bias Iron Law gate is defeatable. | **HIGH** |
-| SM-2 | `require-review.sh:68-69` | delete `jr issue assign` / `jr issue create` from blocklist | **No test exercises assign or create.** Live-confirmed both currently deny; mutant removing either stays green. | **HIGH** (Iron Law: no unreviewed field mutation) |
-| SM-3 | `require-review.sh:74` | flip fail-open `allow` → `deny` (or vice-versa) | fail-open path for unknown `jr` subcommands untested (live-confirmed `jr issue frobnicate` → allow) | MEDIUM |
+| SM-2 | `require-review.sh:91-92` | delete `jr issue assign` / `jr issue create` from blocklist | **LARGELY MITIGATED (PR #13).** With fail-closed default now in place, deleting these lines no longer changes behavior (unknown subcommand still denies) — the mutant is now near-equivalent. The SEC-002 test (`jr issue duplicate` → deny) guards the fail-closed default. Residual: still **no dedicated positive test** asserting assign/create deny (live-confirmed both deny 2026-07-19). Downgraded HIGH → LOW. | **LOW** (was HIGH) |
+| SM-3 | `require-review.sh:96-98` | flip fail-closed `deny` → `allow` for unknown subcommands | **RESOLVED (PR #13, SEC-002).** Hook is now fail-CLOSED; unknown `jr` subcommand denies. Guarded by hooks.bats "blocks unknown mutation-shaped jr subcommand (SEC-002)". Re-verified live 2026-07-19: `jr issue frobnicate` → **deny** (was `allow` in the pre-remediation baseline). Mutant would now be killed. | **RESOLVED** |
 | SM-4 | `enrichment-completeness.sh` (investigation branch) | delete/alter any of the 4 investigation-required sections | **No enrichment-completeness test feeds an `investigation-*` file_path** (confirmed) — entire branch unguarded | MEDIUM |
 | SM-5 | `handoff-validator.sh:27` | change threshold `40` → `1` or `1000` | boundary 39/40 never tested; only far-from-boundary values (2, 106) used | MEDIUM |
 | SM-6 | `require-review.sh:14-17` / all hooks | remove `jq`-missing guard (exit 1) | jq-absent path untested for every hook | LOW (env-dependent) |
 | SM-7 | `bias-check-reminder.sh` | drop "Availability" / "Automation" bias line, or the data-file reference | only Confirmation + Anchoring asserted | LOW (advisory hook) |
 
-**Estimated current kill rate against the pure-hook mutation set: ~55–65%.** Module-criticality targets are not defined for a plugin, but the two HIGH mutants (SM-1, SM-2) sit on Iron-Law enforcement paths and should be killed before any behavior change ships.
+**Estimated current kill rate against the pure-hook mutation set: ~75–80% (up from ~55–65% at original baseline).** PR #13/#14 killed SM-3 (fail-closed) and neutralized SM-2 (fail-closed default). The remaining HIGH mutant is **SM-1 (disposition-guard false-pass), still open** — it sits on the anti-confirmation-bias Iron-Law path and should be killed before any behavior change ships. Module-criticality kill-rate targets are not formally defined for a plugin.
 
 ---
 
@@ -223,7 +227,7 @@ Each BC's "Undocumented behavior (ambiguity)" note was assessed for whether an *
 | # | Gap | Affected area | Risk | Effort |
 |---|-----|---------------|------|--------|
 | GAP-1 | disposition-guard false-pass — substring match defeats the anti-confirmation-bias Iron Law (SM-1, A-3) | `disposition-guard.sh`, BC-3.03.001 | HIGH — silent bypass of a core quality gate | 0.5 day (failing test + heading-anchored fix) |
-| GAP-2 | require-review `assign`/`create`/fail-open untested (SM-2, SM-3) — infra half of the review Iron Law | `require-review.sh`, BC-3.01.001 | HIGH — regression on field-mutation blocking would go undetected | 0.25 day |
+| GAP-2 | ~~require-review `assign`/`create`/fail-open untested~~ **RESOLVED/DOWNGRADED (PR #13/#14)** — fail-open → fail-closed (SEC-002, tested); comment now gated (SEC-001, tested); allowlist expanded + tested. Residual (LOW): no dedicated `assign`/`create` positive test | `require-review.sh`, BC-3.01.001 | LOW (was HIGH) — fail-closed default now backstops missing verbs | 0.1 day (residual) |
 | GAP-3 | `pwsh` not installed/asserted in CI — 12 parity + `.ps1` syntax checks can silently skip (false-pass) | `ci.yml`, `run-all.sh`, all `.ps1` | HIGH — Windows users could ship on unverified hooks | 0.25 day (add `pwsh` install step + fail-if-skipped guard) |
 
 ### Important Gaps (Should Fix Soon)
@@ -243,7 +247,7 @@ Each BC's "Undocumented behavior (ambiguity)" note was assessed for whether an *
 | GAP-9 | jq-missing exit-1 path untested for every hook (SM-6) | all hooks | LOW | 1 hr |
 | GAP-10 | bias-check-reminder: Availability/Automation + data-file ref not asserted (SM-7) | `bias-check-reminder.sh` | LOW | 15 min |
 | GAP-11 | session-greeting jq-fallback + cwd-missing paths untested | `session-greeting.sh` | LOW | 1 hr |
-| GAP-12 | require-review read-only allowlist: only `view` of 10 verbs tested | `require-review.sh` | LOW | 30 min |
+| GAP-12 | ~~require-review read-only allowlist: only `view` tested~~ **RESOLVED (PR #14)** — allowlist verbs (changelog, assets, `--version`, `--output json` forms) now have dedicated tests | `require-review.sh` | — (closed) | done |
 | GAP-13 | update-jira VP-SKILL-007/008 labelled "manual" — CVSS range + review-precedes-edit unautomated | BC-4.02.001 | LOW–MEDIUM | folds into GAP-7 |
 
 ---
@@ -252,9 +256,9 @@ Each BC's "Undocumented behavior (ambiguity)" note was assessed for whether an *
 
 ### Before proceeding past Phase 0
 
-1. **GAP-1** — add the false-pass BATS vector to `hooks.bats` (red), then fix `disposition-guard.sh` to match on a section heading, not a bare substring. (0.5 day)
-2. **GAP-2** — add `assign`, `create`, fail-open, and jq-missing vectors to `require-review` tests. (0.25 day)
-3. **GAP-3** — add an explicit `pwsh` install step to all three `ci.yml` jobs (or the test job) **and** make `run-all.sh`/`parity.bats` fail (not skip) when `pwsh` is expected. (0.25 day)
+1. **GAP-1 (still the top open item)** — add the false-pass BATS vector to `hooks.bats` (red), then fix `disposition-guard.sh` to match on a section heading, not a bare substring. (0.5 day) — *not addressed by PR #12/#13/#14.*
+2. ~~**GAP-2**~~ **DONE (PR #13/#14)** — fail-closed + SEC-001/002 + allowlist tests merged; only a LOW residual (dedicated assign/create positive test) remains.
+3. **GAP-3** — add an explicit `pwsh` install step to all three `ci.yml` jobs (or the test job) **and** make `run-all.sh`/`parity.bats` fail (not skip) when `pwsh` is expected. (0.25 day) — *not addressed by PR #12/#13/#14.*
 
 ### Incorporate into the VSDD pipeline (ongoing)
 
@@ -267,16 +271,17 @@ Each BC's "Undocumented behavior (ambiguity)" note was assessed for whether an *
 
 | Priority | Gap count | Total effort |
 |----------|-----------|--------------|
-| Critical | 3 | ~1 day |
+| Critical (open) | 2 (GAP-1, GAP-3; GAP-2 resolved by PR #13/#14) | ~0.75 day |
 | Important | 5 | ~2.5–3.5 days |
-| Minor | 5 | ~0.5 day |
-| **Total** | **13** | **~4–5 days** |
+| Minor (open) | 4 (GAP-12 resolved by PR #14) | ~0.4 day |
+| Resolved since original | 3 (GAP-2 partial, GAP-12; + DI-001 secrets) | — |
+| **Total open** | **~11** | **~3.75–4.75 days** |
 
 ---
 
 ## Quality Gate Checklist
 
-- [x] Numerical baselines provided where tools apply (129 tests; per-BC coverage matrix; shellcheck clean; parity skip count)
+- [x] Numerical baselines provided where tools apply (138 tests; per-BC coverage matrix; shellcheck clean; parity skip count)
 - [x] Where tools are unavailable/N/A (Kani, cargo-mutants, coverage), the gap is documented with the reason and the plugin-appropriate analog + install/adoption path
 - [x] Every readiness assessment includes estimated effort to reach readiness
 - [x] Purity boundary map is present

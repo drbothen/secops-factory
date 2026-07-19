@@ -6,6 +6,11 @@
 > Confidence: high
 > Sharding applied: YES (exceeds 500-line threshold)
 > Detail files: arch-recov-api-surface.md, arch-recov-integrations.md
+>
+> **Changelog (2026-07-19, adversarial review pass 1):**
+> - DI-008 RESOLVED: prose table C-numbers and YAML component-map IDs now agree end-to-end. The YAML was missing C-18 (hook-manifests), causing a one-off shift from C-18 onwards. IDs are now consistent (C-1..C-24 in both tables).
+> - DI-009 RESOLVED: `hooks/hooks.json` + `hooks.json.windows` (hook-manifests) added to machine-readable YAML as C-18 (HIGH criticality). A wrong matcher in this file silently de-wires the CRITICAL require-review gate.
+> - ADV-0-005: Fixed prose C-20 output-templates file count (5 → 6: 5 .yaml + 1 .md). Layer diagram updated to match.
 
 ---
 
@@ -55,7 +60,7 @@ advisory-writer. Three canonical workflow playbooks live alongside the orchestra
 | C-17 | session-greeting hook | `hooks/session-greeting.{sh,ps1}` | Enforcement | SessionStart: activation-gated banner when orchestrator is the default agent |
 | C-18 | Hook manifests | `hooks/hooks.json`, `hooks/hooks.json.windows` | Configuration | Wires hook events to handler scripts; cross-platform variants |
 | C-19 | Knowledge bases | `data/*.md` (10 files) | Knowledge | Domain reference: CVSS, EPSS, KEV, ATT&CK, bias patterns, metrics recipes |
-| C-20 | Output templates | `templates/*.yaml/.md` (5 files) | Knowledge | Structured schemas for enrichment, investigation, advisory, review, effort-priors |
+| C-20 | Output templates | `templates/*.yaml/.md` (6 files) | Knowledge | Structured schemas for enrichment, investigation, advisory, review, effort-priors |
 | C-21 | Quality checklists | `checklists/*.md` (15 files) | Knowledge | 8 CVE enrichment + 7 event investigation quality dimensions |
 | C-22 | BATS test suite | `tests/*.bats` (4 files) + `run-all.sh` | Test | Validates hook allow/block logic, skill Iron Laws, template portability, cross-platform parity |
 | C-23 | jr CLI | external (`Zious11/jira-cli`) | External-Integration | Jira read/write via Bash subprocess; required runtime dependency |
@@ -256,6 +261,18 @@ components:
     confidence: "high"
 
   - id: C-18
+    name: "hook-manifests"
+    path: "plugins/secops-factory/hooks/hooks.json, plugins/secops-factory/hooks/hooks.json.windows"
+    layer: "infrastructure"
+    purity: "pure-core"
+    criticality: "HIGH"
+    dependencies: ["C-12", "C-13", "C-14", "C-15", "C-16", "C-17"]
+    interfaces_provided: ["Claude Code hook event routing: wires SessionStart/PreToolUse/PostToolUse/SubagentStop events to handler scripts; cross-platform variants (.json for macOS/Linux, .json.windows for Windows)"]
+    interfaces_consumed: ["Claude Code runtime (reads hooks.json at session start)"]
+    confidence: "high"
+    notes: "A wrong matcher silently de-wires the CRITICAL require-review gate; jq-validated in CI but no schema (DI-009 resolved by adding this entry)"
+
+  - id: C-19
     name: "knowledge-bases"
     path: "plugins/secops-factory/data/*.md"
     layer: "shared"
@@ -266,7 +283,7 @@ components:
     interfaces_consumed: []
     confidence: "high"
 
-  - id: C-19
+  - id: C-20
     name: "output-templates"
     path: "plugins/secops-factory/templates/"
     layer: "shared"
@@ -277,7 +294,7 @@ components:
     interfaces_consumed: []
     confidence: "high"
 
-  - id: C-20
+  - id: C-21
     name: "quality-checklists"
     path: "plugins/secops-factory/checklists/"
     layer: "shared"
@@ -288,7 +305,7 @@ components:
     interfaces_consumed: []
     confidence: "high"
 
-  - id: C-21
+  - id: C-22
     name: "test-suite"
     path: "plugins/secops-factory/tests/"
     layer: "infrastructure"
@@ -299,7 +316,7 @@ components:
     interfaces_consumed: ["bats-core", "jq", "python3 (yaml)", "optional pwsh"]
     confidence: "high"
 
-  - id: C-22
+  - id: C-23
     name: "jr-cli"
     path: "external (github.com/Zious11/jira-cli)"
     layer: "infrastructure"
@@ -310,7 +327,7 @@ components:
     interfaces_consumed: ["Jira REST API (authenticated)"]
     confidence: "high"
 
-  - id: C-23
+  - id: C-24
     name: "perplexity-mcp"
     path: "external (@perplexity-ai/mcp-server, npx-launched)"
     layer: "infrastructure"
@@ -363,7 +380,7 @@ components:
                              v
 +-----------------------------------------------------------------------+
 | KNOWLEDGE LAYER (Shared/Utility)                                      |
-|   data/*.md (10 KBs), templates/*.yaml/.md (5), checklists/*.md (15) |
+|   data/*.md (10 KBs), templates/*.yaml/.md (6), checklists/*.md (15) |
 |   Evidence: referenced as ${CLAUDE_PLUGIN_ROOT}/data/X.md etc. in   |
 |   every skill and agent. Pure static reference content.              |
 +-----------------------------------------------------------------------+
@@ -411,17 +428,18 @@ External Integration Boundary:
         +-- [C-9: metrics-analyst-agent]
         +-- [C-10: osint-researcher-agent]
         +-- [C-11: advisory-writer-agent]
-        +-- [C-18: knowledge-bases]        (data/)
-        +-- [C-19: output-templates]       (templates/)
-        +-- [C-20: quality-checklists]     (checklists/)
-        +-- [C-22: jr-cli]                 (external)
-        +-- [C-23: perplexity-mcp]         (external)
+        +-- [C-19: knowledge-bases]        (data/)
+        +-- [C-20: output-templates]       (templates/)
+        +-- [C-21: quality-checklists]     (checklists/)
+        +-- [C-23: jr-cli]                 (external)
+        +-- [C-24: perplexity-mcp]         (external)
 
-[C-12..C-17: hooks] (cross-cutting — fire on Claude Code tool events, not imported)
+[C-12..C-17: hooks] + [C-18: hook-manifests] (cross-cutting — hooks fire on Claude Code tool events; hook-manifests wires them)
   +-- read from: Claude Code hook event envelopes
-  +-- (C-12 blocks): [C-22: jr-cli] write operations
+  +-- (C-12 blocks): [C-23: jr-cli] write operations
+  +-- [C-18: hook-manifests] wires: [C-12..C-17: hooks]
 
-[C-21: test-suite]
+[C-22: test-suite]
   +-- validates: [C-12..C-16: hooks]
   +-- validates: [C-2: skill-procedures] (Iron Laws, Announce-at-Start)
 

@@ -2,6 +2,8 @@
 
 _Phase 0, Step 0a (Project Discovery). Agent: codebase-analyzer (T1, read-only). Generated 2026-07-19._
 
+> **Erratum (2026-07-19):** counts corrected per adversarial review ADV-0-005/006 — hook `.sh` count 7→6 (LOC 400→329, prior figure erroneously included `tests/run-all.sh`); template count 5→6 (adds `security-advisory-tmpl.md`).
+
 ## 1. Project Identity
 
 | Attribute | Value | Evidence |
@@ -25,8 +27,8 @@ This is **not** a compiled/interpreted application codebase — it is a **declar
 |-------|-----------|----------|
 | Primary artifact language | Markdown (agents, skills `SKILL.md`, commands, checklists, data KBs, docs, rules) | 76 `.md` files, 5,315 LOC under `plugins/secops-factory/` |
 | Manifests / config | JSON (`marketplace.json`, `plugin.json`, `hooks.json`, `hooks.json.windows`) | `.claude-plugin/`, `plugins/secops-factory/hooks/` |
-| Hooks | Bash (`*.sh`, 7 files, 400 LOC) + PowerShell (`*.ps1`, 6 files, 281 LOC) sibling pairs | `plugins/secops-factory/hooks/` |
-| Templates | YAML (5 files, 478 LOC) | `plugins/secops-factory/templates/` |
+| Hooks | Bash (`*.sh`, 6 files, 329 LOC) + PowerShell (`*.ps1`, 6 files, 281 LOC) sibling pairs | `plugins/secops-factory/hooks/` |
+| Templates | 6 files — 5 YAML (478 LOC) + 1 Markdown (`security-advisory-tmpl.md`) | `plugins/secops-factory/templates/` |
 | Test framework | **BATS** (bats-core), 4 files, 1,004 LOC (`hooks.bats`, `skills.bats`, `integration.bats`, `parity.bats`) + `run-all.sh` runner | `plugins/secops-factory/tests/` |
 | Test prerequisites | `bash -n` syntax check, `python3 -c "import yaml"` YAML validation, optional `pwsh` for `.ps1` parity | `tests/run-all.sh` |
 | CI/CD | GitHub Actions: `ci.yml` (BATS + structure + shellcheck), `release.yml` (tag-triggered, version-gated), `security.yml` (Semgrep, weekly cron) | `.github/workflows/` |
@@ -61,7 +63,7 @@ secops-factory/
 │   ├── skills/<name>/SKILL.md           # 19 skills
 │   ├── checklists/                      # 15 quality checklists (8 CVE + 7 event)
 │   ├── data/                            # 10 knowledge-base docs
-│   ├── templates/                       # 5 YAML/MD output templates
+│   ├── templates/                       # 6 output templates (5 YAML + 1 Markdown)
 │   ├── hooks/                           # 6 hooks × {.sh,.ps1} + hooks.json(.windows)
 │   ├── rules/secops-protocol.md
 │   ├── docs/{AGENT-SOUL.md, guide/}
@@ -114,7 +116,7 @@ secops-factory/
 
 1. **SECURITY — live secrets in untracked files (HIGH).** `.envrc` contains a plaintext `ANTHROPIC_AWS_API_KEY`; `.mcp.json` contains plaintext `PERPLEXITY_API_KEY`, a Tavily key in a URL, and a `CONTEXT7_API_KEY`. `.gitignore` lists only `.factory/` and `.reference/` — **neither `.envrc` nor `.mcp.json` is gitignored**, and both show as untracked (`??`) in git status. Risk of accidental commit of live credentials. Recommend adding both to `.gitignore` and rotating any exposed keys. (Key values intentionally not reproduced here.)
 2. **Author identity vs. ownership.** All commits are authored by `Joshua Magady`; manifests declare owner/author `drbothen`. Likely the same operator under different identities, but flagged for confirmation. Per MEMORY: commits omit Co-Authored-By attribution by design.
-3. **README count drift.** README "What's Inside" cites 129 tests and mixed skill counts (11 vs 19 in different sections); actual on-disk: 19 skills, 20 commands, 6 agents, 15 checklists, 10 data KBs, 5 templates, 4 BATS suites. Minor doc/reality drift worth reconciling in later passes.
+3. **README count drift.** README "What's Inside" cites 129 tests and mixed skill counts (11 vs 19 in different sections); actual on-disk: 19 skills, 20 commands, 6 agents, 15 checklists, 10 data KBs, 6 templates, 4 BATS suites. Minor doc/reality drift worth reconciling in later passes.
 4. **No standard build/dependency manifest.** Absence of `package.json`/`Cargo.toml` etc. is expected for a declarative plugin, but means "build/test commands" are defined only by `tests/run-all.sh` and CI YAML — not a package script.
 5. **Unknown/external tools flagged for research delegation (DF-027):** `jr` (`Zious11/jira-cli`, aka `jira-cli-rs`) and the Claude Code plugin/marketplace + MCP execution model. Both are documented in-repo; delegate to research-agent only if deeper external verification is needed.
 

@@ -14,19 +14,41 @@ inputs:
   - phase-0-ingestion/security-audit.md
   - phase-0-ingestion/project-discovery.md
 classification_guide: DF-004
-modules_classified: 24
-critical: 2
-high: 12
+census_granularity: "YAML component-map aggregate (C-1..C-23)"
+modules_classified: 23
+critical: 1
+high: 11
 medium: 7
-low: 5
+low: 4
+submodule_census: "per-artifact: 43 modules — 2 CRITICAL / 16 HIGH / 20 MEDIUM / 5 LOW"
 ---
 
 # Module Criticality Classification — secops-factory v0.9.0
+
+> **Reconciliation note — re-synced 2026-07-19 post PR #13 (f450d9f) / PR #14 (0ec794a).**
+> Census recounted to the single authoritative granularity below (ADV-0-004);
+> security/mutation open items refreshed against the merged fixes, suite now
+> 138/138 (ADV-0-003); session-greeting mutation target stated explicitly (ADV-0-010).
 
 > Step 0e.5 (Module Criticality Classification). Agent: formal-verifier.
 > Classifies every Component-Map module into a DF-004 criticality tier, driving
 > mutation kill-rate (and, for this declarative plugin, input-partition BATS)
 > targets in later phases.
+
+## Authoritative census (read this first)
+
+Two granularities exist; **the YAML component-map aggregate is authoritative** and
+is what the capstone must sync to. The finer per-artifact view is a secondary figure.
+
+| Granularity | Count | CRITICAL | HIGH | MEDIUM | LOW | Notes |
+|-------------|-------|----------|------|--------|-----|-------|
+| **Authoritative — YAML component-map aggregate (C-1..C-23)** | **23** | **1** | **11** | **7** | **4** | update-jira is folded into the C-2 `skill-procedures` aggregate (HIGH), so only require-review (C-12) is CRITICAL at this level. |
+| Secondary — per-artifact / sub-module | 43 | 2 | 16 | 20 | 5 | Explodes C-2 into 19 skills + adds the recommended `hooks.json` manifest module; here update-jira surfaces as a distinct CRITICAL. |
+
+The earlier arithmetic mixed these two views (frontmatter counted 24 with a 2/12/7/5
+that summed to 26; the Distribution HIGH/MEDIUM rows quoted per-artifact members
+against aggregate labels). Both censuses below now sum correctly and are internally
+consistent.
 
 ## Scope note (declarative plugin)
 
@@ -75,12 +97,12 @@ corruption of the authoritative Jira record or of the user's `settings.local.jso
 
 | Module | Path | Tier | Mut. target | Rationale |
 |--------|------|------|-------------|-----------|
-| require-review hook | `hooks/require-review.{sh,ps1}` | **CRITICAL** | ≥95% | The authorization gate on the Jira system of record — blocks `jr issue edit/move/assign/create` (BC-3.01.001); a wrong decision writes unreviewed content to the authoritative record. Confirmed HIGH surviving mutants SM-2 (assign/create untested) and SM-3 (fail-open untested, SEC-002); SEC-001 leaves the `jr issue comment` path unblocked. |
+| require-review hook | `hooks/require-review.{sh,ps1}` | **CRITICAL** | ≥95% | The authorization gate on the Jira system of record — now blocks `jr issue comment/edit/move/assign/create` and **fail-closes (default-deny) on unrecognized subcommands** (BC-3.01.001). **Post PR #13/#14 this hook meets CRITICAL-tier assurance:** SEC-001 (comment path now denied) and SEC-002/SM-3 (fail-open → fail-closed) are resolved with red-first BATS vectors; the fail-closed fallthrough makes the SM-2 "delete assign/create from blocklist" mutant behaviorally inert (still denied via default-deny). Residual: a dedicated assign/create partition test is nice-to-have but no longer load-bearing. Suite 138/138 green, shellcheck clean. |
 | enrichment-completeness hook | `hooks/enrichment-completeness.{sh,ps1}` | **HIGH** | ≥90% | Enforces the required-section completeness invariant on saved enrichment/investigation docs (BC-3.02.001); the entire investigation 4-section branch is untested (SM-4) and hook-hardcoded section lists can drift from templates (GAP-5). Blast radius bounded to local doc quality, not the authoritative record. |
 | disposition-guard hook | `hooks/disposition-guard.{sh,ps1}` | **HIGH** | ≥90% | Anti-confirmation-bias invariant gate requiring "Alternatives Considered" on dispositions (BC-3.03.001); **DI-004 confirmed false-pass (SM-1)** — a negating sentence containing the phrase defeats the substring match, silently bypassing a security-analysis quality gate. Effective assurance is currently below tier until the heading-anchored fix lands (GAP-1). |
 | bias-check-reminder hook | `hooks/bias-check-reminder.{sh,ps1}` | **LOW** | ≥70% | Non-blocking PostToolUse advisory that injects a cognitive-bias reminder to stderr (BC-3.04.001); cannot corrupt state or block any operation. |
 | handoff-validator hook | `hooks/handoff-validator.{sh,ps1}` | **LOW** | ≥70% | SubagentStop hook — advisory only, structurally cannot block (per security audit); emits a "suspiciously short" note (BC-3.05.001). No enforcement blast radius. |
-| session-greeting hook | `hooks/session-greeting.{sh,ps1}` | **LOW** | ≥70% | Cosmetic SessionStart welcome banner, activation-gated, fail-open on corrupt config (BC-3.06.001). Purely presentational. |
+| session-greeting hook | `hooks/session-greeting.{sh,ps1}` | **LOW** | **≥70% (numeric)** | Cosmetic SessionStart welcome banner, activation-gated, fail-open on corrupt config (BC-3.06.001). Purely presentational. **This effectful hook DOES carry a numeric input-partition target (≥70%)** — it is the 6th mutation-testable hook (see Mutation targets summary). |
 | hook manifests | `hooks/hooks.json`, `hooks/hooks.json.windows` | **HIGH** | N/A (config) | **Not a distinct entry in the Component-Map YAML — recommend adding one.** The event→handler wiring; a wrong matcher silently disables the CRITICAL require-review gate. `jq`-validated only, no schema check. High blast radius by de-wiring. |
 
 ### Vulnerability-pipeline skills (write to / gate the authoritative Jira record)
@@ -151,37 +173,70 @@ corruption of the authoritative Jira record or of the user's `settings.local.jso
 
 ## Distribution
 
+### Authoritative — YAML component-map aggregate (C-1..C-23), total 23
+
+| Tier | Count | Members (C-id) |
+|------|-------|----------------|
+| CRITICAL | **1** | require-review hook (C-12) |
+| HIGH | **11** | skill-procedures (C-2, aggregate — contains the CRITICAL update-jira skill); orchestrator/Morgan (C-3); enrichment-workflow (C-4); investigation-workflow (C-5); review-convergence (C-6); security-analyst (C-7); security-reviewer (C-8); enrichment-completeness hook (C-13); disposition-guard hook (C-14); knowledge bases (C-18); test-suite+CI (C-21) |
+| MEDIUM | **7** | metrics-analyst (C-9); osint-researcher (C-10); advisory-writer (C-11); output-templates (C-19); quality-checklists (C-20); jr CLI (C-22); Perplexity MCP (C-23) |
+| LOW | **4** | command-dispatch (C-1); bias-check-reminder hook (C-15); handoff-validator hook (C-16); session-greeting hook (C-17) |
+| **Total** | **23** | 1 + 11 + 7 + 4 = 23 ✓ (matches frontmatter) |
+
+### Secondary — per-artifact / sub-module granularity, total 43
+
+Explodes the C-2 `skill-procedures` aggregate into its 19 individual skills and adds
+the recommended `hooks.json` manifest module. update-jira surfaces here as a distinct
+CRITICAL skill.
+
 | Tier | Count | Members |
 |------|-------|---------|
-| CRITICAL | 2 | require-review hook; update-jira skill |
-| HIGH | 12 | enrichment-completeness hook; disposition-guard hook; hook manifests; enrich-ticket; review-enrichment; adversarial-review-secops; investigate-event; activate; orchestrator (Morgan); 3 workflow playbooks (enrichment/investigation/review-convergence); security-analyst; security-reviewer; data KBs; test-suite+CI |
-| MEDIUM | 7 (classes) | deactivate; metrics-analyst; osint-researcher; advisory-writer; templates; checklists; research-cve/read-ticket/assess-priority/map-attack/advisory+metrics skills; jr CLI; Perplexity MCP |
-| LOW | 5 | bias-check-reminder hook; handoff-validator hook; session-greeting hook; command dispatch; secops-health |
+| CRITICAL | **2** | require-review hook; update-jira skill |
+| HIGH | **16** | enrichment-completeness hook; disposition-guard hook; hooks.json manifest (recommended); enrich-ticket; review-enrichment; adversarial-review-secops; investigate-event; activate; orchestrator (Morgan); enrichment-workflow; investigation-workflow; review-convergence; security-analyst; security-reviewer; data KBs; test-suite+CI |
+| MEDIUM | **20** | deactivate; research-cve; read-ticket; assess-priority; map-attack; scan-threats; create-advisory; fact-verify; generate-metrics; analyze-ticket-effort; model-ticket-cost; extract-severity; verify-metrics-report; metrics-analyst; osint-researcher; advisory-writer; templates; checklists; jr CLI; Perplexity MCP |
+| LOW | **5** | bias-check-reminder hook; handoff-validator hook; session-greeting hook; command dispatch (20 stubs); secops-health |
+| **Total** | **43** | 2 + 16 + 20 + 5 = 43 ✓ |
 
-> The frontmatter counts tally the Component-Map YAML entries (C-1..C-23) plus the
-> recommended hooks-manifest entry; the HIGH row above groups several sub-modules
-> (workflow playbooks, skills) that the YAML folds into aggregate components.
+> The **authoritative** figure the capstone must sync to is **23 modules — 1 CRITICAL /
+> 11 HIGH / 7 MEDIUM / 4 LOW** (frontmatter). The per-artifact 43-module figure is a
+> secondary breakdown showing the finer granularity used in the ranking tables above.
 
-## Open-item impact on effective assurance (below tier until remediated)
+## Open-item impact on effective assurance (re-synced post PR #13/#14)
+
+### Resolved — no longer degrade tier assurance (verified against merged code, suite 138/138)
+
+| Item | Module | Resolution |
+|------|--------|-----------|
+| SEC-001 | require-review (CRITICAL), update-jira (skill CRITICAL) | **RESOLVED (PR #13, f450d9f).** `jr issue comment` moved into the deny block — the injection route to the authoritative record via comments is now hard-gated. Red-first BATS vector added. (Residual defense-in-depth: read-ticket system-prompt framing of untrusted ticket content is still advisable but not blocking.) |
+| SEC-002 / SM-3 / GAP-2 (fail-open) | require-review (CRITICAL) | **RESOLVED (PR #13).** Final fallthrough changed from `emit_allow` to `emit_deny` (fail-closed default-deny) for unrecognized subcommands; verified at `require-review.sh:96-98`. SM-3 killed. |
+| SM-2 (assign/create) | require-review (CRITICAL) | **NEUTRALIZED (PR #13).** assign/create remain explicitly denied (`require-review.sh:91-92`) and the fail-closed fallthrough makes the "delete assign/create from blocklist" mutant behaviorally inert (still denied). Residual: a dedicated assign/create partition test is nice-to-have, not load-bearing. |
+| SEC-003 | Perplexity MCP / jr CLI (MEDIUM) | **RESOLVED (PR #13).** MCP server versions pinned in `docs/mcp.json.example` (perplexity 0.9.0, playwright 0.0.78). |
+| SEC-004 | test-suite + CI (HIGH) | **RESOLVED (PR #13).** release.yml permission scoping addressed under the SEC-001..005 fix set. |
+| SEC-005 | test-suite + CI (HIGH) | **RESOLVED (PR #13).** Semgrep early-exit addressed under the SEC-001..005 fix set. |
+
+### Still open — effective assurance below tier until remediated (verified still present)
 
 | Item | Module | Effect |
 |------|--------|--------|
-| DI-004 / SM-1 / GAP-1 | disposition-guard (HIGH) | Confirmed substring false-pass defeats the anti-bias gate; effective assurance below HIGH until heading-anchored fix + failing BATS vector land. |
-| SM-2 / SM-3 / GAP-2 | require-review (CRITICAL) | `assign`/`create` and fail-open branches untested; CRITICAL tier demands ≥95% partition coverage — currently ~55–65% estimated. |
-| DI-006 / GAP-3 | test-suite + CI (HIGH) | `pwsh` not installed/asserted in CI; 12 parity tests + `.ps1` syntax check silently skip (false-pass). |
-| SEC-001 | update-jira (CRITICAL), read-ticket (MEDIUM), require-review (CRITICAL) | `jr issue comment` unblocked + unsanitized ticket ingest = injection route to the authoritative record; fixes in flight. |
-| SEC-005 | test-suite + CI (HIGH) | Semgrep early-exit reports green with no scan. |
+| DI-004 / SM-1 / GAP-1 | disposition-guard (HIGH) | **STILL OPEN.** `disposition-guard.sh:54` still uses a bare `grep -qiF "Alternatives Considered"` substring match (untouched by PR #13/#14, last modified v0.2.0). A negating sentence containing the phrase defeats the anti-confirmation-bias gate. Effective assurance below HIGH until the heading-anchored fix + failing BATS vector land. |
+| DI-006 / GAP-3 | test-suite + CI (HIGH) | **STILL OPEN.** No `pwsh` reference in `ci.yml`; the 12 conditional parity tests + `.ps1` syntax check still silently skip if the runner image drops `pwsh` (false-pass). |
 
 ## Mutation / verification targets summary
 
-Only the **5 pure hooks** carry a numeric target (input-partition BATS kill-rate):
+**All 6 hooks carry a numeric target** (input-partition BATS kill-rate analog).
+Authoritative decision (ADV-0-010): session-greeting, although effectful (it reads
+`settings.local.json`), IS mutation-testable and **does carry a numeric ≥70% target** —
+its gate/compare logic is a pure, enumerable sub-function. So the numeric-target set is
+the **6 hooks**, not 5:
 
-- require-review → **≥95%** (CRITICAL) — must kill SM-2, SM-3 before any behavior change ships.
-- enrichment-completeness → **≥90%** (HIGH) — must kill SM-4 (investigation branch).
-- disposition-guard → **≥90%** (HIGH) — must kill SM-1 (false-pass, DI-004).
-- bias-check-reminder, handoff-validator, session-greeting → **≥70%** (LOW).
+- require-review → **≥95%** (CRITICAL) — SM-3 killed and SM-2 neutralized post PR #13; target now met modulo the optional assign/create partition test.
+- enrichment-completeness → **≥90%** (HIGH) — must still kill SM-4 (investigation branch untested).
+- disposition-guard → **≥90%** (HIGH) — must still kill SM-1 (false-pass, DI-004 — STILL OPEN).
+- bias-check-reminder → **≥70%** (LOW).
+- handoff-validator → **≥70%** (LOW).
+- session-greeting → **≥70%** (LOW) — effectful but mutation-testable; numeric target applies.
 
-All other modules are declarative/LLM: the tier governs review depth, structural
+All other modules are declarative/LLM/static: the tier governs review depth, structural
 coverage, and gate-sync assertions, not a numeric kill-rate.
 
 ## DTU implications
@@ -198,7 +253,9 @@ is the sole path to the authoritative Jira record.
 - [x] Every module in the Component Map (C-1..C-23) has a criticality classification
 - [x] Each classification cites evidence from behavioral contracts / gap analysis / security audit / discovery
 - [x] Component Map YAML `criticality` fields updated in `recovered-architecture.md` to match
-- [x] Known open items (DI-004, DI-006, SEC-001..005) factored into effective-assurance notes
+- [x] Known open items re-synced post PR #13/#14: SEC-001..005 + SM-2/SM-3 resolved; DI-004 and DI-006 verified still open
+- [x] Census reconciled to one authoritative granularity (23 aggregate: 1/11/7/4) with a secondary per-artifact figure (43: 2/16/20/5); frontmatter + Distribution + tier rows all sum
+- [x] session-greeting numeric mutation target (≥70%) stated unambiguously (6-hook target set)
 - [x] Component-Map numbering discrepancy and missing hooks-manifest entry flagged for architect
 
 ## Notes for the architect
@@ -212,5 +269,3 @@ is the sole path to the authoritative Jira record.
    `hooks.json` manifest component (classified HIGH here).
 2. Aggregate `skill-procedures` (C-2) is set to **HIGH** in the YAML because it contains
    the CRITICAL update-jira skill; the per-skill breakdown above is the true granularity.
-</content>
-</invoke>

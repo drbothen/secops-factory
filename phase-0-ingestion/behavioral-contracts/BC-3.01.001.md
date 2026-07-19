@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
@@ -15,7 +15,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-01
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19"]
+modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19", "v0.9.x-ADV0-001-ADV0-007-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -30,6 +30,7 @@ removal_reason: null
 > - v1.0 (2026-07-19): Initial extraction from `require-review.sh` at v0.9.0 HEAD (Step 0d).
 > - v1.1 (2026-07-19): Revised to reflect PR #13 (commit f450d9f) behavior changes — SEC-001 (`jr issue comment` moved from allow to deny) and SEC-002 (unknown jr subcommands changed from fail-open to fail-closed). Previous postconditions #4 and #5 and invariant #3 were stale.
 > - v1.2 (2026-07-19): Revised to reflect PR #14 (commit 0ec794a) — expanded read-only allowlist with two families: plain forms (`jr issue changelog`, `jr assets search/view`, `jr --version`) and `--output json` forms for the metrics suite. EC-010 flips from Deny to Allow. New Invariant #4 documents the `--output json` global-flag placement nuance (root cause of DI-010 regression). BATS count updated to 138 tests.
+> - v1.3 (2026-07-19): Adversarial review pass 1 fixes — ADV-0-001: renumbered VP-HOOK-004/005/006 to VP-HOOK-020/021/022 (global sequential namespace; 004-006 are owned by BC-3.02.001 enrichment-completeness). ADV-0-007: corrected EC-015 mechanism — `jr --output json issue comment` is denied by the fail-closed catch-all, NOT by the write-block check (Invariant #4 applies; `jr issue comment` is not a substring of that command). Security extensibility note added to Refactoring Notes.
 
 ## Preconditions
 
@@ -96,7 +97,7 @@ removal_reason: null
 | EC-012 | `jr --output json issue view SEC-123` (metrics suite form) | Allow — `--output json issue view` is in the allowlist. Note: `jr issue view` (plain) does NOT match this form due to Invariant #4 |
 | EC-013 | `jr --output json assets search objectType=Client` (CMDB query) | Allow — `--output json assets search` is in the allowlist (PR #14) |
 | EC-014 | `jr --version` | Allow — explicitly in the allowlist (PR #14) |
-| EC-015 | `jr --output json issue comment SEC-123 "msg"` | Deny — `jr issue comment` matches the write-block list at lines 88-94; the `--output json` prefix does not prevent the write-block substring match |
+| EC-015 | `jr --output json issue comment SEC-123 "msg"` | Deny via fail-closed catch-all (lines 97-98) — `jr issue comment` is NOT a substring of this command (Invariant #4: `--output json` sits between `jr` and `issue`, breaking the substring match); `--output json issue comment` (singular) is also not on the allowlist (allowlist has plural `--output json issue comments`). Reason contains "Unrecognized jr subcommand. Add to the read-only allowlist..." — the SEC-001 comment gate is NOT what triggers the deny here |
 
 ## Canonical Test Vectors
 
@@ -119,9 +120,9 @@ removal_reason: null
 | VP-HOOK-001 | For all inputs where command contains `jr issue comment`, `jr issue edit`, `jr issue move`, `jr issue assign`, or `jr issue create`, output always contains `"permissionDecision":"deny"` | integration / BATS |
 | VP-HOOK-002 | Hook exit code is always 0 when jq is present (both allow and deny paths) | integration / BATS |
 | VP-HOOK-003 | Any unrecognized `jr` subcommand receives deny (fail-closed invariant, SEC-002) | integration / BATS (`hooks.bats:76-80`) |
-| VP-HOOK-004 | `jr issue changelog` plain form receives allow (DI-010 resolution) | integration / BATS (`hooks.bats:21-25`) |
-| VP-HOOK-005 | `jr --output json issue changelog` receives allow (metrics suite form, DI-010) | integration / BATS (`hooks.bats:27-31`) |
-| VP-HOOK-006 | `jr --output json issue view` receives allow — validates that the `--output json` family is covered separately from plain forms (Invariant #4) | integration / BATS (`hooks.bats:33-37`) |
+| VP-HOOK-020 | `jr issue changelog` plain form receives allow (DI-010 resolution) | integration / BATS (`hooks.bats:21-25`) |
+| VP-HOOK-021 | `jr --output json issue changelog` receives allow (metrics suite form, DI-010) | integration / BATS (`hooks.bats:27-31`) |
+| VP-HOOK-022 | `jr --output json issue view` receives allow — validates that the `--output json` family is covered separately from plain forms (Invariant #4) | integration / BATS (`hooks.bats:33-37`) |
 
 ## Traceability
 
@@ -196,5 +197,7 @@ removal_reason: null
 The hook is pure: it reads stdin, applies pattern matching to a string field, and emits a deterministic JSON response. Suitable for formal property verification of the allow/deny routing logic. No refactoring needed for formal verification.
 
 The `--output json` global-flag design means the allowlist cannot be expressed as a simple set of subcommand names — it must carry separate entries for plain forms and each global-flag variant. If the `jr` CLI adds more global flags in the future (e.g., `--format yaml`), corresponding allowlist families would need to be added. This is a known extensibility constraint, not a defect.
+
+**Security extensibility note (ADV-0-007):** `jr --output json issue comment` is denied by the fail-closed catch-all, NOT by the explicit SEC-001 write-block check. This is because `jr issue comment` is not a substring of `jr --output json issue comment` (Invariant #4 — the global flag breaks the substring). If the fail-closed behavior were ever relaxed or removed, the `--output json` forms of write operations (`jr --output json issue comment`, `jr --output json issue edit`, etc.) would bypass the SEC-001/SEC-002 gate entirely — they match neither the write-block list nor the allowlist. Defense-in-depth recommendation: add explicit `--output json issue comment`, `--output json issue edit`, `--output json issue move`, `--output json issue assign`, `--output json issue create` patterns to the write-block list in a future PR.
 
 **Resolved (v1.1 drift item):** `jr issue changelog` was identified in v1.1 as a correctness gap blocking the metrics pipeline under fail-closed behavior. PR #14 (commit 0ec794a) added both `jr issue changelog` (plain) and `--output json issue changelog` (json form) to the allowlist, resolving DI-010. The v1.2 revision reflects this resolution.

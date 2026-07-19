@@ -4,7 +4,7 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-19T10:00:00Z
+timestamp: 2026-07-19T11:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
@@ -72,6 +72,7 @@ dtu_required: false
 | 0e-sec: security-audit | security-reviewer + human | DONE | `.factory/phase-0-ingestion/security-audit.md` — human gate PASSED. 0 critical / 0 high / 1 medium / 4 low / 3 info. SEC-001..005 FIXED via PR #13 (merged f450d9f, 130/130 BATS green): comment path review-gated, unknown jr subcommands fail-closed, MCP versions pinned in docs/mcp.json.example, release.yml job-scoped permissions, semgrep pinned 1.170.0. SEC-006/007 ACCEPTED (info, review at next release). |
 | 0f-pre: holdout-seeding | codebase-analyzer | DONE | `.factory/holdout-scenarios/` — 25 scenarios seeded (HS-INDEX.md + 25 brownfield-regression-*.md); 4+4 CRITICAL (require-review/update-jira), 16 HIGH across 7 modules, 1 MEDIUM; epic: BROWNFIELD-REGRESSION. Notable: HS-003 SM-2 surviving mutant; HS-008 SEC-001 injection vector (now fixed via PR #13, scenario retained as regression guard); HS-014 DI-004 false-pass; HS-021 end-to-end investigation gate. |
 | 0f: project-context-synthesis | codebase-analyzer | DONE | `.factory/phase-0-ingestion/project-context.md` (new, 287 lines, DF-021 shard links); `behavioral-contracts/BC-3.01.001.md` revised v1.0→v1.1 (PR #13 behavior). DI-010 logged (SEC-002 regression) then RESOLVED: PR #14 (0ec794a) — 11 read-only allowlist entries incl. `--output json` global-flag forms; root cause: global flag between `jr` and subcommand defeated substring match; 8 new BATS tests, suite 138/138. BC-3.01.001.md at v1.2. |
+| 0f-adv pass 1 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0.md` — 12 findings (1C/6M/5m), all remediated same-day. ADV-0-001: BC v1.3 + VPs renumbered VP-HOOK-020/021/022. ADV-0-003 [process-gap]: stale shards re-synced, reconciliation headers added; SM-2 neutralized, require-review kill-rate ~75-80%. Census authoritative at 23 primary + 43 secondary. ADV-0-008: DI-010 row added. ADV-0-009: DI-011 created (hooks.json JSON-Schema, OPEN LOW). Capstone project-context.md re-synced to v1.1 (318 lines). Pass 2 dispatched. |
 
 ## Decisions Log
 
@@ -99,11 +100,12 @@ dtu_required: false
 | DI-002 | `secops-health` command has no corresponding skill directory — special-cased in CI rather than following standard command→skill convention | LOW | Phase 1 spec crystallization | 0b architecture-recovery | open |
 | DI-003 | `adversarial-review-secops` skill directly references orchestrator canonical playbook — intentional layer inversion (skill depends on orchestrator artifact) | LOW | Phase 1 spec crystallization | 0b architecture-recovery | open |
 | DI-004 | disposition-guard substring false-pass live-demonstrated: header-only match passes BC-3.04 even when body text is absent — hook assert is unsound | HIGH | first Feature Mode cycle | 0e verification-gap-analysis | open |
-| DI-005 | require-review hook: assign/create/fail-open paths untested — review bypass and error-path behaviors have no BATS coverage | HIGH | first Feature Mode cycle | 0e verification-gap-analysis | open |
+| DI-005 | require-review hook: assign/create/fail-open paths untested — review bypass and error-path behaviors have no BATS coverage. Largely superseded by fail-closed fix (PR #13); residual assign/create-path gap remains. | MEDIUM | first Feature Mode cycle | 0e verification-gap-analysis | open (downgraded) |
 | DI-006 | PowerShell parity tests skip silently when `pwsh` absent; CI does not assert `pwsh` presence, so `.ps1` hooks receive no static analysis in standard CI runs | HIGH | first Feature Mode cycle | 0e verification-gap-analysis | open |
 | DI-007 | enrichment-completeness investigation-branch path untested; hook↔template section-name sync gap; handoff-validator 39/40 boundary not exercised | MEDIUM | first Feature Mode cycle | 0e verification-gap-analysis | open |
-| DI-008 | Component-Map numbering diverges between prose table and YAML in `recovered-architecture.md` — consistency validation needed | LOW | 0f-post consistency validation | 0e5 module-criticality | open |
-| DI-009 | hook-manifests component absent from machine-readable YAML component map — classified HIGH; YAML map is incomplete | HIGH | 0f-post consistency validation | 0e5 module-criticality | open |
+| DI-008 | Component-Map numbering diverges between prose table and YAML in `recovered-architecture.md` — consistency validation needed | LOW | 0f-post consistency validation | 0e5 module-criticality | RESOLVED (ADV-0-001/004 remediation) |
+| DI-009 | hook-manifests component absent from machine-readable YAML component map — classified HIGH; YAML map incomplete. Scope clarified: YAML component-map only (hooks.json JSON-Schema gap is separate → DI-011). | HIGH | 0f-post consistency validation | 0e5 module-criticality | RESOLVED (ADV-0-009 remediation) |
+| DI-011 | `hooks.json` has no JSON-Schema validation — no machine-readable contract for hook manifest structure | LOW | first Feature Mode cycle | 0f-adv pass 1 (ADV-0-009) | open |
 | DI-010 | SEC-002 fail-closed regression: `jr issue changelog` (read-only, used by metrics-analyst + 2 data KBs) wrongly denied. PR #14 merged (0ec794a): 11 read-only allowlist entries incl. `--output json` global-flag forms; root cause: global flag defeated substring match; 8 new BATS tests, 138/138 green. | HIGH | in flight | 0f project-context-synthesis | RESOLVED |
 
 ## Blocking Issues
@@ -118,8 +120,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 — step 0f-adv adversarial review dispatched |
-| **Context** | Steps 0a–0f complete. BC-3.01.001.md at v1.2; project-context.md updated. DI-010 RESOLVED (PR #14, 138/138 BATS). DI-001 RESOLVED (PR #12). DI-002–DI-009 open. CRITICAL: require-review hook, update-jira skill. |
+| **Position** | Phase 0 — step 0f-adv pass 2 in progress |
+| **Context** | Pass 1: 12 findings (1C/6M/5m), all remediated same-day. BC-3.01.001.md at v1.3 (VP-HOOK-020/021/022). project-context.md v1.1 (318 lines). DI-008/DI-009 RESOLVED. DI-011 added (hooks.json JSON-Schema, LOW). DI-005 downgraded to MEDIUM. Process-gap ADV-0-003 flagged for cycle-close pipeline codification. DI-001/DI-010 RESOLVED. CRITICAL: require-review hook, update-jira skill. |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

@@ -49,6 +49,34 @@ if [[ "$COMMAND" != *"jr "* ]]; then
   emit_allow
 fi
 
+# Block all jr write operations — requires review approval.
+# ORDERING: write-block is evaluated BEFORE the read-only allowlist to prevent
+# bypass via allowlist tokens embedded in write-command arguments (ADV-0-801).
+# Example bypass (fixed): `jr issue edit KEY --summary "see jr board"` previously
+# matched the "jr board" allowlist token and emitted allow before the deny block.
+#
+# Two families of write patterns:
+#   (a) Plain forms:        jr issue edit KEY …
+#   (b) --output json forms: jr --output json issue edit KEY …
+# Both families are listed explicitly because the plain form "jr issue edit" is NOT
+# a substring of "jr --output json issue edit" (the global flag sits between
+# "jr" and "issue"), so each needs its own entry.
+#
+# jr issue comment is blocked (SEC-001): posting to the authoritative Jira record
+# is a write operation that must go through the same review gate as field edits.
+if [[ "$COMMAND" == *"jr issue comment "* ]] || \
+   [[ "$COMMAND" == *"jr issue edit"* ]] || \
+   [[ "$COMMAND" == *"jr issue move"* ]] || \
+   [[ "$COMMAND" == *"jr issue assign"* ]] || \
+   [[ "$COMMAND" == *"jr issue create"* ]] || \
+   [[ "$COMMAND" == *"--output json issue comment "* ]] || \
+   [[ "$COMMAND" == *"--output json issue edit"* ]] || \
+   [[ "$COMMAND" == *"--output json issue move"* ]] || \
+   [[ "$COMMAND" == *"--output json issue assign"* ]] || \
+   [[ "$COMMAND" == *"--output json issue create"* ]]; then
+  emit_deny "JIRA write operations require review approval. Run /review-enrichment or /adversarial-review-secops first to validate analysis quality. The jr issue comment/edit/move/assign/create commands are blocked until review passes quality thresholds."
+fi
+
 # Allow read-only jr operations without review.
 #
 # Two families of patterns:
@@ -79,18 +107,6 @@ if [[ "$COMMAND" == *"jr issue view"* ]] || \
    [[ "$COMMAND" == *"--output json assets search"* ]] || \
    [[ "$COMMAND" == *"--output json assets view"* ]]; then
   emit_allow
-fi
-
-# Block all jr write operations — requires review approval
-# Includes: comment, edit, move, assign, create, and any unrecognized subcommand.
-# jr issue comment is blocked (SEC-001): posting to the authoritative Jira record
-# is a write operation that must go through the same review gate as field edits.
-if [[ "$COMMAND" == *"jr issue comment"* ]] || \
-   [[ "$COMMAND" == *"jr issue edit"* ]] || \
-   [[ "$COMMAND" == *"jr issue move"* ]] || \
-   [[ "$COMMAND" == *"jr issue assign"* ]] || \
-   [[ "$COMMAND" == *"jr issue create"* ]]; then
-  emit_deny "JIRA write operations require review approval. Run /review-enrichment or /adversarial-review-secops first to validate analysis quality. The jr issue comment/edit/move/assign/create commands are blocked until review passes quality thresholds."
 fi
 
 # Unknown jr subcommand — fail-closed (SEC-002): deny rather than allow to prevent

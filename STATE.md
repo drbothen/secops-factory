@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-19T01:00:00Z
+timestamp: 2026-07-19T02:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: brownfield
-current_step: "0b — architecture recovery"
+current_step: "0c — convention extraction"
 current_cycle: ""
 dtu_required: false
 ---
@@ -37,7 +37,7 @@ dtu_required: false
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-19 |
 | **Current Phase** | 0: Codebase Ingestion |
-| **Current Step** | 0b — architecture recovery |
+| **Current Step** | 0c — convention extraction |
 
 ## Phase Progress
 
@@ -64,6 +64,7 @@ dtu_required: false
 | repo-hardening | devops-engineer | DONE | SHA-pinned actions, job timeouts, security.yml; branch protection on main applied |
 | worktree-health | devops-engineer | DONE | PASS — .factory/ on factory-artifacts; remote sync confirmed |
 | 0a: project-discovery | codebase-analyzer | DONE | `.factory/phase-0-ingestion/project-discovery.md` |
+| 0b: architecture-recovery | codebase-analyzer | DONE | `.factory/phase-0-ingestion/recovered-architecture.md`, `arch-recov-api-surface.md`, `arch-recov-integrations.md` |
 
 ## Decisions Log
 
@@ -85,9 +86,11 @@ dtu_required: false
 
 <!-- Items flagged during codebase analysis for follow-up. Move resolved items to cycle files. -->
 
-| ID | Item | Severity | Target Step | Flagged By |
-|----|------|----------|-------------|------------|
-| DI-001 | Live API keys in untracked, non-gitignored `.envrc` and `.mcp.json` at repo root — exposure risk on accidental commit | HIGH | 0e-sec security audit triage | 0a project-discovery |
+| ID | Item | Severity | Target Step | Flagged By | Status |
+|----|------|----------|-------------|------------|--------|
+| DI-001 | Live API keys in untracked, non-gitignored `.envrc` and `.mcp.json` at repo root — exposure risk on accidental commit. PR #12 merged: adds `.envrc`, `.env`, `.mcp.json`, `.claude/settings.local.json` to `.gitignore`. Keys were never committed (untracked only), no git-history exposure. Key rotation optional; 0e-sec to confirm. | HIGH | 0e-sec security audit triage | 0a project-discovery | RESOLVED |
+| DI-002 | `secops-health` command has no corresponding skill directory — special-cased in CI rather than following standard command→skill convention | LOW | Phase 1 spec crystallization | 0b architecture-recovery | open |
+| DI-003 | `adversarial-review-secops` skill directly references orchestrator canonical playbook — intentional layer inversion (skill depends on orchestrator artifact) | LOW | Phase 1 spec crystallization | 0b architecture-recovery | open |
 
 ## Blocking Issues
 
@@ -101,8 +104,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 — step 0b architecture recovery is next |
-| **Context** | Step 0a complete. project-discovery.md produced. Codebase is a declarative Claude Code plugin (Markdown+JSON+Bash/PS1, no compiled artifact). Key finding: `.envrc` + `.mcp.json` are untracked and non-gitignored with live API keys — DI-001 logged, target step 0e-sec. Pre-pipeline complete. Environment gate PASS. Repo hardening shipped via PR #11. Branch protection on main enforced. |
+| **Position** | Phase 0 — step 0c convention extraction is next |
+| **Context** | Steps 0a and 0b complete. recovered-architecture.md + api-surface + integrations produced. DI-001 RESOLVED: PR #12 merged `.envrc`/`.mcp.json`/`.env`/`.claude/settings.local.json` into `.gitignore`; keys never committed; 0e-sec to confirm rotation. DI-002/DI-003 logged (architectural smells, low severity, routed to Phase 1). Codebase confirmed: declarative Claude Code plugin, layered commands→skills→agents architecture, cross-platform hook parity. |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

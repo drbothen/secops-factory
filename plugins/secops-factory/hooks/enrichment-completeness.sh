@@ -43,11 +43,13 @@ if [[ "$FILE_PATH" != *"enrichment"* ]] && [[ "$FILE_PATH" != *"investigation"* 
   emit_allow
 fi
 
-# Check required sections for enrichment documents
+# Check required sections for enrichment documents.
+# Sections must appear as markdown headings (^#{1,6}\s+<name>) so that body
+# text merely mentioning a section name does not falsely satisfy the gate (DI-014).
 if [[ "$FILE_PATH" == *"enrichment"* ]]; then
   MISSING=""
   for section in "Executive Summary" "Vulnerability Details" "Severity Metrics" "Priority Assessment" "Remediation Guidance"; do
-    if ! echo "$CONTENT" | grep -qF "$section"; then
+    if ! echo "$CONTENT" | grep -qiE "^#{1,6}[[:space:]]+${section}"; then
       MISSING="${MISSING}${section}, "
     fi
   done
@@ -58,11 +60,12 @@ if [[ "$FILE_PATH" == *"enrichment"* ]]; then
   fi
 fi
 
-# Check required sections for investigation documents
+# Check required sections for investigation documents.
+# Same heading-anchored check as enrichment (DI-014).
 if [[ "$FILE_PATH" == *"investigation"* ]]; then
   MISSING=""
   for section in "Executive Summary" "Alert Details" "Disposition" "Next Actions"; do
-    if ! echo "$CONTENT" | grep -qF "$section"; then
+    if ! echo "$CONTENT" | grep -qiE "^#{1,6}[[:space:]]+${section}"; then
       MISSING="${MISSING}${section}, "
     fi
   done

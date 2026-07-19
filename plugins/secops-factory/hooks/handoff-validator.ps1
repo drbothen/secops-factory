@@ -15,12 +15,7 @@ $result = ''
 try {
     $payload = $raw | ConvertFrom-Json
     if ($payload -and $payload.result) { $result = [string]$payload.result }
-} catch {
-    # Intentionally failing open: this is an advisory hook and must never block.
-    # If the payload is malformed JSON, treat result as empty and emit the
-    # EMPTY output warning below. $_ contains the parse error but is discarded.
-    Write-Verbose "handoff-validator: ignoring JSON parse error — failing open (advisory hook)"
-}
+} catch { Write-Verbose "handoff-validator: ignoring hook payload JSON parse error — treating result as empty string" }
 
 $len = $result.Length
 

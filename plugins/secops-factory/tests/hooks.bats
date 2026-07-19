@@ -315,3 +315,124 @@ setup_greeting_project() {
     [ "$status" -eq 0 ]
     [ -z "$output" ]
 }
+
+# --- DI-004: disposition-guard heading-anchored fix ---
+# Body text that merely mentions "Alternatives Considered" must NOT satisfy the
+# anti-confirmation-bias gate; only a markdown heading does.
+
+@test "disposition-guard body-text alternatives-considered (no heading) denies" {
+    # RED: substring "Alternatives Considered" in body text — no heading present
+    run bash -c 'echo "{\"tool_input\": {\"file_path\": \"/tmp/investigation-ALERT-001.md\", \"content\": \"# Disposition\nTrue Positive\n\nno Alternatives Considered needed here\"}}" | "$1/hooks/disposition-guard.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+@test "disposition-guard heading-form alternatives-considered allows" {
+    # GREEN: proper heading satisfies the gate
+    run bash -c 'echo "{\"tool_input\": {\"file_path\": \"/tmp/investigation-ALERT-001.md\", \"content\": \"# Disposition\nTrue Positive\n## Alternatives Considered\n1. FP: ruled out\"}}" | "$1/hooks/disposition-guard.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"allow"'* ]]
+}
+
+# --- DI-014: enrichment-completeness heading-anchored fix ---
+# Section names mentioned in body prose must NOT pass the completeness gate.
+
+@test "enrichment-completeness body-text section names (no headings) denies for enrichment" {
+    # RED: all required section names appear in prose — no headings present
+    run bash -c 'echo "{\"tool_input\": {\"file_path\": \"/tmp/enrichment-CVE-2024-1234.md\", \"content\": \"This covers Executive Summary, Vulnerability Details, Severity Metrics, Priority Assessment, and Remediation Guidance in prose only.\"}}" | "$1/hooks/enrichment-completeness.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+@test "enrichment-completeness body-text section names (no headings) denies for investigation" {
+    # RED: all required investigation section names appear in prose — no headings present
+    run bash -c 'echo "{\"tool_input\": {\"file_path\": \"/tmp/investigation-ALERT-001.md\", \"content\": \"This covers Executive Summary, Alert Details, Disposition, and Next Actions in prose only.\"}}" | "$1/hooks/enrichment-completeness.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+# --- DI-007a: enrichment-completeness investigation branch coverage ---
+# All 4 investigation sections: allow when all present, deny when any missing.
+
+@test "enrichment-completeness allows complete investigation document" {
+    CONTENT="# Executive Summary\n## Alert Details\n## Disposition\n## Next Actions"
+    run bash -c "echo '{\"tool_input\": {\"file_path\": \"/tmp/investigation-ALERT-001.md\", \"content\": \"$CONTENT\"}}' | \"\$1/hooks/enrichment-completeness.sh\"" -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"allow"'* ]]
+}
+
+@test "enrichment-completeness denies investigation missing Alert Details" {
+    CONTENT="# Executive Summary\n## Disposition\n## Next Actions"
+    run bash -c "echo '{\"tool_input\": {\"file_path\": \"/tmp/investigation-ALERT-001.md\", \"content\": \"$CONTENT\"}}' | \"\$1/hooks/enrichment-completeness.sh\"" -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+@test "enrichment-completeness denies investigation missing Next Actions" {
+    CONTENT="# Executive Summary\n## Alert Details\n## Disposition"
+    run bash -c "echo '{\"tool_input\": {\"file_path\": \"/tmp/investigation-ALERT-001.md\", \"content\": \"$CONTENT\"}}' | \"\$1/hooks/enrichment-completeness.sh\"" -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+@test "enrichment-completeness denies investigation missing Disposition" {
+    CONTENT="# Executive Summary\n## Alert Details\n## Next Actions"
+    run bash -c "echo '{\"tool_input\": {\"file_path\": \"/tmp/investigation-ALERT-001.md\", \"content\": \"$CONTENT\"}}' | \"\$1/hooks/enrichment-completeness.sh\"" -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+@test "enrichment-completeness denies investigation missing Executive Summary" {
+    CONTENT="## Alert Details\n## Disposition\n## Next Actions"
+    run bash -c "echo '{\"tool_input\": {\"file_path\": \"/tmp/investigation-ALERT-001.md\", \"content\": \"$CONTENT\"}}' | \"\$1/hooks/enrichment-completeness.sh\"" -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+# --- DI-007b: hook section-name / template title sync guard ---
+# Every section name hardcoded in the hooks must appear as a template section
+# title. If the template is renamed and the hook is not updated this test breaks.
+
+@test "enrichment-completeness hook enrichment sections match security-enrichment template" {
+    for section in "Executive Summary" "Vulnerability Details" "Severity Metrics" "Priority Assessment" "Remediation Guidance"; do
+        grep -qF "title: $section" "$PLUGIN_ROOT/templates/security-enrichment-tmpl.yaml"
+    done
+}
+
+@test "enrichment-completeness hook investigation sections match event-investigation template" {
+    for section in "Executive Summary" "Alert Details" "Disposition" "Next Actions"; do
+        grep -qF "title: $section" "$PLUGIN_ROOT/templates/event-investigation-tmpl.yaml"
+    done
+}
+
+# --- DI-007c: handoff-validator 39/40-char boundary ---
+
+@test "handoff-validator warns on 39-char result (lower boundary)" {
+    local result stderr_output
+    result=$(printf '%39s' | tr ' ' 'x')
+    stderr_output=$(echo "{\"result\": \"$result\"}" | bash "$PLUGIN_ROOT/hooks/handoff-validator.sh" 2>&1 1>/dev/null)
+    [[ "$stderr_output" == *"suspiciously short"* ]]
+}
+
+@test "handoff-validator silent on 40-char result (boundary)" {
+    local result stderr_output
+    result=$(printf '%40s' | tr ' ' 'x')
+    stderr_output=$(echo "{\"result\": \"$result\"}" | bash "$PLUGIN_ROOT/hooks/handoff-validator.sh" 2>&1 1>/dev/null)
+    [ -z "$stderr_output" ]
+}
+
+# --- DI-005: require-review explicit positive-deny for assign and create ---
+
+@test "require-review blocks jr issue assign without review (DI-005)" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr issue assign SEC-1 user@example.com\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
+    [[ "$output" == *"review approval"* ]]
+}
+
+@test "require-review blocks jr issue create without review (DI-005)" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr issue create --project SEC --type Bug --summary test\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
+    [[ "$output" == *"review approval"* ]]
+}

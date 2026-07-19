@@ -1,13 +1,13 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/handoff-validator.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: ""
+input-hash: "4cd4245b0a60683b59f6d8130be7331b8571083ed8c47fab107d485a86c6ee43"
 traces_to: phase-0-ingestion/recovered-architecture.md
 origin: recovered
 extracted_from: plugins/secops-factory/hooks/handoff-validator.sh
@@ -15,7 +15,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-05
 lifecycle_status: active
 introduced: v0.7.0
-modified: []
+modified: ["v1.1-ADV-0-403-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -34,9 +34,9 @@ removal_reason: null
 
 ## Postconditions
 
-1. If `result` is an empty string (zero length), the hook writes a WARNING to stderr containing the phrase "EMPTY output". The warning instructs the operator not to treat empty output as "no findings". Confidence: verified by code analysis (`hooks/handoff-validator.sh:24-26`) and test `hooks.bats:83-87`.
-2. If `result` is non-empty but shorter than 40 characters, the hook writes a WARNING to stderr containing the phrase "suspiciously short" and includes the character count. Confidence: verified by code analysis (`hooks/handoff-validator.sh:27-29`) and test `hooks.bats:89-92`.
-3. If `result` is 40 or more characters, the hook writes nothing to stderr (silent). Confidence: verified by code analysis and test `hooks.bats:94-99`.
+1. If `result` is an empty string (zero length), the hook writes a WARNING to stderr containing the phrase "EMPTY output". The warning instructs the operator not to treat empty output as "no findings". Confidence: verified by code analysis (`hooks/handoff-validator.sh:24-26`) and test `@test "handoff-validator warns on empty result"` (hooks.bats:138).
+2. If `result` is non-empty but shorter than 40 characters, the hook writes a WARNING to stderr containing the phrase "suspiciously short" and includes the character count. Confidence: verified by code analysis (`hooks/handoff-validator.sh:27-29`) and test `@test "handoff-validator warns on short result"` (hooks.bats:144).
+3. If `result` is 40 or more characters, the hook writes nothing to stderr (silent). Confidence: verified by code analysis and test `@test "handoff-validator silent on normal result"` (hooks.bats:150).
 4. The hook always exits 0. Confidence: verified by code analysis (`hooks/handoff-validator.sh:31`).
 
 ## Invariants
@@ -92,7 +92,7 @@ removal_reason: null
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/secops-factory/hooks/handoff-validator.sh` (31 lines) + `.ps1` sibling |
-| **Confidence** | high — simple length check; BATS tests at `tests/hooks.bats:81-99` exercise all three cases exactly |
+| **Confidence** | high — simple length check; BATS tests `@test "handoff-validator warns on empty result"` (hooks.bats:138), `@test "handoff-validator warns on short result"` (hooks.bats:144), `@test "handoff-validator silent on normal result"` (hooks.bats:150) exercise all three cases exactly |
 | **Extraction Date** | 2026-07-19 |
 
 #### Evidence Types Used

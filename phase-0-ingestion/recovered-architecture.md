@@ -12,6 +12,7 @@
 > - DI-009 RESOLVED: `hooks/hooks.json` + `hooks.json.windows` (hook-manifests) added to machine-readable YAML as C-18 (HIGH criticality). A wrong matcher in this file silently de-wires the CRITICAL require-review gate.
 > - ADV-0-005: Fixed prose C-20 output-templates file count (5 → 6: 5 .yaml + 1 .md). Layer diagram updated to match.
 > - ADV-0-303 (2026-07-19): DAG cycle C-2⇄C-3 resolved. Edge semantics defined: `dependencies:` captures required components (both static file references and runtime dispatch targets where the component needs the other to function). The back-edge "C-3" in C-2.dependencies was wrong — skills do not depend on the orchestrator (the orchestrator dispatches skills, not vice versa). "C-3" removed from C-2.dependencies; C-2 stays in C-3.dependencies (correct: orchestrator depends on skills to route to). Textual DAG restructured: C-3 moved to its own root node. C-6 removed from under C-8 (playbook dispatches reviewer, not the reverse). Circular Dependencies table and Layer Rules updated.
+> - ADV-0-407 (2026-07-19): Added "C-6" to C-2.dependencies — adversarial-review-secops (within C-2) statically references review-convergence-workflow.md (C-6) per DI-003. Edge is acyclic: C-2→C-6→C-8→{C-19,C-21,C-24}, no path back to C-2. Textual DAG and Circular Dependencies note updated.
 
 ---
 
@@ -98,11 +99,11 @@ components:
     layer: "business-logic"
     purity: "mixed"
     criticality: "HIGH"
-    dependencies: ["C-7", "C-8", "C-9", "C-10", "C-11", "C-19", "C-20", "C-21", "C-23", "C-24"]
+    dependencies: ["C-6", "C-7", "C-8", "C-9", "C-10", "C-11", "C-19", "C-20", "C-21", "C-23", "C-24"]
     interfaces_provided: ["19 SKILL.md procedure files with staged workflows, Iron Laws, Red Flag tables"]
     interfaces_consumed: ["data/ KBs via ${CLAUDE_PLUGIN_ROOT} path", "templates/ schemas", "checklists/ quality gates", "jr CLI via Bash", "Perplexity MCP tools"]
     confidence: "high"
-    notes: "C-3 (orchestrator) is NOT a dependency of skill-procedures — the orchestrator dispatches skills at runtime. C-2→C-3 was a back-edge forming a cycle; removed per ADV-0-303. One skill (adversarial-review-secops) statically references C-6 (review-convergence-workflow.md) per DI-003 — this is C-2→C-6 via C-3's playbook directory, but C-6 is captured as C-3's dependency."
+    notes: "C-3 (orchestrator) is NOT a dependency of skill-procedures — the orchestrator dispatches skills at runtime. C-2→C-3 was a back-edge forming a cycle; removed per ADV-0-303. adversarial-review-secops (within C-2) statically references review-convergence-workflow.md (C-6) per DI-003 — C-6 has been added to C-2.dependencies per ADV-0-407. This is an acyclic forward-edge: C-2→C-6→C-8→{C-19,C-21,C-24}, no path back to C-2."
 
   - id: C-3
     name: "orchestrator-agent"
@@ -429,6 +430,7 @@ External Integration Boundary:
 ```text
 [C-1: command-dispatch]
   +-- [C-2: skill-procedures]
+        +-- [C-6: review-convergence-playbook]  (static file ref: adversarial-review-secops, DI-003/ADV-0-407)
         +-- [C-7: security-analyst-agent]
         +-- [C-8: security-reviewer-agent]
         +-- [C-9: metrics-analyst-agent]
@@ -468,7 +470,7 @@ Notable intra-skill dependencies (via Skill tool invocation):
 
 | Cycle | Components | Severity | Notes |
 |-------|-----------|----------|-------|
-| None detected (post ADV-0-303 fix) | — | — | The dependency graph is a valid DAG. Former cycle: C-2 (skill-procedures) listed C-3 (orchestrator-agent) in its dependencies, AND C-3 listed C-2 — an explicit mutual dependency. Resolved by removing "C-3" from C-2.dependencies: skills do not depend on the orchestrator; the orchestrator dispatches skills (correct direction: C-3→C-2). The non-obvious edge adversarial-review-secops→C-6 (DI-003 layer inversion) is not a cycle since C-6 does not reference C-2. |
+| None detected (post ADV-0-303 + ADV-0-407) | — | — | The dependency graph is a valid DAG. Former cycle: C-2 (skill-procedures) listed C-3 (orchestrator-agent) in its dependencies, AND C-3 listed C-2 — an explicit mutual dependency. Resolved by removing "C-3" from C-2.dependencies: skills do not depend on the orchestrator; the orchestrator dispatches skills (correct direction: C-3→C-2). ADV-0-407: the DI-003 edge adversarial-review-secops→C-6 (static file reference to review-convergence-workflow.md) is now explicit in C-2.dependencies. Acyclic: C-2→C-6→C-8→{C-19,C-21,C-24} — no path from any of these back to C-2. |
 
 ### External Dependencies
 

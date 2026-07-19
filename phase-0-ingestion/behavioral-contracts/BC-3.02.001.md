@@ -1,13 +1,15 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/enrichment-completeness.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: ""
+input-hash: |
+  e79cdc5b6a436691be3d350c8b7ec8ce9e58c0953bc328f6b06170bc55b9aa18  plugins/secops-factory/hooks/enrichment-completeness.sh
+  26895e3b3dd937498bca6a6867021659b76025ece6c81d4cbafd31285b3a92fe  plugins/secops-factory/hooks/enrichment-completeness.ps1
 traces_to: phase-0-ingestion/recovered-architecture.md
 origin: recovered
 extracted_from: plugins/secops-factory/hooks/enrichment-completeness.sh
@@ -15,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-02
 lifecycle_status: active
 introduced: v0.6.0
-modified: []
+modified: ["v1.1-ADV-0-402-ADV-0-403-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -26,18 +28,22 @@ removal_reason: null
 
 # Behavioral Contract BC-3.02.001: enrichment-completeness Hook — Section Completeness Gate
 
+> **Revision history:**
+> - v1.0 (2026-07-19): Initial extraction from `enrichment-completeness.sh` at v0.9.0 HEAD (Step 0d).
+> - v1.1 (2026-07-19): ADV-0-402: Corrected EC-004 — investigation file with only "Alert Details" produces Deny, not Allow. The hook requires ALL FOUR sections before saving any investigation file; there is no partial-save capability. ADV-0-403: Re-anchored stale BATS test references from `hooks.bats:41-60` to current @test names (lines 97-115 post-PR #14).
+
 ## Preconditions
 
 1. The hook receives a `PreToolUse/Write` event envelope via stdin as JSON, containing `tool_input.file_path` (string) and `tool_input.content` (string). Confidence: verified by code analysis (`hooks/enrichment-completeness.sh:38-39`).
 2. `jq` is installed and available on `$PATH`. Confidence: verified by code analysis (`hooks/enrichment-completeness.sh:14-17`).
-3. The hook is wired to fire on `PreToolUse` events for the `Write` tool (file-save operations). Confidence: inferred from hook purpose and BATS test payloads (`hooks.bats:43-60`).
+3. The hook is wired to fire on `PreToolUse` events for the `Write` tool (file-save operations). Confidence: inferred from hook purpose and BATS test payloads: `@test "enrichment-completeness allows non-enrichment files"` (hooks.bats:97), `@test "enrichment-completeness blocks incomplete enrichment"` (hooks.bats:103), `@test "enrichment-completeness allows complete enrichment"` (hooks.bats:110).
 
 ## Postconditions
 
 1. If `file_path` contains neither `enrichment` nor `investigation` as a substring, the hook emits `permissionDecision: allow` (fast path). Confidence: verified by code analysis (`hooks/enrichment-completeness.sh:42-44`).
 2. For enrichment files (file_path contains `enrichment`): if any of the five required sections — "Executive Summary", "Vulnerability Details", "Severity Metrics", "Priority Assessment", "Remediation Guidance" — are absent from `content`, the hook emits `permissionDecision: deny` with a reason containing "Missing required sections" and listing the missing section names. Confidence: verified by code analysis (`hooks/enrichment-completeness.sh:47-58`).
 3. For investigation files (file_path contains `investigation`): if any of the four required sections — "Executive Summary", "Alert Details", "Disposition", "Next Actions" — are absent from `content`, the hook emits `permissionDecision: deny` with a reason listing the missing sections. Confidence: verified by code analysis (`hooks/enrichment-completeness.sh:62-74`).
-4. If all required sections are present, the hook emits `permissionDecision: allow` and exits 0. Confidence: verified by code analysis (`hooks/enrichment-completeness.sh:76`) and test `hooks.bats:55-60`.
+4. If all required sections are present, the hook emits `permissionDecision: allow` and exits 0. Confidence: verified by code analysis (`hooks/enrichment-completeness.sh:76`) and test `@test "enrichment-completeness allows complete enrichment"` (hooks.bats:110).
 5. Section detection uses exact string matching (`grep -qF`); section headings must appear verbatim (case-sensitive) in the content. Confidence: verified by code analysis (`hooks/enrichment-completeness.sh:50, 64`).
 
 ## Invariants
@@ -53,7 +59,7 @@ removal_reason: null
 | EC-001 | `jq` not installed | Exit code 1, stderr error, no JSON output |
 | EC-002 | File path `/tmp/readme.md` | Allow — neither `enrichment` nor `investigation` in path |
 | EC-003 | File path `enrichment-CVE-2024-1234.md`, content has only "Executive Summary" | Deny — 4 of 5 required sections missing |
-| EC-004 | File path `investigation-ALERT-001.md`, content has only "# Alert Details\nSome data" | Allow — no Disposition section yet; investigation is in-progress, not complete |
+| EC-004 | File path `investigation-ALERT-001.md`, content has only "# Alert Details\nSome data" | Deny — 3 of 4 required investigation sections missing (Executive Summary, Disposition, Next Actions); reason contains "Incomplete investigation document. Missing required sections: Executive Summary, Disposition, Next Actions." |
 | EC-005 | File path `investigation-ALERT-001.md`, content has "Disposition" but missing "Alternatives Considered" | Allow here — `enrichment-completeness` does not check Alternatives Considered; that is `disposition-guard`'s responsibility |
 | EC-006 | File path `enrichment-CVE-2024-1234.md`, all 5 sections present as `##` headings | Allow |
 | EC-007 | Malformed JSON stdin | `jq -r '.tool_input.file_path // empty'` returns empty; path doesn't match either pattern; emit allow |
@@ -66,7 +72,7 @@ removal_reason: null
 | `/tmp/readme.md` → any content | `permissionDecision: allow` | happy-path |
 | `enrichment-CVE-2024-1234.md` → all 5 sections present | `permissionDecision: allow` | happy-path |
 | `enrichment-CVE-2024-1234.md` → only "Executive Summary" | `permissionDecision: deny`, reason contains "Missing required sections" | error |
-| `investigation-ALERT-001.md` → "Alert Details" only (no Disposition) | `permissionDecision: allow` | edge-case |
+| `investigation-ALERT-001.md` → "Alert Details" only (missing Executive Summary, Disposition, Next Actions) | `permissionDecision: deny`, reason contains "Missing required sections" | error |
 | `investigation-ALERT-001.md` → all 4 sections present | `permissionDecision: allow` | happy-path |
 
 ## Verification Properties
@@ -95,7 +101,7 @@ removal_reason: null
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/secops-factory/hooks/enrichment-completeness.sh` (77 lines) + `.ps1` sibling |
-| **Confidence** | high — section lists are hardcoded in source; BATS tests at `tests/hooks.bats:41-60` exercise allow and deny paths for enrichment files |
+| **Confidence** | high — section lists are hardcoded in source; BATS tests `@test "enrichment-completeness allows non-enrichment files"` (hooks.bats:97), `@test "enrichment-completeness blocks incomplete enrichment"` (hooks.bats:103), `@test "enrichment-completeness allows complete enrichment"` (hooks.bats:110) exercise allow and deny paths |
 | **Extraction Date** | 2026-07-19 |
 
 #### Evidence Types Used
@@ -121,4 +127,4 @@ Pure stdin→stdout transformer. The section-detection logic is a string members
 
 **Undocumented behavior (ambiguity):** The enrichment required-section list (5 items) and the investigation required-section list (4 items) are hardcoded in the hook script. The template files (`security-enrichment-tmpl.yaml`, `event-investigation-tmpl.yaml`) define the full section structure but the hook does not read them at runtime. If templates are updated to add required sections, the hook must be manually updated — there is no automated sync. This drift risk is noted for architecture attention.
 
-**Undocumented behavior:** The investigation check allows saving a file with no Disposition section (EC-004 above). This is correct: investigators save partial work-in-progress. The `disposition-guard` hook separately handles the constraint that once a Disposition section appears, Alternatives Considered must also appear. This two-hook coordination pattern is intentional but undocumented in either hook.
+**Note (ADV-0-402 correction):** The investigation check requires ALL FOUR sections to be present before saving — there is no partial-save capability for investigation files. A file missing any of "Executive Summary", "Alert Details", "Disposition", or "Next Actions" will be denied. The `disposition-guard` hook separately handles the additional constraint that once a Disposition section appears, Alternatives Considered must also appear. The two hooks enforce complementary completeness gates: enrichment-completeness enforces structural completeness (all four sections present); disposition-guard enforces analytical completeness (alternatives documented before disposition is committed).

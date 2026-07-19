@@ -1,14 +1,14 @@
 ---
 document_type: project-context
 level: L0
-version: "1.3"
+version: "1.4"
 status: active
 producer: codebase-analyzer
 phase: 0
 step: "0f"
 project: secops-factory
-date: "2026-07-19 (re-synced post adversarial pass 3)"
-source_state: "v0.9.0 + PR #12 (gitignore) + PR #13 (SEC-001..005 fixed, f450d9f) + PR #14 (read-only allowlist expansion / DI-010, 0ec794a); 41 commits / PRs #1–#14; BATS suite 138/138 green; 6-hook mutation aggregate ~75–80%"
+date: "2026-07-19 (re-synced post adversarial pass 4)"
+source_state: "v0.9.0 + PR #12 (gitignore) + PR #13 (SEC-001..005 fixed, f450d9f) + PR #14 (read-only allowlist expansion / DI-010, 0ec794a); 41 commits / PRs #1–#14 all verified merged at HEAD 0ec794a; BATS suite 138/138 (12/14 parity skip w/o pwsh); 6-hook mutation aggregate ~75–80%"
 inputs:
   - phase-0-ingestion/project-discovery.md
   - phase-0-ingestion/recovered-architecture.md (+ arch-recov-api-surface.md, arch-recov-integrations.md)
@@ -71,8 +71,10 @@ External boundary: jr CLI (required) · Perplexity MCP (recommended) · NVD/EPSS
 ```
 
 Full component catalog + machine-readable Component-Map YAML + dependency graph (now algorithmically
-verified **acyclic** — the C-2→C-3 back-edge was removed; orchestrator depends on skills, not the reverse)
-+ data flows: `.factory/phase-0-ingestion/recovered-architecture.md`
+verified **acyclic** — the C-2→C-3 back-edge was removed, orchestrator depends on skills not the reverse;
+the intentional DI-003 edge C-2→C-6, adversarial-review-secops skill → review-convergence playbook, is now
+explicit in the YAML and does not introduce a cycle) + data flows:
+`.factory/phase-0-ingestion/recovered-architecture.md`
 API surface (20 commands, dispatch table): `.factory/phase-0-ingestion/arch-recov-api-surface.md`
 Integrations / DTU candidates: `.factory/phase-0-ingestion/arch-recov-integrations.md`
 
@@ -83,7 +85,9 @@ Integrations / DTU candidates: `.factory/phase-0-ingestion/arch-recov-integratio
 require-review (C-12) is the sole CRITICAL; hook-manifests (C-18) is a counted HIGH member. A secondary
 **per-artifact figure of 43 modules (2 CRITICAL / 16 HIGH / 20 MEDIUM / 5 LOW)** explodes C-2 into its 19
 skills (hook-manifests is already its own C-18 in the aggregate, so the per-artifact total is unchanged);
-at that granularity update-jira surfaces as a distinct CRITICAL skill.
+at that granularity update-jira surfaces as a distinct CRITICAL skill. Derivation: **24 − 1 (C-2) + 19
+(skills) + 1 (secops-health promoted from the command-dispatch aggregate) = 43**, where command-dispatch
+counts as 19 slash-command stubs distinct from the separately-counted `secops-health` diagnostic command.
 
 | Tier | Modules (per-artifact view; aggregate note where it differs) |
 |------|---------|
@@ -100,7 +104,8 @@ design **materially improves** assurance — SM-3 (fail-open) resolved and SM-2 
 behaviorally inert by the default-deny fallthrough (PR #13) — but its **≥95% CRITICAL kill-rate target is
 NOT yet demonstrated met**: no per-hook mutation run has executed, and its individual kill rate is unmeasured
 (the authoritative current aggregate across the 6-hook mutation-testable set is **~75–80%**, up from a
-superseded ~55–65% pre-PR-13 baseline — verification-gap-analysis.md:190 — not a per-hook figure). The
+superseded ~55–65% pre-PR-13 baseline — verification-gap-analysis.md §Mutation Testing Baseline →
+Surviving Mutants summary (~line 194) — not a per-hook figure). The
 target stays open until Phase 6 / Feature Mode mutation testing. All other modules are
 declarative/LLM/static — tier governs review depth, not a numeric kill-rate.
 
@@ -141,23 +146,26 @@ Detail + CONV-001..020 YAML: `.factory/phase-0-ingestion/conventions.md`
 
 Contract files: `.factory/phase-0-ingestion/behavioral-contracts/<id>.md`
 
-| BC | Subject | Tier | Verification |
-|----|---------|------|--------------|
-| BC-3.01.001 | require-review hook — Jira field-modification gate | CRITICAL | PARTIAL (revised **v1.3**, 2026-07-19 — PR #13 comment-deny + fail-closed, PR #14 allowlist expansion / DI-010, adversarial-pass-1 VP renumber) |
-| BC-3.02.001 | enrichment-completeness hook — section completeness gate | HIGH | PARTIAL |
-| BC-3.03.001 | disposition-guard hook — Alternatives-required gate | HIGH | FULLY (core); false-pass edge open (DI-004) |
-| BC-3.04.001 | bias-check-reminder hook — PostToolUse advisory | LOW | PARTIAL |
-| BC-3.05.001 | handoff-validator hook — SubagentStop empty-output guard | LOW | PARTIAL |
-| BC-3.06.001 | session-greeting hook — activation-gated SessionStart banner | LOW | FULLY (core); jq-fallback open |
-| BC-4.01.001 | enrich-ticket skill — 8-stage CVE enrichment | HIGH | STRUCTURAL-ONLY |
-| BC-4.02.001 | update-jira skill — review-gated Jira field update | CRITICAL | STRUCTURAL-ONLY |
-| BC-4.03.001 | review-enrichment skill — fresh-context quality review | HIGH | STRUCTURAL-ONLY (strongest) |
-| BC-4.04.001 | adversarial-review-secops skill — convergence loop | HIGH | STRUCTURAL-ONLY |
-| BC-5.01.001 | investigate-event skill — 7-stage investigation | HIGH | STRUCTURAL-ONLY |
-| BC-6.01.001 | activate skill — per-project activation lifecycle | HIGH | STRUCTURAL-ONLY |
-| BC-6.01.002 | deactivate skill — per-project deactivation | MEDIUM | STRUCTURAL-ONLY |
+| BC | Subject | Rev | Tier | Verification |
+|----|---------|-----|------|--------------|
+| BC-3.01.001 | require-review hook — Jira field-modification gate | **v1.4** | CRITICAL | PARTIAL (PR #13 comment-deny + fail-closed, PR #14 allowlist / DI-010, VP renumber; v1.4 = line-anchor corrections) |
+| BC-3.02.001 | enrichment-completeness hook — section completeness gate | **v1.1** | HIGH | PARTIAL — **EC-004 flipped to DENY**: investigation files require ALL FOUR sections, no partial-save (see §6) |
+| BC-3.03.001 | disposition-guard hook — Alternatives-required gate | v1.1 | HIGH | FULLY (core); false-pass edge open (DI-004) |
+| BC-3.04.001 | bias-check-reminder hook — PostToolUse advisory | v1.1 | LOW | PARTIAL |
+| BC-3.05.001 | handoff-validator hook — SubagentStop empty-output guard | v1.1 | LOW | PARTIAL |
+| BC-3.06.001 | session-greeting hook — activation-gated SessionStart banner | v1.1 | LOW | FULLY (core); jq-fallback open |
+| BC-4.01.001 | enrich-ticket skill — 8-stage CVE enrichment | v1.0 | HIGH | STRUCTURAL-ONLY |
+| BC-4.02.001 | update-jira skill — review-gated Jira field update | v1.0 | CRITICAL | STRUCTURAL-ONLY |
+| BC-4.03.001 | review-enrichment skill — fresh-context quality review | v1.0 | HIGH | STRUCTURAL-ONLY (strongest) |
+| BC-4.04.001 | adversarial-review-secops skill — convergence loop | v1.0 | HIGH | STRUCTURAL-ONLY |
+| BC-5.01.001 | investigate-event skill — 7-stage investigation | v1.0 | HIGH | STRUCTURAL-ONLY |
+| BC-6.01.001 | activate skill — per-project activation lifecycle | v1.0 | HIGH | STRUCTURAL-ONLY |
+| BC-6.01.002 | deactivate skill — per-project deactivation | v1.0 | MEDIUM | STRUCTURAL-ONLY |
 
-> **BC-3.01.001 now at v1.3 (2026-07-19) — fully re-synced.** Behavior at HEAD (verified vs commit
+The five sibling hook BCs (BC-3.02..BC-3.06) are all at v1.1 (BATS test-name anchor corrections).
+
+> **BC-3.01.001 now at v1.4 (2026-07-19) — fully re-synced** (v1.4 adds line-anchor corrections to the
+> 98-line post-PR-14 file). Behavior at HEAD (verified vs commit
 > 0ec794a): (a) PR #13 moved `jr issue comment` into the **deny** block and flipped the default to
 > **fail-closed** (unrecognized `jr` subcommands → deny) — the old allow/fail-open postconditions
 > and EC-003 are superseded; (b) PR #14 expanded the read-only allowlist with `jr issue changelog`,
@@ -168,10 +176,19 @@ Contract files: `.factory/phase-0-ingestion/behavioral-contracts/<id>.md`
 > (the former VP-HOOK-004/005/006 collided with BC-3.02.001's namespace). `modified:` now records the
 > PR #13, PR #14, and ADV-0 revisions. BATS suite 138/138.
 
+> **BC-3.02.001 now at v1.1 (2026-07-19).** EC-004 corrected from Allow to **DENY**: an
+> `investigation-*` file must contain **all four** sections (Executive Summary, Alert Details,
+> Disposition, Next Actions) before the enrichment-completeness hook permits the save — there is **no
+> partial-save** capability. (Complementary to disposition-guard, which separately requires "Alternatives
+> Considered" once a Disposition appears.)
+
 ## 6. Verification Posture
 
 **Three-bucket roll-up: Fully 2 / Partially 11 / Un-verified 0** (of 13 BCs).
-Fully: BC-3.03.001, BC-3.06.001. **138/138 BATS pass** locally (was 130 after PR #13; +8 from PR #14 metrics-suite allow tests).
+Fully: BC-3.03.001, BC-3.06.001. **138/138 BATS pass** locally (was 130 after PR #13; +8 from PR #14
+metrics-suite allow tests) — **caveat:** 12 of 14 parity tests `skip` when `pwsh` is absent (as it is
+locally), so behavioral `.ps1` parity is not actually exercised in a local run; CI relies on the runner
+image preinstalling `pwsh` and does not assert it (**DI-006**).
 
 **The headline is the verification asymmetry:** the 6 deterministic **hooks** are genuinely
 behaviorally tested; the 7 LLM-executed **skills** are **structural-only** — BATS proves Iron Law text,
@@ -182,11 +199,13 @@ deletion/drift but are not behavioral verification of the Iron Laws.
 
 Manual mutation probe against the **6-hook mutation-testable set** (5 pure hooks + session-greeting's pure
 activation-gate sub-function): authoritative current aggregate kill-rate **~75–80%** (up from a superseded
-~55–65% pre-PR-13 baseline — verification-gap-analysis.md:190). Resolved/neutralized post PR #13/#14:
+~55–65% pre-PR-13 baseline — verification-gap-analysis.md §Mutation Testing Baseline → Surviving Mutants
+summary (~line 194)). Resolved/neutralized post PR #13/#14:
 **SM-3 (require-review fail-open) RESOLVED**, **SM-2 (assign/create) downgraded HIGH→LOW** (fail-closed
 default makes it near-equivalent), **SM-8 (session-greeting activation-gate) KILLED** by existing tests.
 Still-open blind spots feed the drift items (§8): **SM-1 disposition-guard false-pass (HIGH, DI-004)** —
-the one remaining HIGH mutant; SM-4 enrichment-completeness investigation branch (DI-007); SM-8b
+the one remaining HIGH mutant; SM-4 enrichment-completeness investigation branch — the DENY-all-4-sections
+path (BC-3.02.001 v1.1) is untested (DI-007); SM-8b
 session-greeting `jq`-fallback branch (LOW, env-dependent); pwsh-not-in-CI silent skip (DI-006). require-review's
 **≥95% CRITICAL target is not yet demonstrated met** (no per-hook mutation run; individual kill rate
 unmeasured). No coverage tool applies (declarative plugin); shellcheck clean on
@@ -249,8 +268,16 @@ consistency/spec/hardening items, not behavioral defects. DI-008/DI-009/DI-010 r
 
 ## 10. Recent Changes (reflected in this document)
 
+- **Adversarial pass 4 (2026-07-19):** BC-3.02.001 → v1.1 (EC-004 flipped to DENY — investigation files
+  require all four sections, no partial-save); BC-3.01.001 → v1.4 (line-anchor corrections, 98-line file);
+  five sibling hook BCs (BC-3.02..3.06) → v1.1; all 13 BCs now carry a populated `input-hash` (drift check
+  functional); kill-rate anchor switched to the section-name form; per-artifact census derivation made
+  explicit (24−1+19+1=43); "138/138 local" qualified with the pwsh-skip caveat. **Adjudication:** pass-4's
+  critical finding (PRs #11–#14 unmerged) was ruled a **FALSE POSITIVE** — merges verified live at HEAD
+  0ec794a and `.gitignore` confirmed to contain the four secret-bearing entries; root cause was the
+  adversary reading a stale session-start git snapshot.
 - **Adversarial pass 3 (2026-07-19):** mutation kill-rate re-anchored to the authoritative **~75–80%
-  aggregate for the 6-hook mutation-testable set** (vga:190; the ~55–65% baseline is superseded);
+  aggregate for the 6-hook mutation-testable set** (vga §Mutation Testing Baseline ~line 194; the ~55–65% baseline is superseded);
   session-greeting mutants defined (SM-8 killed, SM-8b surviving LOW); DI-012 uncontracted-Iron-Law set
   corrected to **three** skills (assess-priority, create-advisory, analyze-ticket-effort) + read-ticket;
   DI-011 LOW clarified as likelihood-weighted (consequence HIGH); dependency graph noted verified acyclic.
@@ -326,21 +353,23 @@ Index metadata only: `.factory/holdout-scenarios/HS-INDEX.md`.
 ## Quality Gate
 
 - [x] Self-contained — a reader understands the project without opening sub-documents
-- [x] Cross-references consistent — re-verified vs pass-3 shards: census **24 aggregate (1/12/7/4)** incl. hook-manifests C-18 / 43 per-artifact (2/16/20/5); templates 6, hooks 6+6+2 manifests; BC-3.01.001 v1.3 with VP-HOOK-020/021/022; dependency graph verified acyclic
+- [x] Cross-references consistent — re-verified vs pass-4 shards: census **24 aggregate (1/12/7/4)** incl. hook-manifests C-18 / 43 per-artifact (2/16/20/5, derivation 24−1+19+1); templates 6, hooks 6+6+2 manifests; BC-3.01.001 v1.4 (VP-HOOK-020/021/022), BC-3.02.001 v1.1 (EC-004 DENY); dependency graph verified acyclic (DI-003 C-2→C-6 edge explicit)
 - [x] Restricted areas justified per row; DI mis-cite corrected (hook-wiring cites DI-011, not DI-009)
 - [x] Context-budget estimate per architectural component + strategy recommendation
 - [x] No orphaned references (DI-008/DI-009 resolved; DI-010 added; DI-011 + DI-012 introduced; frontmatter DI range now DI-001..DI-012)
 - [x] Security posture reflects security-audit.md (post-remediation, SEC-001..005 MERGED; SM-3 resolved / SM-2 downgraded HIGH→LOW / SM-8 killed)
-- [x] Recent changes (PR #12/#13/#14 + adversarial passes 1–3) surfaced; BC-3.01.001 v1.3; DI-010 resolved
-- [x] Mutation figures re-anchored — 6-hook set aggregate **~75–80%** (vga:190; ~55–65% baseline superseded); require-review ≥95% target NOT yet demonstrated met (no per-hook mutation run)
+- [x] BC drift check now functional — all 13 BCs carry a populated `input-hash`; PRs #11–#14 verified merged at HEAD 0ec794a (pass-4 "unmerged" finding adjudicated FALSE POSITIVE — stale git snapshot)
+- [x] Recent changes (PR #12/#13/#14 + adversarial passes 1–4) surfaced; BC-3.01.001 v1.4 / BC-3.02.001 v1.1; DI-010 resolved
+- [x] Mutation figures re-anchored — 6-hook set aggregate **~75–80%** (vga §Mutation Testing Baseline → Surviving Mutants summary ~line 194; ~55–65% baseline superseded); require-review ≥95% target NOT yet demonstrated met
 - [x] Partial-BC-coverage surfaced as pending Phase 0 gate decision (DI-012) — three uncontracted Iron-Law skills (assess-priority, create-advisory, analyze-ticket-effort) + read-ticket
 
 ```yaml
 pass: 0
 step: "0f"
-status: complete
-revision: "1.3 — re-synced post adversarial pass 3"
+status: awaiting-phase-0-gate
+revision: "1.4 — re-synced post adversarial pass 4"
 files_synthesized: 9
 timestamp: 2026-07-19T00:00:00Z
-next_step: "phase-1-spec-crystallization"
+open_gate_decision: "DI-012 — expand BC set or accept partial coverage (human)"
+next_step: "phase-0 human approval gate (post-gate routing decided: PARK, not Phase 1)"
 ```

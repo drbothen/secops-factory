@@ -1,13 +1,13 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/session-greeting.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: ""
+input-hash: "e1068218d7d7a89f52d289020dbbbfaa832db0f78d01f55f5e351f74839cbc4b"
 traces_to: phase-0-ingestion/recovered-architecture.md
 origin: recovered
 extracted_from: plugins/secops-factory/hooks/session-greeting.sh
@@ -15,7 +15,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-06
 lifecycle_status: active
 introduced: v0.7.0
-modified: []
+modified: ["v1.1-ADV-0-403-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -34,13 +34,13 @@ removal_reason: null
 
 ## Postconditions
 
-1. If `<cwd>/.claude/settings.local.json` does not exist, the hook exits 0 with no output (silent). Confidence: verified by code analysis (`hooks/session-greeting.sh:29`) and test `hooks.bats:135-139`.
-2. If the file exists but `.agent` does not equal `"secops-factory:orchestrator:orchestrator"`, the hook exits 0 with no output (silent). Confidence: verified by code analysis (`hooks/session-greeting.sh:35`) and test `hooks.bats:141-148`.
-3. If the file exists and `.agent` equals `"secops-factory:orchestrator:orchestrator"`, the hook emits a JSON envelope containing `systemMessage` (banner text) and `hookSpecificOutput.additionalContext` (context for Morgan's first reply). Confidence: verified by code analysis (`hooks/session-greeting.sh:43-50`) and test `hooks.bats:150-159`.
-4. The `systemMessage` always contains the string "Morgan here". Confidence: verified by code analysis (`hooks/session-greeting.sh:40`) and test `hooks.bats:156`.
-5. The `hookSpecificOutput.hookEventName` is always `"SessionStart"`. Confidence: verified by code analysis (`hooks/session-greeting.sh:45`) and test `hooks.bats:157`.
+1. If `<cwd>/.claude/settings.local.json` does not exist, the hook exits 0 with no output (silent). Confidence: verified by code analysis (`hooks/session-greeting.sh:29`) and test `@test "session-greeting is silent when settings.local.json is absent"` (hooks.bats:190).
+2. If the file exists but `.agent` does not equal `"secops-factory:orchestrator:orchestrator"`, the hook exits 0 with no output (silent). Confidence: verified by code analysis (`hooks/session-greeting.sh:35`) and test `@test "session-greeting is silent when factory is not activated"` (hooks.bats:197).
+3. If the file exists and `.agent` equals `"secops-factory:orchestrator:orchestrator"`, the hook emits a JSON envelope containing `systemMessage` (banner text) and `hookSpecificOutput.additionalContext` (context for Morgan's first reply). Confidence: verified by code analysis (`hooks/session-greeting.sh:43-50`) and test `@test "session-greeting greets when factory is activated"` (hooks.bats:205).
+4. The `systemMessage` always contains the string "Morgan here". Confidence: verified by code analysis (`hooks/session-greeting.sh:40`) and test `@test "session-greeting greets when factory is activated"` (hooks.bats:211 — `[[ "$output" == *"Morgan here"* ]]` assertion).
+5. The `hookSpecificOutput.hookEventName` is always `"SessionStart"`. Confidence: verified by code analysis (`hooks/session-greeting.sh:45`) and test `@test "session-greeting greets when factory is activated"` (hooks.bats:212 — `[[ "$output" == *'"hookEventName":"SessionStart"'* ]]` assertion).
 6. The `additionalContext` field instructs Morgan not to re-introduce itself on the first reply (it was already shown the banner). Confidence: verified by code analysis (`hooks/session-greeting.sh:41`).
-7. If `settings.local.json` exists but is malformed JSON, the hook exits 0 with no output (fail-open). Confidence: verified by code analysis (`hooks/session-greeting.sh:33-38` — `jq` parse failure falls through to `exit 0`) and test `hooks.bats:168-173`.
+7. If `settings.local.json` exists but is malformed JSON, the hook exits 0 with no output (fail-open). Confidence: verified by code analysis (`hooks/session-greeting.sh:33-38` — `jq` parse failure falls through to `exit 0`) and test `@test "session-greeting survives corrupt settings.local.json"` (hooks.bats:223).
 
 ## Invariants
 
@@ -58,7 +58,7 @@ removal_reason: null
 | EC-004 | `settings.local.json` has `agent: secops-factory:orchestrator:orchestrator` | Emit greeting JSON with systemMessage |
 | EC-005 | `settings.local.json` is malformed (`{` only) | Silent exit 0 (jq parse failure → fallthrough) |
 | EC-006 | `jq` not available on PATH | Falls back to `grep -qF` for gate check; uses `printf` for JSON output; activation gate still works |
-| EC-007 | Emitted JSON fails `jq .` parse | Test `hooks.bats:161-166` verifies valid JSON output |
+| EC-007 | Emitted JSON fails `jq .` parse | Test `@test "session-greeting emits valid JSON when activated"` (hooks.bats:216) verifies valid JSON output |
 
 ## Canonical Test Vectors
 
@@ -96,7 +96,7 @@ removal_reason: null
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/secops-factory/hooks/session-greeting.sh` (~51 lines) + `.ps1` sibling |
-| **Confidence** | high — full activation-gate logic visible in source; BATS tests at `tests/hooks.bats:128-173` exercise 5 scenarios including corrupt file |
+| **Confidence** | high — full activation-gate logic visible in source; BATS tests `@test "session-greeting is silent when settings.local.json is absent"` (hooks.bats:190), `@test "session-greeting is silent when factory is not activated"` (hooks.bats:197), `@test "session-greeting greets when factory is activated"` (hooks.bats:205), `@test "session-greeting emits valid JSON when activated"` (hooks.bats:216), `@test "session-greeting survives corrupt settings.local.json"` (hooks.bats:223) exercise 5 scenarios including corrupt file |
 | **Extraction Date** | 2026-07-19 |
 
 #### Evidence Types Used

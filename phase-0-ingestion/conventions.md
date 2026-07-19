@@ -143,7 +143,7 @@ Every SKILL.md (except thin utility skills) follows this canonical section order
 | Allow function name | `emit_allow()` — prints JSON envelope, exits 0 | `hooks/require-review.sh:21-24` |
 | Deny function name | `emit_deny()` — takes reason arg, prints JSON via `jq -nc`, exits 0 | `hooks/require-review.sh:26-34` |
 | Fast path ordering | Whitelist/allow conditions first (non-jr fast-path, then read-only jr allowlist), deny conditions at bottom | `hooks/require-review.sh:47-81` |
-| Fail-open for non-jr inputs | Non-jr commands take fast-path `emit_allow` immediately (line 49); unrecognized `jr` subcommands `emit_deny` (fail-CLOSED, SEC-002, PR #13) — prevents future jr write subcommands from bypassing the gate | `hooks/require-review.sh:47-49` (allow), `hooks/require-review.sh:96-98` (deny) |
+| Fail-open for non-jr inputs | Non-jr commands take fast-path `emit_allow` immediately (line 49); unrecognized `jr` subcommands `emit_deny` (fail-CLOSED, SEC-002, PR #13) — prevents future jr write subcommands from bypassing the gate | `hooks/require-review.sh:47-50` (allow), `hooks/require-review.sh:96-98` (deny) |
 | Advisory hooks | Write to stderr only; always exit 0; never emit `permissionDecision` JSON | `hooks/bias-check-reminder.sh`, `hooks/handoff-validator.sh` |
 
 ### PowerShell Hook Pattern (`*.ps1`)
@@ -198,8 +198,8 @@ SessionStart hooks use `systemMessage` and `additionalContext` fields instead of
 |----------|-------|----------|
 | Test location | Separate `tests/` directory | `plugins/secops-factory/tests/` |
 | Suite separation | One `.bats` file per concern: hooks, skills, integration, parity | `tests/hooks.bats`, `tests/skills.bats`, `tests/integration.bats`, `tests/parity.bats` |
-| Fixtures | Inline fixtures via `$(mktemp -d)` temp dirs | `tests/hooks.bats:130-133` |
-| Group headers | `# --- <hook-name> hook ---` comment blocks within a `.bats` file | `tests/hooks.bats:6,41,62,81,102,128` |
+| Fixtures | Inline fixtures via `$(mktemp -d)` temp dirs | `@test "session-greeting is silent when settings.local.json is absent"` (`hooks.bats:190`); `setup_greeting_project` helper (`hooks.bats:185`) |
+| Group headers | `# --- <hook-name> hook ---` comment blocks within a `.bats` file | `hooks.bats:7` (require-review), `hooks.bats:95` (enrichment-completeness), `hooks.bats:117` (bias-check-reminder), `hooks.bats:136` (handoff-validator), `hooks.bats:156` (disposition-guard), `hooks.bats:183` (session-greeting) |
 
 ### Test Naming Convention
 
@@ -214,7 +214,7 @@ SessionStart hooks use `systemMessage` and `additionalContext` fields instead of
 Examples:
 - `@test "require-review allows non-jr commands"` (`hooks.bats:9`)
 - `@test "enrichment-completeness blocks incomplete enrichment"` (`hooks.bats:48`)
-- `@test "session-greeting is silent when settings.local.json is absent"` (`hooks.bats:135`)
+- `@test "session-greeting is silent when settings.local.json is absent"` (`hooks.bats:190`)
 - `@test "parity: require-review allow path"` (`parity.bats:51`)
 
 **Pattern:** `<component-name> <verb> <condition>` — plain English, no underscores in test names (space-separated)
@@ -552,7 +552,7 @@ enforceable_rules:
     severity: error
     notes: "Updated 2026-07-19 — SEC-002 (PR #13) changed require-review final fallthrough from emit_allow to emit_deny. SEC-001 (PR #14) moved jr issue comment from allowed to blocked. Implementers following pre-PR #13 conventions.md would revert a security fix."
     evidence:
-      - "hooks/require-review.sh:47-49 (non-jr fast-path emit_allow)"
+      - "hooks/require-review.sh:47-50 (non-jr fast-path emit_allow)"
       - "hooks/require-review.sh:96-98 (fail-closed emit_deny for unrecognized jr subcommand, SEC-002)"
       - "hooks/require-review.ps1 line 41-42 (non-jr fast-path Emit-Allow)"
       - "hooks/require-review.ps1 final line (fail-closed Emit-Deny for unrecognized jr subcommand, SEC-002)"
@@ -620,3 +620,13 @@ enforceable_rules:
 > **Plugin integration:** The `brownfield-discipline` plugin reads this YAML block from
 > `.factory/phase-0-ingestion/conventions.md` for advisory pattern checking. Rules are
 > advisory-only (warnings, never blocking), consistent with the plugin's non-blocking design.
+
+---
+
+## Document History
+
+| Date | Change | Reference |
+|------|--------|-----------|
+| 2026-07-19 | Initial extraction — Phase 0c | Step 0c |
+| 2026-07-19 | ADV-0-002: Scoped fail-open/fail-CLOSED — require-review blocking gate is fail-CLOSED for unrecognized jr subcommands (SEC-002); advisory hooks and non-jr inputs remain fail-open. Updated line 146, MUST-Follow #9, MUST-AVOID #2, CONV-013. | PR #13 (SEC-002), PR #14 (SEC-001) |
+| 2026-07-19 | ADV-0-403/ADV-0-405: Re-anchored stale hooks.bats line citations to @test names + current line numbers (190, 185, group headers 7/95/117/136/156/183). Corrected fast-path line range in require-review.sh from 47-49 to 47-50. | PR #13/#14 |

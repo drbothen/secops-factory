@@ -4,7 +4,7 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-19T13:00:00Z
+timestamp: 2026-07-19T14:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
@@ -75,6 +75,7 @@ dtu_required: false
 | 0f-adv pass 1 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0.md` — 12 findings (1C/6M/5m), all remediated same-day. ADV-0-001: BC v1.3 + VPs renumbered VP-HOOK-020/021/022. ADV-0-003 [process-gap]: stale shards re-synced, reconciliation headers added; SM-2 neutralized, require-review kill-rate ~75-80%. Census authoritative at 23 primary + 43 secondary. ADV-0-008: DI-010 row added. ADV-0-009: DI-011 created (hooks.json JSON-Schema, OPEN LOW). Capstone project-context.md re-synced to v1.1 (318 lines). Pass 2 dispatched. |
 | 0f-adv pass 2 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass2.md` — 11 findings (2C/5M/4m), all remediated same-day. Root cause: partial-fix propagation (census not synced across sibling shards). Census now authoritative 24 modules (1/12/7/4) everywhere; C-IDs C-18..C-24 realigned; api-surface Iron-Law corrected (incl. generate-metrics bonus fix); assurance overclaim replaced; git stats updated to 41 commits/PRs #1-#14. DI-012 logged. [process-gap-2]: census-sync assertion missing from pipeline. Capstone v1.2 (334 lines). Pass 3 dispatched. |
 | 0f-adv pass 3 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass3.md` — 7 findings (0C/4M/3m), all remediated same-day. Finding decay: 12→11→7; criticals: 1→2→0. Kill-rate re-anchored (~75-80% current, ~55-65% labeled superseded); 6-hook mutation set consistent with SM-8/SM-8b vectors; C-2↔C-3 cycle removed, DAG verified acyclic; DI-012 expanded to 3 Iron-Law skills + read-ticket; HS-003 downgraded LOW, HS-008 fixed-guard annotation. Capstone v1.3 (346 lines). [process-gap-3]: no shard sync-status convention. Pass 4 dispatched. |
+| 0f-adv pass 4 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass4.md` — 8 findings (1 FP-C / 3M / 4m), all remediated. ADV-0-401 FALSE POSITIVE (stale snapshot trust, adjudicated by orchestrator). BC-3.02.001 v1.1 (EC-004 DENY). 5 BCs + conventions re-anchored by @test NAME. Census derivation explicit (24-1+19+1=43). ALL 13 BCs got sha256 input-hashes. Capstone v1.4 (375 lines). Finding decay: 12→11→7→8(1FP). [process-gap-4]: adversary stale-snapshot trust. [process-gap-5]: BC input-hashes never computed at extraction. Pass 5 dispatched. |
 
 ## Decisions Log
 
@@ -123,8 +124,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 — step 0f-adv pass 4 in progress |
-| **Context** | Pass 3: 7 findings (0C/4M/3m), all remediated. Finding decay 12→11→7, criticals 1→2→0. DAG cycle resolved, kill-rate re-anchored, DI-012 expanded to 3 Iron-Law skills + read-ticket. Process-gap-3: no shard sync-status convention. Capstone v1.3 (346 lines). DI-001/DI-008/DI-009/DI-010 RESOLVED. CRITICAL: require-review hook, update-jira skill. |
+| **Position** | Phase 0 — step 0f-adv pass 5 in progress |
+| **Context** | Pass 4: 8 findings (1 FP-C/3M/4m). ADV-0-401 false positive (stale snapshot). All 13 BCs now carry sha256 input-hashes. Capstone v1.4 (375 lines). Process-gaps #4 (adversary stale-snapshot trust) and #5 (BC input-hashes never computed at extraction) logged. Finding decay 12→11→7→8(1FP). DI-001/DI-008/DI-009/DI-010 RESOLVED. CRITICAL: require-review hook, update-jira skill. |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

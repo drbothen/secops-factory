@@ -1,13 +1,13 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/bias-check-reminder.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: ""
+input-hash: "a208d8c08d021738686076eaab0461f88f450b27851af4a845cb743371fc7d0e"
 traces_to: phase-0-ingestion/recovered-architecture.md
 origin: recovered
 extracted_from: plugins/secops-factory/hooks/bias-check-reminder.sh
@@ -15,7 +15,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-04
 lifecycle_status: active
 introduced: v0.7.0
-modified: []
+modified: ["v1.1-ADV-0-403-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -37,7 +37,7 @@ removal_reason: null
 1. The hook always exits 0. Confidence: verified by code analysis (`hooks/bias-check-reminder.sh:16`).
 2. The hook writes exactly four cognitive bias reminders to stderr: Confirmation bias, Anchoring bias, Availability bias, Automation bias. Confidence: verified by code analysis (`hooks/bias-check-reminder.sh:10-14`).
 3. The hook writes a reference path to stderr: `${CLAUDE_PLUGIN_ROOT}/data/cognitive-bias-patterns.md`. Confidence: verified by code analysis (`hooks/bias-check-reminder.sh:15`).
-4. The hook produces no stdout output — stdout is always empty. Confidence: verified by code analysis and BATS test `hooks.bats:64-67` (`[ "$status" -eq 0 ]` only, no output check).
+4. The hook produces no stdout output — stdout is always empty. Confidence: verified by code analysis and BATS test `@test "bias-check-reminder exits 0"` (hooks.bats:119) (`[ "$status" -eq 0 ]` only, no output check).
 
 ## Invariants
 
@@ -89,7 +89,7 @@ removal_reason: null
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/secops-factory/hooks/bias-check-reminder.sh` (16 lines) + `.ps1` sibling |
-| **Confidence** | high — simplest hook in the suite; no branching logic; BATS tests at `tests/hooks.bats:62-79` |
+| **Confidence** | high — simplest hook in the suite; no branching logic; BATS tests `@test "bias-check-reminder exits 0"` (hooks.bats:119), `@test "bias-check-reminder mentions confirmation bias on stderr"` (hooks.bats:124), `@test "bias-check-reminder mentions anchoring bias on stderr"` (hooks.bats:130) |
 | **Extraction Date** | 2026-07-19 |
 
 #### Evidence Types Used

@@ -1,13 +1,13 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/disposition-guard.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: ""
+input-hash: "ede6ff97959cbcb1a137ed8f28a1271250dd46bcefc4d2b397d7d591dd180289"
 traces_to: phase-0-ingestion/recovered-architecture.md
 origin: recovered
 extracted_from: plugins/secops-factory/hooks/disposition-guard.sh
@@ -15,7 +15,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-03
 lifecycle_status: active
 introduced: v0.7.0
-modified: []
+modified: ["v1.1-ADV-0-403-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -35,9 +35,9 @@ removal_reason: null
 ## Postconditions
 
 1. If `file_path` does not contain `investigation` as a substring, the hook emits `permissionDecision: allow` (fast path). Confidence: verified by code analysis (`hooks/disposition-guard.sh:43-45`).
-2. If `file_path` contains `investigation` but `content` does not contain the string "Disposition" (case-insensitive), the hook emits `permissionDecision: allow` — the document is still in-progress. Confidence: verified by code analysis (`hooks/disposition-guard.sh:48-51`) and test `hooks.bats:109-113`.
-3. If `file_path` contains `investigation` AND `content` contains "Disposition" AND `content` does NOT contain "Alternatives Considered" (case-insensitive), the hook emits `permissionDecision: deny` with a reason containing "Alternatives Considered". Confidence: verified by code analysis (`hooks/disposition-guard.sh:54-56`) and test `hooks.bats:115-120`.
-4. If `file_path` contains `investigation` AND `content` contains both "Disposition" and "Alternatives Considered", the hook emits `permissionDecision: allow`. Confidence: verified by code analysis (`hooks/disposition-guard.sh:58`) and test `hooks.bats:122-126`.
+2. If `file_path` contains `investigation` but `content` does not contain the string "Disposition" (case-insensitive), the hook emits `permissionDecision: allow` — the document is still in-progress. Confidence: verified by code analysis (`hooks/disposition-guard.sh:48-51`) and test `@test "disposition-guard allows investigation without disposition yet"` (hooks.bats:164).
+3. If `file_path` contains `investigation` AND `content` contains "Disposition" AND `content` does NOT contain "Alternatives Considered" (case-insensitive), the hook emits `permissionDecision: deny` with a reason containing "Alternatives Considered". Confidence: verified by code analysis (`hooks/disposition-guard.sh:54-56`) and test `@test "disposition-guard blocks disposition without alternatives"` (hooks.bats:170).
+4. If `file_path` contains `investigation` AND `content` contains both "Disposition" and "Alternatives Considered", the hook emits `permissionDecision: allow`. Confidence: verified by code analysis (`hooks/disposition-guard.sh:58`) and test `@test "disposition-guard allows disposition with alternatives"` (hooks.bats:177).
 5. Both "Disposition" and "Alternatives Considered" checks are case-insensitive (`grep -qiF`). Confidence: verified by code analysis (`hooks/disposition-guard.sh:48, 54`).
 
 ## Invariants
@@ -95,7 +95,7 @@ removal_reason: null
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/secops-factory/hooks/disposition-guard.sh` (59 lines) + `.ps1` sibling |
-| **Confidence** | high — three-state logic (non-investigation / in-progress / complete-without-alternatives) fully visible in source; BATS tests at `tests/hooks.bats:101-126` exercise all four cases |
+| **Confidence** | high — three-state logic (non-investigation / in-progress / complete-without-alternatives) fully visible in source; BATS tests `@test "disposition-guard allows non-investigation files"` (hooks.bats:158), `@test "disposition-guard allows investigation without disposition yet"` (hooks.bats:164), `@test "disposition-guard blocks disposition without alternatives"` (hooks.bats:170), `@test "disposition-guard allows disposition with alternatives"` (hooks.bats:177) exercise all four cases |
 | **Extraction Date** | 2026-07-19 |
 
 #### Evidence Types Used

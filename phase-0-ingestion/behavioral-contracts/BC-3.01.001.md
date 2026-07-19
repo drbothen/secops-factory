@@ -1,13 +1,15 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/require-review.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: ""
+input-hash: |
+  4b493fa9ad88fb0fda4d5cf8340e1c60f80dea404e4b86bda8fe25174778962b  plugins/secops-factory/hooks/require-review.sh
+  a8219a27675c006c2bfc141793fe47e8eb37275c1b32ad8dd2848f865e704513  plugins/secops-factory/hooks/require-review.ps1
 traces_to: phase-0-ingestion/recovered-architecture.md
 origin: recovered
 extracted_from: plugins/secops-factory/hooks/require-review.sh
@@ -15,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-01
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19", "v0.9.x-ADV0-001-ADV0-007-2026-07-19"]
+modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19", "v0.9.x-ADV0-001-ADV0-007-2026-07-19", "v1.4-ADV-0-405-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -31,6 +33,7 @@ removal_reason: null
 > - v1.1 (2026-07-19): Revised to reflect PR #13 (commit f450d9f) behavior changes — SEC-001 (`jr issue comment` moved from allow to deny) and SEC-002 (unknown jr subcommands changed from fail-open to fail-closed). Previous postconditions #4 and #5 and invariant #3 were stale.
 > - v1.2 (2026-07-19): Revised to reflect PR #14 (commit 0ec794a) — expanded read-only allowlist with two families: plain forms (`jr issue changelog`, `jr assets search/view`, `jr --version`) and `--output json` forms for the metrics suite. EC-010 flips from Deny to Allow. New Invariant #4 documents the `--output json` global-flag placement nuance (root cause of DI-010 regression). BATS count updated to 138 tests.
 > - v1.3 (2026-07-19): Adversarial review pass 1 fixes — ADV-0-001: renumbered VP-HOOK-004/005/006 to VP-HOOK-020/021/022 (global sequential namespace; 004-006 are owned by BC-3.02.001 enrichment-completeness). ADV-0-007: corrected EC-015 mechanism — `jr --output json issue comment` is denied by the fail-closed catch-all, NOT by the write-block check (Invariant #4 applies; `jr issue comment` is not a substring of that command). Security extensibility note added to Refactoring Notes.
+> - v1.4 (2026-07-19): ADV-0-405: corrected three stale line-number anchors — non-jr fast path is `require-review.sh:47-50` (not 48-50), fail-closed block is `require-review.sh:96-98` (not 97-98), source file is 98 lines (not 99).
 
 ## Preconditions
 
@@ -40,7 +43,7 @@ removal_reason: null
 
 ## Postconditions
 
-1. If `tool_input.command` does not contain the substring `jr `, the hook emits `permissionDecision: allow` and exits 0. Confidence: verified by code analysis (`hooks/require-review.sh:48-50`) and BATS test `hooks.bats:9-13`.
+1. If `tool_input.command` does not contain the substring `jr `, the hook emits `permissionDecision: allow` and exits 0. Confidence: verified by code analysis (`hooks/require-review.sh:47-50`) and BATS test `hooks.bats:9-13`.
 2. If `tool_input.command` contains any of `jr issue comment`, `jr issue edit`, `jr issue move`, `jr issue assign`, or `jr issue create`, the hook emits `permissionDecision: deny` with a reason string containing "review approval". The deny reason names all five blocked subcommands explicitly. Confidence: verified by code analysis (`hooks/require-review.sh:88-94`) and BATS tests `hooks.bats:69-74, 82-87, 89-93`.
 3. If `tool_input.command` contains any entry from the explicit read-only allowlist (evaluated before the deny check), the hook emits `permissionDecision: allow` and exits 0. The allowlist has two families: Confidence: verified by code analysis (`hooks/require-review.sh:60-82`) and BATS tests `hooks.bats:15-19`.
 
@@ -69,14 +72,14 @@ removal_reason: null
    - `--output json assets search`
    - `--output json assets view`
 
-4. For any `jr` subcommand that does not match the explicit read-only allowlist (postcondition #3) and does not match the explicit write-block list (postcondition #2), the hook emits `permissionDecision: deny` with a reason instructing the operator to add the subcommand to the read-only allowlist if it is safe (fail-closed, SEC-002). Confidence: verified by code analysis (`hooks/require-review.sh:97-98`) and BATS test `hooks.bats:76-80`.
+4. For any `jr` subcommand that does not match the explicit read-only allowlist (postcondition #3) and does not match the explicit write-block list (postcondition #2), the hook emits `permissionDecision: deny` with a reason instructing the operator to add the subcommand to the read-only allowlist if it is safe (fail-closed, SEC-002). Confidence: verified by code analysis (`hooks/require-review.sh:96-98`) and BATS test `hooks.bats:76-80`.
 5. The exit code is always 0 for all business-logic decisions (both allow and deny). Exit code 1 is reserved exclusively for missing `jq` dependency. Confidence: verified by code analysis (`hooks/require-review.sh:29, 41`).
 
 ## Invariants
 
 1. The JSON output envelope structure is always `{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow"|"deny","permissionDecisionReason":"..."}}`. Confidence: verified by code analysis (`hooks/require-review.sh:27-42`).
 2. The hook never makes network calls, never spawns subprocesses beyond `jq`, and never reads the filesystem — all decisions are made from the single stdin JSON envelope. Execution is bounded at < 100ms. Confidence: verified by code analysis (full file).
-3. The hook is fail-closed for all `jr` subcommands: any `jr` command that is not on the explicit read-only allowlist results in deny, not allow. Non-`jr` commands remain on a fast-path allow. This replaced the previous fail-open behavior as of PR #13 (SEC-002). Confidence: verified by code analysis (`hooks/require-review.sh:97-98`).
+3. The hook is fail-closed for all `jr` subcommands: any `jr` command that is not on the explicit read-only allowlist results in deny, not allow. Non-`jr` commands remain on a fast-path allow. This replaced the previous fail-open behavior as of PR #13 (SEC-002). Confidence: verified by code analysis (`hooks/require-review.sh:96-98`).
 4. **`--output json` global flag placement creates a non-obvious substring matching boundary.** The command `jr --output json issue view KEY` does NOT contain the substring `jr issue view` because the global flag `--output json` sits between `jr` and `issue`. Therefore, the allowlist must carry both plain forms (e.g., `jr issue view`) and `--output json` forms (e.g., `--output json issue view`) as separate entries. A plain-form entry does not cover the `--output json` form of the same subcommand. This was the root cause of the DI-010 regression: the metrics suite issues `jr --output json issue changelog KEY`, but the v1.1 allowlist only had the plain form. Both families were added explicitly in PR #14. This invariant is documented in the source at `hooks/require-review.sh:55-59`.
 
 ## Edge Cases
@@ -141,7 +144,7 @@ removal_reason: null
 
 | Property | Value |
 |----------|-------|
-| **Path** | `plugins/secops-factory/hooks/require-review.sh` (99 lines, post-PR #14) + `.ps1` sibling |
+| **Path** | `plugins/secops-factory/hooks/require-review.sh` (98 lines, post-PR #14) + `.ps1` sibling |
 | **Confidence** | high — explicit allow/deny logic fully visible in source; BATS tests at `tests/hooks.bats:9-93` exercise all documented paths; 138 total tests in the suite |
 | **Extraction Date** | 2026-07-19 |
 | **Last Verified Against** | commit 0ec794a (PR #14 merge commit) |
@@ -173,10 +176,10 @@ removal_reason: null
 
 #### Evidence Types Used
 
-- **guard clause**: fast-path allow for non-`jr ` commands (`hooks/require-review.sh:48-50`)
+- **guard clause**: fast-path allow for non-`jr ` commands (`hooks/require-review.sh:47-50`)
 - **guard clause**: 21-entry explicit read-only allowlist (14 plain + 7 `--output json`), all `emit_allow` (`hooks/require-review.sh:60-82`)
 - **guard clause**: 5-entry explicit write-block list → `emit_deny` with "review approval" (`hooks/require-review.sh:88-94`)
-- **guard clause**: fail-closed catch-all `emit_deny` for unrecognized subcommands (`hooks/require-review.sh:97-98`)
+- **guard clause**: fail-closed catch-all `emit_deny` for unrecognized subcommands (`hooks/require-review.sh:96-98`)
 - **type constraint**: JSON envelope structure enforced by `jq -nc` output template
 - **assertion**: `command -v jq` check — exits 1 if dependency missing (`hooks/require-review.sh:20-23`)
 - **documentation**: PR #14 header comment explicitly documents the `--output json` substring non-matching invariant (`hooks/require-review.sh:55-59`)

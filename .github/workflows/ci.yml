@@ -9,7 +9,7 @@ jobs:
   test:
     name: BATS Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
@@ -18,10 +18,36 @@ jobs:
           git fetch origin factory-artifacts
           git worktree add .factory origin/factory-artifacts
 
-      - name: Install bats
+      - name: Install bats and PowerShell
         run: |
-          sudo apt-get update
-          sudo apt-get install -y bats
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y bats powershell
+
+      - name: Assert pwsh is present
+        run: |
+          set -euo pipefail
+          if ! command -v pwsh &>/dev/null; then
+            echo "ERROR: pwsh not found after install step — parity tests cannot run" >&2
+            exit 1
+          fi
+          pwsh --version
+          echo "pwsh is available — parity tests will RUN (not skip)"
+
+      - name: PSScriptAnalyzer lint on hooks/*.ps1
+        run: |
+          set -euo pipefail
+          pwsh -NoProfile -Command "
+            Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+            Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser -ErrorAction Stop
+            \$results = Invoke-ScriptAnalyzer -Path 'plugins/secops-factory/hooks' -Recurse -Severity Error,Warning \`
+              -Settings '.github/PSScriptAnalyzerSettings.psd1'
+            if (\$results) {
+              \$results | Format-Table -AutoSize
+              exit 1
+            }
+            Write-Host 'PSScriptAnalyzer: no errors or warnings'
+          "
 
       - name: Run test suite
         run: cd plugins/secops-factory/tests && ./run-all.sh
@@ -46,6 +72,26 @@ jobs:
 
       - name: Validate hooks.json.windows is valid JSON
         run: jq . plugins/secops-factory/hooks/hooks.json.windows
+
+      - name: Validate hooks.json and hooks.json.windows against schema
+        run: |
+          set -euo pipefail
+          pip install --quiet jsonschema
+          python3 - <<'PYEOF'
+          import json, jsonschema, sys
+          schema = json.load(open(".github/schemas/hooks.schema.json"))
+          for path in [
+              "plugins/secops-factory/hooks/hooks.json",
+              "plugins/secops-factory/hooks/hooks.json.windows",
+          ]:
+              try:
+                  instance = json.load(open(path))
+                  jsonschema.validate(instance, schema)
+                  print(f"PASS: {path}")
+              except jsonschema.ValidationError as e:
+                  print(f"FAIL: {path}: {e.message}", file=sys.stderr)
+                  sys.exit(1)
+          PYEOF
 
       - name: Validate every hook ships as a .sh/.ps1 sibling pair
         run: |
@@ -75,11 +121,9 @@ jobs:
           status=0
           for cmd in plugins/secops-factory/commands/*.md; do
             skill_name=$(basename "$cmd" .md)
-            if [ "$skill_name" != "secops-health" ]; then
-              if [ ! -d "plugins/secops-factory/skills/$skill_name" ]; then
-                echo "Command $cmd references missing skill $skill_name"
-                status=1
-              fi
+            if [ ! -d "plugins/secops-factory/skills/$skill_name" ]; then
+              echo "Command $cmd references missing skill $skill_name"
+              status=1
             fi
           done
           exit $status

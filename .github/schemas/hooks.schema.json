@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/secops-factory/hooks.schema.json",
+  "title": "Claude Code Hooks Configuration",
+  "description": "Schema for hooks.json and hooks.json.windows — declares Claude Code lifecycle hook registrations for the secops-factory plugin.",
+  "type": "object",
+  "required": ["hooks"],
+  "additionalProperties": false,
+  "properties": {
+    "hooks": {
+      "type": "object",
+      "description": "Map of lifecycle event names to arrays of hook group objects.",
+      "additionalProperties": false,
+      "properties": {
+        "SessionStart": {
+          "$ref": "#/definitions/hookGroupArray"
+        },
+        "PreToolUse": {
+          "$ref": "#/definitions/hookGroupArray"
+        },
+        "PostToolUse": {
+          "$ref": "#/definitions/hookGroupArray"
+        },
+        "SubagentStop": {
+          "$ref": "#/definitions/hookGroupArray"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "hookGroupArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/hookGroup"
+      }
+    },
+    "hookGroup": {
+      "type": "object",
+      "description": "A matcher-scoped group of hook entries.",
+      "additionalProperties": false,
+      "properties": {
+        "matcher": {
+          "type": "string",
+          "description": "Tool name or pipe-separated pattern to match. Omitted on SubagentStop (matches all).",
+          "minLength": 1
+        },
+        "hooks": {
+          "type": "array",
+          "description": "Ordered list of hooks to run when the matcher fires.",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/hookEntry"
+          }
+        }
+      },
+      "required": ["hooks"]
+    },
+    "hookEntry": {
+      "type": "object",
+      "description": "A single hook invocation.",
+      "required": ["type", "command", "timeout"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["command"],
+          "description": "Hook type. Currently only 'command' is supported."
+        },
+        "command": {
+          "type": "string",
+          "description": "Shell command or executable path to invoke. May use ${CLAUDE_PLUGIN_ROOT} variable.",
+          "minLength": 1
+        },
+        "timeout": {
+          "type": "integer",
+          "description": "Timeout in seconds before the hook is killed.",
+          "minimum": 1,
+          "maximum": 60
+        }
+      }
+    }
+  }
+}

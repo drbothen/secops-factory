@@ -47,6 +47,26 @@ jobs:
       - name: Validate hooks.json.windows is valid JSON
         run: jq . plugins/secops-factory/hooks/hooks.json.windows
 
+      - name: Validate hooks.json and hooks.json.windows against schema
+        run: |
+          set -euo pipefail
+          pip install --quiet jsonschema
+          python3 - <<'PYEOF'
+          import json, jsonschema, sys
+          schema = json.load(open(".github/schemas/hooks.schema.json"))
+          for path in [
+              "plugins/secops-factory/hooks/hooks.json",
+              "plugins/secops-factory/hooks/hooks.json.windows",
+          ]:
+              try:
+                  instance = json.load(open(path))
+                  jsonschema.validate(instance, schema)
+                  print(f"PASS: {path}")
+              except jsonschema.ValidationError as e:
+                  print(f"FAIL: {path}: {e.message}", file=sys.stderr)
+                  sys.exit(1)
+          PYEOF
+
       - name: Validate every hook ships as a .sh/.ps1 sibling pair
         run: |
           status=0

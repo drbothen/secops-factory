@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
@@ -15,7 +15,7 @@ subsystem: event-investigation-pipeline
 capability: CAP-EVENT-01
 lifecycle_status: active
 introduced: v0.6.0
-modified: ["v1.1-ADV-0-501-2026-07-19", "v1.2-ADV-0-601-2026-07-19"]
+modified: ["v1.1-ADV-0-501-2026-07-19", "v1.2-ADV-0-601-2026-07-19", "v1.3-ADV-0-702-ADV-0-706-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -30,6 +30,7 @@ removal_reason: null
 > - v1.0 (2026-07-19): Initial extraction from `investigate-event/SKILL.md` at v0.9.0 HEAD (Step 0d).
 > - v1.1 (2026-07-19): ADV-0-501: Annotated EC-006 to clarify the in-progress-save assumption — standard workflow generates from a complete template at Stage 7; EC-006 applies when analyst manually edits investigation file post-generation.
 > - v1.2 (2026-07-19): ADV-0-601: Added Invariant #7 documenting that Stage 7's `jr issue comment` step hits require-review.sh unconditional deny and requires human permission-approval (no marker-based override). Added DI-013 reference.
+> - v1.3 (2026-07-19): ADV-0-702: Corrected PC#3 — ≥2 alternative hypotheses is an LLM-soft procedural rule, not a structural hook enforcement; disposition-guard enforces only heading presence (subject to DI-004). Aligned with Invariant #5 and BC-3.03.001 Invariant #2. ADV-0-706: Standardized write-block citation in Invariant #7 to `88-94 (deny at :93)`.
 
 ## Preconditions
 
@@ -42,7 +43,7 @@ removal_reason: null
 
 1. A disposition (True Positive / False Positive / Benign True Positive) is produced only after all 7 stages are complete, with evidence tracing each stage. Confidence: verified by code analysis (Iron Law: `NO DISPOSITION WITHOUT EVIDENCE CHAIN FIRST`) and BATS test `skills.bats:17-19`.
 2. The investigation document is saved locally FIRST (chain of custody), before any JIRA update. Confidence: verified by code analysis (Stage 7 step order and Red Flag: "I'll update JIRA before saving locally").
-3. At least 2 alternative disposition hypotheses must be documented (the `disposition-guard` hook enforces this structurally). Confidence: verified by code analysis (Red Flag: "I'm confident it's BTP, no need for alternatives") and hook BC-3.03.001.
+3. At least 2 alternative disposition hypotheses must be documented. This is an LLM-enforced procedural rule from the skill (Red Flag: "I'm confident it's BTP, no need for alternatives"); the `disposition-guard` hook enforces only the structural presence of an "Alternatives Considered" heading (not the count or quality of alternatives, and subject to open DI-004 negating-substring false-pass — see BC-3.03.001 Invariant #2 and EC-009). Confidence: verified by code analysis and hook BC-3.03.001.
 4. For external IPs in Stage 3, ASN/geolocation/reputation lookups are performed (via Perplexity if available, otherwise WebSearch). Confidence: verified by code analysis (Stage 3).
 5. If alert platform type is ambiguous after Stage 1 auto-detection, the analyst is prompted to select ICS/IDS/SIEM before proceeding. Confidence: verified by code analysis (Stage 1).
 6. Low-confidence dispositions automatically trigger an escalation recommendation. Confidence: verified by code analysis (Stage 6).
@@ -55,7 +56,7 @@ removal_reason: null
 4. The `enrichment-completeness` hook enforces required investigation document sections (Executive Summary, Alert Details, Disposition, Next Actions). Confidence: verified by hook BC-3.02.001.
 5. The `disposition-guard` hook enforces that Alternatives Considered is present when a Disposition section exists. Confidence: verified by hook BC-3.03.001.
 6. The Perplexity availability check happens once before Stage 3 and the result is announced to the user. Confidence: verified by code analysis (Research Tool Selection section).
-7. Stage 7 includes a `jr issue comment` call to post the investigation summary to the JIRA ticket. The `require-review` hook (C-12, `require-review.sh:88-93`) denies `jr issue comment` unconditionally — the command is in the write-block substring list with no marker-based override path. The comment posting step proceeds only via human permission-approval of the blocked call (Claude Code permission dialog). There is no way for a skill command to include text that bypasses this deny. Resolution options are tracked as **DI-013, PENDING HUMAN DECISION at the Phase 0 gate.**
+7. Stage 7 includes a `jr issue comment` call to post the investigation summary to the JIRA ticket. The `require-review` hook (C-12, `require-review.sh:88-94 (deny at :93)`) denies `jr issue comment` unconditionally — the command is in the write-block substring list with no marker-based override path. The comment posting step proceeds only via human permission-approval of the blocked call (Claude Code permission dialog). There is no way for a skill command to include text that bypasses this deny. Resolution options are tracked as **DI-013, PENDING HUMAN DECISION at the Phase 0 gate.**
 
 ## Edge Cases
 

@@ -13,6 +13,10 @@
 > - ADV-0-005: Fixed prose C-20 output-templates file count (5 → 6: 5 .yaml + 1 .md). Layer diagram updated to match.
 > - ADV-0-303 (2026-07-19): DAG cycle C-2⇄C-3 resolved. Edge semantics defined: `dependencies:` captures required components (both static file references and runtime dispatch targets where the component needs the other to function). The back-edge "C-3" in C-2.dependencies was wrong — skills do not depend on the orchestrator (the orchestrator dispatches skills, not vice versa). "C-3" removed from C-2.dependencies; C-2 stays in C-3.dependencies (correct: orchestrator depends on skills to route to). Textual DAG restructured: C-3 moved to its own root node. C-6 removed from under C-8 (playbook dispatches reviewer, not the reverse). Circular Dependencies table and Layer Rules updated.
 > - ADV-0-407 (2026-07-19): Added "C-6" to C-2.dependencies — adversarial-review-secops (within C-2) statically references review-convergence-workflow.md (C-6) per DI-003. Edge is acyclic: C-2→C-6→C-8→{C-19,C-21,C-24}, no path back to C-2. Textual DAG and Circular Dependencies note updated.
+>
+> **Changelog (2026-07-19, adversarial review pass 7):**
+> - ADV-0-701: Propagated SEC-001/PR#13 5-verb write-block update to C-12 prose row and YAML interfaces_provided. Both now list comment/edit/move/assign/create and note SEC-002 fail-closed default-deny.
+> - Observation: Corrected C-3 textual DAG parenthetical — Morgan is set as default agent by activate, not dispatched per-request by C-1.
 
 ---
 
@@ -54,7 +58,7 @@ advisory-writer. Three canonical workflow playbooks live alongside the orchestra
 | C-9 | Metrics-analyst (Quinn) | `agents/metrics-analyst.md` | Specialist-Agent | Jira-derived metrics, effort reconstruction; sonnet model |
 | C-10 | OSINT-researcher (Harper) | `agents/osint-researcher.md` | Specialist-Agent | External research (company sizing, IP reputation, threat intel); cited findings |
 | C-11 | Advisory-writer | `agents/advisory-writer.md` | Specialist-Agent | Security advisory drafting, threat scanning |
-| C-12 | require-review hook | `hooks/require-review.{sh,ps1}` | Enforcement | PreToolUse/Bash: blocks `jr issue edit/move/assign/create` without review approval |
+| C-12 | require-review hook | `hooks/require-review.{sh,ps1}` | Enforcement | PreToolUse/Bash: blocks `jr issue comment/edit/move/assign/create` without review approval; fail-closed default-deny for unrecognized subcommands (SEC-002) |
 | C-13 | enrichment-completeness hook | `hooks/enrichment-completeness.{sh,ps1}` | Enforcement | PreToolUse/Write: blocks saving enrichment/investigation docs with missing sections |
 | C-14 | disposition-guard hook | `hooks/disposition-guard.{sh,ps1}` | Enforcement | PreToolUse/Write: blocks investigation disposition without "Alternatives Considered" |
 | C-15 | bias-check-reminder hook | `hooks/bias-check-reminder.{sh,ps1}` | Enforcement | PostToolUse/Bash+Perplexity: injects cognitive bias reminder after research tool calls |
@@ -213,7 +217,7 @@ components:
     purity: "effectful-shell"
     criticality: "CRITICAL"
     dependencies: []
-    interfaces_provided: ["PreToolUse/Bash gate: deny jr issue edit/move/assign/create without review approval marker"]
+    interfaces_provided: ["PreToolUse/Bash gate: deny jr issue comment/edit/move/assign/create without review approval marker; fail-closed default-deny for unrecognized jr subcommands (SEC-002)"]
     interfaces_consumed: ["Claude Code hook event envelope (JSON via stdin)", "jq"]
     confidence: "high"
 
@@ -442,7 +446,7 @@ External Integration Boundary:
         +-- [C-23: jr-cli]                 (external)
         +-- [C-24: perplexity-mcp]         (external)
 
-[C-3: orchestrator-agent] (dispatched by C-1 at runtime; dispatches C-2 at runtime — NOT a C-2 dependency; ADV-0-303)
+[C-3: orchestrator-agent] (set as default agent by activate/C-2 at install time, NOT dispatched per-request by C-1; dispatches C-2 at runtime — NOT a C-2 dependency; ADV-0-303)
   +-- [C-2: skill-procedures]             (dispatch target: orchestrator routes to skills)
   +-- [C-4: enrichment-workflow-playbook]
   +-- [C-5: investigation-workflow-playbook]

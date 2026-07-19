@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
@@ -17,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-04
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-507-2026-07-19"]
+modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-507-2026-07-19", "v1.3-ADV-0-703-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -28,11 +28,17 @@ removal_reason: null
 
 # Behavioral Contract BC-3.04.001: bias-check-reminder Hook — PostToolUse Advisory Bias Reminder
 
+> **Revision history:**
+> - v1.0 (2026-07-19): Initial extraction from `bias-check-reminder.sh` at v0.9.0 HEAD (Step 0d).
+> - v1.1 (2026-07-19): ADV-0-403: Re-anchored BATS test references to current @test names.
+> - v1.2 (2026-07-19): ADV-0-507: Normalized input-hash to dual-file block scalar (.sh + .ps1).
+> - v1.3 (2026-07-19): ADV-0-703: Upgraded PC#3 confidence from "inferred" to "verified against hooks.json §A-4 confirmed matcher = Bash|mcp__perplexity__*". Resolved Refactoring Notes ambiguity — hook fires on ALL PostToolUse Bash events AND every Perplexity MCP call; description "after research tool calls" understates the scope.
+
 ## Preconditions
 
 1. The hook receives any JSON event via stdin (`PostToolUse` event for Bash and Perplexity tools). Confidence: verified by code analysis — the hook reads no fields from stdin (`hooks/bias-check-reminder.sh`).
 2. The hook is non-blocking (advisory only): it writes to stderr, not stdout, and never emits a `permissionDecision` JSON envelope. Confidence: verified by code analysis (`hooks/bias-check-reminder.sh:10-15`).
-3. The hook fires on `PostToolUse` events for Bash tool calls and Perplexity MCP tool calls. Confidence: inferred from hook purpose description ("after research tool calls") and wiring in `hooks.json`.
+3. The hook fires on `PostToolUse` events for ALL Bash tool calls and ALL Perplexity MCP tool calls (matcher = `Bash|mcp__perplexity__*`). Confidence: verified against hooks.json §A-4 confirmed matcher. Note: the hook description "after research tool calls" understates the actual trigger scope — the hook fires on every Bash call, not only research-oriented ones.
 
 ## Postconditions
 
@@ -113,4 +119,4 @@ removal_reason: null
 
 Simplest possible hook. No refactoring needed. No ambiguities.
 
-**Undocumented behavior:** The hook fires on ALL PostToolUse Bash events (not only Perplexity calls) according to the hooks.json wiring described in the architecture. The hook description says "after research tool calls" but the trigger scope in hooks.json may be broader. This warrants verification against the actual `hooks.json` content to confirm the exact trigger scope.
+**Broader-than-described trigger scope (verified):** The hook fires on ALL `PostToolUse` Bash events AND ALL Perplexity MCP tool calls (matcher = `Bash|mcp__perplexity__*`, confirmed in hooks.json §A-4). The hook description "after research tool calls" understates the actual scope — the reminder fires after every Bash command (including non-research operations like `jr issue view`, `cat`, etc.). Since the hook is purely advisory (stderr-only, exit 0 always), the broader trigger scope is a documentation inaccuracy, not a behavioral defect. No remediation action required.

@@ -86,9 +86,9 @@ No CRITICAL or HIGH findings — pipeline may proceed.
   (b) Set a fake "review-approval marker" in context to satisfy the update-jira soft gate, then attempt `jr issue edit` (hard-blocked by require-review hook, requiring human override).
 - **Impact:**
   - **Comment injection (higher exploitability):** LLM posts attacker-authored analysis as an official Jira comment. Other SOC analysts reading the comment would see attacker-controlled threat assessment as if it were from the AI system. Could mislead incident response (false FP/TP assignments, wrong remediation priorities).
-  - **Field injection (lower exploitability):** require-review.sh always blocks `jr issue edit/move/assign/create`, emitting a deny with the full command visible to the human analyst. A human analyst inspecting the blocked command would see the attacker-injected values. This path requires the analyst to knowingly override the hook with attacker-controlled values — significant friction.
+  - **Field injection (lower exploitability):** require-review.sh always blocks `jr issue edit/move/assign/create` *(pre-PR#13 state; SEC-001 fix adds `comment` to the blocked list — all 5 verbs now blocked, see Disposition Table)*, emitting a deny with the full command visible to the human analyst. A human analyst inspecting the blocked command would see the attacker-injected values. This path requires the analyst to knowingly override the hook with attacker-controlled values — significant friction.
 - **Evidence:**
-  - `require-review.sh` line 60-62: `if [[ "$COMMAND" == *"jr issue comment"* ]]; then emit_allow; fi` — comment is explicitly allowed without review check
+  - `require-review.sh` line 60-62: `if [[ "$COMMAND" == *"jr issue comment"* ]]; then emit_allow; fi` — comment is explicitly allowed without review check *(pre-PR#13 code; SEC-001 FIXED in PR#13 — see Disposition Table)*
   - `update-jira/SKILL.md` Step 1: "Look for review-approval marker in conversation context or JIRA comments" — this is an LLM-evaluated soft check, not a cryptographic proof
   - `investigate-event/SKILL.md` Stage 7: "Post investigation as JIRA comment" — comment is posted before any hook gate
   - `read-ticket/SKILL.md`: ticket body content (description, summary, custom fields) ingested without sanitization
@@ -110,7 +110,7 @@ No CRITICAL or HIGH findings — pipeline may proceed.
   `require-review.sh` (and `.ps1`) uses an allowlist of read-only operations and a blocklist of write operations. The hook ends with `emit_allow` for any `jr` command not on either list. If the `jr` CLI adds new write subcommands (e.g., `jr issue duplicate`, `jr issue link`, `jr issue bulk-edit`), they would bypass the gate automatically.
 - **Impact:**
   New write operations introduced in future `jr` CLI releases would bypass the review gate. Exploitability is LOW because: (a) `jr` is not auto-updated in this plugin; (b) new subcommands would require deliberate skill or agent changes to be invoked; (c) the analyst workstation threat model means the operator controls when jr is updated.
-- **Evidence:**
+- **Evidence:** *(pre-PR#13 code; SEC-002 FIXED in PR#13 — see Disposition Table)*
   `require-review.sh` lines 73-74:
   ```bash
   # Unknown jr command — allow (fail-open for unrecognized subcommands)
@@ -318,8 +318,8 @@ No incompatible licenses (AGPL, SSPL, BSL) detected. No undeclared licenses foun
 ### require-review.sh / .ps1
 - JSON parsing via `jq -r .tool_input.command` is safe — extracted value used only in bash string comparisons, never eval'd.
 - `emit_deny` uses `jq --arg` to construct JSON — properly escapes the reason string. No JSON injection risk.
-- Fail-open on unknown jr subcommands — SEC-002.
-- `jr issue comment` explicitly allowed — contributes to SEC-001.
+- Fail-open on unknown jr subcommands — SEC-002. *(pre-PR#13 state; SEC-002 FIXED in PR#13 — see Disposition Table)*
+- `jr issue comment` explicitly allowed — contributes to SEC-001. *(pre-PR#13 state; SEC-001 FIXED in PR#13 — see Disposition Table)*
 
 ### enrichment-completeness.sh / .ps1
 - File path and content extracted from JSON via jq. Used only in `[[ "$FILE_PATH" == *pattern* ]]` comparisons and `grep -qF` fixed-string search. No injection risk.

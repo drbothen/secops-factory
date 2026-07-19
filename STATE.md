@@ -4,7 +4,7 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-19T16:00:00Z
+timestamp: 2026-07-19T17:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
@@ -78,6 +78,7 @@ dtu_required: false
 | 0f-adv pass 4 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass4.md` — 8 findings (1 FP-C / 3M / 4m), all remediated. ADV-0-401 FALSE POSITIVE (stale snapshot trust, adjudicated by orchestrator). BC-3.02.001 v1.1 (EC-004 DENY). 5 BCs + conventions re-anchored by @test NAME. Census derivation explicit (24-1+19+1=43). ALL 13 BCs got sha256 input-hashes. Capstone v1.4 (375 lines). Finding decay: 12→11→7→8(1FP). [process-gap-4]: adversary stale-snapshot trust. [process-gap-5]: BC input-hashes never computed at extraction. Pass 5 dispatched. |
 | 0f-adv pass 5 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass5.md` — 6 findings (0C/2M/4m), all remediated. Finding decay: 12→11→7→8(1FP)→6; majors: 6→5→4→3→2; zero criticals for 3 consecutive passes. Core axes GREEN: census (24/43+derivation), DAG, VP namespaces, Iron-Law attributions, 138 tests, holdout distribution, DI statuses. ADV-0-501: cross-BC enrichment-completeness/disposition-guard contradiction resolved via HOOK-ISOLATED annotations. ADV-0-502: integrations DTU mock corrected to deny. HS-010 v1.1. Capstone v1.5. Pass 6 dispatched as convergence-candidate (bar: 0C+0M). |
 | 0f-adv pass 6 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass6.md` — 6 findings (0C/2M/4m), all remediated. Decay 12→11→7→8(1FP)→6→6; zero criticals 4 consecutive passes. ADV-0-601: SEC-001 comment-deny propagated to consumer BCs (BC-4.02.001 v1.1, BC-5.01.001 v1.2, integrations corrected); DI-013 opened. ADV-0-602: HS-014 reclassified fix-target; baseline 24/25 must-pass + 1 fix-target. ADV-0-605: EC-009 added to BC-3.03.001 v1.3 (DI-004 canonical vector). ADV-0-606: co-fire wiring VERIFIED. Pass 7 dispatched (convergence bar: 0C+0M). |
+| 0f-adv pass 7 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass7.md` — 6 findings (0C/2M/4m), all remediated via systematic grep sweep (12 hits, 4 unreported security-audit annotations). Root cause: incomplete fan-out of PR#13/SEC-001/DI-013 to sibling shards. Decay 12→11→7→8(1FP)→6→6→6; zero criticals 5 consecutive passes; content core GREEN 3 consecutive passes. Capstone v1.7 (400 lines). [process-gap-6]: fan-out discipline — grep sweep before consistency claims. Pass 8 dispatched (convergence bar: 0C+0M). |
 
 ## Decisions Log
 
@@ -127,8 +128,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 — step 0f-adv pass 7 in progress (convergence bar: 0C+0M) |
-| **Context** | Pass 6: 6 findings (0C/2M/4m), all remediated. Decay 12→11→7→8(1FP)→6→6; zero criticals 4 consecutive passes. SEC-001 comment-deny propagated to consumer BCs. HS-014 reclassified fix-target (baseline 24/25+1). DI-013 added (comment-gate friction, PENDING HUMAN DECISION). DI-001/DI-008/DI-009/DI-010 RESOLVED. CRITICAL: require-review hook, update-jira skill. |
+| **Position** | Phase 0 — step 0f-adv pass 8 in progress (convergence bar: 0C+0M) |
+| **Context** | Pass 7: 6 findings (0C/2M/4m), all remediated via systematic grep sweep. Decay 12→11→7→8(1FP)→6→6→6; zero criticals 5 consecutive passes; content core GREEN 3 consecutive passes. Process-gap-6 logged (fan-out discipline). Capstone v1.7 (400 lines). DI-001/DI-008/DI-009/DI-010 RESOLVED. CRITICAL: require-review hook, update-jira skill. |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

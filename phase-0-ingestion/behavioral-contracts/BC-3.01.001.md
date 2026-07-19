@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.5"
+version: "1.6"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
@@ -17,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-01
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19", "v0.9.x-ADV0-001-ADV0-007-2026-07-19", "v1.4-ADV-0-405-ADV-0-507-2026-07-19", "v1.5-ADV-0-504-2026-07-19"]
+modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19", "v0.9.x-ADV0-001-ADV0-007-2026-07-19", "v1.4-ADV-0-405-ADV-0-507-2026-07-19", "v1.5-ADV-0-504-2026-07-19", "v1.6-ADV-0-706-obs-PC2-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -35,6 +35,7 @@ removal_reason: null
 > - v1.3 (2026-07-19): Adversarial review pass 1 fixes — ADV-0-001: renumbered VP-HOOK-004/005/006 to VP-HOOK-020/021/022 (global sequential namespace; 004-006 are owned by BC-3.02.001 enrichment-completeness). ADV-0-007: corrected EC-015 mechanism — `jr --output json issue comment` is denied by the fail-closed catch-all, NOT by the write-block check (Invariant #4 applies; `jr issue comment` is not a substring of that command). Security extensibility note added to Refactoring Notes.
 > - v1.4 (2026-07-19): ADV-0-405: corrected three stale line-number anchors — non-jr fast path is `require-review.sh:47-50` (not 48-50), fail-closed block is `require-review.sh:96-98` (not 97-98), source file is 98 lines (not 99). ADV-0-507 (pass-4 input-hash batch): input-hash established as dual-file block scalar (require-review.sh + require-review.ps1 sibling).
 > - v1.5 (2026-07-19): ADV-0-504: corrected one remaining stale anchor in EC-015 — fail-closed catch-all is `(lines 96-98)` not `(lines 97-98)`. Missed by v1.4 sweep.
+> - v1.6 (2026-07-19): ADV-0-706: Standardized write-block citations to canonical form `88-94 (deny at :93)`. Observation: Softened PC#2 confidence note — `comment`/`edit`/`move` deny verified by both code analysis and BATS; `assign`/`create` deny verified by code analysis only (no dedicated positive BATS tests for these two verbs; residual gap noted in GAP-2 of verification-gap-analysis.md).
 
 ## Preconditions
 
@@ -45,7 +46,7 @@ removal_reason: null
 ## Postconditions
 
 1. If `tool_input.command` does not contain the substring `jr `, the hook emits `permissionDecision: allow` and exits 0. Confidence: verified by code analysis (`hooks/require-review.sh:47-50`) and BATS test `hooks.bats:9-13`.
-2. If `tool_input.command` contains any of `jr issue comment`, `jr issue edit`, `jr issue move`, `jr issue assign`, or `jr issue create`, the hook emits `permissionDecision: deny` with a reason string containing "review approval". The deny reason names all five blocked subcommands explicitly. Confidence: verified by code analysis (`hooks/require-review.sh:88-94`) and BATS tests `hooks.bats:69-74, 82-87, 89-93`.
+2. If `tool_input.command` contains any of `jr issue comment`, `jr issue edit`, `jr issue move`, `jr issue assign`, or `jr issue create`, the hook emits `permissionDecision: deny` with a reason string containing "review approval". The deny reason names all five blocked subcommands explicitly. Confidence: verified by code analysis (`hooks/require-review.sh:88-94 (deny at :93)`) and BATS tests `hooks.bats:69-74, 82-87, 89-93`. Note: `comment`, `edit`, and `move` deny is verified by both code analysis AND dedicated BATS tests; `assign` and `create` deny is verified by code analysis only — no dedicated positive BATS tests exist for these two verbs (residual gap noted in verification-gap-analysis.md GAP-2).
 3. If `tool_input.command` contains any entry from the explicit read-only allowlist (evaluated before the deny check), the hook emits `permissionDecision: allow` and exits 0. The allowlist has two families: Confidence: verified by code analysis (`hooks/require-review.sh:60-82`) and BATS tests `hooks.bats:15-19`.
 
    **Plain forms (family a):**
@@ -179,7 +180,7 @@ removal_reason: null
 
 - **guard clause**: fast-path allow for non-`jr ` commands (`hooks/require-review.sh:47-50`)
 - **guard clause**: 21-entry explicit read-only allowlist (14 plain + 7 `--output json`), all `emit_allow` (`hooks/require-review.sh:60-82`)
-- **guard clause**: 5-entry explicit write-block list → `emit_deny` with "review approval" (`hooks/require-review.sh:88-94`)
+- **guard clause**: 5-entry explicit write-block list → `emit_deny` with "review approval" (`hooks/require-review.sh:88-94 (deny at :93)`)
 - **guard clause**: fail-closed catch-all `emit_deny` for unrecognized subcommands (`hooks/require-review.sh:96-98`)
 - **type constraint**: JSON envelope structure enforced by `jq -nc` output template
 - **assertion**: `command -v jq` check — exits 1 if dependency missing (`hooks/require-review.sh:20-23`)

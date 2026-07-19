@@ -1,8 +1,8 @@
 ---
 document_type: holdout-scenario-index
 level: ops
-version: "1.0"
-status: draft
+version: "1.2"
+status: active
 producer: product-owner
 timestamp: 2026-07-19T00:00:00
 phase: "0f-pre"
@@ -12,6 +12,11 @@ scenario_count: 25
 ---
 
 # Holdout Scenario Index — secops-factory Brownfield Regression Baseline
+
+> **Version history:**
+> - v1.0 (2026-07-19): Initial generation — 25 scenarios, all must-pass (Step 0f-pre).
+> - v1.1 (2026-07-19): ADV-0-505 — HS-010 regenerated against BC-3.02.001 v1.1 semantics (partial investigation save flipped to deny; fixture changed to all-four-headings-present).
+> - v1.2 (2026-07-19): ADV-0-602 — HS-014 reclassified from must-pass to fix-target / should-pass (pending DI-004); baseline updated to 24 must-pass + 1 fix-target.
 
 > **WARNING:** This index and all files in this directory are stored under
 > `.factory/holdout-scenarios/` and must NEVER be shown to the implementer

@@ -1,13 +1,13 @@
 ---
 document_type: project-context
 level: L0
-version: "1.6"
+version: "1.7"
 status: active
 producer: codebase-analyzer
 phase: 0
 step: "0f"
 project: secops-factory
-date: "2026-07-19 (re-synced post adversarial pass 6)"
+date: "2026-07-19 (re-synced post adversarial pass 7)"
 source_state: "v0.9.0 + PR #12 (gitignore) + PR #13 (SEC-001..005 fixed, f450d9f) + PR #14 (read-only allowlist expansion / DI-010, 0ec794a); 41 commits / PRs #1–#14 all verified merged at HEAD 0ec794a; BATS suite 138/138 (12/14 parity skip w/o pwsh); 6-hook mutation aggregate ~75–80%"
 inputs:
   - phase-0-ingestion/project-discovery.md
@@ -148,24 +148,25 @@ Contract files: `.factory/phase-0-ingestion/behavioral-contracts/<id>.md`
 
 | BC | Subject | Rev | Tier | Verification |
 |----|---------|-----|------|--------------|
-| BC-3.01.001 | require-review hook — Jira field-modification gate | **v1.5** | CRITICAL | PARTIAL (PR #13 comment-deny + fail-closed, PR #14 allowlist / DI-010, VP renumber; line-anchor + dual-file-hash corrections) |
+| BC-3.01.001 | require-review hook — Jira field-modification gate | **v1.6** | CRITICAL | PARTIAL (PR #13 5-verb comment-deny + fail-closed, PR #14 allowlist / DI-010, VP renumber; line-anchor + dual-file-hash + write-block citation corrections) |
 | BC-3.02.001 | enrichment-completeness hook — section completeness gate | **v1.3** | HIGH | PARTIAL — **EC-004 = DENY**: investigation files require ALL FOUR sections, no partial-save (see §6) |
 | BC-3.03.001 | disposition-guard hook — Alternatives-required gate | **v1.3** | HIGH | FULLY (declared-VP coverage); known defect DI-004 now first-class **EC-009** (see §6) |
-| BC-3.04.001 | bias-check-reminder hook — PostToolUse advisory | **v1.2** | LOW | PARTIAL |
+| BC-3.04.001 | bias-check-reminder hook — PostToolUse advisory | **v1.3** | LOW | PARTIAL |
 | BC-3.05.001 | handoff-validator hook — SubagentStop empty-output guard | **v1.2** | LOW | PARTIAL |
 | BC-3.06.001 | session-greeting hook — activation-gated SessionStart banner | **v1.2** | LOW | FULLY (core); jq-fallback open |
 | BC-4.01.001 | enrich-ticket skill — 8-stage CVE enrichment | v1.0 | HIGH | STRUCTURAL-ONLY |
-| BC-4.02.001 | update-jira skill — review-gated Jira field update | **v1.1** | CRITICAL | STRUCTURAL-ONLY — comment-post step needs human override (DI-013) |
+| BC-4.02.001 | update-jira skill — review-gated Jira field update | **v1.2** | CRITICAL | STRUCTURAL-ONLY — comment-post step (PC#4) needs human override (DI-013) |
 | BC-4.03.001 | review-enrichment skill — fresh-context quality review | v1.0 | HIGH | STRUCTURAL-ONLY (strongest) |
 | BC-4.04.001 | adversarial-review-secops skill — convergence loop | v1.0 | HIGH | STRUCTURAL-ONLY |
-| BC-5.01.001 | investigate-event skill — 7-stage investigation | **v1.2** | HIGH | STRUCTURAL-ONLY — Stage 7 comment-post needs human override (DI-013) |
+| BC-5.01.001 | investigate-event skill — 7-stage investigation | **v1.3** | HIGH | STRUCTURAL-ONLY — Stage 7 comment-post needs human override (DI-013) |
 | BC-6.01.001 | activate skill — per-project activation lifecycle | v1.0 | HIGH | STRUCTURAL-ONLY |
 | BC-6.01.002 | deactivate skill — per-project deactivation | v1.0 | MEDIUM | STRUCTURAL-ONLY |
 
 All six hook BCs (BC-3.01..BC-3.06) carry dual-file (.sh + .ps1) input-hashes for the drift check.
 
-> **BC-3.01.001 now at v1.5 (2026-07-19) — fully re-synced** (v1.4 line-anchor corrections to the
-> 98-line post-PR-14 file; v1.5 normalized the `input-hash` to dual-file .sh + .ps1 form). Behavior at HEAD (verified vs commit
+> **BC-3.01.001 now at v1.6 (2026-07-19) — fully re-synced** (v1.4 line-anchor corrections to the
+> 98-line post-PR-14 file; v1.5 dual-file .sh + .ps1 `input-hash`; v1.6 standardized the canonical write-block
+> citation to `require-review.sh:88-94`, deny at :93). Behavior at HEAD (verified vs commit
 > 0ec794a): (a) PR #13 moved `jr issue comment` into the **deny** block and flipped the default to
 > **fail-closed** (unrecognized `jr` subcommands → deny) — the old allow/fail-open postconditions
 > and EC-003 are superseded; (b) PR #14 expanded the read-only allowlist with `jr issue changelog`,
@@ -188,7 +189,10 @@ All six hook BCs (BC-3.01..BC-3.06) carry dual-file (.sh + .ps1) input-hashes fo
 > workflow write path. **The DI-004 false-pass is now a first-class edge case, EC-009** (+ canonical vector):
 > `grep -qiF "Alternatives Considered"` matches negating body text such as "No Alternatives Considered were
 > required", so a disposition can pass the anti-bias gate without genuine alternatives; HS-014 targets a
-> section-heading-anchored fix. All six hook BCs also normalized their input-hash to dual-file .sh + .ps1 form.
+> section-heading-anchored fix. **Scope note (no overclaim):** disposition-guard enforces **heading-presence
+> only** — the "at least 2 alternative hypotheses" wording in its deny reason is LLM-soft guidance, not
+> enforced (it never counts alternatives); alternative *quality* is validated by review-enrichment. All six
+> hook BCs also normalized their input-hash to dual-file .sh + .ps1 form.
 
 ## 6. Verification Posture
 
@@ -278,31 +282,27 @@ consistency/spec/hardening items, not behavioral defects. DI-008/DI-009/DI-010 r
 
 ## 10. Recent Changes (reflected in this document)
 
-- **Adversarial pass 6 (2026-07-19):** 6 findings (0 critical / 2 medium / 4 minor) all remediated.
-  **Opened DI-013** (MEDIUM-HIGH, pending human decision): PR #13's unconditional `jr issue comment` deny
-  makes the two comment-post steps (update-jira PC#4, investigate-event Stage 7) require a manual
-  permission-override every time — **no marker-based override exists**. This also **corrects pass-5's own
-  integrations "override-path" claim, which was wrong**. BC bumps: BC-3.02.001 / BC-3.03.001 → v1.3,
-  BC-4.02.001 → v1.1, BC-5.01.001 → v1.2 (BC-3.01.001 stays v1.5). Co-fire deny-wins semantics upgraded from
-  inferred to **VERIFIED against hooks.json**; DI-004 false-pass now first-class **EC-009** in BC-3.03.001;
-  BC-3.03.001 "FULLY" qualified (declared-VP coverage, defect documented not fixed). Holdout baseline stated
-  as **24 must-pass + 1 fix-target (HS-014)**.
-- **Adversarial pass 5 (2026-07-19):** 6 findings (0 critical / 2 medium / 4 minor) all remediated.
-  BC-3.01.001 → v1.5, BC-3.02.001 / BC-3.03.001 / BC-3.04–3.06 → v1.2, BC-5.01.001 → v1.1; **ADV-0-501
-  aggregate hook semantics** captured (both completeness hooks co-fire on PreToolUse/Write, deny wins;
-  Stage 7 single-shot template generation means no partial-save path; disposition-guard's in-progress-allow
-  is HOOK-ISOLATED); all 6 hook BCs normalized to dual-file (.sh + .ps1) input-hashes. Pass-5 verified
-  **GREEN on the census, DAG, VP-numbering, counts, and DI axes.** (Knock-ons corrected upstream, not in this
-  capstone: DTU-1 mock guidance comment→deny + override-path note; HS-010 complete-document allow fixture;
-  discovery §8.1 annotation.)
-- **Adversarial pass 4 (2026-07-19):** BC-3.02.001 → v1.1 (EC-004 flipped to DENY — investigation files
-  require all four sections, no partial-save); BC-3.01.001 → v1.4 (line-anchor corrections, 98-line file);
-  five sibling hook BCs (BC-3.02..3.06) → v1.1; all 13 BCs now carry a populated `input-hash` (drift check
-  functional); kill-rate anchor switched to the section-name form; per-artifact census derivation made
-  explicit (24−1+19+1=43); "138/138 local" qualified with the pwsh-skip caveat. **Adjudication:** pass-4's
-  critical finding (PRs #11–#14 unmerged) was ruled a **FALSE POSITIVE** — merges verified live at HEAD
-  0ec794a and `.gitignore` confirmed to contain the four secret-bearing entries; root cause was the
-  adversary reading a stale session-start git snapshot.
+- **Adversarial pass 7 (2026-07-19):** 6 findings (0C/2M/4m) all remediated via a **systematic propagation
+  sweep** (12 grep hits across shards, incl. 4 security-audit snapshot annotations). BC-5.01.001 → v1.3,
+  BC-3.04.001 → v1.3. Knock-ons folded in: C-12 now describes the **5-verb** write-block (comment/edit/move/
+  assign/create) + fail-closed default everywhere; disposition-guard clarified as **heading-presence only**
+  (≥2-hypotheses = LLM-soft deny-reason text, not enforced); assign/create deny is code-analysis-verified
+  only (no dedicated positive BATS); HS-INDEX now v1.2/active. **[process-gap]** noted for the engine: a
+  fan-out discipline / propagation-sweep step is a codification candidate so single-shard fixes propagate
+  to all dependents in one pass.
+- **Adversarial pass 6 (2026-07-19):** 6 findings (0C/2M/4m) remediated. **Opened DI-013** (MEDIUM-HIGH,
+  pending): the unconditional `jr issue comment` deny forces a manual override on both comment-post steps
+  (update-jira PC#4, investigate-event Stage 7) — **no marker override exists** (this corrected pass-5's
+  wrong "override-path" claim). BC-3.02.001/3.03.001 → v1.3, BC-4.02.001 → v1.1, BC-5.01.001 → v1.2; co-fire
+  deny-wins upgraded inferred → **VERIFIED vs hooks.json**; DI-004 false-pass now first-class **EC-009**;
+  BC-3.03.001 "FULLY" qualified; holdout baseline stated **24 must-pass + 1 fix-target (HS-014)**.
+- **Adversarial passes 4–5 (2026-07-19) — condensed:** pass 4 flipped EC-004 to DENY (BC-3.02.001, all-4-
+  sections, no partial-save), populated all 13 BC `input-hash`es, made the per-artifact census derivation
+  explicit (24−1+19+1=43), qualified "138/138 local" with the pwsh-skip caveat, and adjudicated the
+  "PRs #11–#14 unmerged" finding a **FALSE POSITIVE** (verified merged at HEAD 0ec794a; stale snapshot).
+  Pass 5 captured **ADV-0-501 aggregate hook semantics** (co-fire deny-wins; Stage 7 single-shot template →
+  no partial-save; disposition-guard in-progress-allow is HOOK-ISOLATED) and normalized the 6 hook BCs to
+  dual-file (.sh + .ps1) hashes.
 - **Adversarial passes 1–3 (2026-07-19) — condensed:** pass 1 reconciled recovered-architecture C-1..C-24
   (hook-manifests = C-18; DI-008/DI-009 closed); pass 2 corrected the census to the authoritative 24-module
   aggregate (1/12/7/4) and restated require-review ≥95% as not-yet-demonstrated (git stats 41 commits / PRs
@@ -375,22 +375,22 @@ agents (DF-009 information asymmetry). Distribution: require-review ×4, update-
 ## Quality Gate
 
 - [x] Self-contained — a reader understands the project without opening sub-documents
-- [x] Cross-references consistent — re-verified vs pass-6 shards: census **24 aggregate (1/12/7/4)** incl. hook-manifests C-18 / 43 per-artifact (2/16/20/5, derivation 24−1+19+1); templates 6, hooks 6+6+2 manifests; BC-3.01.001 v1.5 (VP-HOOK-020/021/022), BC-3.02.001/3.03.001 v1.3 (EC-004 DENY + co-fire deny-wins VERIFIED vs hooks.json), BC-4.02.001 v1.1, BC-5.01.001 v1.2; dependency graph verified acyclic (DI-003 C-2→C-6 edge explicit). Pass-6 GREEN on census/DAG/VP/counts/DI axes.
+- [x] Cross-references consistent — **now backed by an explicit pass-7 grep sweep** (12 hits resolved) across these pattern classes: BC version strings, DI-NNN ids/status, SM-NNN mutants, census counts (24/1-12-7-4, 43), hook-verb lists, kill-rate figures, and hooks.json citations. Verified: census 24 aggregate (1/12/7/4) incl. C-18 / 43 per-artifact (24−1+19+1); templates 6; hooks 6+6+2; BC-3.01.001 v1.6, BC-3.02.001/3.03.001 v1.3, BC-3.04.001 v1.3, BC-4.02.001 v1.2, BC-5.01.001 v1.3; DAG acyclic. Pass-7 GREEN on census/DAG/VP/counts/DI. (This checkbox was over-asserted before pass 7; the sweep is what now substantiates it.)
 - [x] Restricted areas justified per row; DI mis-cite corrected (hook-wiring cites DI-011, not DI-009)
 - [x] Context-budget estimate per architectural component + strategy recommendation
-- [x] No orphaned references (DI-008/DI-009/DI-010 resolved; DI-011 + DI-012 + **DI-013** open; frontmatter DI range now DI-001..DI-013)
-- [x] Security posture reflects security-audit.md (post-remediation, SEC-001..005 MERGED; SM-3 resolved / SM-2 downgraded HIGH→LOW / SM-8 killed)
-- [x] BC drift check now functional — all 13 BCs carry populated `input-hash`es; the 6 hook BCs use dual-file (.sh + .ps1) hashes; PRs #11–#14 verified merged at HEAD 0ec794a (pass-4 "unmerged" finding adjudicated FALSE POSITIVE — stale git snapshot)
-- [x] Recent changes (PR #12/#13/#14 + adversarial passes 1–6) surfaced; BC-3.01.001 v1.5 / hook BCs v1.2–1.3 / BC-4.02.001 v1.1 / BC-5.01.001 v1.2; DI-013 opened
-- [x] Mutation figures re-anchored — 6-hook set aggregate **~75–80%** (vga §Mutation Testing Baseline → Surviving Mutants summary ~line 194; ~55–65% baseline superseded); require-review ≥95% target NOT yet demonstrated met
-- [x] BC-3.03.001 "FULLY" qualified (declared-VP coverage; DI-004 defect documented as first-class EC-009, not fixed); holdout baseline = 24 must-pass + 1 fix-target (HS-014)
+- [x] No orphaned references (DI-008/DI-009/DI-010 resolved; DI-011 + DI-012 + **DI-013** open; frontmatter DI range DI-001..DI-013)
+- [x] Security posture reflects security-audit.md (post-remediation, SEC-001..005 MERGED; SM-3 resolved / SM-2 downgraded HIGH→LOW / SM-8 killed); C-12 write-block is 5-verb + fail-closed
+- [x] BC drift check functional — all 13 BCs carry populated `input-hash`es; the 6 hook BCs use dual-file (.sh + .ps1) hashes; PRs #11–#14 verified merged at HEAD 0ec794a (pass-4 "unmerged" = FALSE POSITIVE, stale snapshot)
+- [x] Recent changes (PR #12/#13/#14 + adversarial passes 1–7) surfaced; BC versions current (hook BCs v1.3, BC-4.02.001 v1.2, BC-5.01.001 v1.3); DI-013 opened
+- [x] Mutation figures re-anchored — 6-hook aggregate **~75–80%** (vga §Mutation Testing Baseline → Surviving Mutants summary ~line 194); require-review ≥95% NOT yet demonstrated met; assign/create deny code-analysis-verified only
+- [x] BC-3.03.001 "FULLY" qualified (declared-VP coverage; DI-004 defect = first-class EC-009, not fixed); disposition-guard is heading-presence only (≥2 hypotheses LLM-soft, unenforced); holdout baseline = 24 must-pass + 1 fix-target (HS-014)
 - [x] Two pending Phase 0 gate decisions surfaced (DI-012 partial-BC-coverage; DI-013 comment-post override)
 
 ```yaml
 pass: 0
 step: "0f"
 status: awaiting-phase-0-gate
-revision: "1.6 — re-synced post adversarial pass 6"
+revision: "1.7 — re-synced post adversarial pass 7 (grep-sweep verified)"
 files_synthesized: 9
 timestamp: 2026-07-19T00:00:00Z
 open_gate_decision:

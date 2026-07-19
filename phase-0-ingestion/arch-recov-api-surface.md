@@ -3,6 +3,9 @@
 > Detail file for `recovered-architecture.md` (DF-021 shard)
 > Step 0b: Architecture Recovery
 > Date: 2026-07-19
+>
+> **Changelog (2026-07-19, adversarial review pass 7):**
+> - ADV-0-704: Annotated `jr issue comment` steps in the Enrichment Update Pipeline and Event Investigation Pipeline diagrams with the require-review unconditional deny + human permission-override requirement (DI-013).
 
 This plugin has no HTTP endpoints and no library exports. The public API surface is
 20 slash commands that users invoke in Claude Code sessions.
@@ -132,7 +135,7 @@ The orchestrator agent (Morgan) routes analyst intent to commands using this map
 /update-jira <id>
   → Validate enrichment fields (CVSS range, EPSS range, KEV enum)
   → jr issue edit (priority field)
-  → jr issue comment (enrichment summary)
+  → jr issue comment (enrichment summary) **(require-review DENY → human permission-override required, DI-013)**
   → jr issue move (status transition)
 ```
 
@@ -147,7 +150,7 @@ The orchestrator agent (Morgan) routes analyst intent to commands using this map
   → Stage 5: technical analysis (ATT&CK, protocol, IOC)
   → Stage 6: disposition (TP/FP/BTP) + confidence
   → [disposition-guard hook: requires "Alternatives Considered" before saving]
-  → Stage 7: save locally FIRST → jr issue comment → jr issue edit
+  → Stage 7: save locally FIRST → jr issue comment **(require-review DENY → human permission-override required, DI-013)** → jr issue edit
 
 /review-enrichment <id>   [auto-detects event investigation document]
   → security-reviewer scores against 7-dimension rubric

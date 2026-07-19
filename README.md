@@ -71,6 +71,8 @@ Install the [jira-cli](https://github.com/Zious11/jira-cli) Rust CLI and authent
 **Perplexity MCP (recommended):**
 Configure the Perplexity MCP server with your API key. The plugin uses `perplexity_search`, `perplexity_ask`, `perplexity_reason`, and `perplexity_research` at different tiers based on CVE severity. If not configured, skills fall back to web search.
 
+Copy `docs/mcp.json.example` to `.mcp.json` in your project root and fill in your API keys. The example file pins MCP server versions (`@perplexity-ai/mcp-server@0.9.0`, `@playwright/mcp@0.0.78`) — verify against npm before re-pinning to a newer release. Do not commit `.mcp.json` (it is gitignored; it contains your API keys).
+
 ### 3. Verify setup
 
 ```

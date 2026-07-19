@@ -72,7 +72,7 @@ components:
     path: "plugins/secops-factory/commands/"
     layer: "presentation"
     purity: "effectful-shell"
-    criticality: "MEDIUM"
+    criticality: "LOW"
     dependencies: ["C-2"]
     interfaces_provided: ["20 slash commands: /activate /enrich-ticket /investigate-event /adversarial-review-secops /review-enrichment /research-cve /assess-priority /map-attack /read-ticket /update-jira /scan-threats /create-advisory /fact-verify /generate-metrics /analyze-ticket-effort /model-ticket-cost /extract-severity /verify-metrics-report /secops-health /deactivate"]
     interfaces_consumed: ["Skill tool (Claude Code runtime)"]
@@ -83,7 +83,7 @@ components:
     path: "plugins/secops-factory/skills/"
     layer: "business-logic"
     purity: "mixed"
-    criticality: "MEDIUM"
+    criticality: "HIGH"
     dependencies: ["C-3", "C-7", "C-8", "C-9", "C-10", "C-11", "C-19", "C-20", "C-21", "C-23", "C-24"]
     interfaces_provided: ["19 SKILL.md procedure files with staged workflows, Iron Laws, Red Flag tables"]
     interfaces_consumed: ["data/ KBs via ${CLAUDE_PLUGIN_ROOT} path", "templates/ schemas", "checklists/ quality gates", "jr CLI via Bash", "Perplexity MCP tools"]
@@ -94,7 +94,7 @@ components:
     path: "plugins/secops-factory/agents/orchestrator/orchestrator.md"
     layer: "business-logic"
     purity: "pure-core"
-    criticality: "MEDIUM"
+    criticality: "HIGH"
     dependencies: ["C-4", "C-5", "C-6", "C-2", "C-19"]
     interfaces_provided: ["SOC companion routing table", "pipeline awareness tracking", "quality gate documentation"]
     interfaces_consumed: ["all skills via Skill tool", "workflow playbooks on-demand"]
@@ -105,7 +105,7 @@ components:
     path: "plugins/secops-factory/agents/orchestrator/enrichment-workflow.md"
     layer: "business-logic"
     purity: "pure-core"
-    criticality: "MEDIUM"
+    criticality: "HIGH"
     dependencies: ["C-2", "C-19", "C-20"]
     interfaces_provided: ["8-stage enrichment DAG: triage→CVE-research→business-context→remediation→ATT&CK→priority→documentation→JIRA-update"]
     interfaces_consumed: ["enrich-ticket skill entry point", "research-cve skill", "data references"]
@@ -116,7 +116,7 @@ components:
     path: "plugins/secops-factory/agents/orchestrator/investigation-workflow.md"
     layer: "business-logic"
     purity: "pure-core"
-    criticality: "MEDIUM"
+    criticality: "HIGH"
     dependencies: ["C-2", "C-19", "C-20"]
     interfaces_provided: ["7-stage investigation DAG: triage→metadata→identifiers→evidence→analysis→disposition→documentation"]
     interfaces_consumed: ["investigate-event skill entry point"]
@@ -127,7 +127,7 @@ components:
     path: "plugins/secops-factory/agents/orchestrator/review-convergence-workflow.md"
     layer: "business-logic"
     purity: "pure-core"
-    criticality: "MEDIUM"
+    criticality: "HIGH"
     dependencies: ["C-8"]
     interfaces_provided: ["convergence loop: dispatch→score→classify-novelty→fix→repeat", "SUBSTANTIVE/NITPICK classification protocol"]
     interfaces_consumed: ["security-reviewer agent fresh-context dispatch", "quality checklists"]
@@ -138,7 +138,7 @@ components:
     path: "plugins/secops-factory/agents/security-analyst.md"
     layer: "business-logic"
     purity: "effectful-shell"
-    criticality: "MEDIUM"
+    criticality: "HIGH"
     dependencies: ["C-19", "C-20", "C-21", "C-23", "C-24"]
     interfaces_provided: ["vulnerability enrichment", "CVE research", "MITRE ATT&CK mapping", "event investigation"]
     interfaces_consumed: ["jr CLI (Bash)", "Perplexity MCP (4 tools)", "data/ KBs", "templates/"]
@@ -149,7 +149,7 @@ components:
     path: "plugins/secops-factory/agents/security-reviewer.md"
     layer: "business-logic"
     purity: "effectful-shell"
-    criticality: "MEDIUM"
+    criticality: "HIGH"
     dependencies: ["C-19", "C-21", "C-24"]
     interfaces_provided: ["8-dimension CVE review rubric", "7-dimension event investigation review rubric", "SUBSTANTIVE/NITPICK novelty classification"]
     interfaces_consumed: ["Read/Bash/Grep tools", "Perplexity MCP (fact verification)"]
@@ -194,7 +194,7 @@ components:
     path: "plugins/secops-factory/hooks/require-review.{sh,ps1}"
     layer: "infrastructure"
     purity: "effectful-shell"
-    criticality: "MEDIUM"
+    criticality: "CRITICAL"
     dependencies: []
     interfaces_provided: ["PreToolUse/Bash gate: deny jr issue edit/move/assign/create without review approval marker"]
     interfaces_consumed: ["Claude Code hook event envelope (JSON via stdin)", "jq"]
@@ -205,7 +205,7 @@ components:
     path: "plugins/secops-factory/hooks/enrichment-completeness.{sh,ps1}"
     layer: "infrastructure"
     purity: "effectful-shell"
-    criticality: "MEDIUM"
+    criticality: "HIGH"
     dependencies: []
     interfaces_provided: ["PreToolUse/Write gate: deny saving enrichment/investigation docs with missing required sections"]
     interfaces_consumed: ["Claude Code hook event envelope (JSON via stdin)", "jq"]
@@ -216,7 +216,7 @@ components:
     path: "plugins/secops-factory/hooks/disposition-guard.{sh,ps1}"
     layer: "infrastructure"
     purity: "effectful-shell"
-    criticality: "MEDIUM"
+    criticality: "HIGH"
     dependencies: []
     interfaces_provided: ["PreToolUse/Write gate: deny investigation disposition without 'Alternatives Considered' section"]
     interfaces_consumed: ["Claude Code hook event envelope (JSON via stdin)", "jq"]
@@ -227,7 +227,7 @@ components:
     path: "plugins/secops-factory/hooks/bias-check-reminder.{sh,ps1}"
     layer: "infrastructure"
     purity: "effectful-shell"
-    criticality: "MEDIUM"
+    criticality: "LOW"
     dependencies: []
     interfaces_provided: ["PostToolUse/Bash+Perplexity: injects cognitive bias self-check after research tool calls"]
     interfaces_consumed: ["Claude Code hook event envelope (JSON via stdin)"]
@@ -238,7 +238,7 @@ components:
     path: "plugins/secops-factory/hooks/handoff-validator.{sh,ps1}"
     layer: "infrastructure"
     purity: "effectful-shell"
-    criticality: "MEDIUM"
+    criticality: "LOW"
     dependencies: []
     interfaces_provided: ["SubagentStop gate: validates structured handoffs between agents"]
     interfaces_consumed: ["Claude Code hook event envelope (JSON via stdin)"]
@@ -249,7 +249,7 @@ components:
     path: "plugins/secops-factory/hooks/session-greeting.{sh,ps1}"
     layer: "infrastructure"
     purity: "effectful-shell"
-    criticality: "MEDIUM"
+    criticality: "LOW"
     dependencies: []
     interfaces_provided: ["SessionStart: activation-gated welcome banner + additionalContext for Morgan"]
     interfaces_consumed: [".claude/settings.local.json (activation gate)", "jq"]
@@ -260,7 +260,7 @@ components:
     path: "plugins/secops-factory/data/*.md"
     layer: "shared"
     purity: "pure-core"
-    criticality: "MEDIUM"
+    criticality: "HIGH"
     dependencies: []
     interfaces_provided: ["CVSS guide (~1135 lines)", "EPSS guide (~1103 lines)", "KEV catalog guide (~1341 lines)", "MITRE ATT&CK mapping guide", "cognitive bias patterns", "event investigation best practices (~3027 lines)", "priority framework (P1-P5 SLA table)", "review best practices (~1516 lines)", "effort analysis method", "Jira metrics recipes"]
     interfaces_consumed: []
@@ -293,7 +293,7 @@ components:
     path: "plugins/secops-factory/tests/"
     layer: "infrastructure"
     purity: "effectful-shell"
-    criticality: "MEDIUM"
+    criticality: "HIGH"
     dependencies: ["C-12", "C-13", "C-14", "C-15", "C-16", "C-2"]
     interfaces_provided: ["hooks.bats: allow/block path coverage for all 5 hooks", "skills.bats: Iron Law + Announce-at-Start + template portability validation", "integration.bats: end-to-end pipeline path tests", "parity.bats: .sh/.ps1 cross-platform behavioral parity"]
     interfaces_consumed: ["bats-core", "jq", "python3 (yaml)", "optional pwsh"]

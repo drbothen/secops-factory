@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-19T05:00:00Z
+timestamp: 2026-07-19T06:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: brownfield
-current_step: "0e-sec — security audit (human gate)"
+current_step: "0f-pre — holdout seeding"
 current_cycle: ""
 dtu_required: false
 ---
@@ -37,7 +37,7 @@ dtu_required: false
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-19 |
 | **Current Phase** | 0: Codebase Ingestion |
-| **Current Step** | 0e-sec — security audit (human gate) |
+| **Current Step** | 0f-pre — holdout seeding |
 
 ## Phase Progress
 
@@ -68,6 +68,7 @@ dtu_required: false
 | 0c: convention-extraction | codebase-analyzer | DONE | `.factory/phase-0-ingestion/conventions.md` — 20 enforceable rules extracted; 2 style ambiguities flagged: `secops(<scope>)` vs `feat(<scope>)` commit-prefix conflict; `secops-health` anomaly tracked as DI-002 |
 | 0d: spec-reverse-engineering | codebase-analyzer | DONE | `.factory/phase-0-ingestion/behavioral-contracts/` — 13 BCs recovered (BC-3.01.001–BC-3.06.001, BC-4.01.001–BC-4.04.001, BC-5.01.001, BC-6.01.001–BC-6.01.002); 7 spec ambiguities documented for Phase 1 routing: review-approval marker storage/session-persistence unspecified; require-review hook cannot recognize approval; hook/template section-name sync gap; disposition-guard body-text false-pass; handoff-validator undocumented 40-char threshold; Honest Convergence 3-item boundary ambiguity; bias-check hook trigger scope unclear |
 | 0e: verification-gap-analysis | codebase-analyzer | DONE | `.factory/phase-0-ingestion/verification-gap-analysis.md` — 2 fully / 11 partially / 0 unverified of 13 BCs; verification asymmetry: hooks behaviorally tested, skills structural-only; 4 gaps logged as DI-004–DI-007; estimated remediation ~4-5 days |
+| 0e5: module-criticality | codebase-analyzer | DONE | `.factory/specs/module-criticality.md` (new); `recovered-architecture.md` updated (16 Component-Map criticality fields). CRITICAL: require-review hook, update-jira skill. HIGH: 12 modules incl. disposition-guard (DI-004), hook manifests, pipeline skills, data KBs, test-suite+CI. Mutation kill-rate targets set: require-review >=95% (currently ~55-65%). SEC-001..005 in flight on `fix/phase0-security-findings`; security-audit.md commit deferred pending Disposition section. |
 
 ## Decisions Log
 
@@ -98,6 +99,8 @@ dtu_required: false
 | DI-005 | require-review hook: assign/create/fail-open paths untested — review bypass and error-path behaviors have no BATS coverage | HIGH | first Feature Mode cycle | 0e verification-gap-analysis | open |
 | DI-006 | PowerShell parity tests skip silently when `pwsh` absent; CI does not assert `pwsh` presence, so `.ps1` hooks receive no static analysis in standard CI runs | HIGH | first Feature Mode cycle | 0e verification-gap-analysis | open |
 | DI-007 | enrichment-completeness investigation-branch path untested; hook↔template section-name sync gap; handoff-validator 39/40 boundary not exercised | MEDIUM | first Feature Mode cycle | 0e verification-gap-analysis | open |
+| DI-008 | Component-Map numbering diverges between prose table and YAML in `recovered-architecture.md` — consistency validation needed | LOW | 0f-post consistency validation | 0e5 module-criticality | open |
+| DI-009 | hook-manifests component absent from machine-readable YAML component map — classified HIGH; YAML map is incomplete | HIGH | 0f-post consistency validation | 0e5 module-criticality | open |
 
 ## Blocking Issues
 
@@ -111,8 +114,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 — step 0e-sec security audit (human gate) is next |
-| **Context** | Steps 0a–0e complete. verification-gap-analysis.md produced: 2 fully / 11 partially / 0 unverified BCs; hooks behaviorally tested, skills structural-only. DI-004–DI-007 logged (HIGH×3, MEDIUM×1; ~4-5d remediation, routed to first Feature Mode cycle). DI-001 RESOLVED (PR #12). DI-002/DI-003 open (low, Phase 1). |
+| **Position** | Phase 0 — step 0f-pre holdout seeding is next |
+| **Context** | Steps 0a–0e5 complete. module-criticality.md produced; recovered-architecture.md criticality fields populated. CRITICAL: require-review hook + update-jira skill; mutation kill-rate targets set. SEC-001..005 in flight on `fix/phase0-security-findings`; security-audit.md deferred pending Disposition section. DI-008/DI-009 logged (Component-Map numbering drift; hook-manifests absent from YAML map). DI-001 RESOLVED (PR #12). DI-002–DI-007 open. |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

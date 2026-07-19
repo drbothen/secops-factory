@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
@@ -17,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-05
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-507-2026-07-19"]
+modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-507-2026-07-19", "v1.3-ADV-0-B01-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -28,6 +28,11 @@ removal_reason: null
 
 # Behavioral Contract BC-3.05.001: handoff-validator Hook — SubagentStop Empty-Output Guard
 
+> **Revision history:**
+> - v1.1 (2026-07-19): ADV-0-403: Re-anchored BATS test references to @test names at current line positions.
+> - v1.2 (2026-07-19): ADV-0-507: Normalized input-hash to dual-file block scalar (.sh + .ps1).
+> - v1.3 (2026-07-19): ADV-0-B01: Updated all live hooks.bats line-number citations to current positions (PR #15 shifted handoff-validator tests +88 lines: :138→:226, :144→:232, :150→:238). hooks.bats references now use @test names for churn resilience.
+
 ## Preconditions
 
 1. The hook receives a `SubagentStop` event envelope via stdin as JSON, containing `result` (string). Confidence: verified by code analysis (`hooks/handoff-validator.sh:21`).
@@ -36,9 +41,9 @@ removal_reason: null
 
 ## Postconditions
 
-1. If `result` is an empty string (zero length), the hook writes a WARNING to stderr containing the phrase "EMPTY output". The warning instructs the operator not to treat empty output as "no findings". Confidence: verified by code analysis (`hooks/handoff-validator.sh:24-26`) and test `@test "handoff-validator warns on empty result"` (hooks.bats:138).
-2. If `result` is non-empty but shorter than 40 characters, the hook writes a WARNING to stderr containing the phrase "suspiciously short" and includes the character count. Confidence: verified by code analysis (`hooks/handoff-validator.sh:27-29`) and test `@test "handoff-validator warns on short result"` (hooks.bats:144).
-3. If `result` is 40 or more characters, the hook writes nothing to stderr (silent). Confidence: verified by code analysis and test `@test "handoff-validator silent on normal result"` (hooks.bats:150).
+1. If `result` is an empty string (zero length), the hook writes a WARNING to stderr containing the phrase "EMPTY output". The warning instructs the operator not to treat empty output as "no findings". Confidence: verified by code analysis (`hooks/handoff-validator.sh:24-26`) and test `@test "handoff-validator warns on empty result"` (hooks.bats:226).
+2. If `result` is non-empty but shorter than 40 characters, the hook writes a WARNING to stderr containing the phrase "suspiciously short" and includes the character count. Confidence: verified by code analysis (`hooks/handoff-validator.sh:27-29`) and test `@test "handoff-validator warns on short result"` (hooks.bats:232).
+3. If `result` is 40 or more characters, the hook writes nothing to stderr (silent). Confidence: verified by code analysis and test `@test "handoff-validator silent on normal result"` (hooks.bats:238).
 4. The hook always exits 0. Confidence: verified by code analysis (`hooks/handoff-validator.sh:31`).
 
 ## Invariants
@@ -94,7 +99,7 @@ removal_reason: null
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/secops-factory/hooks/handoff-validator.sh` (31 lines) + `.ps1` sibling |
-| **Confidence** | high — simple length check; BATS tests `@test "handoff-validator warns on empty result"` (hooks.bats:138), `@test "handoff-validator warns on short result"` (hooks.bats:144), `@test "handoff-validator silent on normal result"` (hooks.bats:150) exercise all three cases exactly |
+| **Confidence** | high — simple length check; BATS tests `@test "handoff-validator warns on empty result"` (hooks.bats:226), `@test "handoff-validator warns on short result"` (hooks.bats:232), `@test "handoff-validator silent on normal result"` (hooks.bats:238) exercise all three cases exactly |
 | **Extraction Date** | 2026-07-19 |
 
 #### Evidence Types Used

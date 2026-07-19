@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.5"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
@@ -17,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-02
 lifecycle_status: active
 introduced: v0.6.0
-modified: ["v1.1-ADV-0-402-ADV-0-403-ADV-0-507-2026-07-19", "v1.2-ADV-0-501-2026-07-19", "v1.3-ADV-0-604-ADV-0-606-2026-07-19", "v1.4-ADV-0-803-2026-07-19"]
+modified: ["v1.1-ADV-0-402-ADV-0-403-ADV-0-507-2026-07-19", "v1.2-ADV-0-501-2026-07-19", "v1.3-ADV-0-604-ADV-0-606-2026-07-19", "v1.4-ADV-0-803-2026-07-19", "v1.5-ADV-0-B01-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -33,20 +33,21 @@ removal_reason: null
 > - v1.1 (2026-07-19): ADV-0-402: Corrected EC-004 — investigation file with only "Alert Details" produces Deny, not Allow. The hook requires ALL FOUR sections before saving any investigation file; there is no partial-save capability. ADV-0-403: Re-anchored stale BATS test references from `hooks.bats:41-60` to current @test names (lines 97-115 post-PR #14). ADV-0-507 (pass-4 input-hash batch): input-hash established as dual-file block scalar (enrichment-completeness.sh + .ps1 sibling).
 > - v1.2 (2026-07-19): ADV-0-501: Extended Refactoring Notes to document workflow context — in the standard investigate-event workflow, Stage 7 generates from event-investigation-tmpl.yaml (a complete template satisfying all four section requirements), so the workflow never produces partial investigation files. Added note on single-shot template generation and complementary hook responsibilities.
 > - v1.3 (2026-07-19): ADV-0-604: Re-synced `modified:` array to include ADV-0-507 pass-4 dual-file entry in v1.1. ADV-0-606: Upgraded PC#3 confidence from "inferred" to "verified" based on confirmed hooks.json PreToolUse/Write matcher (both enrichment-completeness.sh and disposition-guard.sh in the same sequential Write hooks array).
+> - v1.5 (2026-07-19): ADV-0-B01: Updated all live hooks.bats line-number citations to current positions (PR #15 shifted enrichment-completeness tests +88 lines: :97→:185, :103→:191, :110→:198). hooks.bats references now use @test names for churn resilience.
 > - v1.4 (2026-07-19): ADV-0-803: Added DI-014 cross-reference in Invariant #1 and EC-008 — enrichment-completeness's section-heading substring check has the SAME unanchored `grep -qF` idiom as disposition-guard's DI-004/SM-1. Classified as DI-014 (LOW, bounded local blast radius: only affects local document completeness, not the Jira system of record).
 
 ## Preconditions
 
 1. The hook receives a `PreToolUse/Write` event envelope via stdin as JSON, containing `tool_input.file_path` (string) and `tool_input.content` (string). Confidence: verified by code analysis (`hooks/enrichment-completeness.sh:38-39`).
 2. `jq` is installed and available on `$PATH`. Confidence: verified by code analysis (`hooks/enrichment-completeness.sh:14-17`).
-3. The hook is wired to fire on `PreToolUse` events for the `Write` tool (file-save operations). Confidence: verified against hooks.json PreToolUse/Write matcher (both enrichment-completeness.sh and disposition-guard.sh are in the same Write hooks array — sequential execution, deny from either wins) and BATS test payloads: `@test "enrichment-completeness allows non-enrichment files"` (hooks.bats:97), `@test "enrichment-completeness blocks incomplete enrichment"` (hooks.bats:103), `@test "enrichment-completeness allows complete enrichment"` (hooks.bats:110).
+3. The hook is wired to fire on `PreToolUse` events for the `Write` tool (file-save operations). Confidence: verified against hooks.json PreToolUse/Write matcher (both enrichment-completeness.sh and disposition-guard.sh are in the same Write hooks array — sequential execution, deny from either wins) and BATS test payloads: `@test "enrichment-completeness allows non-enrichment files"` (hooks.bats:185), `@test "enrichment-completeness blocks incomplete enrichment"` (hooks.bats:191), `@test "enrichment-completeness allows complete enrichment"` (hooks.bats:198).
 
 ## Postconditions
 
 1. If `file_path` contains neither `enrichment` nor `investigation` as a substring, the hook emits `permissionDecision: allow` (fast path). Confidence: verified by code analysis (`hooks/enrichment-completeness.sh:42-44`).
 2. For enrichment files (file_path contains `enrichment`): if any of the five required sections — "Executive Summary", "Vulnerability Details", "Severity Metrics", "Priority Assessment", "Remediation Guidance" — are absent from `content`, the hook emits `permissionDecision: deny` with a reason containing "Missing required sections" and listing the missing section names. Confidence: verified by code analysis (`hooks/enrichment-completeness.sh:47-58`).
 3. For investigation files (file_path contains `investigation`): if any of the four required sections — "Executive Summary", "Alert Details", "Disposition", "Next Actions" — are absent from `content`, the hook emits `permissionDecision: deny` with a reason listing the missing sections. Confidence: verified by code analysis (`hooks/enrichment-completeness.sh:62-74`).
-4. If all required sections are present, the hook emits `permissionDecision: allow` and exits 0. Confidence: verified by code analysis (`hooks/enrichment-completeness.sh:76`) and test `@test "enrichment-completeness allows complete enrichment"` (hooks.bats:110).
+4. If all required sections are present, the hook emits `permissionDecision: allow` and exits 0. Confidence: verified by code analysis (`hooks/enrichment-completeness.sh:76`) and test `@test "enrichment-completeness allows complete enrichment"` (hooks.bats:198).
 5. Section detection uses exact string matching (`grep -qF`); section headings must appear verbatim (case-sensitive) in the content. Confidence: verified by code analysis (`hooks/enrichment-completeness.sh:50, 64`).
 
 ## Invariants
@@ -104,7 +105,7 @@ removal_reason: null
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/secops-factory/hooks/enrichment-completeness.sh` (77 lines) + `.ps1` sibling |
-| **Confidence** | high — section lists are hardcoded in source; BATS tests `@test "enrichment-completeness allows non-enrichment files"` (hooks.bats:97), `@test "enrichment-completeness blocks incomplete enrichment"` (hooks.bats:103), `@test "enrichment-completeness allows complete enrichment"` (hooks.bats:110) exercise allow and deny paths |
+| **Confidence** | high — section lists are hardcoded in source; BATS tests `@test "enrichment-completeness allows non-enrichment files"` (hooks.bats:185), `@test "enrichment-completeness blocks incomplete enrichment"` (hooks.bats:191), `@test "enrichment-completeness allows complete enrichment"` (hooks.bats:198) exercise allow and deny paths |
 | **Extraction Date** | 2026-07-19 |
 
 #### Evidence Types Used

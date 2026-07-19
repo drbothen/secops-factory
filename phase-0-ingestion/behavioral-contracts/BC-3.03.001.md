@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
@@ -17,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-03
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-501-ADV-0-507-2026-07-19", "v1.3-ADV-0-605-ADV-0-606-2026-07-19"]
+modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-501-ADV-0-507-2026-07-19", "v1.3-ADV-0-605-ADV-0-606-2026-07-19", "v1.4-ADV-0-B01-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -32,6 +32,7 @@ removal_reason: null
 > - v1.0 (2026-07-19): Initial extraction from `disposition-guard.sh` at v0.9.0 HEAD (Step 0d).
 > - v1.1 (2026-07-19): ADV-0-403: Re-anchored stale BATS test references to @test names at current line positions (post-PR #14).
 > - v1.2 (2026-07-19): ADV-0-501: Annotated PC#2, EC-003, and canonical vector row 2 as HOOK-ISOLATED — in standard workflow, Stage 7 generates investigation document once from a complete template; enrichment-completeness BC-3.02.001 co-fires and denies any file missing four required sections. Added Aggregate Gate Behavior note. ADV-0-507: Normalized input-hash to dual-file form (.sh + .ps1).
+> - v1.4 (2026-07-19): ADV-0-B01: Updated all live hooks.bats line-number citations to current positions (PR #15 shifted disposition-guard tests +88 lines: :158→:246, :164→:252, :170→:258, :177→:265). hooks.bats references now use @test names for churn resilience.
 > - v1.3 (2026-07-19): ADV-0-605: Added EC-009 (SM-1/DI-004 negating-substring false-pass) as first-class edge case and corresponding canonical test vector row; updated Refactoring Notes Undocumented behavior paragraph to reference DI-004/SM-1/EC-009/HS-014. ADV-0-606: Upgraded PC#3 confidence from "inferred" to "verified" based on confirmed hooks.json PreToolUse/Write matcher.
 
 ## Preconditions
@@ -43,9 +44,9 @@ removal_reason: null
 ## Postconditions
 
 1. If `file_path` does not contain `investigation` as a substring, the hook emits `permissionDecision: allow` (fast path). Confidence: verified by code analysis (`hooks/disposition-guard.sh:43-45`).
-2. If `file_path` contains `investigation` but `content` does not contain the string "Disposition" (case-insensitive), the hook emits `permissionDecision: allow` — the document is still in-progress. Confidence: verified by code analysis (`hooks/disposition-guard.sh:48-51`) and test `@test "disposition-guard allows investigation without disposition yet"` (hooks.bats:164). **HOOK-ISOLATED behavior**: in the standard investigate-event workflow, Stage 7 generates the investigation document once from a complete template (event-investigation-tmpl.yaml) that already contains all four required section headings; the enrichment-completeness hook (BC-3.02.001) co-fires on the same PreToolUse/Write event and would deny any investigation file missing those sections before this hook's in-progress-allow path is exercised. See Aggregate Gate Behavior note.
-3. If `file_path` contains `investigation` AND `content` contains "Disposition" AND `content` does NOT contain "Alternatives Considered" (case-insensitive), the hook emits `permissionDecision: deny` with a reason containing "Alternatives Considered". Confidence: verified by code analysis (`hooks/disposition-guard.sh:54-56`) and test `@test "disposition-guard blocks disposition without alternatives"` (hooks.bats:170).
-4. If `file_path` contains `investigation` AND `content` contains both "Disposition" and "Alternatives Considered", the hook emits `permissionDecision: allow`. Confidence: verified by code analysis (`hooks/disposition-guard.sh:58`) and test `@test "disposition-guard allows disposition with alternatives"` (hooks.bats:177).
+2. If `file_path` contains `investigation` but `content` does not contain the string "Disposition" (case-insensitive), the hook emits `permissionDecision: allow` — the document is still in-progress. Confidence: verified by code analysis (`hooks/disposition-guard.sh:48-51`) and test `@test "disposition-guard allows investigation without disposition yet"` (hooks.bats:252). **HOOK-ISOLATED behavior**: in the standard investigate-event workflow, Stage 7 generates the investigation document once from a complete template (event-investigation-tmpl.yaml) that already contains all four required section headings; the enrichment-completeness hook (BC-3.02.001) co-fires on the same PreToolUse/Write event and would deny any investigation file missing those sections before this hook's in-progress-allow path is exercised. See Aggregate Gate Behavior note.
+3. If `file_path` contains `investigation` AND `content` contains "Disposition" AND `content` does NOT contain "Alternatives Considered" (case-insensitive), the hook emits `permissionDecision: deny` with a reason containing "Alternatives Considered". Confidence: verified by code analysis (`hooks/disposition-guard.sh:54-56`) and test `@test "disposition-guard blocks disposition without alternatives"` (hooks.bats:258).
+4. If `file_path` contains `investigation` AND `content` contains both "Disposition" and "Alternatives Considered", the hook emits `permissionDecision: allow`. Confidence: verified by code analysis (`hooks/disposition-guard.sh:58`) and test `@test "disposition-guard allows disposition with alternatives"` (hooks.bats:265).
 5. Both "Disposition" and "Alternatives Considered" checks are case-insensitive (`grep -qiF`). Confidence: verified by code analysis (`hooks/disposition-guard.sh:48, 54`).
 
 ## Invariants
@@ -105,7 +106,7 @@ removal_reason: null
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/secops-factory/hooks/disposition-guard.sh` (59 lines) + `.ps1` sibling |
-| **Confidence** | high — three-state logic (non-investigation / in-progress / complete-without-alternatives) fully visible in source; BATS tests `@test "disposition-guard allows non-investigation files"` (hooks.bats:158), `@test "disposition-guard allows investigation without disposition yet"` (hooks.bats:164), `@test "disposition-guard blocks disposition without alternatives"` (hooks.bats:170), `@test "disposition-guard allows disposition with alternatives"` (hooks.bats:177) exercise all four cases |
+| **Confidence** | high — three-state logic (non-investigation / in-progress / complete-without-alternatives) fully visible in source; BATS tests `@test "disposition-guard allows non-investigation files"` (hooks.bats:246), `@test "disposition-guard allows investigation without disposition yet"` (hooks.bats:252), `@test "disposition-guard blocks disposition without alternatives"` (hooks.bats:258), `@test "disposition-guard allows disposition with alternatives"` (hooks.bats:265) exercise all four cases |
 | **Extraction Date** | 2026-07-19 |
 
 #### Evidence Types Used

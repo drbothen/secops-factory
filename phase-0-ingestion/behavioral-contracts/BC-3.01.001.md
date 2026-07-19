@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.8"
+version: "1.9"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
@@ -17,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-01
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19", "v0.9.x-ADV0-001-ADV0-007-2026-07-19", "v1.4-ADV-0-405-ADV-0-507-2026-07-19", "v1.5-ADV-0-504-2026-07-19", "v1.6-ADV-0-706-obs-PC2-2026-07-19", "v1.7-ADV-0-801-PR15-2026-07-19", "v1.8-ADV-0-A01-ADV-0-A02-ADV-0-A04-2026-07-19"]
+modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19", "v0.9.x-ADV0-001-ADV0-007-2026-07-19", "v1.4-ADV-0-405-ADV-0-507-2026-07-19", "v1.5-ADV-0-504-2026-07-19", "v1.6-ADV-0-706-obs-PC2-2026-07-19", "v1.7-ADV-0-801-PR15-2026-07-19", "v1.8-ADV-0-A01-ADV-0-A02-ADV-0-A04-2026-07-19", "v1.9-ADV-0-B01-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -37,6 +37,7 @@ removal_reason: null
 > - v1.5 (2026-07-19): ADV-0-504: corrected one remaining stale anchor in EC-015 — fail-closed catch-all is `(lines 96-98)` not `(lines 97-98)`. Missed by v1.4 sweep.
 > - v1.6 (2026-07-19): ADV-0-706: Standardized write-block citations to canonical form `88-94 (deny at :93)`. Observation: Softened PC#2 confidence note — `comment`/`edit`/`move` deny verified by both code analysis and BATS; `assign`/`create` deny verified by code analysis only (no dedicated positive BATS tests for these two verbs; residual gap noted in GAP-2 of verification-gap-analysis.md).
 > - v1.7 (2026-07-19): ADV-0-801 / PR #15 (commit d304fa5): CRITICAL evaluation-order fix — write-block is now evaluated BEFORE the allowlist (old order was allowlist → write-block, enabling a bypass: `jr issue edit KEY --summary "see jr board"` matched the `jr board` allowlist token). `--output json` write forms explicitly added to the write-block list. New line anchors throughout. New Invariant #5 (write-block precedence). EC-015 updated (jr --output json issue comment now hits write-block directly). EC-016 added (bypass pattern now denied). Input-hash recomputed (both .sh and .ps1 changed).
+> - v1.9 (2026-07-19): ADV-0-B01: Converted all live hooks.bats line-range citations to @test-NAME references with current line numbers (PR #15 expanded require-review block to lines 9-177; downstream tests shifted +88 lines). Source Evidence range updated 9-93 → 9-177 (26 tests). Stale VP-HOOK-003/020/021/022 range refs replaced with exact @test names. PC#3 stale test name "allows jr issue view" corrected to "allows jr read-only commands" (test was renamed when PR #14 expanded the allowlist). PC#2 line :88 corrected to :89 (move test shifted one line within the block). hooks.bats references now use @test names for churn resilience.
 > - v1.8 (2026-07-19): ADV-0-A01: Replaced all live require-review.sh line-number citations with construct-name references (fast-path guard / write-block if-block / read-only allowlist / fail-closed catch-all / jq-availability guard / emit_allow / emit_deny) — makes the "anchor-churn retired" capstone claim true and prevents future PR-induced staleness. ADV-0-A02: Source Evidence test count updated to 150 @tests (hooks 44, skills 81, integration 11, parity 14); PR #15 +12 row added to Change Log. ADV-0-A04: VP-HOOK-023 added (--output json write-block family as provable property); canonical deny vector row added to test vectors table.
 
 ## Preconditions
@@ -48,8 +49,8 @@ removal_reason: null
 ## Postconditions
 
 1. If `tool_input.command` does not contain the substring `jr `, the hook emits `permissionDecision: allow` and exits 0. Confidence: verified by code analysis (fast-path guard in require-review.sh) and BATS test `@test "require-review allows non-jr commands"` (hooks.bats:9).
-2. If `tool_input.command` contains any write-block pattern, the hook emits `permissionDecision: deny` with a reason string containing "review approval". **This check is evaluated BEFORE the allowlist (Invariant #5)** — a command matching both a write-block pattern and an allowlist pattern is denied. Two families of write patterns are blocked (10 entries total): **Plain forms:** `jr issue comment ` (trailing-space guard against `jr issue comments` collision), `jr issue edit`, `jr issue move`, `jr issue assign`, `jr issue create`. **`--output json` forms (added PR #15/ADV-0-801):** `--output json issue comment ` (trailing-space guard), `--output json issue edit`, `--output json issue move`, `--output json issue assign`, `--output json issue create`. Confidence: verified by code analysis (write-block if-block in require-review.sh) and BATS tests `@test "require-review blocks jr issue comment without review (SEC-001)"` (hooks.bats:69), `@test "require-review blocks jr issue edit without review"` (hooks.bats:82), `@test "require-review blocks jr issue move without review"` (hooks.bats:88). Note: `comment`, `edit`, and `move` deny verified by both code analysis and BATS; `assign`, `create`, and all `--output json` write forms verified by code analysis only.
-3. If `tool_input.command` — after passing the write-block check (postcondition #2) — contains any entry from the explicit read-only allowlist, the hook emits `permissionDecision: allow` and exits 0. The allowlist is evaluated AFTER the write-block. The allowlist has two families: Confidence: verified by code analysis (read-only allowlist in require-review.sh) and BATS tests `@test "require-review allows jr issue view"` (hooks.bats:15).
+2. If `tool_input.command` contains any write-block pattern, the hook emits `permissionDecision: deny` with a reason string containing "review approval". **This check is evaluated BEFORE the allowlist (Invariant #5)** — a command matching both a write-block pattern and an allowlist pattern is denied. Two families of write patterns are blocked (10 entries total): **Plain forms:** `jr issue comment ` (trailing-space guard against `jr issue comments` collision), `jr issue edit`, `jr issue move`, `jr issue assign`, `jr issue create`. **`--output json` forms (added PR #15/ADV-0-801):** `--output json issue comment ` (trailing-space guard), `--output json issue edit`, `--output json issue move`, `--output json issue assign`, `--output json issue create`. Confidence: verified by code analysis (write-block if-block in require-review.sh) and BATS tests `@test "require-review blocks jr issue comment without review (SEC-001)"` (hooks.bats:69), `@test "require-review blocks jr issue edit without review"` (hooks.bats:82), `@test "require-review blocks jr issue move without review"` (hooks.bats:89). Note: `comment`, `edit`, and `move` deny verified by both code analysis and BATS; `assign`, `create`, and all `--output json` write forms verified by code analysis only.
+3. If `tool_input.command` — after passing the write-block check (postcondition #2) — contains any entry from the explicit read-only allowlist, the hook emits `permissionDecision: allow` and exits 0. The allowlist is evaluated AFTER the write-block. The allowlist has two families: Confidence: verified by code analysis (read-only allowlist in require-review.sh) and BATS tests `@test "require-review allows jr read-only commands"` (hooks.bats:15).
 
    **Plain forms (family a):**
    - `jr issue view`
@@ -131,10 +132,10 @@ removal_reason: null
 |--------|----------|-------------|
 | VP-HOOK-001 | For all inputs where command contains `jr issue comment`, `jr issue edit`, `jr issue move`, `jr issue assign`, or `jr issue create`, output always contains `"permissionDecision":"deny"` | integration / BATS |
 | VP-HOOK-002 | Hook exit code is always 0 when jq is present (both allow and deny paths) | integration / BATS |
-| VP-HOOK-003 | Any unrecognized `jr` subcommand receives deny (fail-closed invariant, SEC-002) | integration / BATS (`hooks.bats:76-80`) |
-| VP-HOOK-020 | `jr issue changelog` plain form receives allow (DI-010 resolution) | integration / BATS (`hooks.bats:21-25`) |
-| VP-HOOK-021 | `jr --output json issue changelog` receives allow (metrics suite form, DI-010) | integration / BATS (`hooks.bats:27-31`) |
-| VP-HOOK-022 | `jr --output json issue view` receives allow — validates that the `--output json` family is covered separately from plain forms (Invariant #4) | integration / BATS (`hooks.bats:33-37`) |
+| VP-HOOK-003 | Any unrecognized `jr` subcommand receives deny (fail-closed invariant, SEC-002) | integration / BATS (`@test "require-review blocks unknown mutation-shaped jr subcommand (SEC-002)"` hooks.bats:76) |
+| VP-HOOK-020 | `jr issue changelog` plain form receives allow (DI-010 resolution) | integration / BATS (`@test "require-review allows jr issue changelog plain form"` hooks.bats:21) |
+| VP-HOOK-021 | `jr --output json issue changelog` receives allow (metrics suite form, DI-010) | integration / BATS (`@test "require-review allows jr issue changelog json form (metrics suite)"` hooks.bats:27) |
+| VP-HOOK-022 | `jr --output json issue view` receives allow — validates that the `--output json` family is covered separately from plain forms (Invariant #4) | integration / BATS (`@test "require-review allows jr --output json issue view (metrics suite)"` hooks.bats:33) |
 | VP-HOOK-023 | A command containing `--output json issue comment/edit/move/assign/create` receives deny (write-block if-block — defense-in-depth for `--output json` write forms, per Invariant #4 and ADV-0-801 PR #15 fix) | integration / BATS |
 
 ## Traceability
@@ -155,7 +156,7 @@ removal_reason: null
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/secops-factory/hooks/require-review.sh` (115 lines, post-PR #15) + `.ps1` sibling |
-| **Confidence** | high — explicit allow/deny logic fully visible in source; BATS tests at `tests/hooks.bats:9-93` exercise all documented paths; 150 @tests total (hooks 44, skills 81, integration 11, parity 14); PR #15 added 12 new tests (bypass scenarios and regressions) |
+| **Confidence** | high — explicit allow/deny logic fully visible in source; BATS tests at `tests/hooks.bats:9-177` (26 require-review tests, including the 12 PR-15 bypass/--output json/regression tests) exercise all documented paths; 150 @tests total (hooks 44, skills 81, integration 11, parity 14); PR #15 added 12 new tests (bypass scenarios and regressions) |
 | **Extraction Date** | 2026-07-19 |
 | **Last Verified Against** | commit d304fa5 (PR #15 merge commit) |
 

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
@@ -17,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-04
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-507-2026-07-19", "v1.3-ADV-0-703-2026-07-19"]
+modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-507-2026-07-19", "v1.3-ADV-0-703-2026-07-19", "v1.4-ADV-0-B01-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -32,6 +32,7 @@ removal_reason: null
 > - v1.0 (2026-07-19): Initial extraction from `bias-check-reminder.sh` at v0.9.0 HEAD (Step 0d).
 > - v1.1 (2026-07-19): ADV-0-403: Re-anchored BATS test references to current @test names.
 > - v1.2 (2026-07-19): ADV-0-507: Normalized input-hash to dual-file block scalar (.sh + .ps1).
+> - v1.4 (2026-07-19): ADV-0-B01: Updated all live hooks.bats line-number citations to current positions (PR #15 shifted bias-check-reminder tests +88 lines: :119→:207, :124→:212, :130→:218). hooks.bats references now use @test names for churn resilience.
 > - v1.3 (2026-07-19): ADV-0-703: Upgraded PC#3 confidence from "inferred" to "verified against hooks.json §A-4 confirmed matcher = Bash|mcp__perplexity__*". Resolved Refactoring Notes ambiguity — hook fires on ALL PostToolUse Bash events AND every Perplexity MCP call; description "after research tool calls" understates the scope.
 
 ## Preconditions
@@ -45,7 +46,7 @@ removal_reason: null
 1. The hook always exits 0. Confidence: verified by code analysis (`hooks/bias-check-reminder.sh:16`).
 2. The hook writes exactly four cognitive bias reminders to stderr: Confirmation bias, Anchoring bias, Availability bias, Automation bias. Confidence: verified by code analysis (`hooks/bias-check-reminder.sh:10-14`).
 3. The hook writes a reference path to stderr: `${CLAUDE_PLUGIN_ROOT}/data/cognitive-bias-patterns.md`. Confidence: verified by code analysis (`hooks/bias-check-reminder.sh:15`).
-4. The hook produces no stdout output — stdout is always empty. Confidence: verified by code analysis and BATS test `@test "bias-check-reminder exits 0"` (hooks.bats:119) (`[ "$status" -eq 0 ]` only, no output check).
+4. The hook produces no stdout output — stdout is always empty. Confidence: verified by code analysis and BATS test `@test "bias-check-reminder exits 0"` (hooks.bats:207) (`[ "$status" -eq 0 ]` only, no output check).
 
 ## Invariants
 
@@ -97,7 +98,7 @@ removal_reason: null
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/secops-factory/hooks/bias-check-reminder.sh` (16 lines) + `.ps1` sibling |
-| **Confidence** | high — simplest hook in the suite; no branching logic; BATS tests `@test "bias-check-reminder exits 0"` (hooks.bats:119), `@test "bias-check-reminder mentions confirmation bias on stderr"` (hooks.bats:124), `@test "bias-check-reminder mentions anchoring bias on stderr"` (hooks.bats:130) |
+| **Confidence** | high — simplest hook in the suite; no branching logic; BATS tests `@test "bias-check-reminder exits 0"` (hooks.bats:207), `@test "bias-check-reminder mentions confirmation bias on stderr"` (hooks.bats:212), `@test "bias-check-reminder mentions anchoring bias on stderr"` (hooks.bats:218) |
 | **Extraction Date** | 2026-07-19 |
 
 #### Evidence Types Used

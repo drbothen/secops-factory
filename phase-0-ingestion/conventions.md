@@ -198,8 +198,8 @@ SessionStart hooks use `systemMessage` and `additionalContext` fields instead of
 |----------|-------|----------|
 | Test location | Separate `tests/` directory | `plugins/secops-factory/tests/` |
 | Suite separation | One `.bats` file per concern: hooks, skills, integration, parity | `tests/hooks.bats`, `tests/skills.bats`, `tests/integration.bats`, `tests/parity.bats` |
-| Fixtures | Inline fixtures via `$(mktemp -d)` temp dirs | `@test "session-greeting is silent when settings.local.json is absent"` (`hooks.bats:190`); `setup_greeting_project` helper (`hooks.bats:185`) |
-| Group headers | `# --- <hook-name> hook ---` comment blocks within a `.bats` file | `hooks.bats:7` (require-review), `hooks.bats:95` (enrichment-completeness), `hooks.bats:117` (bias-check-reminder), `hooks.bats:136` (handoff-validator), `hooks.bats:156` (disposition-guard), `hooks.bats:183` (session-greeting) |
+| Fixtures | Inline fixtures via `$(mktemp -d)` temp dirs | `@test "session-greeting is silent when settings.local.json is absent"` (`hooks.bats` ~:278); `setup_greeting_project` helper (just before session-greeting group) |
+| Group headers | `# --- <hook-name> hook ---` comment blocks within a `.bats` file | first test in each group: `@test "require-review allows non-jr commands"` (~:9), `@test "enrichment-completeness allows non-enrichment files"` (~:185), `@test "bias-check-reminder exits 0"` (~:207), `@test "handoff-validator warns on empty result"` (~:226), `@test "disposition-guard allows non-investigation files"` (~:246), `@test "session-greeting is silent when settings.local.json is absent"` (~:278) |
 
 ### Test Naming Convention
 
@@ -212,9 +212,9 @@ SessionStart hooks use `systemMessage` and `additionalContext` fields instead of
 ```
 
 Examples:
-- `@test "require-review allows non-jr commands"` (`hooks.bats:9`)
-- `@test "enrichment-completeness blocks incomplete enrichment"` (`hooks.bats:48`)
-- `@test "session-greeting is silent when settings.local.json is absent"` (`hooks.bats:190`)
+- `@test "require-review allows non-jr commands"` (`hooks.bats`, group start ~:9)
+- `@test "enrichment-completeness blocks incomplete enrichment"` (`hooks.bats`, enrichment-completeness group)
+- `@test "session-greeting is silent when settings.local.json is absent"` (`hooks.bats`, session-greeting group ~:278)
 - `@test "parity: require-review allow path"` (`parity.bats:51`)
 
 **Pattern:** `<component-name> <verb> <condition>` — plain English, no underscores in test names (space-separated)
@@ -637,5 +637,6 @@ enforceable_rules:
 | 2026-07-19 | ADV-0-002: Scoped fail-open/fail-CLOSED — require-review blocking gate is fail-CLOSED for unrecognized jr subcommands (SEC-002); advisory hooks and non-jr inputs remain fail-open. Updated line 146, MUST-Follow #9, MUST-AVOID #2, CONV-013. | PR #13 (SEC-002), PR #14 (SEC-001) |
 | 2026-07-19 | ADV-0-403/ADV-0-405: Re-anchored stale hooks.bats line citations to @test names + current line numbers (190, 185, group headers 7/95/117/136/156/183). Corrected fast-path line range in require-review.sh from 47-49 to 47-50. | PR #13/#14 |
 | 2026-07-19 | ADV-0-603: Re-anchored all require-review.sh header citations to HEAD (PR #14 added Invariant-4 comment block, shifting body down 7 lines). set -euo pipefail: 13→18; jq guard: 14-17→20-23; INPUT=$(cat): 19→25; emit_allow: 21-24→27-30 (exit 0 at 29); emit_deny: 26-34→32-42 (exit 0 at 41). CONV-012 exit-0 citations corrected: require-review.sh 23,35→29,41; enrichment-completeness.sh 24,35→22,34. | PR #14 |
+| 2026-07-19 | ADV-0-B02: Converted hooks.bats group-header and test-naming-example line-number citations to @test-name references (line numbers now secondary/approximate) for churn-resilience. Require-review block now 26 tests (:9–:177 post-PR-15). Group anchors: enrichment-completeness ~:185, bias-check-reminder ~:207, handoff-validator ~:226, disposition-guard ~:246, session-greeting ~:278. | PR #15 |
 | 2026-07-19 | ADV-0-801 / PR #15: CRITICAL evaluation-order fix — write-block must be evaluated BEFORE the allowlist (old allow-first order was a bypass vulnerability). Updated Fast path ordering row, Fail-open row, and CONV-013 to the corrected order: fast-path → write-block (deny) → allowlist (allow) → fail-closed (deny). Line anchors updated to PR #15 HEAD. Added security note explaining why allow-first caused the bypass. | PR #15 (ADV-0-801) |
 | 2026-07-19 | ADV-0-A01: Replaced all live require-review.sh line-number citations in Bash Hook Pattern table (Shebang, Error mode, jq guard, Input ingestion, Allow/Deny function rows, Fast path ordering, Fail-open rows), CONV-012 evidence, and CONV-013 evidence with construct-name references (fast-path guard / write-block if-block / read-only allowlist / fail-closed catch-all / jq-availability guard / emit_allow / emit_deny). Historical Document History entries preserved as-is. | ADV-0-A01 |

@@ -4,7 +4,7 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-19T20:00:00Z
+timestamp: 2026-07-19T21:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
@@ -82,6 +82,7 @@ dtu_required: false
 | 0f-adv pass 8 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass8.md` — 6 findings (1 real-code-CRITICAL / 1M / 4m). MILESTONE: ADV-0-801 was a LIVE SHIPPED-CODE VULNERABILITY — require-review allowlist evaluated BEFORE write-block with unanchored substring match, defeating CRITICAL auth gate and SEC-001 mitigation. FIXED PR #15 (d304fa5, 12 new BATS red→green, 55/55 + shellcheck clean). SEC-009 logged (CRITICAL-at-discovery, RESOLVED). BC-3.01.001 v1.7. DI-014 added (LOW, enrichment-completeness substring idiom). HS-026 added (bypass regression guard). Capstone v1.8. [process-gap-7]: substring-matching-idiom sweep. Lesson: HS-026 initial expected-result inverted — caught by orchestrator verification. Pass 9 dispatched. |
 | 0f-adv pass 9 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass9.md` — 4 findings (0C/3M/1m), all remediated. Decay 12→11→7→8(1FP)→6→6→6→6(real bug)→4. DURABLE FIX: require-review anchors switched to CONSTRUCT NAMES across all shards — anchor-churn class structurally retired. Test count corrected to 150 (44+81+11+14) everywhere. vga re-issued (SEC-009, SM-3b RESOLVED, count 150). module-criticality v1.4. BC-4.02.001 v1.3, BC-5.01.001 v1.4. Capstone v1.9 (399 lines). Process-gap #6/#7 reinforced. Pass 10 dispatched. Assessment: reality axes GREEN repeatedly; approaching convergence. |
 | 0f-adv pass 10 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass10.md` — 5 findings (0C/1M/4m), all remediated. Full 13-BC read; prior coverage boundary closed. MILESTONE: adversary confirms ZERO correctness/security/architecture defects remain — all findings propagation residue, now cleared. Anchor-churn COMPLETELY retired (BC-3.01.001 + conventions converted). VP-HOOK-023 added. Decay 12→11→7→8(1FP)→6→6→6→6(real)→4→5. Convergence target: 0 graded findings. Pass 11 dispatched. |
+| 0f-adv pass 11 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass11.md` — 2 findings (0C/0M/2m) + 4 obs, all remediated. Adversary verdict: "converged and honest." Decay 12→11→7→8(1FP)→6→6→6→6(real)→4→5→2. Both minors: last anchor-churn residue (hooks.bats line anchors desynced by PR#15 +12 tests) — retired via @test-NAME refs (BC-3.01.001 v1.9 through BC-3.06.001 v1.3, conventions). Capstone v1.11. Convergence target: 0 graded findings. Pass 12 dispatched. |
 
 ## Decisions Log
 
@@ -132,8 +133,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 — step 0f-adv pass 11 in progress (convergence target: 0 graded findings) |
-| **Context** | Pass 10 MILESTONE: adversary confirms no architecture/security/correctness gaps remain; all findings propagation residue, cleared. Anchor-churn completely retired. VP-HOOK-023 added. Decay →4→5; convergence target is a pass with 0 graded findings. DI-001/DI-008/DI-009/DI-010 RESOLVED. CRITICAL module: update-jira skill. |
+| **Position** | Phase 0 — step 0f-adv pass 12 in progress (convergence target: 0 graded findings) |
+| **Context** | Pass 11: 2 findings (0C/0M/2m), adversary verdict "converged and honest." Decay →5→2. Last anchor-churn residue retired (@test-NAME for hooks.bats). All primary axes re-derived GREEN. DI-001/DI-008/DI-009/DI-010 RESOLVED. CRITICAL module: update-jira skill. |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

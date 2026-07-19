@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-19T04:00:00Z
+timestamp: 2026-07-19T05:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: brownfield
-current_step: "0e — verification gap analysis"
+current_step: "0e-sec — security audit (human gate)"
 current_cycle: ""
 dtu_required: false
 ---
@@ -37,7 +37,7 @@ dtu_required: false
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-19 |
 | **Current Phase** | 0: Codebase Ingestion |
-| **Current Step** | 0e — verification gap analysis |
+| **Current Step** | 0e-sec — security audit (human gate) |
 
 ## Phase Progress
 
@@ -67,6 +67,7 @@ dtu_required: false
 | 0b: architecture-recovery | codebase-analyzer | DONE | `.factory/phase-0-ingestion/recovered-architecture.md`, `arch-recov-api-surface.md`, `arch-recov-integrations.md` |
 | 0c: convention-extraction | codebase-analyzer | DONE | `.factory/phase-0-ingestion/conventions.md` — 20 enforceable rules extracted; 2 style ambiguities flagged: `secops(<scope>)` vs `feat(<scope>)` commit-prefix conflict; `secops-health` anomaly tracked as DI-002 |
 | 0d: spec-reverse-engineering | codebase-analyzer | DONE | `.factory/phase-0-ingestion/behavioral-contracts/` — 13 BCs recovered (BC-3.01.001–BC-3.06.001, BC-4.01.001–BC-4.04.001, BC-5.01.001, BC-6.01.001–BC-6.01.002); 7 spec ambiguities documented for Phase 1 routing: review-approval marker storage/session-persistence unspecified; require-review hook cannot recognize approval; hook/template section-name sync gap; disposition-guard body-text false-pass; handoff-validator undocumented 40-char threshold; Honest Convergence 3-item boundary ambiguity; bias-check hook trigger scope unclear |
+| 0e: verification-gap-analysis | codebase-analyzer | DONE | `.factory/phase-0-ingestion/verification-gap-analysis.md` — 2 fully / 11 partially / 0 unverified of 13 BCs; verification asymmetry: hooks behaviorally tested, skills structural-only; 4 gaps logged as DI-004–DI-007; estimated remediation ~4-5 days |
 
 ## Decisions Log
 
@@ -93,6 +94,10 @@ dtu_required: false
 | DI-001 | Live API keys in untracked, non-gitignored `.envrc` and `.mcp.json` at repo root — exposure risk on accidental commit. PR #12 merged: adds `.envrc`, `.env`, `.mcp.json`, `.claude/settings.local.json` to `.gitignore`. Keys were never committed (untracked only), no git-history exposure. Key rotation optional; 0e-sec to confirm. | HIGH | 0e-sec security audit triage | 0a project-discovery | RESOLVED |
 | DI-002 | `secops-health` command has no corresponding skill directory — special-cased in CI rather than following standard command→skill convention | LOW | Phase 1 spec crystallization | 0b architecture-recovery | open |
 | DI-003 | `adversarial-review-secops` skill directly references orchestrator canonical playbook — intentional layer inversion (skill depends on orchestrator artifact) | LOW | Phase 1 spec crystallization | 0b architecture-recovery | open |
+| DI-004 | disposition-guard substring false-pass live-demonstrated: header-only match passes BC-3.04 even when body text is absent — hook assert is unsound | HIGH | first Feature Mode cycle | 0e verification-gap-analysis | open |
+| DI-005 | require-review hook: assign/create/fail-open paths untested — review bypass and error-path behaviors have no BATS coverage | HIGH | first Feature Mode cycle | 0e verification-gap-analysis | open |
+| DI-006 | PowerShell parity tests skip silently when `pwsh` absent; CI does not assert `pwsh` presence, so `.ps1` hooks receive no static analysis in standard CI runs | HIGH | first Feature Mode cycle | 0e verification-gap-analysis | open |
+| DI-007 | enrichment-completeness investigation-branch path untested; hook↔template section-name sync gap; handoff-validator 39/40 boundary not exercised | MEDIUM | first Feature Mode cycle | 0e verification-gap-analysis | open |
 
 ## Blocking Issues
 
@@ -106,8 +111,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 — step 0e verification gap analysis is next |
-| **Context** | Steps 0a–0d complete. 13 BCs recovered; 7 spec ambiguities routed to Phase 1. DI-001 RESOLVED (PR #12). DI-002/DI-003 open (low, Phase 1). Codebase confirmed: declarative Claude Code plugin, layered commands→skills→agents, cross-platform hook parity. |
+| **Position** | Phase 0 — step 0e-sec security audit (human gate) is next |
+| **Context** | Steps 0a–0e complete. verification-gap-analysis.md produced: 2 fully / 11 partially / 0 unverified BCs; hooks behaviorally tested, skills structural-only. DI-004–DI-007 logged (HIGH×3, MEDIUM×1; ~4-5d remediation, routed to first Feature Mode cycle). DI-001 RESOLVED (PR #12). DI-002/DI-003 open (low, Phase 1). |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

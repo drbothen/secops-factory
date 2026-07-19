@@ -1,0 +1,287 @@
+# Verification Gap Analysis: secops-factory
+
+> Analyzed by Dark Factory Phase 0e (Verification Gap Analysis)
+> Agent: formal-verifier (T3)
+> Source codebase: `/Users/jmagady/Dev/secops-factory`
+> Date: 2026-07-19
+> Scope note: This is a **declarative Claude Code plugin** (markdown + JSON + shell/PowerShell hooks + YAML templates). There is no compiled/interpreted production language, hence no conventional line/branch/function coverage, no Kani/CBMC target, and no cargo-mutants/mutmut/stryker target. This report re-frames every template section around the actual verification surface: **executable checks (BATS, CI validation, hook self-behavior) mapped to the 13 recovered behavioral contracts.**
+> Security scanning is intentionally **excluded** here — it is owned by Step 0e-sec (DF-031). See the deferral note under "Security Posture".
+
+---
+
+## Executive Summary
+
+| Dimension | Result |
+|-----------|--------|
+| Behavioral contracts assessed | 13 (BC-3.01.001 … BC-6.01.002) |
+| BCs **fully** verified (behavioral: all/near-all postconditions + core invariants have an executable check) | **2** — BC-3.03.001, BC-3.06.001 |
+| BCs **partially** verified — behavioral (hook executes; some postconditions/edge cases untested) | **4** — BC-3.01.001, BC-3.02.001, BC-3.04.001, BC-3.05.001 |
+| BCs verified **structural-only** (skill text/config/reference presence checked; behavioral enforcement of the Iron Law NOT executably verified) — counted under "partial" | **7** — BC-4.01.001, BC-4.02.001, BC-4.03.001, BC-4.04.001, BC-5.01.001, BC-6.01.001, BC-6.01.002 |
+| BCs **un-verified** (no check of any kind) | **0** |
+| **Three-bucket roll-up** | **Fully 2 / Partially 11 / Un-verified 0** |
+| Total automated tests | **129** BATS `@test` cases (hooks 23, skills 81, integration 11, parity 14) — all pass locally |
+| Tests that silently skip without `pwsh` (PowerShell parity) | **12 of 14** parity tests |
+| Highest-value confirmed defect | **disposition-guard false-pass** — anti-confirmation-bias gate is trivially defeated (live-demonstrated below) |
+
+**The verification asymmetry is the headline finding.** The six **hooks** (deterministic shell) are directly executable and are genuinely behaviorally tested. The seven **skills** (LLM-executed markdown) are verified *structurally only*: BATS proves the Iron Law text, "Announce at Start", Red-Flag row counts, `${CLAUDE_PLUGIN_ROOT}` reference portability, referenced-file existence, and agent frontmatter/tool constraints are present — but **no executable check confirms the skills actually enforce their preconditions/postconditions/invariants at runtime**, because that enforcement is LLM behavior. The structural gate is real and valuable (it catches deletions and drift), but it must not be mistaken for behavioral verification of the Iron Laws.
+
+---
+
+## Verification Coverage Baseline (per Behavioral Contract)
+
+> Substitute for "Test Coverage Baseline" — there is no line-coverage tool for markdown/JSON/bash-as-config. The meaningful baseline is per-BC contract-element coverage.
+
+### Overall Metrics
+
+| Metric | Value | Tool |
+|--------|-------|------|
+| Line/branch/function coverage | **not measurable / not meaningful** | no coverage tool applies to declarative plugin (no `package.json`/`Cargo.toml`) |
+| Total automated tests | 129 `@test` cases | bats-core 1.13.0 |
+| Test suites | 4 (`hooks.bats` 23, `skills.bats` 81, `integration.bats` 11, `parity.bats` 14) | bats-core |
+| Test execution (local, ex-parity-skips) | ~seconds; all green | `tests/run-all.sh` |
+| Static soundness of `.sh` hooks | shellcheck **CLEAN** (0 findings) | shellcheck |
+| Static soundness of `.ps1` hooks | **only if `pwsh` present** (parse-only; no PSScriptAnalyzer) | `run-all.sh` conditional block |
+| JSON manifest validity | `plugin.json`, `hooks.json`, `hooks.json.windows` validated | `jq` (CI structure job) |
+| YAML template validity | 5 templates validated | `python3 -c "import yaml"` |
+
+### Per-Contract Coverage Matrix
+
+| BC | Component | Layer | Executable checks | Contract-element coverage | Verdict |
+|----|-----------|-------|-------------------|---------------------------|---------|
+| BC-3.01.001 | require-review hook | hook (pure) | hooks.bats ×5, integration ×2, parity ×3 | non-jr allow ✓; read-only `view` ✓ (9 other read verbs untested); comment allow ✓; `edit`/`move` deny ✓; **`assign`/`create` deny untested**; **fail-open unknown-jr untested**; **jq-missing exit-1 untested**; malformed-JSON allow untested | **PARTIAL** |
+| BC-3.02.001 | enrichment-completeness hook | hook (pure) | hooks.bats ×3, integration ×3, parity ×2 | non-matching allow ✓; enrichment 5-section deny ✓ (missing-name-in-reason not asserted); complete allow ✓; **investigation 4-section branch entirely untested**; case-sensitivity untested; both-pattern precedence untested; jq-missing untested | **PARTIAL** |
+| BC-3.03.001 | disposition-guard hook | hook (pure) | hooks.bats ×4, integration ×2, parity ×2 | non-investigation allow ✓; in-progress (no Disposition) allow ✓; Disposition+no-Alternatives deny ✓; Disposition+Alternatives allow ✓ — all 3 declared VPs + 3-state core exercised. Gaps: case-insensitive lowercase untested; **substring false-pass untested (confirmed defect, below)** | **FULLY** (core); false-pass edge open |
+| BC-3.04.001 | bias-check-reminder hook | hook (pure) | hooks.bats ×3, parity ×1 | exit-0 ✓; Confirmation ✓; Anchoring ✓; **Availability + Automation biases not asserted**; **reference-path not asserted** | **PARTIAL** |
+| BC-3.05.001 | handoff-validator hook | hook (pure) | hooks.bats ×3, integration ×2 | empty→EMPTY ✓; short→"suspiciously short" ✓ (char-count not asserted); 40+→silent ✓; **boundary 39/40 untested**; **missing `result` field untested**; jq-missing untested | **PARTIAL** |
+| BC-3.06.001 | session-greeting hook | effectful (fs read) | hooks.bats ×5, parity ×2 | absent→silent ✓; non-secops→silent ✓; activated→greeting (Morgan/SessionStart/additionalContext) ✓; valid-JSON ✓; corrupt→fail-open ✓ — all 7 postconditions covered. Gaps: **jq-unavailable fallback path untested**; cwd-missing fallback untested | **FULLY** (core); jq-fallback open |
+| BC-4.01.001 | enrich-ticket skill | skill (LLM) | skills.bats (Iron Law, Announce, Red-Flags≥6, `${CLAUDE_PLUGIN_ROOT}` refs, file existence) | Structural presence ✓✓✓. **8-stage sequencing, EPSS-mandatory, multi-factor priority, halt-on-failure — all behavioral, unverified** | **STRUCTURAL-ONLY** |
+| BC-4.02.001 | update-jira skill | skill (LLM) | skills.bats (Iron Law text present) | Iron Law text ✓. **VP-SKILL-007 (CVSS range validation) and VP-SKILL-008 (review-approval precedes edit) are labelled "integration/manual" = NOT automated**. Skill-layer review gate + field validation unverified (hook BC-3.01 provides an independent infra gate that IS tested) | **STRUCTURAL-ONLY** |
+| BC-4.03.001 | review-enrichment skill | skill (LLM) | skills.bats (Iron Law, opus model, reviewer-excludes-Write, checklists exist) | Iron Law ✓; **agent config invariants genuinely checked** (opus ✓, no-Write ✓, checklists exist ✓). Scoring formulas, fresh-context, mandatory-bias — behavioral, unverified | **STRUCTURAL-ONLY** (strongest of the skills) |
+| BC-4.04.001 | adversarial-review-secops skill | skill (LLM) | skills.bats (Iron Law, Honest Convergence + "fewer than 3 substantive", Hallucination Classes, `=== FILE:` delivery, Canonical Source pointer) | 5 structural VPs ✓. Convergence loop, quality thresholds (≥7.0, no dim <5.0), min-2-passes — behavioral, unverified; **SECOPS-P1 numbering unenforced** | **STRUCTURAL-ONLY** |
+| BC-5.01.001 | investigate-event skill | skill (LLM) | skills.bats (Iron Law, Perplexity-fallback present, `${CLAUDE_PLUGIN_ROOT}` refs) | Structural ✓. 7-stage flow, save-local-first, TP/FP/BTP logic — behavioral, unverified (disposition-guard hook BC-3.03 provides the only executable enforcement, on Alternatives presence) | **STRUCTURAL-ONLY** |
+| BC-6.01.001 | activate skill | skill (LLM) | skills.bats (settings.local.json target, agent value, disable-model-invocation, Announce, Red-Flags≥6) | 5 structural VPs ✓. **JSON merge / preserve-existing-keys / never-clobber-corrupt / Windows hooks.json copy / jq read-back — all behavioral and error-prone, none executed by any test** | **STRUCTURAL-ONLY** (high-value gap) |
+| BC-6.01.002 | deactivate skill | skill (LLM) | skills.bats (`del(.agent)` present, guards non-secops, Red-Flags≥6) | Structural ✓. Actual key-deletion + preserve-others + empty-object handling not executed | **STRUCTURAL-ONLY** |
+
+---
+
+## Purity Assessment
+
+### Module Classification
+
+| Component | Path | Classification | I/O | Refactoring for verification |
+|-----------|------|---------------|-----|------------------------------|
+| require-review | `hooks/require-review.sh` (+`.ps1`) | **pure core** | stdin→stdout | none — deterministic string router |
+| enrichment-completeness | `hooks/enrichment-completeness.sh` (+`.ps1`) | **pure core** | stdin→stdout | none |
+| disposition-guard | `hooks/disposition-guard.sh` (+`.ps1`) | **pure core** | stdin→stdout | none |
+| bias-check-reminder | `hooks/bias-check-reminder.sh` (+`.ps1`) | **pure core** | stdin→stderr | none |
+| handoff-validator | `hooks/handoff-validator.sh` (+`.ps1`) | **pure core** | stdin→stderr | none |
+| session-greeting | `hooks/session-greeting.sh` (+`.ps1`) | **effectful shell** | stdin + reads `settings.local.json` → stdout | gate/compare logic is a pure sub-function; extractable |
+| enrich-ticket, update-jira, review-enrichment, adversarial-review-secops, investigate-event | `skills/*/SKILL.md` | **effectful shell** (LLM-executed; Jira/network/fs) | all four I/O classes | each has one identifiable pure sub-function (see below) |
+| activate, deactivate | `skills/{activate,deactivate}/SKILL.md` | **effectful shell** (fs read/write) | reads/writes `settings.local.json` | JSON merge / key-deletion are pure functions |
+| data / templates / checklists / agents / commands | `data/`, `templates/`, `checklists/`, `agents/`, `commands/` | **opaque** (static declarative config; no executable logic) | none | not classifiable as pure/effectful — consumed by LLM at runtime |
+
+**Pure sub-functions inside effectful skills (natural verification units):** document assembly (enrich-ticket Stage 7), field range/enum validation (update-jira Step 2), score aggregation — simple-average / weighted-sum (review-enrichment), convergence predicate + quality-threshold predicate (adversarial-review-secops), TP/FP/BTP disposition constraint (investigate-event), JSON merge + platform predicate (activate), key-deletion transform (deactivate).
+
+### Purity Boundary Map
+
+```text
++-- Pure Core (deterministic; directly & exhaustively testable) --------------+
+|                                                                             |
+|   require-review    enrichment-completeness    disposition-guard            |
+|   bias-check-reminder    handoff-validator                                  |
+|   [+ extractable pure sub-fns from skills: field-validation, scoring,       |
+|      convergence predicate, JSON-merge]                                     |
++-----------------------------------------------------------------------------+
+                      | (invoked by Claude Code hook runtime)
+                      v
++-- Effectful Shell (I/O at boundary) ---------------------------------------+
+|                                                                             |
+|   session-greeting (reads settings.local.json)                              |
+|   activate / deactivate (read/write settings.local.json)                    |
+|   enrich-ticket / update-jira / review-enrichment /                         |
+|   adversarial-review-secops / investigate-event  (Jira + network + fs, LLM) |
++-----------------------------------------------------------------------------+
+                      | (grounded/shaped by, at LLM runtime)
+                      v
++-- Opaque Declarative Config (no executable logic) -------------------------+
+|   data/*   templates/*   checklists/*   agents/*   commands/*               |
++-----------------------------------------------------------------------------+
+```
+
+### Purity Summary
+
+| Classification | Count (executable components) | Notes |
+|---------------|-------------------------------|-------|
+| Pure core | 5 hooks | ideal verification target; already pure, no refactoring |
+| Effectful shell | 1 hook + 7 skills | pure sub-functions extractable |
+| Opaque (declarative) | 5 directory classes | verified by structural/existence checks, not purity |
+
+**Purity boundary intact:** none of the 5 pure-core hooks perform I/O beyond stdin→stdout/stderr or spawn subprocesses beyond `jq`; no global mutable state; deterministic. No side effects have leaked into the pure core.
+
+---
+
+## Formal Verification Readiness
+
+### Tool Compatibility (adapted for a declarative plugin)
+
+| Tool | Applicable? | Notes |
+|------|-------------|-------|
+| **Kani** (Rust) | **N/A** | no Rust production code |
+| **CBMC** (C/C++) | **N/A** | no C/C++ |
+| **proptest / hypothesis / fast-check** | **N/A** | no Rust/Python/JS production code |
+| **BATS exhaustive input-partition testing** | **YES — this is the plugin's formal-verification analog** | the 5 pure hooks are total string→JSON functions over small, enumerable input partitions; near-exhaustive coverage is achievable |
+| **shellcheck** (`.sh` static analysis) | **YES — installed, CLEAN** | already run in CI on `hooks/*.sh` |
+| **PSScriptAnalyzer** (`.ps1` static analysis) | **YES but NOT ADOPTED** | no static analysis of `.ps1` anywhere; only a conditional parse-check when `pwsh` present |
+| **JSON Schema validation of hooks.json** | **YES but NOT ADOPTED** | only `jq .` validity check; no schema for matcher/event/command structure |
+| **Static hook↔template sync assertion** | **YES but NOT ADOPTED** | high-value; see gaps |
+
+### Per-Component Readiness
+
+| Component | Verifiable now? | Blocking issue | Effort to ready |
+|-----------|-----------------|----------------|-----------------|
+| 5 pure hooks | **yes** | none — already pure, BATS in place | ~0.5 day to add missing partitions (assign/create, fail-open, jq-missing, investigation-branch, 39/40 boundary, false-pass) |
+| session-greeting jq-fallback path | mostly | needs a PATH-without-`jq` fixture | ~1 hr |
+| Skill pure sub-functions (validation/scoring/merge) | no (not extracted) | logic lives only as prose in `SKILL.md`; not callable | ~1–2 days each to extract to a testable shim, OR accept as unverifiable LLM behavior |
+| Skill behavioral Iron-Law enforcement | **no** | inherently LLM-mediated; not formally verifiable | out of scope — mitigate with hook-layer gates + structural tests |
+
+### Recommended Verification Targets (priority-ordered)
+
+1. **disposition-guard false-pass** — security-relevant anti-bias gate; live-confirmed defeatable. Add a failing BATS vector, then decide fix (require section-heading match, not substring).
+2. **require-review completeness** — add `assign`, `create`, fail-open, and jq-missing vectors; this hook is the infra half of the "NO JIRA UPDATE WITHOUT REVIEW APPROVAL" Iron Law.
+3. **enrichment-completeness investigation branch** — 4-section (Alert Details / Disposition / Next Actions) path is entirely untested.
+4. **hook↔template section-list sync** — static CI check that hook-hardcoded section lists equal template headings.
+5. **handoff-validator boundary** — 39/40 char threshold + missing-`result` field.
+
+---
+
+## Security Posture
+
+**Deferred to Step 0e-sec (DF-031).** Per the Step 0e specification, security scanning (Semgrep, dependency/secret audit, `.envrc`/`.mcp.json` credential exposure) is out of scope for this step. Tool availability note for 0e-sec handoff: `semgrep` is installed locally; `security.yml` runs Semgrep (config auto) weekly + on push. The HIGH-severity plaintext-credentials finding from Step 0a (§8.1 of project-discovery.md — `.envrc`/`.mcp.json` untracked but not gitignored) is flagged for 0e-sec triage.
+
+---
+
+## Mutation Testing Baseline
+
+### Tool status
+
+| Tool | Applicable? | Notes |
+|------|-------------|-------|
+| cargo-mutants / mutmut / stryker | **N/A** | no Rust/Python/JS production code to mutate |
+| **Manual mutation probe of pure hooks** | **applied** (below) | flip allow/deny, drop guard clauses, alter thresholds; check whether BATS catches |
+
+Automated mutation tooling does not exist for bash-as-config. A manual mutation probe was run against the 5 pure hooks by reasoning about which source mutations the current 129-test suite would fail to kill. Concrete **surviving mutants** (test-suite blind spots) were confirmed with live hook execution:
+
+### Surviving Mutants (confirmed)
+
+| # | Component | Mutation | Survives because | Risk |
+|---|-----------|----------|------------------|------|
+| SM-1 | `disposition-guard.sh:54` | change substring match to always-true / weaken it | **No test uses a negating sentence containing the phrase.** Live-confirmed: content `"## Disposition\nTrue Positive. No Alternatives Considered because it is obvious."` → **allow** (should deny). The anti-confirmation-bias Iron Law gate is defeatable. | **HIGH** |
+| SM-2 | `require-review.sh:68-69` | delete `jr issue assign` / `jr issue create` from blocklist | **No test exercises assign or create.** Live-confirmed both currently deny; mutant removing either stays green. | **HIGH** (Iron Law: no unreviewed field mutation) |
+| SM-3 | `require-review.sh:74` | flip fail-open `allow` → `deny` (or vice-versa) | fail-open path for unknown `jr` subcommands untested (live-confirmed `jr issue frobnicate` → allow) | MEDIUM |
+| SM-4 | `enrichment-completeness.sh` (investigation branch) | delete/alter any of the 4 investigation-required sections | **No enrichment-completeness test feeds an `investigation-*` file_path** (confirmed) — entire branch unguarded | MEDIUM |
+| SM-5 | `handoff-validator.sh:27` | change threshold `40` → `1` or `1000` | boundary 39/40 never tested; only far-from-boundary values (2, 106) used | MEDIUM |
+| SM-6 | `require-review.sh:14-17` / all hooks | remove `jq`-missing guard (exit 1) | jq-absent path untested for every hook | LOW (env-dependent) |
+| SM-7 | `bias-check-reminder.sh` | drop "Availability" / "Automation" bias line, or the data-file reference | only Confirmation + Anchoring asserted | LOW (advisory hook) |
+
+**Estimated current kill rate against the pure-hook mutation set: ~55–65%.** Module-criticality targets are not defined for a plugin, but the two HIGH mutants (SM-1, SM-2) sit on Iron-Law enforcement paths and should be killed before any behavior change ships.
+
+---
+
+## The 7 Step-0d Documented Ambiguities — Verifiability
+
+Each BC's "Undocumented behavior (ambiguity)" note was assessed for whether an *executable* check could ever confirm/refute it.
+
+| # | Ambiguity (source BC) | Verifiable? | How / why |
+|---|-----------------------|-------------|-----------|
+| A-1 | **Two-layer review gating** — require-review hook blocks `jr issue edit` *unconditionally*; review-approval is skill-layer only (BC-3.01.001) | **Partially** | Hook side is testable (always-deny edit ✓, already partially done). The bypass risk (a jr-mutation path not routed through Bash+hook) is verifiable by statically enumerating all mutation invocation paths vs `hooks.json` matchers. Skill-layer marker check is LLM-behavioral → not executably verifiable. |
+| A-2 | **Hook↔template section-list drift** — required sections hardcoded in hook, not read from templates; no sync (BC-3.02.001) | **YES** | A static CI assertion can compare the hook's hardcoded section list against the template headings and fail on drift. **Task-named high-value gap.** |
+| A-3 | **disposition-guard substring false-pass** — "Alternatives Considered" matched anywhere in content; no min-count; negating text passes (BC-3.03.001) | **YES — and already demonstrated** | Live-confirmed defeatable (SM-1). A BATS vector proves it today; a heading-anchored check would fix it. **Task-named high-value gap.** |
+| A-4 | **bias-check-reminder trigger scope** — fires on ALL PostToolUse Bash events, not only research/Perplexity, contrary to its description (BC-3.04.001) | **YES** | Confirmed statically: `hooks.json` matcher is `Bash\|mcp__perplexity__*` — so it *does* fire on every Bash call. A test asserting the matcher string (or an integration test on a non-research Bash event) verifies scope. |
+| A-5 | **handoff-validator 40-char threshold** — hardcoded, undocumented, heuristic not a quality gate (BC-3.05.001) | **YES (mechanism), NO (adequacy)** | The 39/40 boundary is executably testable (**task-named case**, currently SM-5). Whether 40 is the *right* value is a judgment call, not verifiable. |
+| A-6 | **review-approval marker undefined / session-boundary loss** — marker is a conversation-context convention with no defined format; lost across sessions (BC-4.03.001) | **NO (today)** | The marker is LLM conversation state with no artifact. Not executably verifiable unless the marker is redesigned as a persisted file/JIRA-comment token that update-jira can read — then it becomes testable. |
+| A-7 | **Honest-Convergence "<3 substantive" + SECOPS-P1 numbering unenforced** (BC-4.04.001) | **Partially** | SECOPS-P1 pass-numbering enforcement *could* be added to handoff-validator and would then be testable. The "fewer than 3 substantive items → declare convergence" clause relies on reviewer honest judgment (LLM) → not verifiable. |
+
+**Verifiability roll-up:** 3 fully verifiable (A-2, A-3, A-4), 3 partially (A-1, A-5, A-7), 1 not currently verifiable (A-6). **An 8th ambiguity** was noted by the architect (BC-6.01.001: `activated_plugin_version` behavior when `plugin.json` is unreadable is unspecified) — verifiable via an activate-skill shim test once the merge logic is extracted.
+
+---
+
+## PowerShell Hook Parity — CI vs Local
+
+**Finding: `.ps1` behavioral equivalence is verified only when `pwsh` happens to be on PATH, and CI neither installs nor verifies `pwsh`.**
+
+- **Structural parity (unconditional):** `parity.bats` test #1 (every `.sh` has a `.ps1` sibling) and #2 (`hooks.json`/`hooks.json.windows` declare equal hook counts and all Windows commands reference a `.ps1`) run always. The CI `structure` job independently re-checks sibling existence. These 3 checks are solid.
+- **Behavioral parity (conditional):** the 12 remaining `parity.bats` tests (identical normalized-JSON stdout, identical stderr, identical exit codes across `.sh`/`.ps1`) all call `require_pwsh`, which **`skip`s** when `pwsh` is absent. Locally `pwsh` is **ABSENT** → 12 of 14 parity tests skip (confirmed).
+- **CI gap:** `ci.yml` runs on `ubuntu-latest` and **does not install or assert `pwsh`**. GitHub's `ubuntu-latest` image currently ships `pwsh` preinstalled, so these tests likely *do* run in CI today — but this is **implicit and unpinned**. If the runner image drops `pwsh`, all 12 behavioral-parity tests + the `.ps1` syntax check in `run-all.sh` **silently skip and CI stays green** (a false-pass). `.ps1` files also receive **no static analysis** (no PSScriptAnalyzer; shellcheck is `.sh`-only).
+- **Net:** on CI, `.sh` hooks get shellcheck + BATS behavioral tests; `.ps1` siblings get, at best, a conditional parse-check and conditional behavioral parity — **and nothing guarantees the condition holds.**
+
+---
+
+## Identified Gaps
+
+### Critical Gaps (Must Fix Before Extending)
+
+| # | Gap | Affected area | Risk | Effort |
+|---|-----|---------------|------|--------|
+| GAP-1 | disposition-guard false-pass — substring match defeats the anti-confirmation-bias Iron Law (SM-1, A-3) | `disposition-guard.sh`, BC-3.03.001 | HIGH — silent bypass of a core quality gate | 0.5 day (failing test + heading-anchored fix) |
+| GAP-2 | require-review `assign`/`create`/fail-open untested (SM-2, SM-3) — infra half of the review Iron Law | `require-review.sh`, BC-3.01.001 | HIGH — regression on field-mutation blocking would go undetected | 0.25 day |
+| GAP-3 | `pwsh` not installed/asserted in CI — 12 parity + `.ps1` syntax checks can silently skip (false-pass) | `ci.yml`, `run-all.sh`, all `.ps1` | HIGH — Windows users could ship on unverified hooks | 0.25 day (add `pwsh` install step + fail-if-skipped guard) |
+
+### Important Gaps (Should Fix Soon)
+
+| # | Gap | Affected area | Risk | Effort |
+|---|-----|---------------|------|--------|
+| GAP-4 | enrichment-completeness investigation 4-section branch untested (SM-4) | `enrichment-completeness.sh`, BC-3.02.001/BC-5.01.001 | MEDIUM | 0.25 day |
+| GAP-5 | No hook↔template section-list sync check (A-2) — drift ships silently | hook + `templates/*.yaml` | MEDIUM | 0.5 day (static CI assertion) |
+| GAP-6 | handoff-validator boundary 39/40 + missing-`result` untested (SM-5, A-5) | `handoff-validator.sh`, BC-3.05.001 | MEDIUM | 1 hr |
+| GAP-7 | Skill-layer behavior entirely structural-only — 7 skills, incl. activate JSON-merge / never-clobber-corrupt (BC-6.01.001) never executed | all `skills/*` | MEDIUM — merge bug could corrupt user `settings.local.json` | 1–2 days (extract activate/deactivate merge to a testable shim) |
+| GAP-8 | No static analysis of `.ps1` (no PSScriptAnalyzer) | all `.ps1` | MEDIUM | 0.25 day |
+
+### Minor Gaps (Fix Opportunistically)
+
+| # | Gap | Affected area | Risk | Effort |
+|---|-----|---------------|------|--------|
+| GAP-9 | jq-missing exit-1 path untested for every hook (SM-6) | all hooks | LOW | 1 hr |
+| GAP-10 | bias-check-reminder: Availability/Automation + data-file ref not asserted (SM-7) | `bias-check-reminder.sh` | LOW | 15 min |
+| GAP-11 | session-greeting jq-fallback + cwd-missing paths untested | `session-greeting.sh` | LOW | 1 hr |
+| GAP-12 | require-review read-only allowlist: only `view` of 10 verbs tested | `require-review.sh` | LOW | 30 min |
+| GAP-13 | update-jira VP-SKILL-007/008 labelled "manual" — CVSS range + review-precedes-edit unautomated | BC-4.02.001 | LOW–MEDIUM | folds into GAP-7 |
+
+---
+
+## Remediation Plan
+
+### Before proceeding past Phase 0
+
+1. **GAP-1** — add the false-pass BATS vector to `hooks.bats` (red), then fix `disposition-guard.sh` to match on a section heading, not a bare substring. (0.5 day)
+2. **GAP-2** — add `assign`, `create`, fail-open, and jq-missing vectors to `require-review` tests. (0.25 day)
+3. **GAP-3** — add an explicit `pwsh` install step to all three `ci.yml` jobs (or the test job) **and** make `run-all.sh`/`parity.bats` fail (not skip) when `pwsh` is expected. (0.25 day)
+
+### Incorporate into the VSDD pipeline (ongoing)
+
+1. **GAP-5 hook↔template sync** — add as a Phase-6 (formal hardening) static gate; re-run whenever a template or hook section list changes.
+2. **GAP-7 skill pure-sub-function extraction** — when any skill's validation/merge/scoring logic is touched under Feature Mode, extract it to a shell shim with BATS coverage (converts structural-only → behavioral for the error-prone parts).
+3. **GAP-8 PSScriptAnalyzer** — add to the CI hardening lane alongside shellcheck.
+4. Adopt **near-exhaustive input-partition BATS** for the 5 pure hooks as the standing "formal verification" analog (documented under Formal Verification Readiness).
+
+### Total Estimated Remediation Effort
+
+| Priority | Gap count | Total effort |
+|----------|-----------|--------------|
+| Critical | 3 | ~1 day |
+| Important | 5 | ~2.5–3.5 days |
+| Minor | 5 | ~0.5 day |
+| **Total** | **13** | **~4–5 days** |
+
+---
+
+## Quality Gate Checklist
+
+- [x] Numerical baselines provided where tools apply (129 tests; per-BC coverage matrix; shellcheck clean; parity skip count)
+- [x] Where tools are unavailable/N/A (Kani, cargo-mutants, coverage), the gap is documented with the reason and the plugin-appropriate analog + install/adoption path
+- [x] Every readiness assessment includes estimated effort to reach readiness
+- [x] Purity boundary map is present
+- [x] Security scanning is NOT included (deferred to Step 0e-sec)
+- [x] All 13 BCs assessed for precondition/postcondition/invariant coverage
+- [x] 7 (+1) Step-0d ambiguities assessed for verifiability
+- [x] PowerShell `.sh`/`.ps1` parity CI-vs-local status documented
+- [x] Findings cite specific file paths and line numbers; two highest-value defects live-demonstrated

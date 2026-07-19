@@ -1,15 +1,15 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.6"
+version: "1.7"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/require-review.sh, plugins/secops-factory/tests/hooks.bats]
 input-hash: |
-  4b493fa9ad88fb0fda4d5cf8340e1c60f80dea404e4b86bda8fe25174778962b  plugins/secops-factory/hooks/require-review.sh
-  a8219a27675c006c2bfc141793fe47e8eb37275c1b32ad8dd2848f865e704513  plugins/secops-factory/hooks/require-review.ps1
+  1f01e0a7d67947c28e78931f8c4818e454f6a884afa5f7768bda0a3603e40e28  plugins/secops-factory/hooks/require-review.sh
+  bd8199a77b13f2ad1a884362862984c6f331799796f8d09576bcda0dffa403f1  plugins/secops-factory/hooks/require-review.ps1
 traces_to: phase-0-ingestion/recovered-architecture.md
 origin: recovered
 extracted_from: plugins/secops-factory/hooks/require-review.sh
@@ -17,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-01
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19", "v0.9.x-ADV0-001-ADV0-007-2026-07-19", "v1.4-ADV-0-405-ADV-0-507-2026-07-19", "v1.5-ADV-0-504-2026-07-19", "v1.6-ADV-0-706-obs-PC2-2026-07-19"]
+modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19", "v0.9.x-ADV0-001-ADV0-007-2026-07-19", "v1.4-ADV-0-405-ADV-0-507-2026-07-19", "v1.5-ADV-0-504-2026-07-19", "v1.6-ADV-0-706-obs-PC2-2026-07-19", "v1.7-ADV-0-801-PR15-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -36,6 +36,7 @@ removal_reason: null
 > - v1.4 (2026-07-19): ADV-0-405: corrected three stale line-number anchors — non-jr fast path is `require-review.sh:47-50` (not 48-50), fail-closed block is `require-review.sh:96-98` (not 97-98), source file is 98 lines (not 99). ADV-0-507 (pass-4 input-hash batch): input-hash established as dual-file block scalar (require-review.sh + require-review.ps1 sibling).
 > - v1.5 (2026-07-19): ADV-0-504: corrected one remaining stale anchor in EC-015 — fail-closed catch-all is `(lines 96-98)` not `(lines 97-98)`. Missed by v1.4 sweep.
 > - v1.6 (2026-07-19): ADV-0-706: Standardized write-block citations to canonical form `88-94 (deny at :93)`. Observation: Softened PC#2 confidence note — `comment`/`edit`/`move` deny verified by both code analysis and BATS; `assign`/`create` deny verified by code analysis only (no dedicated positive BATS tests for these two verbs; residual gap noted in GAP-2 of verification-gap-analysis.md).
+> - v1.7 (2026-07-19): ADV-0-801 / PR #15 (commit d304fa5): CRITICAL evaluation-order fix — write-block is now evaluated BEFORE the allowlist (old order was allowlist → write-block, enabling a bypass: `jr issue edit KEY --summary "see jr board"` matched the `jr board` allowlist token). `--output json` write forms explicitly added to the write-block list. New line anchors throughout. New Invariant #5 (write-block precedence). EC-015 updated (jr --output json issue comment now hits write-block directly). EC-016 added (bypass pattern now denied). Input-hash recomputed (both .sh and .ps1 changed).
 
 ## Preconditions
 
@@ -45,9 +46,9 @@ removal_reason: null
 
 ## Postconditions
 
-1. If `tool_input.command` does not contain the substring `jr `, the hook emits `permissionDecision: allow` and exits 0. Confidence: verified by code analysis (`hooks/require-review.sh:47-50`) and BATS test `hooks.bats:9-13`.
-2. If `tool_input.command` contains any of `jr issue comment`, `jr issue edit`, `jr issue move`, `jr issue assign`, or `jr issue create`, the hook emits `permissionDecision: deny` with a reason string containing "review approval". The deny reason names all five blocked subcommands explicitly. Confidence: verified by code analysis (`hooks/require-review.sh:88-94 (deny at :93)`) and BATS tests `hooks.bats:69-74, 82-87, 89-93`. Note: `comment`, `edit`, and `move` deny is verified by both code analysis AND dedicated BATS tests; `assign` and `create` deny is verified by code analysis only — no dedicated positive BATS tests exist for these two verbs (residual gap noted in verification-gap-analysis.md GAP-2).
-3. If `tool_input.command` contains any entry from the explicit read-only allowlist (evaluated before the deny check), the hook emits `permissionDecision: allow` and exits 0. The allowlist has two families: Confidence: verified by code analysis (`hooks/require-review.sh:60-82`) and BATS tests `hooks.bats:15-19`.
+1. If `tool_input.command` does not contain the substring `jr `, the hook emits `permissionDecision: allow` and exits 0. Confidence: verified by code analysis (`hooks/require-review.sh:48-50`) and BATS test `@test "require-review allows non-jr commands"` (hooks.bats:9).
+2. If `tool_input.command` contains any write-block pattern, the hook emits `permissionDecision: deny` with a reason string containing "review approval". **This check is evaluated BEFORE the allowlist (Invariant #5)** — a command matching both a write-block pattern and an allowlist pattern is denied. Two families of write patterns are blocked (10 entries total): **Plain forms:** `jr issue comment ` (trailing-space guard against `jr issue comments` collision), `jr issue edit`, `jr issue move`, `jr issue assign`, `jr issue create`. **`--output json` forms (added PR #15/ADV-0-801):** `--output json issue comment ` (trailing-space guard), `--output json issue edit`, `--output json issue move`, `--output json issue assign`, `--output json issue create`. Confidence: verified by code analysis (`hooks/require-review.sh:67-78 (deny at :77)`) and BATS tests `@test "require-review blocks jr issue comment without review (SEC-001)"` (hooks.bats:69), `@test "require-review blocks jr issue edit without review"` (hooks.bats:82), `@test "require-review blocks jr issue move without review"` (hooks.bats:88). Note: `comment`, `edit`, and `move` deny verified by both code analysis and BATS; `assign`, `create`, and all `--output json` write forms verified by code analysis only.
+3. If `tool_input.command` — after passing the write-block check (postcondition #2) — contains any entry from the explicit read-only allowlist, the hook emits `permissionDecision: allow` and exits 0. The allowlist is evaluated AFTER the write-block. The allowlist has two families: Confidence: verified by code analysis (`hooks/require-review.sh:88-110`) and BATS tests `@test "require-review allows jr issue view"` (hooks.bats:15).
 
    **Plain forms (family a):**
    - `jr issue view`
@@ -74,15 +75,17 @@ removal_reason: null
    - `--output json assets search`
    - `--output json assets view`
 
-4. For any `jr` subcommand that does not match the explicit read-only allowlist (postcondition #3) and does not match the explicit write-block list (postcondition #2), the hook emits `permissionDecision: deny` with a reason instructing the operator to add the subcommand to the read-only allowlist if it is safe (fail-closed, SEC-002). Confidence: verified by code analysis (`hooks/require-review.sh:96-98`) and BATS test `hooks.bats:76-80`.
+4. For any `jr` subcommand that does not match the write-block list (postcondition #2) and does not match the read-only allowlist (postcondition #3), the hook emits `permissionDecision: deny` with a reason instructing the operator to add the subcommand to the read-only allowlist if it is safe (fail-closed, SEC-002). Confidence: verified by code analysis (`hooks/require-review.sh:112-114`) and BATS test `@test "require-review blocks unknown mutation-shaped jr subcommand (SEC-002)"` (hooks.bats:76).
 5. The exit code is always 0 for all business-logic decisions (both allow and deny). Exit code 1 is reserved exclusively for missing `jq` dependency. Confidence: verified by code analysis (`hooks/require-review.sh:29, 41`).
 
 ## Invariants
 
 1. The JSON output envelope structure is always `{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow"|"deny","permissionDecisionReason":"..."}}`. Confidence: verified by code analysis (`hooks/require-review.sh:27-42`).
 2. The hook never makes network calls, never spawns subprocesses beyond `jq`, and never reads the filesystem — all decisions are made from the single stdin JSON envelope. Execution is bounded at < 100ms. Confidence: verified by code analysis (full file).
-3. The hook is fail-closed for all `jr` subcommands: any `jr` command that is not on the explicit read-only allowlist results in deny, not allow. Non-`jr` commands remain on a fast-path allow. This replaced the previous fail-open behavior as of PR #13 (SEC-002). Confidence: verified by code analysis (`hooks/require-review.sh:96-98`).
-4. **`--output json` global flag placement creates a non-obvious substring matching boundary.** The command `jr --output json issue view KEY` does NOT contain the substring `jr issue view` because the global flag `--output json` sits between `jr` and `issue`. Therefore, the allowlist must carry both plain forms (e.g., `jr issue view`) and `--output json` forms (e.g., `--output json issue view`) as separate entries. A plain-form entry does not cover the `--output json` form of the same subcommand. This was the root cause of the DI-010 regression: the metrics suite issues `jr --output json issue changelog KEY`, but the v1.1 allowlist only had the plain form. Both families were added explicitly in PR #14. This invariant is documented in the source at `hooks/require-review.sh:55-59`.
+3. The hook is fail-closed for all `jr` subcommands: any `jr` command that is not on the write-block list and not on the read-only allowlist results in deny, not allow. Non-`jr` commands remain on a fast-path allow. This replaced the previous fail-open behavior as of PR #13 (SEC-002). Confidence: verified by code analysis (`hooks/require-review.sh:112-114`).
+5. **Write-block is evaluated BEFORE the allowlist (ADV-0-801, PR #15).** A command that matches both a write-block pattern and an allowlist pattern is DENIED — the write-block check wins unconditionally. This ordering was fixed in PR #15 to close a critical bypass: before the fix, `jr issue edit KEY --summary "see jr board"` matched the `jr board` allowlist token (line ~97 in the OLD file, before the deny block) and was incorrectly emitted allow. The fix moves the write-block to lines 67-78, evaluated before the allowlist block at lines 88-110. Confidence: verified by code analysis (`hooks/require-review.sh:52-56` — ordering rationale explicitly documented in source comment). See EC-016.
+
+4. **`--output json` global flag placement creates a non-obvious substring matching boundary.** The command `jr --output json issue view KEY` does NOT contain the substring `jr issue view` because the global flag `--output json` sits between `jr` and `issue`. Therefore, the allowlist must carry both plain forms (e.g., `jr issue view`) and `--output json` forms (e.g., `--output json issue view`) as separate entries. A plain-form entry does not cover the `--output json` form of the same subcommand. This was the root cause of the DI-010 regression: the metrics suite issues `jr --output json issue changelog KEY`, but the v1.1 allowlist only had the plain form. Both families were added explicitly in PR #14. This invariant is documented in the source at `hooks/require-review.sh:83-87`.
 
 ## Edge Cases
 
@@ -102,7 +105,8 @@ removal_reason: null
 | EC-012 | `jr --output json issue view SEC-123` (metrics suite form) | Allow — `--output json issue view` is in the allowlist. Note: `jr issue view` (plain) does NOT match this form due to Invariant #4 |
 | EC-013 | `jr --output json assets search objectType=Client` (CMDB query) | Allow — `--output json assets search` is in the allowlist (PR #14) |
 | EC-014 | `jr --version` | Allow — explicitly in the allowlist (PR #14) |
-| EC-015 | `jr --output json issue comment SEC-123 "msg"` | Deny via fail-closed catch-all (lines 96-98) — `jr issue comment` is NOT a substring of this command (Invariant #4: `--output json` sits between `jr` and `issue`, breaking the substring match); `--output json issue comment` (singular) is also not on the allowlist (allowlist has plural `--output json issue comments`). Reason contains "Unrecognized jr subcommand. Add to the read-only allowlist..." — the SEC-001 comment gate is NOT what triggers the deny here |
+| EC-015 | `jr --output json issue comment SEC-123 "msg"` | Deny via write-block (PR #15 — `hooks/require-review.sh:72`): `--output json issue comment ` (with trailing space guard) is now an explicit write-block entry. **Behavior change from v1.2-v1.6:** previously denied by fail-closed catch-all (old lines 96-98) because `jr issue comment` is NOT a substring of this command (Invariant #4). Now denied earlier and more explicitly by the `--output json` write-block family. |
+| EC-016 | `jr issue edit KEY --summary "see jr board"` (write command with embedded allowlist token) | Deny via write-block (PR #15 fix for ADV-0-801): `jr issue edit` matched at `hooks/require-review.sh:68` BEFORE the allowlist is evaluated. **Old behavior (bypass — FIXED):** the command contained the allowlist substring `jr board`, which was matched first (old ordering: allowlist before write-block), incorrectly emitting allow. New ordering ensures write-block wins unconditionally (Invariant #5). |
 
 ## Canonical Test Vectors
 
@@ -117,6 +121,7 @@ removal_reason: null
 | `jr issue edit SEC-123 --priority Critical` | `permissionDecision: deny`, reason contains "review approval" | error |
 | `jr issue move SEC-123 Enriched` | `permissionDecision: deny` | error |
 | `jr issue duplicate SEC-123` | `permissionDecision: deny`, reason contains "allowlist" | edge-case (SEC-002 fail-closed) |
+| `jr issue edit KEY --summary "see jr board"` | `permissionDecision: deny`, reason contains "review approval" (write-block wins before allowlist token "jr board" reached — ADV-0-801 bypass, now fixed) | edge-case (EC-016) |
 
 ## Verification Properties
 
@@ -146,10 +151,10 @@ removal_reason: null
 
 | Property | Value |
 |----------|-------|
-| **Path** | `plugins/secops-factory/hooks/require-review.sh` (98 lines, post-PR #14) + `.ps1` sibling |
-| **Confidence** | high — explicit allow/deny logic fully visible in source; BATS tests at `tests/hooks.bats:9-93` exercise all documented paths; 138 total tests in the suite |
+| **Path** | `plugins/secops-factory/hooks/require-review.sh` (115 lines, post-PR #15) + `.ps1` sibling |
+| **Confidence** | high — explicit allow/deny logic fully visible in source; BATS tests at `tests/hooks.bats:9-93` exercise all documented paths; 138+ total tests in the suite (PR #15 may have added new tests) |
 | **Extraction Date** | 2026-07-19 |
-| **Last Verified Against** | commit 0ec794a (PR #14 merge commit) |
+| **Last Verified Against** | commit d304fa5 (PR #15 merge commit) |
 
 #### Change Log
 
@@ -172,20 +177,29 @@ removal_reason: null
 | `--output json issue view/list/comments/changelog/assets` | DI-010: metrics suite uses global `--output json` flag | Deny (plain forms don't match) | Allow (separate family, lines 74-78) |
 | `--output json assets search/view` | CMDB queries via metrics suite | Deny | Allow (lines 79-80) |
 
-**DI-010 root cause (documented in source at `hooks/require-review.sh:55-59`):** `jr issue view KEY` is NOT a substring of `jr --output json issue view KEY` because the global flag `--output json` sits between `jr` and `issue`. Separate allowlist entries are required for each family. See Invariant #4.
+**DI-010 root cause (documented in source at `hooks/require-review.sh:83-87`):** `jr issue view KEY` is NOT a substring of `jr --output json issue view KEY` because the global flag `--output json` sits between `jr` and `issue`. Separate allowlist entries are required for each family. See Invariant #4.
+
+**PR #15 (commit d304fa5, 2026-07-19) — CRITICAL evaluation-order fix (ADV-0-801) and `--output json` write-block addition (v1.6 → v1.7):**
+
+| Change | Driver | Old Behavior (v1.2-v1.6) | New Behavior (v1.7) |
+|--------|--------|--------------------------|---------------------|
+| Write-block evaluated before allowlist | ADV-0-801 (CRITICAL bypass) | allowlist evaluated first (lines 60-82), write-block at lines 88-94 — a command containing both a write-block token AND an allowlist token was incorrectly ALLOWED | write-block evaluated first (lines 67-78), allowlist at lines 88-110 — write-block wins unconditionally |
+| `--output json` write forms added to write-block | ADV-0-801 defense-in-depth | `jr --output json issue edit/comment/move/assign/create` hit fail-closed only | `--output json issue comment/edit/move/assign/create` added as explicit write-block entries (lines 72-76) |
+
+**ADV-0-801 bypass example (now fixed):** `jr issue edit KEY --summary "see jr board"` — this command contains the substring `jr board` (a valid allowlist entry). Under the old ordering (allowlist first), the `jr board` check matched at line ~97 (old), emitting allow BEFORE the write-block check at line ~88. Under the new ordering (write-block first), `jr issue edit` is matched at line 68, emitting deny before the allowlist is ever evaluated.
 
 **BATS test changes (PR #14):** Lines 21-67 in `hooks.bats` are eight new allow tests covering changelog plain/json forms, `--output json` issue view/list/comments, assets search/view (CMDB), and `jr --version`. Total test count: 130 → 138.
 
 #### Evidence Types Used
 
-- **guard clause**: fast-path allow for non-`jr ` commands (`hooks/require-review.sh:47-50`)
-- **guard clause**: 21-entry explicit read-only allowlist (14 plain + 7 `--output json`), all `emit_allow` (`hooks/require-review.sh:60-82`)
-- **guard clause**: 5-entry explicit write-block list → `emit_deny` with "review approval" (`hooks/require-review.sh:88-94 (deny at :93)`)
-- **guard clause**: fail-closed catch-all `emit_deny` for unrecognized subcommands (`hooks/require-review.sh:96-98`)
+- **guard clause**: fast-path allow for non-`jr ` commands (`hooks/require-review.sh:48-50`)
+- **guard clause**: write-block evaluated FIRST — 10-entry explicit write-block list (5 plain + 5 `--output json`) → `emit_deny` with "review approval" (`hooks/require-review.sh:67-78 (deny at :77)`)
+- **guard clause**: allowlist evaluated SECOND — 21-entry explicit read-only allowlist (14 plain + 7 `--output json`), all `emit_allow` (`hooks/require-review.sh:88-110`)
+- **guard clause**: fail-closed catch-all `emit_deny` for unrecognized subcommands (`hooks/require-review.sh:112-114`)
 - **type constraint**: JSON envelope structure enforced by `jq -nc` output template
 - **assertion**: `command -v jq` check — exits 1 if dependency missing (`hooks/require-review.sh:20-23`)
-- **documentation**: PR #14 header comment explicitly documents the `--output json` substring non-matching invariant (`hooks/require-review.sh:55-59`)
-- **inferred**: PowerShell `.ps1` sibling is behaviorally identical (enforced by `parity.bats`; PS1 confirmed to carry the same 14 plain + 7 `--output json` entries in `$readOnly` array at `require-review.ps1:48-59`)
+- **documentation**: header comment at `:52-63` explicitly documents write-block-first ordering, ADV-0-801 bypass, and `--output json` write-block family; `:83-87` documents the `--output json` substring non-matching invariant for the allowlist
+- **inferred**: PowerShell `.ps1` sibling is behaviorally identical (enforced by `parity.bats`; PS1 updated in PR #15 to match new ordering and `--output json` write-block entries)
 
 #### Purity Classification
 
@@ -203,6 +217,8 @@ The hook is pure: it reads stdin, applies pattern matching to a string field, an
 
 The `--output json` global-flag design means the allowlist cannot be expressed as a simple set of subcommand names — it must carry separate entries for plain forms and each global-flag variant. If the `jr` CLI adds more global flags in the future (e.g., `--format yaml`), corresponding allowlist families would need to be added. This is a known extensibility constraint, not a defect.
 
-**Security extensibility note (ADV-0-007):** `jr --output json issue comment` is denied by the fail-closed catch-all, NOT by the explicit SEC-001 write-block check. This is because `jr issue comment` is not a substring of `jr --output json issue comment` (Invariant #4 — the global flag breaks the substring). If the fail-closed behavior were ever relaxed or removed, the `--output json` forms of write operations (`jr --output json issue comment`, `jr --output json issue edit`, etc.) would bypass the SEC-001/SEC-002 gate entirely — they match neither the write-block list nor the allowlist. Defense-in-depth recommendation: add explicit `--output json issue comment`, `--output json issue edit`, `--output json issue move`, `--output json issue assign`, `--output json issue create` patterns to the write-block list in a future PR.
+**Security extensibility note (ADV-0-007, updated ADV-0-801):** `jr --output json issue comment` is now denied by the explicit write-block check at `hooks/require-review.sh:72` (PR #15). Prior to PR #15, it was denied only by the fail-closed catch-all — because `jr issue comment` is NOT a substring of `jr --output json issue comment` (Invariant #4 — the global flag breaks the substring). The defense-in-depth recommendation from ADV-0-007 (add `--output json` write forms to the write-block list) is now **RESOLVED**: PR #15 added all five `--output json` write forms (`--output json issue comment/edit/move/assign/create`) as explicit write-block entries at lines 72-76. The fail-closed catch-all at line 112-114 remains as a last-resort backstop.
 
 **Resolved (v1.1 drift item):** `jr issue changelog` was identified in v1.1 as a correctness gap blocking the metrics pipeline under fail-closed behavior. PR #14 (commit 0ec794a) added both `jr issue changelog` (plain) and `--output json issue changelog` (json form) to the allowlist, resolving DI-010. The v1.2 revision reflects this resolution.
+
+**Resolved (ADV-0-801 critical bypass):** PR #15 (commit d304fa5) fixed the allowlist-before-write-block evaluation order. The old order allowed a write command containing an embedded allowlist substring (e.g., `jr issue edit KEY --summary "see jr board"` matched `jr board`) to bypass the write gate. The new order evaluates the write-block first, making bypass impossible regardless of argument content.

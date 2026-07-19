@@ -4,12 +4,13 @@ artifact: security-audit
 project: secops-factory
 date: "2026-07-19"
 reviewer: security-reviewer
-total_findings: 8
-critical: 0
+total_findings: 9
+critical: 1
 high: 0
 medium: 1
 low: 4
 info: 3
+note: "SEC-009 (CRITICAL) was discovered post-audit by adversarial review ADV-0-801 and is RESOLVED (PR #15, d304fa5). Critical count reflects total found, not active."
 files_reviewed: 32
 threat_model: "analyst workstation — not internet-facing; threat actors are anyone with Jira project write access"
 ---
@@ -28,12 +29,14 @@ threat_model: "analyst workstation — not internet-facing; threat actors are an
 > **This findings body describes the codebase AS AUDITED (pre-fix snapshot).** The code excerpts and analysis below reflect the state of the codebase at audit time. They are a point-in-time record and intentionally not rewritten.
 >
 > For current status of each finding, see the **Disposition Table** immediately below. All LOW and MEDIUM findings (SEC-001 through SEC-005) were fixed and merged in PR #13 (f450d9f, 2026-07-19). A follow-up PR #14 (0ec794a, 2026-07-19) completed the read-only allowlist update required after SEC-002's fail-closed change.
+>
+> **Post-audit addition (2026-07-19):** Adversarial review pass ADV-0-801 discovered SEC-009 (CRITICAL) — a require-review allowlist-precedence bypass that also defeated the SEC-001 comment-gate added in PR #13. The write-block was evaluated after the read-only allowlist, so any write command embedding a read-only substring token bypassed the hook entirely. Fixed and merged in PR #15 (d304fa5, 2026-07-19). See SEC-009 in the Post-Audit Findings section below.
 
 ### Disposition Table
 
 | ID | Severity | Title | Disposition |
 |----|----------|-------|-------------|
-| SEC-001 | MEDIUM | Prompt injection — jr comment path unblocked | MERGED (PR #13, f450d9f, 2026-07-19) |
+| SEC-001 | MEDIUM | Prompt injection — jr comment path unblocked | MERGED (PR #13, f450d9f, 2026-07-19); hard-gating completed by PR #15 (d304fa5) — the PR #13 comment deny-rule alone was bypassable via allowlist precedence (see SEC-009) |
 | SEC-002 | LOW | Fail-open for unrecognized jr subcommands | MERGED (PR #13, f450d9f, 2026-07-19); read-only allowlist completion in PR #14 (0ec794a, 2026-07-19) |
 | SEC-003 | LOW | Unpinned MCP server versions | MERGED (PR #13, f450d9f, 2026-07-19) |
 | SEC-004 | LOW | release.yml permissions over-scoped | MERGED (PR #13, f450d9f, 2026-07-19) |
@@ -41,6 +44,7 @@ threat_model: "analyst workstation — not internet-facing; threat actors are an
 | SEC-006 | INFO | jr CLI unversioned in docs | Open — accepted (low risk; no action required before release) |
 | SEC-007 | INFO | Tavily API key as URL query param | Open — accepted (local only, gitignored) |
 | SEC-008 | INFO | DI-001 CONFIRMED RESOLVED | Resolved (pre-existing, PR #12) |
+| SEC-009 | CRITICAL | require-review allowlist-precedence bypass (post-audit) | RESOLVED (PR #15, d304fa5, 2026-07-19) — found by adversarial review ADV-0-801 after original audit |
 
 ---
 
@@ -250,6 +254,40 @@ No CRITICAL or HIGH findings — pipeline may proceed.
 
 ---
 
+## Post-Audit Findings
+
+> The following findings were discovered after the original audit was completed, via adversarial review passes. They are appended here to maintain the pre-fix snapshot convention for the original findings body above.
+
+### SEC-009: require-review Allowlist-Precedence Bypass (Post-Audit — RESOLVED)
+
+- **Severity:** CRITICAL (at time of discovery; now RESOLVED)
+- **CWE:** CWE-696 (Incorrect Behavior Order), CWE-284 (Improper Access Control)
+- **OWASP:** A01: Broken Access Control
+- **Discovered by:** VSDD Phase 0 adversarial review ADV-0-801 (pass 8, 2026-07-19)
+- **Attack Vector:**
+  In `require-review.sh` / `.ps1` as modified by PR #13 (which added `jr issue comment` to the write-block list), the evaluation order was: (1) read-only allowlist check — allow if match; (2) write-block check — deny if match. Because the allowlist was checked first and used unanchored substring matching, any write command that also contained a read-only substring token would match the allowlist and be allowed before the write-block could fire.
+
+  Example exploit string: `jr issue view SEC-001 && jr issue edit SEC-001 --priority Critical`
+  This contains `jr issue view` (allowlist hit) and `jr issue edit` (write-block hit). With the original order, `jr issue view` matched first and `emit_allow` fired, returning before the write-block was evaluated. All four write operations (`edit`, `move`, `assign`, `create`) were bypassable this way. The same logic defeated the SEC-001 comment gate added in PR #13 (`jr issue comment`).
+
+- **Impact:**
+  CRITICAL. The review gate — the primary enforcement mechanism in the hook architecture — was entirely bypassable via command chaining. Any prompt injection (SEC-001) or direct LLM-constructed command could include a read-only prefix to bypass the gate with no human friction. The intended security guarantee of requiring review before Jira writes was not provided by the post-PR #13 code.
+- **Evidence:**
+  `require-review.sh` (post-PR #13, pre-PR #15) evaluation order:
+  ```
+  # Check 1: read-only allowlist (emit_allow on first substring match)
+  if [[ "$COMMAND" == *"jr issue view"* ]] || ...  → emit_allow
+  # Check 2: write-block (never reached if allowlist matched)
+  if [[ "$COMMAND" == *"jr issue edit"* ]] || ...  → emit_deny
+  ```
+  Write commands embedding any allowlisted token (e.g., `jr issue view`) would exit at the allowlist check, never reaching the write-block.
+- **Proposed Mitigation (as implemented in PR #15):**
+  Reorder evaluation: write-block check runs before the read-only allowlist. Also add explicit deny patterns for `jr issue edit --output json`, `jr issue move --output json`, etc. (write forms that include flags which could match partial allowlist tokens). Red-to-green BATS test suite validates the fix.
+- **Resolution:**
+  RESOLVED — PR #15 (d304fa5, 2026-07-19): write-block reordered before allowlist; `--output json` write forms added to the block list; BATS tests updated from red to green for all bypass scenarios.
+
+---
+
 ## Findings Summary Table
 
 | ID | Severity | CWE | Title |
@@ -262,6 +300,7 @@ No CRITICAL or HIGH findings — pipeline may proceed.
 | SEC-006 | INFO | CWE-1104 | jr CLI unversioned in documentation |
 | SEC-007 | INFO | CWE-312 | Tavily API key as URL query parameter in local .mcp.json |
 | SEC-008 | INFO | N/A | DI-001 CONFIRMED RESOLVED — no credentials in git history |
+| SEC-009 | CRITICAL (RESOLVED) | CWE-696, CWE-284 | require-review allowlist-precedence bypass — post-audit, found by ADV-0-801 |
 
 ---
 

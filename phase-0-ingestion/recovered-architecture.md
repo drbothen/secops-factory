@@ -16,6 +16,7 @@
 >
 > **Changelog (2026-07-19, adversarial review pass 7):**
 > - ADV-0-701: Propagated SEC-001/PR#13 5-verb write-block update to C-12 prose row and YAML interfaces_provided. Both now list comment/edit/move/assign/create and note SEC-002 fail-closed default-deny.
+> - ADV-0-805: Downgraded "valid DAG" claim to "manually verified acyclic (edge-by-edge reasoning; no graph tool or DFS script was run)" in Circular Dependencies table and YAML notes for C-2.
 > - Observation: Corrected C-3 textual DAG parenthetical — Morgan is set as default agent by activate, not dispatched per-request by C-1.
 
 ---
@@ -107,7 +108,7 @@ components:
     interfaces_provided: ["19 SKILL.md procedure files with staged workflows, Iron Laws, Red Flag tables"]
     interfaces_consumed: ["data/ KBs via ${CLAUDE_PLUGIN_ROOT} path", "templates/ schemas", "checklists/ quality gates", "jr CLI via Bash", "Perplexity MCP tools"]
     confidence: "high"
-    notes: "C-3 (orchestrator) is NOT a dependency of skill-procedures — the orchestrator dispatches skills at runtime. C-2→C-3 was a back-edge forming a cycle; removed per ADV-0-303. adversarial-review-secops (within C-2) statically references review-convergence-workflow.md (C-6) per DI-003 — C-6 has been added to C-2.dependencies per ADV-0-407. This is an acyclic forward-edge: C-2→C-6→C-8→{C-19,C-21,C-24}, no path back to C-2."
+    notes: "C-3 (orchestrator) is NOT a dependency of skill-procedures — the orchestrator dispatches skills at runtime. C-2→C-3 was a back-edge forming a cycle; removed per ADV-0-303. adversarial-review-secops (within C-2) statically references review-convergence-workflow.md (C-6) per DI-003 — C-6 has been added to C-2.dependencies per ADV-0-407. Manually verified acyclic (edge-by-edge reasoning; no DFS tool was run): C-2→C-6→C-8→{C-19,C-21,C-24}, no path back to C-2."
 
   - id: C-3
     name: "orchestrator-agent"
@@ -474,7 +475,7 @@ Notable intra-skill dependencies (via Skill tool invocation):
 
 | Cycle | Components | Severity | Notes |
 |-------|-----------|----------|-------|
-| None detected (post ADV-0-303 + ADV-0-407) | — | — | The dependency graph is a valid DAG. Former cycle: C-2 (skill-procedures) listed C-3 (orchestrator-agent) in its dependencies, AND C-3 listed C-2 — an explicit mutual dependency. Resolved by removing "C-3" from C-2.dependencies: skills do not depend on the orchestrator; the orchestrator dispatches skills (correct direction: C-3→C-2). ADV-0-407: the DI-003 edge adversarial-review-secops→C-6 (static file reference to review-convergence-workflow.md) is now explicit in C-2.dependencies. Acyclic: C-2→C-6→C-8→{C-19,C-21,C-24} — no path from any of these back to C-2. |
+| None detected (post ADV-0-303 + ADV-0-407) | — | — | The dependency graph is **manually verified acyclic (edge-by-edge reasoning; no graph tool or DFS script was run)**. Former cycle: C-2 (skill-procedures) listed C-3 (orchestrator-agent) in its dependencies, AND C-3 listed C-2 — an explicit mutual dependency. Resolved by removing "C-3" from C-2.dependencies: skills do not depend on the orchestrator; the orchestrator dispatches skills (correct direction: C-3→C-2). ADV-0-407: the DI-003 edge adversarial-review-secops→C-6 (static file reference to review-convergence-workflow.md) is now explicit in C-2.dependencies. Manual edge-by-edge check: C-2→C-6→C-8→{C-19,C-21,C-24} — no path from any of these back to C-2. |
 
 ### External Dependencies
 

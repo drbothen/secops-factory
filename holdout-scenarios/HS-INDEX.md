@@ -1,14 +1,14 @@
 ---
 document_type: holdout-scenario-index
 level: ops
-version: "1.2"
+version: "1.3"
 status: active
 producer: product-owner
 timestamp: 2026-07-19T00:00:00
 phase: "0f-pre"
 generated_from: phase-0-ingestion/behavioral-contracts/
 module_criticality_source: specs/module-criticality.md
-scenario_count: 25
+scenario_count: 26
 ---
 
 # Holdout Scenario Index — secops-factory Brownfield Regression Baseline
@@ -17,17 +17,24 @@ scenario_count: 25
 > - v1.0 (2026-07-19): Initial generation — 25 scenarios, all must-pass (Step 0f-pre).
 > - v1.1 (2026-07-19): ADV-0-505 — HS-010 regenerated against BC-3.02.001 v1.1 semantics (partial investigation save flipped to deny; fixture changed to all-four-headings-present).
 > - v1.2 (2026-07-19): ADV-0-602 — HS-014 reclassified from must-pass to fix-target / should-pass (pending DI-004); baseline updated to 24 must-pass + 1 fix-target.
+> - v1.3 (2026-07-19): ADV-0-801 — added HS-026 (require-review bypass coverage hole; embedded read-only token in write command; PR #15 regression guard); ADV-0-806 — renamed Full Scenario Listing "Category" column to "Scenario Type" facet; updated HS-008 regression marker (SEC-001 fully gated by PR #15). Baseline: 26 scenarios, 25 must-pass + 1 fix-target.
 
 > **WARNING:** This index and all files in this directory are stored under
 > `.factory/holdout-scenarios/` and must NEVER be shown to the implementer
 > or test-writer agents. The information asymmetry between builder and
 > evaluator is the core quality mechanism (DF-009).
 
-Step 0f-pre produced 25 regression baseline scenarios from 10 behavioral contracts
-(2 CRITICAL, 7 HIGH, 1 MEDIUM). All scenarios use `category: regression-baseline`
-and `epic_id: BROWNFIELD-REGRESSION`.
+Step 0f-pre seeded 25 regression baseline scenarios from 10 behavioral contracts
+(2 CRITICAL, 7 HIGH, 1 MEDIUM); one additional scenario (HS-026) was added by
+ADV-0-801 for a total of **26 scenarios**.
 
-**Baseline split:** 24 scenarios use `priority: must-pass` (current HEAD passes).
+All scenarios carry `category: regression-baseline` in their frontmatter (the
+epic-level grouping field). The "Scenario Type" column in the Full Scenario Listing
+below is a separate facet describing the *test style* (security-probes,
+behavioral-subtleties, edge-case-combinations) — it is distinct from the
+frontmatter `category` field. All scenarios use `epic_id: BROWNFIELD-REGRESSION`.
+
+**Baseline split:** 25 scenarios use `priority: must-pass` (current HEAD passes).
 1 scenario (HS-014) uses `priority: should-pass` / `fix_target: pending DI-004` —
 it encodes INTENDED post-fix behavior that current HEAD fails by design of the
 open DI-004 defect. HS-014 MUST NOT be counted in the must-pass gate until the
@@ -37,7 +44,7 @@ heading-anchored fix lands. (ADV-0-602 reclassification, 2026-07-19.)
 
 | Module | BC | Tier | Scenario Count | HS IDs |
 |--------|----|------|---------------|--------|
-| require-review hook | BC-3.01.001 | CRITICAL | 4 | HS-001, HS-002, HS-003, HS-004 |
+| require-review hook | BC-3.01.001 | CRITICAL | 5 | HS-001, HS-002, HS-003, HS-004, HS-026 |
 | update-jira skill | BC-4.02.001 | CRITICAL | 4 | HS-005, HS-006, HS-007, HS-008 |
 | enrichment-completeness hook | BC-3.02.001 | HIGH | 3 | HS-009, HS-010, HS-011 |
 | disposition-guard hook | BC-3.03.001 | HIGH | 3 | HS-012, HS-013, HS-014 |
@@ -47,12 +54,12 @@ heading-anchored fix lands. (ADV-0-602 reclassification, 2026-07-19.)
 | investigate-event skill | BC-5.01.001 | HIGH | 2 | HS-021, HS-022 |
 | activate skill | BC-6.01.001 | HIGH | 2 | HS-023, HS-024 |
 | deactivate skill | BC-6.01.002 | MEDIUM | 1 | HS-025 |
-| **TOTAL** | | | **25** | HS-001 – HS-025 |
+| **TOTAL** | | | **26** | HS-001 – HS-026 |
 
 ## Full Scenario Listing
 
-| HS ID | Title | BC | Tier | Category |
-|-------|-------|----|------|----------|
+| HS ID | Title | BC | Tier | Scenario Type |
+|-------|-------|----|------|---------------|
 | HS-001 | require-review Hook — Jira Write Blocked Without Review Approval | BC-3.01.001 | CRITICAL | security-probes |
 | HS-002 | require-review Hook — Read-Only Jira Operations Allowed | BC-3.01.001 | CRITICAL | security-probes |
 | HS-003 | require-review Hook — jr issue assign Blocked | BC-3.01.001 | CRITICAL | security-probes |
@@ -78,13 +85,14 @@ heading-anchored fix lands. (ADV-0-602 reclassification, 2026-07-19.)
 | HS-023 | activate Skill — Corrupt settings.local.json Is Not Overwritten | BC-6.01.001 | HIGH | security-probes |
 | HS-024 | activate Skill — Competing Agent Detected, User Asked for Confirmation Before Replace | BC-6.01.001 | HIGH | behavioral-subtleties |
 | HS-025 | deactivate Skill — Does Not Remove Another Plugin's Agent | BC-6.01.002 | MEDIUM | behavioral-subtleties |
+| HS-026 | require-review Hook — Write Command With Embedded Read-Only Token Still Blocked | BC-3.01.001 | CRITICAL | security-probes |
 
 ## Minimum Coverage Gate (Step 0f-pre Quality Check)
 
-- [x] At least 2 scenarios per CRITICAL module: require-review (4), update-jira (4)
+- [x] At least 2 scenarios per CRITICAL module: require-review (5), update-jira (4)
 - [x] At least 1 scenario per HIGH module: enrichment-completeness (3), disposition-guard (3), enrich-ticket (2), review-enrichment (2), adversarial-review-secops (2), investigate-event (2), activate (2)
 - [x] All scenarios cite the behavioral contract element they derive from
-- [x] 24/25 scenarios use `priority: must-pass`; 1/25 (HS-014) uses `priority: should-pass` / `fix_target: pending DI-004` — excluded from must-pass gate (ADV-0-602)
+- [x] 25/26 scenarios use `priority: must-pass`; 1/26 (HS-014) uses `priority: should-pass` / `fix_target: pending DI-004` — excluded from must-pass gate (ADV-0-602)
 - [x] All scenarios use `epic_id: BROWNFIELD-REGRESSION`
 - [x] Scenarios are actionable without knowledge of plugin internals (black-box, analyst's-seat perspective)
 
@@ -93,5 +101,6 @@ heading-anchored fix lands. (ADV-0-602 reclassification, 2026-07-19.)
 | HS ID | Tracks Known Issue | Severity | Status |
 |-------|-------------------|----------|--------|
 | HS-003 | SM-2 surviving mutant: `jr issue assign` untested in BATS | LOW | Neutralized by fail-closed default (PR #13); `assign` now denied by both explicit blocklist AND fail-closed fallthrough. Scenario retained as regression baseline. |
-| HS-008 | SEC-001 prompt-injection vector: ticket body content reaching update-jira writer unfiltered | LOW | Fixed via PR #13 (fail-closed default reduces attack surface); scenario retained as regression baseline to prevent reintroduction. |
-| HS-014 | DI-004 / SM-1 false-pass: negating body text defeats disposition-guard substring check | HIGH | OPEN — heading-anchored fix not yet landed; reclassified to fix-target / should-pass (ADV-0-602); excluded from 24-scenario must-pass baseline. Promote to must-pass when DI-004 is resolved. |
+| HS-008 | SEC-001 prompt-injection vector: ticket body content reaching update-jira writer unfiltered | LOW | Fully gated by PR #15 (embedded-token routing fix closes the bypass path PR #13 partially addressed); scenario retained as regression baseline to prevent reintroduction. |
+| HS-026 | ADV-0-801 bypass: write command with embedded read-only token routes to allow | LOW | Fixed by PR #15 (embedded-token routing); HS-026 added as regression guard against reintroduction. |
+| HS-014 | DI-004 / SM-1 false-pass: negating body text defeats disposition-guard substring check | HIGH | OPEN — heading-anchored fix not yet landed; reclassified to fix-target / should-pass (ADV-0-602); excluded from 25-scenario must-pass baseline. Promote to must-pass when DI-004 is resolved. |

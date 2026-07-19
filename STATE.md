@@ -4,7 +4,7 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-19T17:00:00Z
+timestamp: 2026-07-19T18:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
@@ -79,6 +79,7 @@ dtu_required: false
 | 0f-adv pass 5 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass5.md` — 6 findings (0C/2M/4m), all remediated. Finding decay: 12→11→7→8(1FP)→6; majors: 6→5→4→3→2; zero criticals for 3 consecutive passes. Core axes GREEN: census (24/43+derivation), DAG, VP namespaces, Iron-Law attributions, 138 tests, holdout distribution, DI statuses. ADV-0-501: cross-BC enrichment-completeness/disposition-guard contradiction resolved via HOOK-ISOLATED annotations. ADV-0-502: integrations DTU mock corrected to deny. HS-010 v1.1. Capstone v1.5. Pass 6 dispatched as convergence-candidate (bar: 0C+0M). |
 | 0f-adv pass 6 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass6.md` — 6 findings (0C/2M/4m), all remediated. Decay 12→11→7→8(1FP)→6→6; zero criticals 4 consecutive passes. ADV-0-601: SEC-001 comment-deny propagated to consumer BCs (BC-4.02.001 v1.1, BC-5.01.001 v1.2, integrations corrected); DI-013 opened. ADV-0-602: HS-014 reclassified fix-target; baseline 24/25 must-pass + 1 fix-target. ADV-0-605: EC-009 added to BC-3.03.001 v1.3 (DI-004 canonical vector). ADV-0-606: co-fire wiring VERIFIED. Pass 7 dispatched (convergence bar: 0C+0M). |
 | 0f-adv pass 7 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass7.md` — 6 findings (0C/2M/4m), all remediated via systematic grep sweep (12 hits, 4 unreported security-audit annotations). Root cause: incomplete fan-out of PR#13/SEC-001/DI-013 to sibling shards. Decay 12→11→7→8(1FP)→6→6→6; zero criticals 5 consecutive passes; content core GREEN 3 consecutive passes. Capstone v1.7 (400 lines). [process-gap-6]: fan-out discipline — grep sweep before consistency claims. Pass 8 dispatched (convergence bar: 0C+0M). |
+| 0f-adv pass 8 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass8.md` — 6 findings (1 real-code-CRITICAL / 1M / 4m). MILESTONE: ADV-0-801 was a LIVE SHIPPED-CODE VULNERABILITY — require-review allowlist evaluated BEFORE write-block with unanchored substring match, defeating CRITICAL auth gate and SEC-001 mitigation. FIXED PR #15 (d304fa5, 12 new BATS red→green, 55/55 + shellcheck clean). SEC-009 logged (CRITICAL-at-discovery, RESOLVED). BC-3.01.001 v1.7. DI-014 added (LOW, enrichment-completeness substring idiom). HS-026 added (bypass regression guard). Capstone v1.8. [process-gap-7]: substring-matching-idiom sweep. Lesson: HS-026 initial expected-result inverted — caught by orchestrator verification. Pass 9 dispatched. |
 
 ## Decisions Log
 
@@ -114,6 +115,7 @@ dtu_required: false
 | DI-011 | `hooks.json` has no JSON-Schema validation — no machine-readable contract for hook manifest structure | LOW | first Feature Mode cycle | 0f-adv pass 1 (ADV-0-009) | open |
 | DI-012 | `create-advisory`, `analyze-ticket-effort`, `assess-priority` (Iron Law at SKILL.md:13), and read-ticket injection entry point have no behavioral contracts — 3 Iron-Law skills + 1 injection surface with zero BC coverage | MEDIUM | PENDING HUMAN DECISION at Phase 0 gate (BC coverage expansion) | 0f-adv pass 3 (ADV-0-304 scope correction) | open |
 | DI-013 | Comment-gate workflow friction: `jr issue comment` unconditionally denied by require-review hook; consumer skills (investigate-event, orchestration) cannot complete their comment steps without human permission-override. Options: accept friction / implement marker mechanism / add dedicated non-blocked command | MEDIUM-HIGH | PENDING HUMAN DECISION at Phase 0 gate | 0f-adv pass 6 (ADV-0-601) | open |
+| DI-014 | enrichment-completeness hook uses same unanchored-grep substring-matching idiom as require-review pre-PR#15 — same class of bypass risk; scope: lower criticality because enrichment-completeness is not an auth gate | LOW | first Feature Mode cycle | 0f-adv pass 8 (ADV-0-803) | open |
 | DI-010 | SEC-002 fail-closed regression: `jr issue changelog` (read-only, used by metrics-analyst + 2 data KBs) wrongly denied. PR #14 merged (0ec794a): 11 read-only allowlist entries incl. `--output json` global-flag forms; root cause: global flag defeated substring match; 8 new BATS tests, 138/138 green. | HIGH | in flight | 0f project-context-synthesis | RESOLVED |
 
 ## Blocking Issues
@@ -128,8 +130,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 — step 0f-adv pass 8 in progress (convergence bar: 0C+0M) |
-| **Context** | Pass 7: 6 findings (0C/2M/4m), all remediated via systematic grep sweep. Decay 12→11→7→8(1FP)→6→6→6; zero criticals 5 consecutive passes; content core GREEN 3 consecutive passes. Process-gap-6 logged (fan-out discipline). Capstone v1.7 (400 lines). DI-001/DI-008/DI-009/DI-010 RESOLVED. CRITICAL: require-review hook, update-jira skill. |
+| **Position** | Phase 0 — step 0f-adv pass 9 in progress (convergence bar: 0C+0M) |
+| **Context** | Pass 8 MILESTONE: live shipped auth-gate bypass found and fixed (PR #15 d304fa5, SEC-009 RESOLVED). BC-3.01.001 v1.7 (write-block-first). Decay 12→11→7→8(1FP)→6→6→6+real-CRITICAL; process-gap-7 (substring-matching idiom); DI-014 added. Lesson: holdout expected-results must verify against merged code. DI-001/DI-008/DI-009/DI-010 RESOLVED. CRITICAL: update-jira skill (require-review now patched PR#15). |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

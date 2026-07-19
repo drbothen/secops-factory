@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
@@ -17,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-02
 lifecycle_status: active
 introduced: v0.6.0
-modified: ["v1.1-ADV-0-402-ADV-0-403-ADV-0-507-2026-07-19", "v1.2-ADV-0-501-2026-07-19", "v1.3-ADV-0-604-ADV-0-606-2026-07-19"]
+modified: ["v1.1-ADV-0-402-ADV-0-403-ADV-0-507-2026-07-19", "v1.2-ADV-0-501-2026-07-19", "v1.3-ADV-0-604-ADV-0-606-2026-07-19", "v1.4-ADV-0-803-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -33,6 +33,7 @@ removal_reason: null
 > - v1.1 (2026-07-19): ADV-0-402: Corrected EC-004 — investigation file with only "Alert Details" produces Deny, not Allow. The hook requires ALL FOUR sections before saving any investigation file; there is no partial-save capability. ADV-0-403: Re-anchored stale BATS test references from `hooks.bats:41-60` to current @test names (lines 97-115 post-PR #14). ADV-0-507 (pass-4 input-hash batch): input-hash established as dual-file block scalar (enrichment-completeness.sh + .ps1 sibling).
 > - v1.2 (2026-07-19): ADV-0-501: Extended Refactoring Notes to document workflow context — in the standard investigate-event workflow, Stage 7 generates from event-investigation-tmpl.yaml (a complete template satisfying all four section requirements), so the workflow never produces partial investigation files. Added note on single-shot template generation and complementary hook responsibilities.
 > - v1.3 (2026-07-19): ADV-0-604: Re-synced `modified:` array to include ADV-0-507 pass-4 dual-file entry in v1.1. ADV-0-606: Upgraded PC#3 confidence from "inferred" to "verified" based on confirmed hooks.json PreToolUse/Write matcher (both enrichment-completeness.sh and disposition-guard.sh in the same sequential Write hooks array).
+> - v1.4 (2026-07-19): ADV-0-803: Added DI-014 cross-reference in Invariant #1 and EC-008 — enrichment-completeness's section-heading substring check has the SAME unanchored `grep -qF` idiom as disposition-guard's DI-004/SM-1. Classified as DI-014 (LOW, bounded local blast radius: only affects local document completeness, not the Jira system of record).
 
 ## Preconditions
 
@@ -50,7 +51,7 @@ removal_reason: null
 
 ## Invariants
 
-1. The hook checks presence of section heading strings, not their content. A section heading with empty body passes the gate. This is a structural completeness check, not a content quality check. Confidence: verified by code analysis (grep logic only checks for heading string presence).
+1. The hook checks presence of section heading strings (by substring occurrence anywhere in the document content), not their content quality. A section heading with empty body passes the gate. This is a structural completeness check, not a content quality check. **Known matching idiom (DI-014):** The `grep -qF` check matches any occurrence of the section name string — including occurrences in body text that are not section headings (e.g., "See Remediation Guidance above" in a paragraph would satisfy the "Remediation Guidance" check). This is the same unanchored substring idiom as disposition-guard's DI-004/SM-1. Classified as **DI-014** (LOW severity — bounded local blast radius: only affects local document completeness quality, not the Jira system of record or any blocking gate. Target: same heading-anchored sweep as DI-004 in Feature Mode). Confidence: verified by code analysis (grep logic only checks for heading string presence).
 2. A file matching both `enrichment` and `investigation` as substrings would be checked against the enrichment list (first branch wins). Confidence: verified by code analysis — the two `if` blocks are non-overlapping in practice (`enrichment` check fires first, `investigation` check fires only if `file_path == *investigation*`). In practice, no filename matches both substrings.
 3. The hook never blocks a file whose path does not match either pattern, even if the content contains enrichment-like structure. File path is the routing discriminator. Confidence: verified by code analysis.
 
@@ -65,7 +66,7 @@ removal_reason: null
 | EC-005 | File path `investigation-ALERT-001.md`, content has "Disposition" but missing "Alternatives Considered" | Allow here — `enrichment-completeness` does not check Alternatives Considered; that is `disposition-guard`'s responsibility |
 | EC-006 | File path `enrichment-CVE-2024-1234.md`, all 5 sections present as `##` headings | Allow |
 | EC-007 | Malformed JSON stdin | `jq -r '.tool_input.file_path // empty'` returns empty; path doesn't match either pattern; emit allow |
-| EC-008 | Section present but misspelled (e.g., "Remediation Guidance " with trailing space) | The grep uses exact `-F` match; trailing space in content would fail. However the check is on the content string, not the heading — if "Remediation Guidance" appears anywhere in content (e.g., in body text), the check passes. |
+| EC-008 | Section present but misspelled (e.g., "Remediation Guidance " with trailing space) | The grep uses exact `-F` match; trailing space in content would fail. However the check is on the content string anywhere in the document — if "Remediation Guidance" appears anywhere (e.g., in body text rather than as a heading), the check incorrectly passes. This is the same unanchored substring idiom as disposition-guard's DI-004/SM-1; classified as DI-014 (LOW — see Invariant #1). |
 
 ## Canonical Test Vectors
 

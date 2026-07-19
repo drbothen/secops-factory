@@ -142,8 +142,8 @@ Every SKILL.md (except thin utility skills) follows this canonical section order
 | Input ingestion | `INPUT=$(cat)` — read full stdin once | `hooks/require-review.sh:25` |
 | Allow function name | `emit_allow()` — prints JSON envelope, exits 0 | `hooks/require-review.sh:27-30` (exit 0 at line 29), `hooks/enrichment-completeness.sh:20-23` (exit 0 at line 22) |
 | Deny function name | `emit_deny()` — takes reason arg, prints JSON via `jq -nc`, exits 0 | `hooks/require-review.sh:32-42` (exit 0 at line 41), `hooks/enrichment-completeness.sh:25-35` (exit 0 at line 34) |
-| Fast path ordering | Whitelist/allow conditions first (non-jr fast-path, then read-only jr allowlist), deny conditions at bottom | `hooks/require-review.sh:47-81` |
-| Fail-open for non-jr inputs | Non-jr commands take fast-path `emit_allow` immediately (line 49); unrecognized `jr` subcommands `emit_deny` (fail-CLOSED, SEC-002, PR #13) — prevents future jr write subcommands from bypassing the gate | `hooks/require-review.sh:47-50` (allow), `hooks/require-review.sh:96-98` (deny) |
+| Fast path ordering | **Non-jr fast-path FIRST** (emit allow), then **write-block SECOND** (emit deny), then read-only allowlist THIRD (emit allow), then fail-closed fallthrough LAST (emit deny). **CRITICAL:** write-block must be evaluated BEFORE the allowlist to prevent bypass via allowlist tokens embedded in write-command arguments (ADV-0-801/PR #15 — the old allow-first order was a CRITICAL vulnerability). | `hooks/require-review.sh:48-50` (fast-path), `:67-78` (write-block), `:88-110` (allowlist), `:112-114` (fail-closed) |
+| Fail-open for non-jr inputs | Non-jr commands take fast-path `emit_allow` immediately (line 48-50); unrecognized `jr` subcommands `emit_deny` (fail-CLOSED, SEC-002, PR #13) — prevents future jr write subcommands from bypassing the gate | `hooks/require-review.sh:48-50` (allow), `hooks/require-review.sh:112-114` (deny) |
 | Advisory hooks | Write to stderr only; always exit 0; never emit `permissionDecision` JSON | `hooks/bias-check-reminder.sh`, `hooks/handoff-validator.sh` |
 
 ### PowerShell Hook Pattern (`*.ps1`)
@@ -543,19 +543,25 @@ enforceable_rules:
       - "hooks/enrichment-completeness.sh:22, 34 (both exit 0)"
 
   - id: CONV-013
-    description: "Hook fail-open/fail-closed scoping — advisory hooks and non-jr inputs fail-open; require-review jr fallthrough is fail-CLOSED (SEC-002)"
+    description: "Hook evaluation order — write-block BEFORE allowlist; fail-closed fallthrough at end (ADV-0-801/PR #15)"
     pattern: |
+      require-review MUST evaluate in this order:
+        1. fast-path allow for non-jr commands
+        2. write-block DENY (before allowlist — CRITICAL)
+        3. read-only allowlist ALLOW
+        4. fail-closed DENY for unrecognized jr subcommands (SEC-002)
       advisory hooks (bias-check-reminder, handoff-validator, session-greeting): final action exits 0 with no permissionDecision deny.
-      require-review: fast-path allow for non-jr commands; final fallthrough emits emit_deny for unrecognized jr subcommands (fail-CLOSED).
       A final emit_allow in require-review is a security regression — must not be introduced.
+      Placing the allowlist before the write-block is a CRITICAL vulnerability (ADV-0-801) — a write command with an embedded allowlist substring (e.g., jr issue edit KEY --summary "see jr board") would bypass the deny gate.
     scope: "plugins/secops-factory/hooks/*"
     severity: error
-    notes: "Updated 2026-07-19 — SEC-002 (PR #13) changed require-review final fallthrough from emit_allow to emit_deny. SEC-001 (PR #14) moved jr issue comment from allowed to blocked. Implementers following pre-PR #13 conventions.md would revert a security fix."
+    notes: "Updated 2026-07-19 — SEC-002 (PR #13) changed require-review final fallthrough from emit_allow to emit_deny. SEC-001 (PR #14) moved jr issue comment from allowed to blocked. ADV-0-801 (PR #15) corrected evaluation order: write-block now evaluated BEFORE allowlist (old allow-first order was a CRITICAL bypass). Implementers following pre-PR #15 conventions.md would reintroduce a critical security bug."
     evidence:
-      - "hooks/require-review.sh:47-50 (non-jr fast-path emit_allow)"
-      - "hooks/require-review.sh:96-98 (fail-closed emit_deny for unrecognized jr subcommand, SEC-002)"
-      - "hooks/require-review.ps1 line 41-42 (non-jr fast-path Emit-Allow)"
-      - "hooks/require-review.ps1 final line (fail-closed Emit-Deny for unrecognized jr subcommand, SEC-002)"
+      - "hooks/require-review.sh:48-50 (non-jr fast-path emit_allow)"
+      - "hooks/require-review.sh:67-78 (write-block emit_deny BEFORE allowlist, ADV-0-801)"
+      - "hooks/require-review.sh:88-110 (read-only allowlist emit_allow)"
+      - "hooks/require-review.sh:112-114 (fail-closed emit_deny for unrecognized jr subcommand, SEC-002)"
+      - "hooks/require-review.ps1 (updated in PR #15 to match new ordering)"
 
   - id: CONV-014
     description: "plugin.json and marketplace.json versions must match"
@@ -631,3 +637,4 @@ enforceable_rules:
 | 2026-07-19 | ADV-0-002: Scoped fail-open/fail-CLOSED — require-review blocking gate is fail-CLOSED for unrecognized jr subcommands (SEC-002); advisory hooks and non-jr inputs remain fail-open. Updated line 146, MUST-Follow #9, MUST-AVOID #2, CONV-013. | PR #13 (SEC-002), PR #14 (SEC-001) |
 | 2026-07-19 | ADV-0-403/ADV-0-405: Re-anchored stale hooks.bats line citations to @test names + current line numbers (190, 185, group headers 7/95/117/136/156/183). Corrected fast-path line range in require-review.sh from 47-49 to 47-50. | PR #13/#14 |
 | 2026-07-19 | ADV-0-603: Re-anchored all require-review.sh header citations to HEAD (PR #14 added Invariant-4 comment block, shifting body down 7 lines). set -euo pipefail: 13→18; jq guard: 14-17→20-23; INPUT=$(cat): 19→25; emit_allow: 21-24→27-30 (exit 0 at 29); emit_deny: 26-34→32-42 (exit 0 at 41). CONV-012 exit-0 citations corrected: require-review.sh 23,35→29,41; enrichment-completeness.sh 24,35→22,34. | PR #14 |
+| 2026-07-19 | ADV-0-801 / PR #15: CRITICAL evaluation-order fix — write-block must be evaluated BEFORE the allowlist (old allow-first order was a bypass vulnerability). Updated Fast path ordering row, Fail-open row, and CONV-013 to the corrected order: fast-path → write-block (deny) → allowlist (allow) → fail-closed (deny). Line anchors updated to PR #15 HEAD. Added security note explaining why allow-first caused the bypass. | PR #15 (ADV-0-801) |

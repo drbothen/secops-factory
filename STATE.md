@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-19T00:00:00Z
+timestamp: 2026-07-19T01:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: brownfield
-current_step: "0a — project discovery (codebase-analyzer)"
+current_step: "0b — architecture recovery"
 current_cycle: ""
 dtu_required: false
 ---
@@ -37,7 +37,7 @@ dtu_required: false
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-19 |
 | **Current Phase** | 0: Codebase Ingestion |
-| **Current Step** | 0a — project discovery |
+| **Current Step** | 0b — architecture recovery |
 
 ## Phase Progress
 
@@ -63,7 +63,7 @@ dtu_required: false
 | repo-verification | devops-engineer | DONE | `.factory/phase-0-ingestion/repo-verification.md` — PASS; PR #11 merged |
 | repo-hardening | devops-engineer | DONE | SHA-pinned actions, job timeouts, security.yml; branch protection on main applied |
 | worktree-health | devops-engineer | DONE | PASS — .factory/ on factory-artifacts; remote sync confirmed |
-| 0a: project-discovery | codebase-analyzer | pending | — |
+| 0a: project-discovery | codebase-analyzer | DONE | `.factory/phase-0-ingestion/project-discovery.md` |
 
 ## Decisions Log
 
@@ -81,6 +81,14 @@ dtu_required: false
 | Market Intelligence | yes | Internal dev-tooling plugin; no external market |
 | Design System Extraction | yes | Internal dev-tooling plugin; no UI |
 
+## Drift Items
+
+<!-- Items flagged during codebase analysis for follow-up. Move resolved items to cycle files. -->
+
+| ID | Item | Severity | Target Step | Flagged By |
+|----|------|----------|-------------|------------|
+| DI-001 | Live API keys in untracked, non-gitignored `.envrc` and `.mcp.json` at repo root — exposure risk on accidental commit | HIGH | 0e-sec security audit triage | 0a project-discovery |
+
 ## Blocking Issues
 
 <!-- Open issues only. Move resolved issues to cycles/<cycle>/blocking-issues-resolved.md. -->
@@ -93,8 +101,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 — step 0a project discovery is next |
-| **Context** | Pre-pipeline complete. Environment gate PASS (perplexity+tavily MCP configured by human). Repo hardening shipped via PR #11. Branch protection on main enforced. .factory/ committed and pushed. |
+| **Position** | Phase 0 — step 0b architecture recovery is next |
+| **Context** | Step 0a complete. project-discovery.md produced. Codebase is a declarative Claude Code plugin (Markdown+JSON+Bash/PS1, no compiled artifact). Key finding: `.envrc` + `.mcp.json` are untracked and non-gitignored with live API keys — DI-001 logged, target step 0e-sec. Pre-pipeline complete. Environment gate PASS. Repo hardening shipped via PR #11. Branch protection on main enforced. |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

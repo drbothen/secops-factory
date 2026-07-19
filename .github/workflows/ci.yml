@@ -75,11 +75,9 @@ jobs:
           status=0
           for cmd in plugins/secops-factory/commands/*.md; do
             skill_name=$(basename "$cmd" .md)
-            if [ "$skill_name" != "secops-health" ]; then
-              if [ ! -d "plugins/secops-factory/skills/$skill_name" ]; then
-                echo "Command $cmd references missing skill $skill_name"
-                status=1
-              fi
+            if [ ! -d "plugins/secops-factory/skills/$skill_name" ]; then
+              echo "Command $cmd references missing skill $skill_name"
+              status=1
             fi
           done
           exit $status

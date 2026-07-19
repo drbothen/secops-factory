@@ -8,7 +8,7 @@ phase: 0
 step: "0f"
 project: secops-factory
 date: "2026-07-19"
-source_state: "v0.9.0 + PR #12 (gitignore) + PR #13 (SEC-001..005 fixed, merged f450d9f)"
+source_state: "v0.9.0 + PR #12 (gitignore) + PR #13 (SEC-001..005 fixed, merged f450d9f) + PR #14 (allowlist expansion, merged 0ec794a)"
 inputs:
   - phase-0-ingestion/project-discovery.md
   - phase-0-ingestion/recovered-architecture.md (+ arch-recov-api-surface.md, arch-recov-integrations.md)
@@ -126,7 +126,7 @@ Contract files: `.factory/phase-0-ingestion/behavioral-contracts/<id>.md`
 
 | BC | Subject | Tier | Verification |
 |----|---------|------|--------------|
-| BC-3.01.001 | require-review hook — Jira field-modification gate | CRITICAL | PARTIAL (revised v1.1, 2026-07-19 — SEC-001/SEC-002 reflected) |
+| BC-3.01.001 | require-review hook — Jira field-modification gate | CRITICAL | PARTIAL (revised v1.2, 2026-07-19 — PR #14 allowlist expansion + DI-010 resolved) |
 | BC-3.02.001 | enrichment-completeness hook — section completeness gate | HIGH | PARTIAL |
 | BC-3.03.001 | disposition-guard hook — Alternatives-required gate | HIGH | FULLY (core); false-pass edge open (DI-004) |
 | BC-3.04.001 | bias-check-reminder hook — PostToolUse advisory | LOW | PARTIAL |
@@ -140,18 +140,19 @@ Contract files: `.factory/phase-0-ingestion/behavioral-contracts/<id>.md`
 | BC-6.01.001 | activate skill — per-project activation lifecycle | HIGH | STRUCTURAL-ONLY |
 | BC-6.01.002 | deactivate skill — per-project deactivation | MEDIUM | STRUCTURAL-ONLY |
 
-> **BC-3.01.001 revision DONE (2026-07-19).** BC updated to v1.1 reflecting PR #13 (commit f450d9f)
-> behavior: SEC-001 (`jr issue comment` → deny, was allow), SEC-002 (unknown jr subcommand → deny/
-> fail-closed, was allow/fail-open). Postconditions #2 and #4 replaced, invariant #3 flipped,
-> edge cases EC-003/EC-009/EC-010 updated, canonical test vectors corrected, `modified:` set to
-> `["v0.9.x-PR13-2026-07-19"]`. Change log section added to Source Evidence in the BC file.
-> Additional finding surfaced: `jr issue changelog` is not on the read-only allowlist — will
-> deny under fail-closed behavior, blocking the metrics pipeline. Noted as drift item.
+> **BC-3.01.001 revised to v1.2 (2026-07-19).** PR #14 (commit 0ec794a) expanded the read-only
+> allowlist: added `jr issue changelog` (plain + `--output json` forms), `jr assets search/view`,
+> `jr --version`, and six more `--output json` forms for the metrics suite. EC-010 flips from
+> Deny to Allow. New Invariant #4 documents the `--output json` global-flag placement nuance
+> (root cause of DI-010: `jr issue view` is NOT a substring of `jr --output json issue view`).
+> `modified:` updated to include `"v0.9.x-PR14-2026-07-19"`. BATS count updated to 138.
+> **DI-010 RESOLVED** — `jr issue changelog` deny-under-fail-closed no longer blocks the metrics
+> pipeline. Fix merged via PR #14; state-manager to update STATE.md.
 
 ## 6. Verification Posture
 
 **Three-bucket roll-up: Fully 2 / Partially 11 / Un-verified 0** (of 13 BCs).
-Fully: BC-3.03.001, BC-3.06.001. **130/130 BATS pass** locally (was 129; +1 from PR #13 red-first tests).
+Fully: BC-3.03.001, BC-3.06.001. **138/138 BATS pass** locally (was 130 after PR #13; +8 from PR #14 metrics-suite allow tests).
 
 **The headline is the verification asymmetry:** the 6 deterministic **hooks** are genuinely
 behaviorally tested; the 7 LLM-executed **skills** are **structural-only** — BATS proves Iron Law text,
@@ -218,9 +219,13 @@ still open). DI-002/DI-003/DI-008/DI-009 are consistency/spec items, not behavio
 
 ## 10. Recent Changes (reflected in this document)
 
+- **PR #14 (merged, 0ec794a):** Read-only allowlist expanded — `jr issue changelog`, `jr assets search/view`,
+  `jr --version`, and full `--output json` family (7 forms) for metrics suite. DI-010 resolved (`jr issue
+  changelog` no longer blocked under fail-closed behavior). BATS 130→138 green.
+  **BC-3.01.001 revised to v1.2 (2026-07-19) — PR #14 allowlist + DI-010 resolution reflected.**
 - **PR #13 (merged, f450d9f):** SEC-001..005 fixed; `jr issue comment` now review-gated; require-review
   **fails closed** on unknown subcommands; MCP versions pinned; release.yml job-scoped perms; Semgrep pinned.
-  BATS 129→130 green. **BC-3.01.001 revised to v1.1 (2026-07-19) — SEC-001/SEC-002 now reflected.**
+  BATS 129→130 green.
 - **PR #12 (merged, da58b9a):** `.gitignore` covers `.envrc`/`.env`/`.mcp.json`/`.claude/settings.local.json`; DI-001 resolved.
 - **Repo hardening:** branch protection on `main`; Semgrep active in CI; SHA-pinned actions + job timeouts.
 - v0.6.0→v0.9.0 trajectory: orchestrator companion, cross-platform hooks + session greeting,
@@ -275,7 +280,7 @@ Index metadata only: `.factory/holdout-scenarios/HS-INDEX.md`.
 - [x] Context-budget estimate per architectural component + strategy recommendation
 - [x] No orphaned references
 - [x] Security posture reflects security-audit.md (post-fix state, SEC-001..005 merged)
-- [x] Recent changes (PR #12, PR #13) surfaced; BC-3.01.001 revised to v1.1 (done 2026-07-19)
+- [x] Recent changes (PR #12, PR #13, PR #14) surfaced; BC-3.01.001 revised to v1.2 (done 2026-07-19); DI-010 resolved
 
 ```yaml
 pass: 0

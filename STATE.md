@@ -4,7 +4,7 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-19T09:00:00Z
+timestamp: 2026-07-19T10:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
@@ -71,7 +71,7 @@ dtu_required: false
 | 0e5: module-criticality | codebase-analyzer | DONE | `.factory/specs/module-criticality.md` (new); `recovered-architecture.md` updated (16 Component-Map criticality fields). CRITICAL: require-review hook, update-jira skill. HIGH: 12 modules incl. disposition-guard (DI-004), hook manifests, pipeline skills, data KBs, test-suite+CI. Mutation kill-rate targets set: require-review >=95% (currently ~55-65%). SEC-001..005 in flight on `fix/phase0-security-findings`; security-audit.md commit deferred pending Disposition section. |
 | 0e-sec: security-audit | security-reviewer + human | DONE | `.factory/phase-0-ingestion/security-audit.md` — human gate PASSED. 0 critical / 0 high / 1 medium / 4 low / 3 info. SEC-001..005 FIXED via PR #13 (merged f450d9f, 130/130 BATS green): comment path review-gated, unknown jr subcommands fail-closed, MCP versions pinned in docs/mcp.json.example, release.yml job-scoped permissions, semgrep pinned 1.170.0. SEC-006/007 ACCEPTED (info, review at next release). |
 | 0f-pre: holdout-seeding | codebase-analyzer | DONE | `.factory/holdout-scenarios/` — 25 scenarios seeded (HS-INDEX.md + 25 brownfield-regression-*.md); 4+4 CRITICAL (require-review/update-jira), 16 HIGH across 7 modules, 1 MEDIUM; epic: BROWNFIELD-REGRESSION. Notable: HS-003 SM-2 surviving mutant; HS-008 SEC-001 injection vector (now fixed via PR #13, scenario retained as regression guard); HS-014 DI-004 false-pass; HS-021 end-to-end investigation gate. |
-| 0f: project-context-synthesis | codebase-analyzer | DONE | `.factory/phase-0-ingestion/project-context.md` (new, 287 lines, DF-021 shard links); `behavioral-contracts/BC-3.01.001.md` revised v1.0→v1.1 (PR #13 behavior: comment denied, unknown subcommands fail-closed). DI-010 logged: SEC-002 fail-closed regression — `jr issue changelog` (read-only) wrongly denied; fix in flight on `fix/jr-readonly-allowlist`. |
+| 0f: project-context-synthesis | codebase-analyzer | DONE | `.factory/phase-0-ingestion/project-context.md` (new, 287 lines, DF-021 shard links); `behavioral-contracts/BC-3.01.001.md` revised v1.0→v1.1 (PR #13 behavior). DI-010 logged (SEC-002 regression) then RESOLVED: PR #14 (0ec794a) — 11 read-only allowlist entries incl. `--output json` global-flag forms; root cause: global flag between `jr` and subcommand defeated substring match; 8 new BATS tests, suite 138/138. BC-3.01.001.md at v1.2. |
 
 ## Decisions Log
 
@@ -104,7 +104,7 @@ dtu_required: false
 | DI-007 | enrichment-completeness investigation-branch path untested; hook↔template section-name sync gap; handoff-validator 39/40 boundary not exercised | MEDIUM | first Feature Mode cycle | 0e verification-gap-analysis | open |
 | DI-008 | Component-Map numbering diverges between prose table and YAML in `recovered-architecture.md` — consistency validation needed | LOW | 0f-post consistency validation | 0e5 module-criticality | open |
 | DI-009 | hook-manifests component absent from machine-readable YAML component map — classified HIGH; YAML map is incomplete | HIGH | 0f-post consistency validation | 0e5 module-criticality | open |
-| DI-010 | SEC-002 fail-closed regression: `jr issue changelog` (read-only, used by metrics-analyst + 2 data KBs) wrongly denied by fail-closed fix; fix in flight on `fix/jr-readonly-allowlist` | HIGH | in flight | 0f project-context-synthesis | open |
+| DI-010 | SEC-002 fail-closed regression: `jr issue changelog` (read-only, used by metrics-analyst + 2 data KBs) wrongly denied. PR #14 merged (0ec794a): 11 read-only allowlist entries incl. `--output json` global-flag forms; root cause: global flag defeated substring match; 8 new BATS tests, 138/138 green. | HIGH | in flight | 0f project-context-synthesis | RESOLVED |
 
 ## Blocking Issues
 
@@ -118,8 +118,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 — step 0f-adv adversarial review is next |
-| **Context** | Steps 0a–0f complete. project-context.md capstone produced (287 lines). BC-3.01.001.md revised to v1.1. DI-010 logged: SEC-002 fail-closed regression on `jr issue changelog`; fix in flight on `fix/jr-readonly-allowlist`. DI-001 RESOLVED (PR #12). DI-002–DI-009 open. CRITICAL: require-review hook, update-jira skill. |
+| **Position** | Phase 0 — step 0f-adv adversarial review dispatched |
+| **Context** | Steps 0a–0f complete. BC-3.01.001.md at v1.2; project-context.md updated. DI-010 RESOLVED (PR #14, 138/138 BATS). DI-001 RESOLVED (PR #12). DI-002–DI-009 open. CRITICAL: require-review hook, update-jira skill. |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

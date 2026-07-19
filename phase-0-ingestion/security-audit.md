@@ -267,8 +267,8 @@ No CRITICAL or HIGH findings — pipeline may proceed.
 - **Attack Vector:**
   In `require-review.sh` / `.ps1` as modified by PR #13 (which added `jr issue comment` to the write-block list), the evaluation order was: (1) read-only allowlist check — allow if match; (2) write-block check — deny if match. Because the allowlist was checked first and used unanchored substring matching, any write command that also contained a read-only substring token would match the allowlist and be allowed before the write-block could fire.
 
-  Example exploit string: `jr issue view SEC-001 && jr issue edit SEC-001 --priority Critical`
-  This contains `jr issue view` (allowlist hit) and `jr issue edit` (write-block hit). With the original order, `jr issue view` matched first and `emit_allow` fired, returning before the write-block was evaluated. All four write operations (`edit`, `move`, `assign`, `create`) were bypassable this way. The same logic defeated the SEC-001 comment gate added in PR #13 (`jr issue comment`).
+  Canonical exploit string: `jr issue edit KEY --summary "see jr board"`
+  This contains `jr board` (allowlist hit) and `jr issue edit` (write-block hit). With the original order, `jr board` matched first and `emit_allow` fired, returning before the write-block was evaluated. All five write operations (`comment`, `edit`, `move`, `assign`, `create`) were bypassable this way via any embedded allowlist token. Note: command-chaining (e.g., `jr issue view SEC-001 && jr issue edit ...`) is also covered — the substring match fires on the full command string regardless of preceding chained commands.
 
 - **Impact:**
   CRITICAL. The review gate — the primary enforcement mechanism in the hook architecture — was entirely bypassable via command chaining. Any prompt injection (SEC-001) or direct LLM-constructed command could include a read-only prefix to bypass the gate with no human friction. The intended security guarantee of requiring review before Jira writes was not provided by the post-PR #13 code.

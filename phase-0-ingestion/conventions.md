@@ -136,14 +136,14 @@ Every SKILL.md (except thin utility skills) follows this canonical section order
 
 | Convention | Detail | Evidence |
 |-----------|--------|----------|
-| Shebang | `#!/usr/bin/env bash` | `hooks/require-review.sh:1`, `hooks/enrichment-completeness.sh:1` |
-| Error mode | `set -euo pipefail` | `hooks/require-review.sh:18`, `hooks/enrichment-completeness.sh:11` |
-| jq guard | Check `command -v jq` at top; write error to stderr; exit 1 | `hooks/require-review.sh:20-23`, `hooks/enrichment-completeness.sh:13-16` |
-| Input ingestion | `INPUT=$(cat)` — read full stdin once | `hooks/require-review.sh:25` |
-| Allow function name | `emit_allow()` — prints JSON envelope, exits 0 | `hooks/require-review.sh:27-30` (exit 0 at line 29), `hooks/enrichment-completeness.sh:20-23` (exit 0 at line 22) |
-| Deny function name | `emit_deny()` — takes reason arg, prints JSON via `jq -nc`, exits 0 | `hooks/require-review.sh:32-42` (exit 0 at line 41), `hooks/enrichment-completeness.sh:25-35` (exit 0 at line 34) |
-| Fast path ordering | **Non-jr fast-path FIRST** (emit allow), then **write-block SECOND** (emit deny), then read-only allowlist THIRD (emit allow), then fail-closed fallthrough LAST (emit deny). **CRITICAL:** write-block must be evaluated BEFORE the allowlist to prevent bypass via allowlist tokens embedded in write-command arguments (ADV-0-801/PR #15 — the old allow-first order was a CRITICAL vulnerability). | `hooks/require-review.sh:48-50` (fast-path), `:67-78` (write-block), `:88-110` (allowlist), `:112-114` (fail-closed) |
-| Fail-open for non-jr inputs | Non-jr commands take fast-path `emit_allow` immediately (line 48-50); unrecognized `jr` subcommands `emit_deny` (fail-CLOSED, SEC-002, PR #13) — prevents future jr write subcommands from bypassing the gate | `hooks/require-review.sh:48-50` (allow), `hooks/require-review.sh:112-114` (deny) |
+| Shebang | `#!/usr/bin/env bash` | require-review.sh (shebang), `hooks/enrichment-completeness.sh:1` |
+| Error mode | `set -euo pipefail` | require-review.sh (`set -euo pipefail`), `hooks/enrichment-completeness.sh:11` |
+| jq guard | Check `command -v jq` at top; write error to stderr; exit 1 | jq-availability guard in require-review.sh, `hooks/enrichment-completeness.sh:13-16` |
+| Input ingestion | `INPUT=$(cat)` — read full stdin once | require-review.sh (`INPUT=$(cat)` — stdin ingestion) |
+| Allow function name | `emit_allow()` — prints JSON envelope, exits 0 | emit_allow in require-review.sh (exit 0), `hooks/enrichment-completeness.sh:20-23` (exit 0 at line 22) |
+| Deny function name | `emit_deny()` — takes reason arg, prints JSON via `jq -nc`, exits 0 | emit_deny in require-review.sh (exit 0), `hooks/enrichment-completeness.sh:25-35` (exit 0 at line 34) |
+| Fast path ordering | **Non-jr fast-path FIRST** (emit allow), then **write-block SECOND** (emit deny), then read-only allowlist THIRD (emit allow), then fail-closed fallthrough LAST (emit deny). **CRITICAL:** write-block must be evaluated BEFORE the allowlist to prevent bypass via allowlist tokens embedded in write-command arguments (ADV-0-801/PR #15 — the old allow-first order was a CRITICAL vulnerability). | fast-path guard (emit_allow non-jr), write-block if-block (emit_deny), read-only allowlist (emit_allow), fail-closed catch-all (emit_deny) — all in require-review.sh |
+| Fail-open for non-jr inputs | Non-jr commands take fast-path `emit_allow` immediately; unrecognized `jr` subcommands `emit_deny` (fail-CLOSED, SEC-002, PR #13) — prevents future jr write subcommands from bypassing the gate | fast-path guard (allow) and fail-closed catch-all (deny) in require-review.sh |
 | Advisory hooks | Write to stderr only; always exit 0; never emit `permissionDecision` JSON | `hooks/bias-check-reminder.sh`, `hooks/handoff-validator.sh` |
 
 ### PowerShell Hook Pattern (`*.ps1`)
@@ -539,7 +539,7 @@ enforceable_rules:
     scope: "plugins/secops-factory/hooks/*.sh"
     severity: error
     evidence:
-      - "hooks/require-review.sh:29, 41 (both exit 0)"
+      - "emit_allow and emit_deny in require-review.sh (both exit 0)"
       - "hooks/enrichment-completeness.sh:22, 34 (both exit 0)"
 
   - id: CONV-013
@@ -557,10 +557,10 @@ enforceable_rules:
     severity: error
     notes: "Updated 2026-07-19 — SEC-002 (PR #13) changed require-review final fallthrough from emit_allow to emit_deny. SEC-001 (PR #14) moved jr issue comment from allowed to blocked. ADV-0-801 (PR #15) corrected evaluation order: write-block now evaluated BEFORE allowlist (old allow-first order was a CRITICAL bypass). Implementers following pre-PR #15 conventions.md would reintroduce a critical security bug."
     evidence:
-      - "hooks/require-review.sh:48-50 (non-jr fast-path emit_allow)"
-      - "hooks/require-review.sh:67-78 (write-block emit_deny BEFORE allowlist, ADV-0-801)"
-      - "hooks/require-review.sh:88-110 (read-only allowlist emit_allow)"
-      - "hooks/require-review.sh:112-114 (fail-closed emit_deny for unrecognized jr subcommand, SEC-002)"
+      - "fast-path guard in require-review.sh: emit_allow for non-jr commands"
+      - "write-block if-block in require-review.sh: emit_deny BEFORE allowlist (ADV-0-801)"
+      - "read-only allowlist in require-review.sh: emit_allow"
+      - "fail-closed catch-all in require-review.sh: emit_deny for unrecognized jr subcommand (SEC-002)"
       - "hooks/require-review.ps1 (updated in PR #15 to match new ordering)"
 
   - id: CONV-014
@@ -638,3 +638,4 @@ enforceable_rules:
 | 2026-07-19 | ADV-0-403/ADV-0-405: Re-anchored stale hooks.bats line citations to @test names + current line numbers (190, 185, group headers 7/95/117/136/156/183). Corrected fast-path line range in require-review.sh from 47-49 to 47-50. | PR #13/#14 |
 | 2026-07-19 | ADV-0-603: Re-anchored all require-review.sh header citations to HEAD (PR #14 added Invariant-4 comment block, shifting body down 7 lines). set -euo pipefail: 13→18; jq guard: 14-17→20-23; INPUT=$(cat): 19→25; emit_allow: 21-24→27-30 (exit 0 at 29); emit_deny: 26-34→32-42 (exit 0 at 41). CONV-012 exit-0 citations corrected: require-review.sh 23,35→29,41; enrichment-completeness.sh 24,35→22,34. | PR #14 |
 | 2026-07-19 | ADV-0-801 / PR #15: CRITICAL evaluation-order fix — write-block must be evaluated BEFORE the allowlist (old allow-first order was a bypass vulnerability). Updated Fast path ordering row, Fail-open row, and CONV-013 to the corrected order: fast-path → write-block (deny) → allowlist (allow) → fail-closed (deny). Line anchors updated to PR #15 HEAD. Added security note explaining why allow-first caused the bypass. | PR #15 (ADV-0-801) |
+| 2026-07-19 | ADV-0-A01: Replaced all live require-review.sh line-number citations in Bash Hook Pattern table (Shebang, Error mode, jq guard, Input ingestion, Allow/Deny function rows, Fast path ordering, Fail-open rows), CONV-012 evidence, and CONV-013 evidence with construct-name references (fast-path guard / write-block if-block / read-only allowlist / fail-closed catch-all / jq-availability guard / emit_allow / emit_deny). Historical Document History entries preserved as-is. | ADV-0-A01 |

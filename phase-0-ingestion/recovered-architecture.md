@@ -18,6 +18,9 @@
 > - ADV-0-701: Propagated SEC-001/PR#13 5-verb write-block update to C-12 prose row and YAML interfaces_provided. Both now list comment/edit/move/assign/create and note SEC-002 fail-closed default-deny.
 > - ADV-0-805: Downgraded "valid DAG" claim to "manually verified acyclic (edge-by-edge reasoning; no graph tool or DFS script was run)" in Circular Dependencies table and YAML notes for C-2.
 > - Observation: Corrected C-3 textual DAG parenthetical — Morgan is set as default agent by activate, not dispatched per-request by C-1.
+>
+> **Changelog (2026-07-19, adversarial review pass 10):**
+> - Observation/ADV-0-A05: Corrected C-15 bias-check-reminder trigger scope in prose table and YAML interfaces_provided — was "after research tool calls", now "on every Bash call and Perplexity MCP call (hooks.json matcher Bash|mcp__perplexity__*)", matching BC-3.04.001 v1.3 verified trigger scope.
 
 ---
 
@@ -62,7 +65,7 @@ advisory-writer. Three canonical workflow playbooks live alongside the orchestra
 | C-12 | require-review hook | `hooks/require-review.{sh,ps1}` | Enforcement | PreToolUse/Bash: blocks `jr issue comment/edit/move/assign/create` without review approval; fail-closed default-deny for unrecognized subcommands (SEC-002) |
 | C-13 | enrichment-completeness hook | `hooks/enrichment-completeness.{sh,ps1}` | Enforcement | PreToolUse/Write: blocks saving enrichment/investigation docs with missing sections |
 | C-14 | disposition-guard hook | `hooks/disposition-guard.{sh,ps1}` | Enforcement | PreToolUse/Write: blocks investigation disposition without "Alternatives Considered" |
-| C-15 | bias-check-reminder hook | `hooks/bias-check-reminder.{sh,ps1}` | Enforcement | PostToolUse/Bash+Perplexity: injects cognitive bias reminder after research tool calls |
+| C-15 | bias-check-reminder hook | `hooks/bias-check-reminder.{sh,ps1}` | Enforcement | PostToolUse/Bash+Perplexity: injects cognitive bias reminder on every Bash call and Perplexity MCP call (hooks.json matcher `Bash\|mcp__perplexity__*`) |
 | C-16 | handoff-validator hook | `hooks/handoff-validator.{sh,ps1}` | Enforcement | SubagentStop: validates structured handoffs between agents |
 | C-17 | session-greeting hook | `hooks/session-greeting.{sh,ps1}` | Enforcement | SessionStart: activation-gated banner when orchestrator is the default agent |
 | C-18 | Hook manifests | `hooks/hooks.json`, `hooks/hooks.json.windows` | Configuration | Wires hook events to handler scripts; cross-platform variants |
@@ -251,7 +254,7 @@ components:
     purity: "effectful-shell"
     criticality: "LOW"
     dependencies: []
-    interfaces_provided: ["PostToolUse/Bash+Perplexity: injects cognitive bias self-check after research tool calls"]
+    interfaces_provided: ["PostToolUse/Bash+Perplexity: injects cognitive bias self-check on every Bash call and Perplexity MCP call (hooks.json matcher Bash|mcp__perplexity__*)"]
     interfaces_consumed: ["Claude Code hook event envelope (JSON via stdin)"]
     confidence: "high"
 

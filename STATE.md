@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-19T03:00:00Z
+timestamp: 2026-07-19T04:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: brownfield
-current_step: "0d — spec reverse-engineering"
+current_step: "0e — verification gap analysis"
 current_cycle: ""
 dtu_required: false
 ---
@@ -37,7 +37,7 @@ dtu_required: false
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-19 |
 | **Current Phase** | 0: Codebase Ingestion |
-| **Current Step** | 0d — spec reverse-engineering |
+| **Current Step** | 0e — verification gap analysis |
 
 ## Phase Progress
 
@@ -66,6 +66,7 @@ dtu_required: false
 | 0a: project-discovery | codebase-analyzer | DONE | `.factory/phase-0-ingestion/project-discovery.md` |
 | 0b: architecture-recovery | codebase-analyzer | DONE | `.factory/phase-0-ingestion/recovered-architecture.md`, `arch-recov-api-surface.md`, `arch-recov-integrations.md` |
 | 0c: convention-extraction | codebase-analyzer | DONE | `.factory/phase-0-ingestion/conventions.md` — 20 enforceable rules extracted; 2 style ambiguities flagged: `secops(<scope>)` vs `feat(<scope>)` commit-prefix conflict; `secops-health` anomaly tracked as DI-002 |
+| 0d: spec-reverse-engineering | codebase-analyzer | DONE | `.factory/phase-0-ingestion/behavioral-contracts/` — 13 BCs recovered (BC-3.01.001–BC-3.06.001, BC-4.01.001–BC-4.04.001, BC-5.01.001, BC-6.01.001–BC-6.01.002); 7 spec ambiguities documented for Phase 1 routing: review-approval marker storage/session-persistence unspecified; require-review hook cannot recognize approval; hook/template section-name sync gap; disposition-guard body-text false-pass; handoff-validator undocumented 40-char threshold; Honest Convergence 3-item boundary ambiguity; bias-check hook trigger scope unclear |
 
 ## Decisions Log
 
@@ -105,8 +106,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 — step 0d spec reverse-engineering is next |
-| **Context** | Steps 0a–0c complete. conventions.md produced (20 enforceable rules; 2 style ambiguities flagged). DI-001 RESOLVED (PR #12). DI-002/DI-003 open (low severity, routed to Phase 1). Codebase confirmed: declarative Claude Code plugin, layered commands→skills→agents, cross-platform hook parity. |
+| **Position** | Phase 0 — step 0e verification gap analysis is next |
+| **Context** | Steps 0a–0d complete. 13 BCs recovered; 7 spec ambiguities routed to Phase 1. DI-001 RESOLVED (PR #12). DI-002/DI-003 open (low, Phase 1). Codebase confirmed: declarative Claude Code plugin, layered commands→skills→agents, cross-platform hook parity. |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

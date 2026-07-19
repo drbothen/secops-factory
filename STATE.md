@@ -4,7 +4,7 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-19T06:00:00Z
+timestamp: 2026-07-19T07:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
@@ -69,6 +69,7 @@ dtu_required: false
 | 0d: spec-reverse-engineering | codebase-analyzer | DONE | `.factory/phase-0-ingestion/behavioral-contracts/` — 13 BCs recovered (BC-3.01.001–BC-3.06.001, BC-4.01.001–BC-4.04.001, BC-5.01.001, BC-6.01.001–BC-6.01.002); 7 spec ambiguities documented for Phase 1 routing: review-approval marker storage/session-persistence unspecified; require-review hook cannot recognize approval; hook/template section-name sync gap; disposition-guard body-text false-pass; handoff-validator undocumented 40-char threshold; Honest Convergence 3-item boundary ambiguity; bias-check hook trigger scope unclear |
 | 0e: verification-gap-analysis | codebase-analyzer | DONE | `.factory/phase-0-ingestion/verification-gap-analysis.md` — 2 fully / 11 partially / 0 unverified of 13 BCs; verification asymmetry: hooks behaviorally tested, skills structural-only; 4 gaps logged as DI-004–DI-007; estimated remediation ~4-5 days |
 | 0e5: module-criticality | codebase-analyzer | DONE | `.factory/specs/module-criticality.md` (new); `recovered-architecture.md` updated (16 Component-Map criticality fields). CRITICAL: require-review hook, update-jira skill. HIGH: 12 modules incl. disposition-guard (DI-004), hook manifests, pipeline skills, data KBs, test-suite+CI. Mutation kill-rate targets set: require-review >=95% (currently ~55-65%). SEC-001..005 in flight on `fix/phase0-security-findings`; security-audit.md commit deferred pending Disposition section. |
+| 0e-sec: security-audit | security-reviewer + human | DONE | `.factory/phase-0-ingestion/security-audit.md` — human gate PASSED. 0 critical / 0 high / 1 medium / 4 low / 3 info. SEC-001..005 FIXED via PR #13 (merged f450d9f, 130/130 BATS green): comment path review-gated, unknown jr subcommands fail-closed, MCP versions pinned in docs/mcp.json.example, release.yml job-scoped permissions, semgrep pinned 1.170.0. SEC-006/007 ACCEPTED (info, review at next release). |
 
 ## Decisions Log
 
@@ -115,7 +116,7 @@ dtu_required: false
 |-------|-------|
 | **Date** | 2026-07-19 |
 | **Position** | Phase 0 — step 0f-pre holdout seeding is next |
-| **Context** | Steps 0a–0e5 complete. module-criticality.md produced; recovered-architecture.md criticality fields populated. CRITICAL: require-review hook + update-jira skill; mutation kill-rate targets set. SEC-001..005 in flight on `fix/phase0-security-findings`; security-audit.md deferred pending Disposition section. DI-008/DI-009 logged (Component-Map numbering drift; hook-manifests absent from YAML map). DI-001 RESOLVED (PR #12). DI-002–DI-007 open. |
+| **Context** | Steps 0a–0e-sec complete. Security audit human gate PASSED: 0 crit/0 high/1 med/4 low/3 info. SEC-001..005 FIXED (PR #13 f450d9f, 130/130 BATS green). SEC-006/007 ACCEPTED (info). DI-001 RESOLVED (PR #12). DI-002–DI-009 open. CRITICAL modules: require-review hook, update-jira skill. |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

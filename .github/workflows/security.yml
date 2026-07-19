@@ -18,7 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
+      - name: Install Semgrep
+        run: pip install semgrep==1.170.0
+
+      - name: Verify Semgrep installation
+        run: semgrep --version
+
       - name: Run Semgrep
-        uses: semgrep/semgrep-action@713efdd345f3035192eaa63f56867b88e63e4e5d # v1
-        with:
-          config: auto
+        run: semgrep --config auto --error .

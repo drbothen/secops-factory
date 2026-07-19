@@ -4,14 +4,13 @@ on:
   push:
     tags: ["v*"]
 
-permissions:
-  contents: write
-
 jobs:
   validate:
     name: Pre-release Validation
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read   # validate only reads repo contents; write not needed
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
@@ -54,6 +53,8 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: write  # required to create the GitHub release
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 

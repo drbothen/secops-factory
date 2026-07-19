@@ -18,10 +18,17 @@ PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
     [[ "$output" == *'"permissionDecision":"allow"'* ]]
 }
 
-@test "require-review allows jr issue comment" {
+@test "require-review blocks jr issue comment without review (SEC-001)" {
     run bash -c 'echo "{\"tool_input\": {\"command\": \"jr issue comment SEC-123 \\\"enrichment complete\\\"\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
     [ "$status" -eq 0 ]
-    [[ "$output" == *'"permissionDecision":"allow"'* ]]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
+    [[ "$output" == *"review approval"* ]]
+}
+
+@test "require-review blocks unknown mutation-shaped jr subcommand (SEC-002)" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr issue duplicate SEC-123\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"deny"'* ]]
 }
 
 @test "require-review blocks jr issue edit without review" {

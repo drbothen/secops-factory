@@ -1,14 +1,14 @@
 ---
 document_type: project-context
 level: L0
-version: "1.2"
+version: "1.3"
 status: active
 producer: codebase-analyzer
 phase: 0
 step: "0f"
 project: secops-factory
-date: "2026-07-19 (re-synced post adversarial pass 2)"
-source_state: "v0.9.0 + PR #12 (gitignore) + PR #13 (SEC-001..005 fixed, f450d9f) + PR #14 (read-only allowlist expansion / DI-010, 0ec794a); 41 commits / PRs #1–#14; BATS suite 138/138 green"
+date: "2026-07-19 (re-synced post adversarial pass 3)"
+source_state: "v0.9.0 + PR #12 (gitignore) + PR #13 (SEC-001..005 fixed, f450d9f) + PR #14 (read-only allowlist expansion / DI-010, 0ec794a); 41 commits / PRs #1–#14; BATS suite 138/138 green; 6-hook mutation aggregate ~75–80%"
 inputs:
   - phase-0-ingestion/project-discovery.md
   - phase-0-ingestion/recovered-architecture.md (+ arch-recov-api-surface.md, arch-recov-integrations.md)
@@ -18,7 +18,7 @@ inputs:
   - phase-0-ingestion/security-audit.md
   - specs/module-criticality.md
   - holdout-scenarios/HS-INDEX.md (index reference only — holdout-protected)
-  - STATE.md (drift items DI-002..DI-011)
+  - STATE.md (drift items DI-001..DI-012)
 ---
 
 # Project Context — secops-factory
@@ -70,8 +70,9 @@ commands/ (20 dispatch stubs) → agents/orchestrator/ (Morgan + 3 playbooks)
 External boundary: jr CLI (required) · Perplexity MCP (recommended) · NVD/EPSS/KEV (fallback)
 ```
 
-Full component catalog + machine-readable Component-Map YAML + DAG + data flows:
-`.factory/phase-0-ingestion/recovered-architecture.md`
+Full component catalog + machine-readable Component-Map YAML + dependency graph (now algorithmically
+verified **acyclic** — the C-2→C-3 back-edge was removed; orchestrator depends on skills, not the reverse)
++ data flows: `.factory/phase-0-ingestion/recovered-architecture.md`
 API surface (20 commands, dispatch table): `.factory/phase-0-ingestion/arch-recov-api-surface.md`
 Integrations / DTU candidates: `.factory/phase-0-ingestion/arch-recov-integrations.md`
 
@@ -98,8 +99,9 @@ bias-check-reminder / handoff-validator / session-greeting ≥70%. For require-r
 design **materially improves** assurance — SM-3 (fail-open) resolved and SM-2 (assign/create) rendered
 behaviorally inert by the default-deny fallthrough (PR #13) — but its **≥95% CRITICAL kill-rate target is
 NOT yet demonstrated met**: no per-hook mutation run has executed, and its individual kill rate is unmeasured
-(the ~55–65% figure in verification-gap-analysis is the aggregate across all 5 pure hooks, not this hook
-alone). The target stays open until Phase 6 / Feature Mode mutation testing. All other modules are
+(the authoritative current aggregate across the 6-hook mutation-testable set is **~75–80%**, up from a
+superseded ~55–65% pre-PR-13 baseline — verification-gap-analysis.md:190 — not a per-hook figure). The
+target stays open until Phase 6 / Feature Mode mutation testing. All other modules are
 declarative/LLM/static — tier governs review depth, not a numeric kill-rate.
 
 ## 3. Context Budget
@@ -178,12 +180,16 @@ existence, and agent frontmatter/tool constraints, but **no executable check con
 their preconditions/postconditions/invariants at runtime** (that is LLM behavior). Structural gates catch
 deletion/drift but are not behavioral verification of the Iron Laws.
 
-Surviving-mutant status re-synced post PR #13/#14: **SM-3 (require-review fail-open) RESOLVED** and
-**SM-2 (assign/create) NEUTRALIZED** by the fail-closed default-deny fallthrough — this materially improves
-require-review's assurance, but its **≥95% CRITICAL kill-rate target is not yet demonstrated met** (no
-per-hook mutation run; individual kill rate unmeasured). Still-open blind spots feed the drift items (§8):
-disposition-guard false-pass (SM-1 / DI-004), enrichment-completeness investigation branch (SM-4 / DI-007),
-pwsh-not-in-CI silent skip (DI-006). No coverage tool applies (declarative plugin); shellcheck clean on
+Manual mutation probe against the **6-hook mutation-testable set** (5 pure hooks + session-greeting's pure
+activation-gate sub-function): authoritative current aggregate kill-rate **~75–80%** (up from a superseded
+~55–65% pre-PR-13 baseline — verification-gap-analysis.md:190). Resolved/neutralized post PR #13/#14:
+**SM-3 (require-review fail-open) RESOLVED**, **SM-2 (assign/create) downgraded HIGH→LOW** (fail-closed
+default makes it near-equivalent), **SM-8 (session-greeting activation-gate) KILLED** by existing tests.
+Still-open blind spots feed the drift items (§8): **SM-1 disposition-guard false-pass (HIGH, DI-004)** —
+the one remaining HIGH mutant; SM-4 enrichment-completeness investigation branch (DI-007); SM-8b
+session-greeting `jq`-fallback branch (LOW, env-dependent); pwsh-not-in-CI silent skip (DI-006). require-review's
+**≥95% CRITICAL target is not yet demonstrated met** (no per-hook mutation run; individual kill rate
+unmeasured). No coverage tool applies (declarative plugin); shellcheck clean on
 `.sh`; `.ps1` still gets no static analysis.
 
 Detail + per-BC matrix + remediation plan: `.factory/phase-0-ingestion/verification-gap-analysis.md`
@@ -222,8 +228,8 @@ Detail + all findings/dispositions: `.factory/phase-0-ingestion/security-audit.m
 | DI-008 | Component-Map numbering diverged (prose table vs YAML) in recovered-architecture.md | LOW | **RESOLVED** (arch reconciled — C-1..C-24 agree end-to-end) | — |
 | DI-009 | hook-manifests component absent from machine-readable YAML component map | HIGH | **RESOLVED** (added as C-18 HIGH; tail renumbered to C-24) | — |
 | DI-010 | SEC-002 fail-closed regression: `jr issue changelog` (read-only, metrics suite) wrongly denied | HIGH | **RESOLVED** (PR #14, 0ec794a — allowlist expanded incl. `--output json` families; 8 new BATS; 138/138) | — |
-| DI-011 | `hooks.json`/`hooks.json.windows` validated by `jq .` only — no JSON-Schema for matcher/event/command structure; a malformed matcher silently de-wires the CRITICAL require-review gate | LOW | open | first Feature cycle |
-| DI-012 | **BC coverage is partial by design** (pass-2 observation): `create-advisory` and `analyze-ticket-effort` carry Iron Laws but have **no behavioral contract**; `read-ticket` (the SEC-001 prompt-injection entry point) is **uncontracted**. The 13 recovered BCs cover the highest-blast-radius modules, not every Iron-Law-bearing skill. | MEDIUM | **PENDING HUMAN DECISION** at Phase 0 gate — expand the BC set before Feature Mode, or accept partial coverage? | Phase 0 exit gate |
+| DI-011 | `hooks.json`/`hooks.json.windows` validated by `jq .` only — no JSON-Schema for matcher/event/command structure; a malformed matcher silently de-wires the CRITICAL require-review gate | LOW (likelihood-weighted; **consequence is HIGH** — silent de-wiring of the sole CRITICAL authz gate) | open | first Feature cycle |
+| DI-012 | **BC coverage is partial by design** (pass-2/3 observation): **three** Iron-Law-bearing skills have **no behavioral contract** — `assess-priority` ("NO PRIORITY ASSIGNMENT WITHOUT MULTI-FACTOR ASSESSMENT FIRST", `skills/assess-priority/SKILL.md:13`), `create-advisory`, `analyze-ticket-effort`; plus `read-ticket` (no Iron Law, but the SEC-001 prompt-injection entry point) is uncontracted. The 13 recovered BCs cover the highest-blast-radius modules, not every Iron-Law-bearing skill. | MEDIUM | **PENDING HUMAN DECISION** at Phase 0 gate — expand the BC set before Feature Mode, or accept partial coverage? | Phase 0 exit gate |
 
 Note: DI-005 is largely superseded by PR #13 (fail-open→fail-closed resolved, SM-2 neutralized); only a
 dedicated assign/create partition test remains, and it is no longer load-bearing. DI-002/DI-003/DI-011 are
@@ -243,6 +249,11 @@ consistency/spec/hardening items, not behavioral defects. DI-008/DI-009/DI-010 r
 
 ## 10. Recent Changes (reflected in this document)
 
+- **Adversarial pass 3 (2026-07-19):** mutation kill-rate re-anchored to the authoritative **~75–80%
+  aggregate for the 6-hook mutation-testable set** (vga:190; the ~55–65% baseline is superseded);
+  session-greeting mutants defined (SM-8 killed, SM-8b surviving LOW); DI-012 uncontracted-Iron-Law set
+  corrected to **three** skills (assess-priority, create-advisory, analyze-ticket-effort) + read-ticket;
+  DI-011 LOW clarified as likelihood-weighted (consequence HIGH); dependency graph noted verified acyclic.
 - **Adversarial pass 2 (2026-07-19):** census corrected to the authoritative **24-module aggregate
   (1/12/7/4)** — hook-manifests (C-18) is a counted HIGH member (was mis-stated as 23); require-review
   ≥95% assurance restated as **not yet demonstrated met** (no per-hook mutation run); git stats recounted
@@ -275,9 +286,10 @@ regression scenarios seeded.
 
 **Contract-coverage boundary (pending human decision — DI-012):** the 13 BCs cover the
 highest-blast-radius modules by design, not every Iron-Law-bearing skill. Known uncontracted surface:
-`create-advisory` and `analyze-ticket-effort` (both carry Iron Laws but have no BC) and `read-ticket`
-(the SEC-001 prompt-injection entry point). At the Phase 0 exit gate the human decides whether to expand
-the BC set before Feature Mode or accept partial coverage as the baseline.
+**three Iron-Law-bearing skills with no BC** — `assess-priority` ("NO PRIORITY ASSIGNMENT WITHOUT
+MULTI-FACTOR ASSESSMENT FIRST"), `create-advisory`, and `analyze-ticket-effort` — plus `read-ticket`
+(no Iron Law, but the SEC-001 prompt-injection entry point). At the Phase 0 exit gate the human decides
+whether to expand the BC set before Feature Mode or accept partial coverage as the baseline.
 
 **Would be NEW work (no code today; candidates for Feature Mode):**
 - Behavioral verification of skill Iron Laws (currently structural-only) — e.g., extracting pure
@@ -314,20 +326,20 @@ Index metadata only: `.factory/holdout-scenarios/HS-INDEX.md`.
 ## Quality Gate
 
 - [x] Self-contained — a reader understands the project without opening sub-documents
-- [x] Cross-references consistent — re-verified vs pass-2 shards: census **24 aggregate (1/12/7/4)** incl. hook-manifests C-18 / 43 per-artifact (2/16/20/5); range label, count, and member lists mutually consistent; templates 6, hooks 6+6+2 manifests; BC-3.01.001 v1.3 with VP-HOOK-020/021/022
+- [x] Cross-references consistent — re-verified vs pass-3 shards: census **24 aggregate (1/12/7/4)** incl. hook-manifests C-18 / 43 per-artifact (2/16/20/5); templates 6, hooks 6+6+2 manifests; BC-3.01.001 v1.3 with VP-HOOK-020/021/022; dependency graph verified acyclic
 - [x] Restricted areas justified per row; DI mis-cite corrected (hook-wiring cites DI-011, not DI-009)
 - [x] Context-budget estimate per architectural component + strategy recommendation
-- [x] No orphaned references (DI-008/DI-009 resolved; DI-010 added; DI-011 + DI-012 introduced)
-- [x] Security posture reflects security-audit.md (post-fix, SEC-001..005 merged; SM-2 neutralized / SM-3 resolved)
-- [x] Recent changes (PR #12/#13/#14 + adversarial passes 1 & 2) surfaced; BC-3.01.001 v1.3; DI-010 resolved
-- [x] Mutation targets corrected — 6 mutation-testable hooks (session-greeting ≥70%); require-review ≥95% target NOT yet demonstrated met (no per-hook mutation run)
-- [x] Partial-BC-coverage-by-design surfaced as a pending Phase 0 gate decision (DI-012; §11 boundary)
+- [x] No orphaned references (DI-008/DI-009 resolved; DI-010 added; DI-011 + DI-012 introduced; frontmatter DI range now DI-001..DI-012)
+- [x] Security posture reflects security-audit.md (post-remediation, SEC-001..005 MERGED; SM-3 resolved / SM-2 downgraded HIGH→LOW / SM-8 killed)
+- [x] Recent changes (PR #12/#13/#14 + adversarial passes 1–3) surfaced; BC-3.01.001 v1.3; DI-010 resolved
+- [x] Mutation figures re-anchored — 6-hook set aggregate **~75–80%** (vga:190; ~55–65% baseline superseded); require-review ≥95% target NOT yet demonstrated met (no per-hook mutation run)
+- [x] Partial-BC-coverage surfaced as pending Phase 0 gate decision (DI-012) — three uncontracted Iron-Law skills (assess-priority, create-advisory, analyze-ticket-effort) + read-ticket
 
 ```yaml
 pass: 0
 step: "0f"
 status: complete
-revision: "1.2 — re-synced post adversarial pass 2"
+revision: "1.3 — re-synced post adversarial pass 3"
 files_synthesized: 9
 timestamp: 2026-07-19T00:00:00Z
 next_step: "phase-1-spec-crystallization"

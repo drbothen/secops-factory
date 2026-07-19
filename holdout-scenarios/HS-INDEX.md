@@ -80,7 +80,8 @@ All use `priority: must-pass` and `epic_id: BROWNFIELD-REGRESSION`.
 
 ## Known Regression Markers
 
-| HS ID | Tracks Known Issue | Severity |
-|-------|-------------------|----------|
-| HS-003 | SM-2 surviving mutant: `jr issue assign` untested in BATS | HIGH |
-| HS-014 | DI-004 / SM-1 false-pass: negating text defeats disposition-guard substring check | HIGH |
+| HS ID | Tracks Known Issue | Severity | Status |
+|-------|-------------------|----------|--------|
+| HS-003 | SM-2 surviving mutant: `jr issue assign` untested in BATS | LOW | Neutralized by fail-closed default (PR #13); `assign` now denied by both explicit blocklist AND fail-closed fallthrough. Scenario retained as regression baseline. |
+| HS-008 | SEC-001 prompt-injection vector: ticket body content reaching update-jira writer unfiltered | LOW | Fixed via PR #13 (fail-closed default reduces attack surface); scenario retained as regression baseline to prevent reintroduction. |
+| HS-014 | DI-004 / SM-1 false-pass: negating body text defeats disposition-guard substring check | HIGH | OPEN — heading-anchored fix not yet landed; effective assurance below tier. |

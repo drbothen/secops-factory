@@ -23,6 +23,27 @@ threat_model: "analyst workstation — not internet-facing; threat actors are an
 
 ---
 
+## Post-Remediation Status (updated 2026-07-19)
+
+> **This findings body describes the codebase AS AUDITED (pre-fix snapshot).** The code excerpts and analysis below reflect the state of the codebase at audit time. They are a point-in-time record and intentionally not rewritten.
+>
+> For current status of each finding, see the **Disposition Table** immediately below. All LOW and MEDIUM findings (SEC-001 through SEC-005) were fixed and merged in PR #13 (f450d9f, 2026-07-19). A follow-up PR #14 (0ec794a, 2026-07-19) completed the read-only allowlist update required after SEC-002's fail-closed change.
+
+### Disposition Table
+
+| ID | Severity | Title | Disposition |
+|----|----------|-------|-------------|
+| SEC-001 | MEDIUM | Prompt injection — jr comment path unblocked | MERGED (PR #13, f450d9f, 2026-07-19) |
+| SEC-002 | LOW | Fail-open for unrecognized jr subcommands | MERGED (PR #13, f450d9f, 2026-07-19); read-only allowlist completion in PR #14 (0ec794a, 2026-07-19) |
+| SEC-003 | LOW | Unpinned MCP server versions | MERGED (PR #13, f450d9f, 2026-07-19) |
+| SEC-004 | LOW | release.yml permissions over-scoped | MERGED (PR #13, f450d9f, 2026-07-19) |
+| SEC-005 | LOW | Semgrep CI exits early | MERGED (PR #13, f450d9f, 2026-07-19) |
+| SEC-006 | INFO | jr CLI unversioned in docs | Open — accepted (low risk; no action required before release) |
+| SEC-007 | INFO | Tavily API key as URL query param | Open — accepted (local only, gitignored) |
+| SEC-008 | INFO | DI-001 CONFIRMED RESOLVED | Resolved (pre-existing, PR #12) |
+
+---
+
 ## Executive Summary
 
 secops-factory is a declarative Claude Code plugin with no compiled application code. The attack surface is:

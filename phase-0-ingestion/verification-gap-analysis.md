@@ -3,8 +3,9 @@
 > Analyzed by Dark Factory Phase 0e (Verification Gap Analysis)
 > Agent: formal-verifier (T3)
 > Source codebase: `/Users/jmagady/Dev/secops-factory`
-> Date: 2026-07-19 (original) · **re-synced 2026-07-19 post PR #12 / #13 / #14**
+> Date: 2026-07-19 (original) · **re-synced 2026-07-19 post PR #12 / #13 / #14 (pass 1)** · **updated post adversarial pass 3**
 > **Reconciliation note (ADV-0-003):** The original analysis reflected the pre-remediation baseline. Between authoring and adversarial pass 1, PR #12 (gitignore secrets), PR #13 (SEC-001/002 fail-closed + `jr issue comment` gated), and PR #14 (read-only allowlist expansion) merged. This revision re-verifies every affected finding against the current code/tests (post-PR-14) and marks resolved items with evidence. Findings not affected by those PRs (notably the disposition-guard false-pass) remain open and are re-confirmed live.
+> **Pass-3 update (ADV-0-302):** Aligned the mutation-testable set with the authoritative module-criticality decision — **six** hooks are mutation-testable (the 5 pure hooks + session-greeting's pure activation-gate sub-function, which carries a ≥70% numeric target even though the hook is effectful overall). Corrected all "5 pure hooks" framings, added session-greeting mutation vectors (SM-8 killed, SM-8b surviving), and confirmed the ~75–80% aggregate kill-rate as the authoritative current figure (adding session-greeting does not materially change it).
 > Scope note: This is a **declarative Claude Code plugin** (markdown + JSON + shell/PowerShell hooks + YAML templates). There is no compiled/interpreted production language, hence no conventional line/branch/function coverage, no Kani/CBMC target, and no cargo-mutants/mutmut/stryker target. This report re-frames every template section around the actual verification surface: **executable checks (BATS, CI validation, hook self-behavior) mapped to the 13 recovered behavioral contracts.**
 > Security scanning is intentionally **excluded** here — it is owned by Step 0e-sec (DF-031). See the deferral note under "Security Posture".
 
@@ -115,10 +116,11 @@
 | Classification | Count (executable components) | Notes |
 |---------------|-------------------------------|-------|
 | Pure core | 5 hooks | ideal verification target; already pure, no refactoring |
+| Mutation-testable set | **6 hooks** (5 pure + session-greeting's pure gate/compare sub-function) | per module-criticality, session-greeting carries a ≥70% numeric kill target — its activation-gate string comparison is a pure, enumerable sub-function even though the hook is *effectful overall* (reads `settings.local.json`) |
 | Effectful shell | 1 hook + 7 skills | pure sub-functions extractable |
 | Opaque (declarative) | 5 directory classes | verified by structural/existence checks, not purity |
 
-**Purity boundary intact:** none of the 5 pure-core hooks perform I/O beyond stdin→stdout/stderr or spawn subprocesses beyond `jq`; no global mutable state; deterministic. No side effects have leaked into the pure core.
+**Purity boundary intact:** none of the 5 pure-core hooks perform I/O beyond stdin→stdout/stderr or spawn subprocesses beyond `jq`; no global mutable state; deterministic. No side effects have leaked into the pure core. **session-greeting is effectful overall** (it reads `settings.local.json`), but its activation-gate/compare logic is a pure sub-function; that sub-function is the 6th member of the mutation-testable set and carries the ≥70% numeric kill target from module-criticality.
 
 ---
 
@@ -131,7 +133,7 @@
 | **Kani** (Rust) | **N/A** | no Rust production code |
 | **CBMC** (C/C++) | **N/A** | no C/C++ |
 | **proptest / hypothesis / fast-check** | **N/A** | no Rust/Python/JS production code |
-| **BATS exhaustive input-partition testing** | **YES — this is the plugin's formal-verification analog** | the 5 pure hooks are total string→JSON functions over small, enumerable input partitions; near-exhaustive coverage is achievable |
+| **BATS exhaustive input-partition testing** | **YES — this is the plugin's formal-verification analog** | the 5 pure hooks + session-greeting's pure gate sub-function (**6-hook mutation-testable set**) are total string→JSON functions over small, enumerable input partitions; near-exhaustive coverage is achievable |
 | **shellcheck** (`.sh` static analysis) | **YES — installed, CLEAN** | already run in CI on `hooks/*.sh` |
 | **PSScriptAnalyzer** (`.ps1` static analysis) | **YES but NOT ADOPTED** | no static analysis of `.ps1` anywhere; only a conditional parse-check when `pwsh` present |
 | **JSON Schema validation of hooks.json** | **YES but NOT ADOPTED** | only `jq .` validity check; no schema for matcher/event/command structure |
@@ -141,7 +143,7 @@
 
 | Component | Verifiable now? | Blocking issue | Effort to ready |
 |-----------|-----------------|----------------|-----------------|
-| 5 pure hooks | **yes** | none — already pure, BATS in place | ~0.3 day to add remaining partitions (dedicated assign/create positive test, jq-missing, investigation-branch, 39/40 boundary, false-pass fix). *fail-open closed by PR #13.* |
+| 6-hook mutation-testable set (5 pure + session-greeting gate sub-fn) | **yes** | none — already pure/enumerable, BATS in place | ~0.3 day to add remaining partitions (dedicated assign/create positive test, jq-missing, investigation-branch, 39/40 boundary, false-pass fix, session-greeting jq-fallback branch). *fail-open closed by PR #13.* |
 | session-greeting jq-fallback path | mostly | needs a PATH-without-`jq` fixture | ~1 hr |
 | Skill pure sub-functions (validation/scoring/merge) | no (not extracted) | logic lives only as prose in `SKILL.md`; not callable | ~1–2 days each to extract to a testable shim, OR accept as unverifiable LLM behavior |
 | Skill behavioral Iron-Law enforcement | **no** | inherently LLM-mediated; not formally verifiable | out of scope — mitigate with hook-layer gates + structural tests |
@@ -173,7 +175,7 @@
 | cargo-mutants / mutmut / stryker | **N/A** | no Rust/Python/JS production code to mutate |
 | **Manual mutation probe of pure hooks** | **applied** (below) | flip allow/deny, drop guard clauses, alter thresholds; check whether BATS catches |
 
-Automated mutation tooling does not exist for bash-as-config. A manual mutation probe was run against the 5 pure hooks by reasoning about which source mutations the current 138-test suite would fail to kill (re-run post PR #13/#14). Concrete **surviving mutants** (test-suite blind spots) were confirmed with live hook execution:
+Automated mutation tooling does not exist for bash-as-config. A manual mutation probe was run against the **6-hook mutation-testable set** (the 5 pure hooks + session-greeting's pure activation-gate sub-function) by reasoning about which source mutations the current 138-test suite would fail to kill (re-run post PR #13/#14). Both **surviving mutants** (test-suite blind spots) and representative **killed mutants** (SM-8) were confirmed with live hook execution:
 
 ### Surviving Mutants (confirmed)
 
@@ -186,8 +188,10 @@ Automated mutation tooling does not exist for bash-as-config. A manual mutation 
 | SM-5 | `handoff-validator.sh:27` | change threshold `40` → `1` or `1000` | boundary 39/40 never tested; only far-from-boundary values (2, 106) used | MEDIUM |
 | SM-6 | `require-review.sh:14-17` / all hooks | remove `jq`-missing guard (exit 1) | jq-absent path untested for every hook | LOW (env-dependent) |
 | SM-7 | `bias-check-reminder.sh` | drop "Availability" / "Automation" bias line, or the data-file reference | only Confirmation + Anchoring asserted | LOW (advisory hook) |
+| **SM-8** | `session-greeting.sh:35` (activation-gate compare `[ "$AGENT" = "secops-factory:orchestrator:orchestrator" ]`) | **negate the gate** — greet when the plugin is NOT activated / stay silent when it IS activated | **KILLED (not surviving).** The gate's two input partitions are both exercised by `hooks.bats` (current lines ~197–214; pre-remediation range 128–173): (a) `agent = "vsdd-factory:orchestrator:orchestrator"` → test *"session-greeting is silent when factory is not activated"* asserts empty output; (b) `agent = "secops-factory:orchestrator:orchestrator"` → test *"session-greeting greets when factory is activated"* asserts `"Morgan here"` + `systemMessage`. Negating the compare flips both partitions, so **at least one test fails → mutant killed.** All session-greeting tests pass in the current run (5/5). | **covered (killed)** |
+| SM-8b | `session-greeting.sh` jq-unavailable **fallback branch** (grep/printf path, Invariant 3) | delete/alter the `jq`-absent fallback | **SURVIVES** — no test runs the hook with `jq` off `PATH`, so the fallback gate/emit path is unguarded (ties to GAP-11) | LOW (env-dependent) |
 
-**Estimated current kill rate against the pure-hook mutation set: ~75–80% (up from ~55–65% at original baseline).** PR #13/#14 killed SM-3 (fail-closed) and neutralized SM-2 (fail-closed default). The remaining HIGH mutant is **SM-1 (disposition-guard false-pass), still open** — it sits on the anti-confirmation-bias Iron-Law path and should be killed before any behavior change ships. Module-criticality kill-rate targets are not formally defined for a plugin.
+**Estimated current kill rate against the 6-hook mutation-testable set: ~75–80% (up from ~55–65% at original baseline).** This ~75–80% figure is the **authoritative current aggregate** — downstream docs re-anchor to it. PR #13/#14 killed SM-3 (fail-closed) and neutralized SM-2 (fail-closed default). **Adding session-greeting to the set does not materially move the aggregate:** its activation-gate sub-function (SM-8) is already *killed* by existing tests (comfortably meeting the ≥70% module-criticality target for that hook), which offsets its one low-risk surviving vector (SM-8b, the untested `jq`-fallback branch). The remaining HIGH mutant is **SM-1 (disposition-guard false-pass), still open** — it sits on the anti-confirmation-bias Iron-Law path and should be killed before any behavior change ships. Module-criticality assigns per-hook numeric targets (session-greeting ≥70%); the aggregate above is the cross-set figure.
 
 ---
 
@@ -265,7 +269,7 @@ Each BC's "Undocumented behavior (ambiguity)" note was assessed for whether an *
 1. **GAP-5 hook↔template sync** — add as a Phase-6 (formal hardening) static gate; re-run whenever a template or hook section list changes.
 2. **GAP-7 skill pure-sub-function extraction** — when any skill's validation/merge/scoring logic is touched under Feature Mode, extract it to a shell shim with BATS coverage (converts structural-only → behavioral for the error-prone parts).
 3. **GAP-8 PSScriptAnalyzer** — add to the CI hardening lane alongside shellcheck.
-4. Adopt **near-exhaustive input-partition BATS** for the 5 pure hooks as the standing "formal verification" analog (documented under Formal Verification Readiness).
+4. Adopt **near-exhaustive input-partition BATS** for the **6-hook mutation-testable set** (5 pure hooks + session-greeting's pure gate sub-function) as the standing "formal verification" analog (documented under Formal Verification Readiness).
 
 ### Total Estimated Remediation Effort
 

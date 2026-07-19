@@ -34,6 +34,11 @@ submodule_census: "per-artifact: 43 modules — 2 CRITICAL / 16 HIGH / 20 MEDIUM
 > **C-24**; authoritative aggregate is now **24 modules — 1 CRITICAL / 12 HIGH / 7
 > MEDIUM / 4 LOW** (ADV-0-202); architect note #1 marked resolved (ADV-0-203);
 > require-review ≥95% target restated as NOT-yet-demonstrated (ADV-0-205).
+> Third re-sync (post adversarial pass 3): pure-hook-set aggregate kill rate updated to
+> the current **~75–80%** (post-remediation) at the correct anchor
+> verification-gap-analysis.md:190, with ~55–65% labelled the superseded pre-PR-13
+> baseline (ADV-0-301); scope note corrected to **6 mutation-testable hooks**
+> (5 pure + session-greeting), consistent with the ADV-0-010 decision (ADV-0-302).
 
 > Step 0e.5 (Module Criticality Classification). Agent: formal-verifier.
 > Classifies every Component-Map module into a DF-004 criticality tier, driving
@@ -59,7 +64,9 @@ consistent.
 
 secops-factory is a **declarative Claude Code plugin** — no compiled/interpreted
 production code. Conventional mutation testing (cargo-mutants/mutmut/stryker)
-does not apply. Only the **5 pure Bash/PowerShell hooks** are mutation-testable,
+does not apply. Only the **6 mutation-testable Bash/PowerShell hooks** carry a
+numeric target — the 5 pure hooks plus session-greeting, whose gate/compare logic
+is a pure, enumerable sub-function (ADV-0-010 decision) — exercised
 via the near-exhaustive input-partition BATS analog established in the
 verification-gap-analysis. For LLM-executed skills, orchestration playbooks,
 agents, and static knowledge/templates/checklists, the DF-004 tier still governs
@@ -102,7 +109,7 @@ corruption of the authoritative Jira record or of the user's `settings.local.jso
 
 | Module | Path | Tier | Mut. target | Rationale |
 |--------|------|------|-------------|-----------|
-| require-review hook | `hooks/require-review.{sh,ps1}` | **CRITICAL** | ≥95% (not yet demonstrated) | The authorization gate on the Jira system of record — now blocks `jr issue comment/edit/move/assign/create` and **fail-closes (default-deny) on unrecognized subcommands** (BC-3.01.001). Post PR #13/#14 the design **materially improves** assurance: SEC-001 (comment path denied) and SEC-002/SM-3 (fail-open → fail-closed) are resolved with red-first BATS vectors, and the fail-closed fallthrough makes the SM-2 "delete assign/create from blocklist" mutant behaviorally inert. **The ≥95% numeric target is NOT yet demonstrated met** — no per-hook mutation run has been executed; it remains open until Phase 6 / Feature Mode mutation testing. require-review's individual kill rate is not yet measured (the ~55–65% figure in verification-gap-analysis.md:186 is the aggregate across all 5 pure hooks, not this hook alone). Suite 138/138 green, shellcheck clean. |
+| require-review hook | `hooks/require-review.{sh,ps1}` | **CRITICAL** | ≥95% (not yet demonstrated) | The authorization gate on the Jira system of record — now blocks `jr issue comment/edit/move/assign/create` and **fail-closes (default-deny) on unrecognized subcommands** (BC-3.01.001). Post PR #13/#14 the design **materially improves** assurance: SEC-001 (comment path denied) and SEC-002/SM-3 (fail-open → fail-closed) are resolved with red-first BATS vectors, and the fail-closed fallthrough makes the SM-2 "delete assign/create from blocklist" mutant behaviorally inert. **The ≥95% numeric target is NOT yet demonstrated met** — no per-hook mutation run has been executed; it remains open until Phase 6 / Feature Mode mutation testing. require-review's individual kill rate is not yet measured (the current **~75–80%** figure in verification-gap-analysis.md:190 is the post-remediation aggregate across the pure-hook mutation set, not this hook alone; the ~55–65% figure is the original pre-PR-13 baseline, now superseded). Suite 138/138 green, shellcheck clean. |
 | enrichment-completeness hook | `hooks/enrichment-completeness.{sh,ps1}` | **HIGH** | ≥90% | Enforces the required-section completeness invariant on saved enrichment/investigation docs (BC-3.02.001); the entire investigation 4-section branch is untested (SM-4) and hook-hardcoded section lists can drift from templates (GAP-5). Blast radius bounded to local doc quality, not the authoritative record. |
 | disposition-guard hook | `hooks/disposition-guard.{sh,ps1}` | **HIGH** | ≥90% | Anti-confirmation-bias invariant gate requiring "Alternatives Considered" on dispositions (BC-3.03.001); **DI-004 confirmed false-pass (SM-1)** — a negating sentence containing the phrase defeats the substring match, silently bypassing a security-analysis quality gate. Effective assurance is currently below tier until the heading-anchored fix lands (GAP-1). |
 | bias-check-reminder hook | `hooks/bias-check-reminder.{sh,ps1}` | **LOW** | ≥70% | Non-blocking PostToolUse advisory that injects a cognitive-bias reminder to stderr (BC-3.04.001); cannot corrupt state or block any operation. |
@@ -234,7 +241,7 @@ Authoritative decision (ADV-0-010): session-greeting, although effectful (it rea
 its gate/compare logic is a pure, enumerable sub-function. So the numeric-target set is
 the **6 hooks**, not 5:
 
-- require-review → **≥95%** (CRITICAL) — SM-3 killed and SM-2 neutralized by fail-closed design (PR #13); this materially improves assurance but the **≥95% target is NOT yet demonstrated met** — no per-hook mutation run has executed. Individual kill rate unmeasured (the ~55–65% in verification-gap-analysis.md:186 is the 5-pure-hook aggregate, not require-review alone). Target remains open until Phase 6 / Feature Mode.
+- require-review → **≥95%** (CRITICAL) — SM-3 killed and SM-2 neutralized by fail-closed design (PR #13); this materially improves assurance but the **≥95% target is NOT yet demonstrated met** — no per-hook mutation run has executed. Individual kill rate unmeasured (the current **~75–80%** in verification-gap-analysis.md:190 is the post-remediation pure-hook-set aggregate, not require-review alone; ~55–65% was the pre-PR-13 baseline, now superseded). Target remains open until Phase 6 / Feature Mode.
 - enrichment-completeness → **≥90%** (HIGH) — must still kill SM-4 (investigation branch untested).
 - disposition-guard → **≥90%** (HIGH) — must still kill SM-1 (false-pass, DI-004 — STILL OPEN).
 - bias-check-reminder → **≥70%** (LOW).

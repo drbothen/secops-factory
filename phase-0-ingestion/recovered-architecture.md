@@ -11,6 +11,7 @@
 > - DI-008 RESOLVED: prose table C-numbers and YAML component-map IDs now agree end-to-end. The YAML was missing C-18 (hook-manifests), causing a one-off shift from C-18 onwards. IDs are now consistent (C-1..C-24 in both tables).
 > - DI-009 RESOLVED: `hooks/hooks.json` + `hooks.json.windows` (hook-manifests) added to machine-readable YAML as C-18 (HIGH criticality). A wrong matcher in this file silently de-wires the CRITICAL require-review gate.
 > - ADV-0-005: Fixed prose C-20 output-templates file count (5 → 6: 5 .yaml + 1 .md). Layer diagram updated to match.
+> - ADV-0-303 (2026-07-19): DAG cycle C-2⇄C-3 resolved. Edge semantics defined: `dependencies:` captures required components (both static file references and runtime dispatch targets where the component needs the other to function). The back-edge "C-3" in C-2.dependencies was wrong — skills do not depend on the orchestrator (the orchestrator dispatches skills, not vice versa). "C-3" removed from C-2.dependencies; C-2 stays in C-3.dependencies (correct: orchestrator depends on skills to route to). Textual DAG restructured: C-3 moved to its own root node. C-6 removed from under C-8 (playbook dispatches reviewer, not the reverse). Circular Dependencies table and Layer Rules updated.
 
 ---
 
@@ -71,6 +72,14 @@ advisory-writer. Three canonical workflow playbooks live alongside the orchestra
 ## Component Map (Machine-Readable)
 
 ```yaml
+# Edge semantics for `dependencies:` field (ADV-0-303):
+#   An entry in `dependencies` means this component REQUIRES the listed component
+#   to function — either as a static file reference (e.g. ${CLAUDE_PLUGIN_ROOT}/data/X.md)
+#   or as a runtime dispatch target (e.g. the orchestrator dispatches skills, so the
+#   orchestrator depends on skill-procedures). The graph must be a DAG: no back-edges.
+#   Runtime dispatch targets that DO NOT form back-edges may appear in `dependencies:`.
+#   Components that dispatch/invoke this component (callers) are NOT in this list —
+#   they appear in the caller's own `dependencies:`.
 components:
   - id: C-1
     name: "command-dispatch"
@@ -89,10 +98,11 @@ components:
     layer: "business-logic"
     purity: "mixed"
     criticality: "HIGH"
-    dependencies: ["C-3", "C-7", "C-8", "C-9", "C-10", "C-11", "C-19", "C-20", "C-21", "C-23", "C-24"]
+    dependencies: ["C-7", "C-8", "C-9", "C-10", "C-11", "C-19", "C-20", "C-21", "C-23", "C-24"]
     interfaces_provided: ["19 SKILL.md procedure files with staged workflows, Iron Laws, Red Flag tables"]
     interfaces_consumed: ["data/ KBs via ${CLAUDE_PLUGIN_ROOT} path", "templates/ schemas", "checklists/ quality gates", "jr CLI via Bash", "Perplexity MCP tools"]
     confidence: "high"
+    notes: "C-3 (orchestrator) is NOT a dependency of skill-procedures — the orchestrator dispatches skills at runtime. C-2→C-3 was a back-edge forming a cycle; removed per ADV-0-303. One skill (adversarial-review-secops) statically references C-6 (review-convergence-workflow.md) per DI-003 — this is C-2→C-6 via C-3's playbook directory, but C-6 is captured as C-3's dependency."
 
   - id: C-3
     name: "orchestrator-agent"
@@ -104,6 +114,7 @@ components:
     interfaces_provided: ["SOC companion routing table", "pipeline awareness tracking", "quality gate documentation"]
     interfaces_consumed: ["all skills via Skill tool", "workflow playbooks on-demand"]
     confidence: "high"
+    notes: "C-3 depends on C-2 (dispatches skills at runtime — requires skills to exist). This is the correct one-directional edge: orchestrator→skills."
 
   - id: C-4
     name: "enrichment-workflow-playbook"
@@ -406,7 +417,7 @@ External Integration Boundary:
 | Rule | Observed? | Violations |
 |------|----------|------------|
 | Upper layers depend on lower layers only | Mostly yes | `adversarial-review-secops` skill references `agents/orchestrator/review-convergence-workflow.md` directly — a skill invoking the orchestrator's canonical playbook. Intentional by design ("if the two disagree, the orchestrator file wins"), severity LOW. |
-| No circular dependencies between layers | Yes | No cycles detected. |
+| No circular dependencies between layers | Yes (post ADV-0-303) | Former cycle: C-2↔C-3 mutual dependency in YAML. Resolved by removing C-3 from C-2.dependencies — correct direction is C-3→C-2 only. |
 | Data access layer does not import presentation | Yes | Knowledge layer files contain no references to commands/ or hooks/. |
 
 ---
@@ -418,13 +429,8 @@ External Integration Boundary:
 ```text
 [C-1: command-dispatch]
   +-- [C-2: skill-procedures]
-        +-- [C-3: orchestrator-agent]
-        |     +-- [C-4: enrichment-workflow-playbook]
-        |     +-- [C-5: investigation-workflow-playbook]
-        |     +-- [C-6: review-convergence-playbook]
         +-- [C-7: security-analyst-agent]
         +-- [C-8: security-reviewer-agent]
-        |     +-- [C-6: review-convergence-playbook]
         +-- [C-9: metrics-analyst-agent]
         +-- [C-10: osint-researcher-agent]
         +-- [C-11: advisory-writer-agent]
@@ -433,6 +439,14 @@ External Integration Boundary:
         +-- [C-21: quality-checklists]     (checklists/)
         +-- [C-23: jr-cli]                 (external)
         +-- [C-24: perplexity-mcp]         (external)
+
+[C-3: orchestrator-agent] (dispatched by C-1 at runtime; dispatches C-2 at runtime — NOT a C-2 dependency; ADV-0-303)
+  +-- [C-2: skill-procedures]             (dispatch target: orchestrator routes to skills)
+  +-- [C-4: enrichment-workflow-playbook]
+  +-- [C-5: investigation-workflow-playbook]
+  +-- [C-6: review-convergence-playbook]
+  |     +-- [C-8: security-reviewer-agent] (playbook dispatches reviewer — C-6→C-8, not C-8→C-6)
+  +-- [C-19: knowledge-bases]
 
 [C-12..C-17: hooks] + [C-18: hook-manifests] (cross-cutting — hooks fire on Claude Code tool events; hook-manifests wires them)
   +-- read from: Claude Code hook event envelopes
@@ -454,7 +468,7 @@ Notable intra-skill dependencies (via Skill tool invocation):
 
 | Cycle | Components | Severity | Notes |
 |-------|-----------|----------|-------|
-| None detected | — | — | The dependency graph is a valid DAG. The only non-obvious edge is adversarial-review-secops skill referencing the orchestrator convergence playbook, which is not a cycle. |
+| None detected (post ADV-0-303 fix) | — | — | The dependency graph is a valid DAG. Former cycle: C-2 (skill-procedures) listed C-3 (orchestrator-agent) in its dependencies, AND C-3 listed C-2 — an explicit mutual dependency. Resolved by removing "C-3" from C-2.dependencies: skills do not depend on the orchestrator; the orchestrator dispatches skills (correct direction: C-3→C-2). The non-obvious edge adversarial-review-secops→C-6 (DI-003 layer inversion) is not a cycle since C-6 does not reference C-2. |
 
 ### External Dependencies
 

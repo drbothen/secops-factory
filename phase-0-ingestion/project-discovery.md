@@ -90,7 +90,7 @@ secops-factory/
 | Total commits | 41 (entire `main` history; recounted 2026-07-19 post-onboarding merges) |
 | Commits in last 3 months | 14 (window ~2026-04-19 → 2026-07-19) |
 | Date range | first `2026-04-09`, latest `2026-07-19 12:58` |
-| Contributors | 1 — **Joshua Magady** (all 38 commits; note: marketplace/plugin author metadata says `drbothen`) |
+| Contributors | 1 — **Joshua Magady** (all 41 commits; note: marketplace/plugin author metadata says `drbothen`) |
 | Commit convention | **Conventional Commits** (`feat(scope):`, `chore:`, `docs:`, `ci:`). `rules/secops-protocol.md` additionally specifies a `secops(<scope>):` form for plugin-content commits |
 | PR discipline | Every substantive change lands via numbered PR (#1–#14), squash-merged |
 | Branching strategy | `main` (default, protected — direct push blocked by vsdd `verify-git-push` hook per RELEASING.md) + short-lived `feat/*` and `docs/*` branches + `release/vX.Y.Z` branches + `factory-artifacts` orphan branch |

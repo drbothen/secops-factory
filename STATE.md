@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-19T02:00:00Z
+timestamp: 2026-07-19T03:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: brownfield
-current_step: "0c — convention extraction"
+current_step: "0d — spec reverse-engineering"
 current_cycle: ""
 dtu_required: false
 ---
@@ -37,7 +37,7 @@ dtu_required: false
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-19 |
 | **Current Phase** | 0: Codebase Ingestion |
-| **Current Step** | 0c — convention extraction |
+| **Current Step** | 0d — spec reverse-engineering |
 
 ## Phase Progress
 
@@ -65,6 +65,7 @@ dtu_required: false
 | worktree-health | devops-engineer | DONE | PASS — .factory/ on factory-artifacts; remote sync confirmed |
 | 0a: project-discovery | codebase-analyzer | DONE | `.factory/phase-0-ingestion/project-discovery.md` |
 | 0b: architecture-recovery | codebase-analyzer | DONE | `.factory/phase-0-ingestion/recovered-architecture.md`, `arch-recov-api-surface.md`, `arch-recov-integrations.md` |
+| 0c: convention-extraction | codebase-analyzer | DONE | `.factory/phase-0-ingestion/conventions.md` — 20 enforceable rules extracted; 2 style ambiguities flagged: `secops(<scope>)` vs `feat(<scope>)` commit-prefix conflict; `secops-health` anomaly tracked as DI-002 |
 
 ## Decisions Log
 
@@ -104,8 +105,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 — step 0c convention extraction is next |
-| **Context** | Steps 0a and 0b complete. recovered-architecture.md + api-surface + integrations produced. DI-001 RESOLVED: PR #12 merged `.envrc`/`.mcp.json`/`.env`/`.claude/settings.local.json` into `.gitignore`; keys never committed; 0e-sec to confirm rotation. DI-002/DI-003 logged (architectural smells, low severity, routed to Phase 1). Codebase confirmed: declarative Claude Code plugin, layered commands→skills→agents architecture, cross-platform hook parity. |
+| **Position** | Phase 0 — step 0d spec reverse-engineering is next |
+| **Context** | Steps 0a–0c complete. conventions.md produced (20 enforceable rules; 2 style ambiguities flagged). DI-001 RESOLVED (PR #12). DI-002/DI-003 open (low severity, routed to Phase 1). Codebase confirmed: declarative Claude Code plugin, layered commands→skills→agents, cross-platform hook parity. |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

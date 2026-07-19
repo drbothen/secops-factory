@@ -1,12 +1,14 @@
 ---
 document_type: module-criticality
-level: L1
+level: ops
 version: "1.4"
 status: active
 producer: formal-verifier
+timestamp: 2026-07-19T00:00:00Z
+traces_to: phase-0-ingestion/recovered-architecture.md
+input-hash: ""
 phase: "0e.5"
 project: secops-factory
-date: "2026-07-19"
 inputs:
   - phase-0-ingestion/recovered-architecture.md
   - phase-0-ingestion/behavioral-contracts/*.md

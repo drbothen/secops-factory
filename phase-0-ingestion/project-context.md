@@ -1,13 +1,13 @@
 ---
 document_type: project-context
-level: L0
+level: ops
 version: "1.12"
 status: active
 producer: codebase-analyzer
+timestamp: 2026-07-19T00:00:00Z
 phase: 0
 step: "0f"
 project: secops-factory
-date: "2026-07-19 (re-synced post adversarial pass 12)"
 source_state: "v0.9.0 + PR #12 (gitignore) + PR #13 (SEC-001..005, f450d9f) + PR #14 (allowlist / DI-010, 0ec794a) + PR #15 (SEC-009 write-block-precedence CRITICAL fix, d304fa5); 42 commits / PRs #1–#15 verified merged at HEAD d304fa5; BATS suite 150 @tests (hooks 44, skills 81, integration 11, parity 14; 12/14 parity skip w/o pwsh); 6-hook mutation aggregate ~75–80%"
 inputs:
   - phase-0-ingestion/project-discovery.md

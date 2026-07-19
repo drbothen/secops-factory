@@ -1,9 +1,13 @@
 ---
+document_type: security-audit
+level: ops
+version: "1.0"
+producer: security-reviewer
+timestamp: 2026-07-19T00:00:00Z
+traces_to: ""
 step: "0e-sec"
 artifact: security-audit
 project: secops-factory
-date: "2026-07-19"
-reviewer: security-reviewer
 total_findings: 9
 critical: 1
 high: 0

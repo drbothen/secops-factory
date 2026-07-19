@@ -40,6 +40,10 @@ it encodes INTENDED post-fix behavior that current HEAD fails by design of the
 open DI-004 defect. HS-014 MUST NOT be counted in the must-pass gate until the
 heading-anchored fix lands. (ADV-0-602 reclassification, 2026-07-19.)
 
+> **Brownfield naming convention (F-6a):** All 26 scenario files use the `brownfield-regression-<module>-NNN.md` filename pattern (e.g., `brownfield-regression-require-review-001.md`) rather than the greenfield template convention `HS-NNN-[short-description].md`. This is an intentional brownfield choice: the authoritative identifier is the `id:` frontmatter field (e.g., `id: "HS-001"`), and the HS-NNN-to-filename mapping is defined in the Full Scenario Listing below. Feature Mode consumers must use the `id:` field, not the filename, to resolve scenario identity.
+
+> **Advisory `input-hash` field (F-6b):** All 26 scenario files carry `input-hash: ""` (empty). The `input-hash` field is advisory per the holdout-scenario template — used for drift detection only, not for gating. In this brownfield context, source artifacts were ingested as a set; per-BC hash population is deferred until Feature Mode drift detection is enabled.
+
 ## Scenario Count by Module / Criticality Tier
 
 | Module | BC | Tier | Scenario Count | HS IDs |

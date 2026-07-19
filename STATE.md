@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-19T07:00:00Z
+timestamp: 2026-07-19T08:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: brownfield
-current_step: "0f-pre — holdout seeding"
+current_step: "0f — project context synthesis"
 current_cycle: ""
 dtu_required: false
 ---
@@ -37,7 +37,7 @@ dtu_required: false
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-19 |
 | **Current Phase** | 0: Codebase Ingestion |
-| **Current Step** | 0f-pre — holdout seeding |
+| **Current Step** | 0f — project context synthesis |
 
 ## Phase Progress
 
@@ -70,6 +70,7 @@ dtu_required: false
 | 0e: verification-gap-analysis | codebase-analyzer | DONE | `.factory/phase-0-ingestion/verification-gap-analysis.md` — 2 fully / 11 partially / 0 unverified of 13 BCs; verification asymmetry: hooks behaviorally tested, skills structural-only; 4 gaps logged as DI-004–DI-007; estimated remediation ~4-5 days |
 | 0e5: module-criticality | codebase-analyzer | DONE | `.factory/specs/module-criticality.md` (new); `recovered-architecture.md` updated (16 Component-Map criticality fields). CRITICAL: require-review hook, update-jira skill. HIGH: 12 modules incl. disposition-guard (DI-004), hook manifests, pipeline skills, data KBs, test-suite+CI. Mutation kill-rate targets set: require-review >=95% (currently ~55-65%). SEC-001..005 in flight on `fix/phase0-security-findings`; security-audit.md commit deferred pending Disposition section. |
 | 0e-sec: security-audit | security-reviewer + human | DONE | `.factory/phase-0-ingestion/security-audit.md` — human gate PASSED. 0 critical / 0 high / 1 medium / 4 low / 3 info. SEC-001..005 FIXED via PR #13 (merged f450d9f, 130/130 BATS green): comment path review-gated, unknown jr subcommands fail-closed, MCP versions pinned in docs/mcp.json.example, release.yml job-scoped permissions, semgrep pinned 1.170.0. SEC-006/007 ACCEPTED (info, review at next release). |
+| 0f-pre: holdout-seeding | codebase-analyzer | DONE | `.factory/holdout-scenarios/` — 25 scenarios seeded (HS-INDEX.md + 25 brownfield-regression-*.md); 4+4 CRITICAL (require-review/update-jira), 16 HIGH across 7 modules, 1 MEDIUM; epic: BROWNFIELD-REGRESSION. Notable: HS-003 SM-2 surviving mutant; HS-008 SEC-001 injection vector (now fixed via PR #13, scenario retained as regression guard); HS-014 DI-004 false-pass; HS-021 end-to-end investigation gate. |
 
 ## Decisions Log
 
@@ -115,8 +116,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 — step 0f-pre holdout seeding is next |
-| **Context** | Steps 0a–0e-sec complete. Security audit human gate PASSED: 0 crit/0 high/1 med/4 low/3 info. SEC-001..005 FIXED (PR #13 f450d9f, 130/130 BATS green). SEC-006/007 ACCEPTED (info). DI-001 RESOLVED (PR #12). DI-002–DI-009 open. CRITICAL modules: require-review hook, update-jira skill. |
+| **Position** | Phase 0 — step 0f project context synthesis is next |
+| **Context** | Steps 0a–0f-pre complete. 25 holdout scenarios seeded (BROWNFIELD-REGRESSION epic). Security audit PASSED; SEC-001..005 FIXED (PR #13). DI-001 RESOLVED (PR #12). DI-002–DI-009 open. CRITICAL: require-review hook, update-jira skill. |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

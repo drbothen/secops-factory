@@ -7,7 +7,7 @@ producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/skills/investigate-event/SKILL.md, plugins/secops-factory/tests/skills.bats]
-input-hash: "b6feec630f59a9bb5ba5222b69289268a783e71aafbc66647e0cd165dd5b9929"
+input-hash: "8395fd6"
 traces_to: phase-0-ingestion/recovered-architecture.md
 origin: recovered
 extracted_from: plugins/secops-factory/skills/investigate-event/SKILL.md

@@ -7,7 +7,7 @@ producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/session-greeting.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: |
+input-hash: "0b3a844"
   e1068218d7d7a89f52d289020dbbbfaa832db0f78d01f55f5e351f74839cbc4b  plugins/secops-factory/hooks/session-greeting.sh
   b1a920bc4371563bf3d602117a9bcb8a2db99a8a55b6f399a1e37ff663ecd56a  plugins/secops-factory/hooks/session-greeting.ps1
 traces_to: phase-0-ingestion/recovered-architecture.md

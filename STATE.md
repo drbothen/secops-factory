@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-19T23:30:00Z
+timestamp: 2026-07-19T23:45:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: brownfield
-current_step: "phase-0-gate — awaiting input-drift check + human approval"
+current_step: "phase-0-human-approval-gate"
 current_cycle: ""
 dtu_required: false
 ---
@@ -37,7 +37,7 @@ dtu_required: false
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-19 |
 | **Current Phase** | 0: Codebase Ingestion |
-| **Current Step** | phase-0-gate — awaiting input-drift check + human approval |
+| **Current Step** | phase-0-human-approval-gate |
 
 ## Phase Progress
 
@@ -86,6 +86,7 @@ dtu_required: false
 | 0f-adv pass 12 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass12.md` — 1 finding (0C/0M/1m) + 3 obs, all remediated. Adversary verdict: "converged and honest." Decay 12→11→7→8(1FP)→6→6→6→6(real)→4→5→2→1. ADV-0-C01: capstone stale `BC-3.02.001 v1.4` pins (3 occurrences, incl §6 SM-4 third) corrected to v1.5. Capstone v1.12. Pass 13 dispatched (convergence candidate). |
 | 0f-adv pass 13 (CONVERGENCE) | adversary | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass13.md` — **0 graded findings** (0C/0M/0m) + 4 cosmetic obs. CONVERGED after 13 passes. Full decay: 12→11→7→8(1FP)→6→6→6→6(1 real shipped-code CRITICAL)→4→5→2→1→**0**. All load-bearing counts re-derived from first principles — all reconcile. Capstone judged honest. Notable: loop discovered+fixed live SEC-009 auth-gate bypass (PR#15) + SEC-001..005 (PR#13). 7 process-gaps codified. Open items carried to gate (DI-004/005/006/007/011/014 → first Feature Mode; DI-012/013 → human decision). Next: 0f-post consistency validation. |
 | 0f-post: consistency validation | consistency-validator | DONE | `.factory/phase-0-ingestion/validation-report.md` — CONSISTENCY_VALIDATION: PASS (clean). All 10 schema-compliance checks passed. 5 minor frontmatter deviations resolved (F-6a/6b: holdout filename convention + empty input-hash documented; F-7a: module-criticality.md frontmatter aligned; F-9a: security-audit.md frontmatter aligned; F-10a: project-context.md frontmatter aligned). 1 conditional pass (DI-012: 9 HIGH modules without BCs — PENDING HUMAN DECISION). Phase 0 artifact set structurally ready for Feature Mode. |
+| input-drift check | state-manager | DONE | `compute-input-hash --scan . --update` — PASS. Final: TOTAL=41 MATCH=40 STALE=0 UNCOMPUTED=0 NOINPUT=1. 13 BC hashes bumped (benign drift: project-discovery.md + recovered-architecture.md edited during 13-pass adversarial remediation; require-review BCs' source changed via PR#13/14/15; content pre-verified by all passes + 0f-post). 27 holdout/module-criticality hashes populated (tool handles empty input-hash: "" cleanly — bumped for fully-clean report). NOINPUT=1 is an artifact with no inputs: field (expected). |
 
 ## Decisions Log
 
@@ -136,8 +137,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 — 0f-post DONE; at phase-0-gate awaiting input-drift check + human approval |
-| **Context** | 0f-post PASS: all 10 schema checks passed, 5 minor frontmatter deviations resolved. 0f-adv converged (13 passes, 0 graded findings). Pending human decisions: DI-012 (BC coverage expansion) and DI-013 (comment-post override) flagged in project-context.md §8/§11. Input-drift check (`/vsdd-factory:check-input-drift`) should run before gate sign-off. |
+| **Position** | Phase 0 COMPLETE — all steps done; at phase-0-human-approval-gate |
+| **Context** | All Phase 0 steps DONE: adversarial loop converged (13 passes, 0 graded findings), consistency validation PASS, input-drift check PASS (STALE=0, MATCH=40/41). Pending human decisions: DI-012 (BC coverage expansion) and DI-013 (comment-post override) flagged in project-context.md §8/§11. Ready for human Phase 0 gate sign-off. |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

@@ -7,7 +7,7 @@ producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/enrichment-completeness.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: |
+input-hash: "453333f"
   e79cdc5b6a436691be3d350c8b7ec8ce9e58c0953bc328f6b06170bc55b9aa18  plugins/secops-factory/hooks/enrichment-completeness.sh
   26895e3b3dd937498bca6a6867021659b76025ece6c81d4cbafd31285b3a92fe  plugins/secops-factory/hooks/enrichment-completeness.ps1
 traces_to: phase-0-ingestion/recovered-architecture.md

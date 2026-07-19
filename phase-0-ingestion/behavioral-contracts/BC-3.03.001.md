@@ -7,7 +7,7 @@ producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/disposition-guard.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: |
+input-hash: "e33c76b"
   ede6ff97959cbcb1a137ed8f28a1271250dd46bcefc4d2b397d7d591dd180289  plugins/secops-factory/hooks/disposition-guard.sh
   8a0a6a40fea6f5fbe4d850dba9a61596815c02f56ade34ab6c44edaf1669fb54  plugins/secops-factory/hooks/disposition-guard.ps1
 traces_to: phase-0-ingestion/recovered-architecture.md

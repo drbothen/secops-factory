@@ -4,7 +4,7 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-19T18:00:00Z
+timestamp: 2026-07-19T19:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
@@ -80,6 +80,7 @@ dtu_required: false
 | 0f-adv pass 6 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass6.md` — 6 findings (0C/2M/4m), all remediated. Decay 12→11→7→8(1FP)→6→6; zero criticals 4 consecutive passes. ADV-0-601: SEC-001 comment-deny propagated to consumer BCs (BC-4.02.001 v1.1, BC-5.01.001 v1.2, integrations corrected); DI-013 opened. ADV-0-602: HS-014 reclassified fix-target; baseline 24/25 must-pass + 1 fix-target. ADV-0-605: EC-009 added to BC-3.03.001 v1.3 (DI-004 canonical vector). ADV-0-606: co-fire wiring VERIFIED. Pass 7 dispatched (convergence bar: 0C+0M). |
 | 0f-adv pass 7 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass7.md` — 6 findings (0C/2M/4m), all remediated via systematic grep sweep (12 hits, 4 unreported security-audit annotations). Root cause: incomplete fan-out of PR#13/SEC-001/DI-013 to sibling shards. Decay 12→11→7→8(1FP)→6→6→6; zero criticals 5 consecutive passes; content core GREEN 3 consecutive passes. Capstone v1.7 (400 lines). [process-gap-6]: fan-out discipline — grep sweep before consistency claims. Pass 8 dispatched (convergence bar: 0C+0M). |
 | 0f-adv pass 8 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass8.md` — 6 findings (1 real-code-CRITICAL / 1M / 4m). MILESTONE: ADV-0-801 was a LIVE SHIPPED-CODE VULNERABILITY — require-review allowlist evaluated BEFORE write-block with unanchored substring match, defeating CRITICAL auth gate and SEC-001 mitigation. FIXED PR #15 (d304fa5, 12 new BATS red→green, 55/55 + shellcheck clean). SEC-009 logged (CRITICAL-at-discovery, RESOLVED). BC-3.01.001 v1.7. DI-014 added (LOW, enrichment-completeness substring idiom). HS-026 added (bypass regression guard). Capstone v1.8. [process-gap-7]: substring-matching-idiom sweep. Lesson: HS-026 initial expected-result inverted — caught by orchestrator verification. Pass 9 dispatched. |
+| 0f-adv pass 9 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass9.md` — 4 findings (0C/3M/1m), all remediated. Decay 12→11→7→8(1FP)→6→6→6→6(real bug)→4. DURABLE FIX: require-review anchors switched to CONSTRUCT NAMES across all shards — anchor-churn class structurally retired. Test count corrected to 150 (44+81+11+14) everywhere. vga re-issued (SEC-009, SM-3b RESOLVED, count 150). module-criticality v1.4. BC-4.02.001 v1.3, BC-5.01.001 v1.4. Capstone v1.9 (399 lines). Process-gap #6/#7 reinforced. Pass 10 dispatched. Assessment: reality axes GREEN repeatedly; approaching convergence. |
 
 ## Decisions Log
 
@@ -130,8 +131,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 — step 0f-adv pass 9 in progress (convergence bar: 0C+0M) |
-| **Context** | Pass 8 MILESTONE: live shipped auth-gate bypass found and fixed (PR #15 d304fa5, SEC-009 RESOLVED). BC-3.01.001 v1.7 (write-block-first). Decay 12→11→7→8(1FP)→6→6→6+real-CRITICAL; process-gap-7 (substring-matching idiom); DI-014 added. Lesson: holdout expected-results must verify against merged code. DI-001/DI-008/DI-009/DI-010 RESOLVED. CRITICAL: update-jira skill (require-review now patched PR#15). |
+| **Position** | Phase 0 — step 0f-adv pass 10 in progress (convergence bar: 0C+0M) |
+| **Context** | Pass 9: 4 findings (0C/3M/1m), all remediated. Anchor-churn class structurally retired (construct names). Test count settled at 150. Reality axes GREEN repeatedly. Decay 12→11→7→8(1FP)→6→6→6→6(real)→4 — approaching convergence. DI-001/DI-008/DI-009/DI-010 RESOLVED. CRITICAL module: update-jira skill (require-review patched PR#15). |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

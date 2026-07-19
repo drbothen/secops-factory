@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
@@ -15,7 +15,7 @@ subsystem: event-investigation-pipeline
 capability: CAP-EVENT-01
 lifecycle_status: active
 introduced: v0.6.0
-modified: ["v1.1-ADV-0-501-2026-07-19", "v1.2-ADV-0-601-2026-07-19", "v1.3-ADV-0-702-ADV-0-706-2026-07-19"]
+modified: ["v1.1-ADV-0-501-2026-07-19", "v1.2-ADV-0-601-2026-07-19", "v1.3-ADV-0-702-ADV-0-706-2026-07-19", "v1.4-ADV-0-901-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -31,6 +31,7 @@ removal_reason: null
 > - v1.1 (2026-07-19): ADV-0-501: Annotated EC-006 to clarify the in-progress-save assumption — standard workflow generates from a complete template at Stage 7; EC-006 applies when analyst manually edits investigation file post-generation.
 > - v1.2 (2026-07-19): ADV-0-601: Added Invariant #7 documenting that Stage 7's `jr issue comment` step hits require-review.sh unconditional deny and requires human permission-approval (no marker-based override). Added DI-013 reference.
 > - v1.3 (2026-07-19): ADV-0-702: Corrected PC#3 — ≥2 alternative hypotheses is an LLM-soft procedural rule, not a structural hook enforcement; disposition-guard enforces only heading presence (subject to DI-004). Aligned with Invariant #5 and BC-3.03.001 Invariant #2. ADV-0-706: Standardized write-block citation in Invariant #7 to `88-94 (deny at :93)`.
+> - v1.4 (2026-07-19): ADV-0-901: Replaced brittle require-review.sh line-number citation in Invariant #7 with construct-name reference (line numbers churned across PR#13/#14/#15; post-PR#15 lines 88-110 are the allowlist, not the write-block).
 
 ## Preconditions
 
@@ -56,7 +57,7 @@ removal_reason: null
 4. The `enrichment-completeness` hook enforces required investigation document sections (Executive Summary, Alert Details, Disposition, Next Actions). Confidence: verified by hook BC-3.02.001.
 5. The `disposition-guard` hook enforces that Alternatives Considered is present when a Disposition section exists. Confidence: verified by hook BC-3.03.001.
 6. The Perplexity availability check happens once before Stage 3 and the result is announced to the user. Confidence: verified by code analysis (Research Tool Selection section).
-7. Stage 7 includes a `jr issue comment` call to post the investigation summary to the JIRA ticket. The `require-review` hook (C-12, `require-review.sh:88-94 (deny at :93)`) denies `jr issue comment` unconditionally — the command is in the write-block substring list with no marker-based override path. The comment posting step proceeds only via human permission-approval of the blocked call (Claude Code permission dialog). There is no way for a skill command to include text that bypasses this deny. Resolution options are tracked as **DI-013, PENDING HUMAN DECISION at the Phase 0 gate.**
+7. Stage 7 includes a `jr issue comment` call to post the investigation summary to the JIRA ticket. The `require-review` hook (C-12, the require-review write-block evaluated before the allowlist; denies jr issue comment/edit/move/assign/create and their --output json forms) denies `jr issue comment` unconditionally — the command is in the write-block substring list with no marker-based override path. The comment posting step proceeds only via human permission-approval of the blocked call (Claude Code permission dialog). There is no way for a skill command to include text that bypasses this deny. Resolution options are tracked as **DI-013, PENDING HUMAN DECISION at the Phase 0 gate.**
 
 ## Edge Cases
 

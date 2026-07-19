@@ -1,14 +1,14 @@
 ---
 document_type: project-context
 level: L0
-version: "1.8"
+version: "1.9"
 status: active
 producer: codebase-analyzer
 phase: 0
 step: "0f"
 project: secops-factory
-date: "2026-07-19 (re-synced post adversarial pass 8)"
-source_state: "v0.9.0 + PR #12 (gitignore) + PR #13 (SEC-001..005, f450d9f) + PR #14 (allowlist / DI-010, 0ec794a) + PR #15 (SEC-009 write-block-precedence CRITICAL fix, d304fa5); PRs #1–#15 verified merged at HEAD d304fa5; BATS 138 + 12 PR-#15 bypass tests (12/14 parity skip w/o pwsh); 6-hook mutation aggregate ~75–80%"
+date: "2026-07-19 (re-synced post adversarial pass 9)"
+source_state: "v0.9.0 + PR #12 (gitignore) + PR #13 (SEC-001..005, f450d9f) + PR #14 (allowlist / DI-010, 0ec794a) + PR #15 (SEC-009 write-block-precedence CRITICAL fix, d304fa5); PRs #1–#15 verified merged at HEAD d304fa5; BATS suite 150 @tests (hooks 44, skills 81, integration 11, parity 14; 12/14 parity skip w/o pwsh); 6-hook mutation aggregate ~75–80%"
 inputs:
   - phase-0-ingestion/project-discovery.md
   - phase-0-ingestion/recovered-architecture.md (+ arch-recov-api-surface.md, arch-recov-integrations.md)
@@ -23,9 +23,7 @@ inputs:
 
 # Project Context — secops-factory
 
-> **Capstone Phase 0 artifact.** THE scoping document Feature Mode phases load every cycle.
-> Self-contained summary; deep detail lives in the linked shards (DF-021). Do not duplicate
-> shard content here — follow the links. All paths absolute under `/Users/jmagady/Dev/secops-factory/`.
+> **Capstone Phase 0 artifact.** THE scoping document Feature Mode phases load every cycle. Self-contained summary; deep detail lives in the linked shards (DF-021) — follow the links rather than duplicating. All paths absolute under `/Users/jmagady/Dev/secops-factory/`.
 
 ## 1. Identity
 
@@ -155,26 +153,25 @@ Contract files: `.factory/phase-0-ingestion/behavioral-contracts/<id>.md`
 | BC-3.05.001 | handoff-validator hook — SubagentStop empty-output guard | **v1.2** | LOW | PARTIAL |
 | BC-3.06.001 | session-greeting hook — activation-gated SessionStart banner | **v1.2** | LOW | FULLY (core); jq-fallback open |
 | BC-4.01.001 | enrich-ticket skill — 8-stage CVE enrichment | v1.0 | HIGH | STRUCTURAL-ONLY |
-| BC-4.02.001 | update-jira skill — review-gated Jira field update | **v1.2** | CRITICAL | STRUCTURAL-ONLY — comment-post step (PC#4) needs human override (DI-013) |
+| BC-4.02.001 | update-jira skill — review-gated Jira field update | **v1.3** | CRITICAL | STRUCTURAL-ONLY — comment-post step (PC#4) needs human override (DI-013) |
 | BC-4.03.001 | review-enrichment skill — fresh-context quality review | v1.0 | HIGH | STRUCTURAL-ONLY (strongest) |
 | BC-4.04.001 | adversarial-review-secops skill — convergence loop | v1.0 | HIGH | STRUCTURAL-ONLY |
-| BC-5.01.001 | investigate-event skill — 7-stage investigation | **v1.3** | HIGH | STRUCTURAL-ONLY — Stage 7 comment-post needs human override (DI-013) |
+| BC-5.01.001 | investigate-event skill — 7-stage investigation | **v1.4** | HIGH | STRUCTURAL-ONLY — Stage 7 comment-post needs human override (DI-013) |
 | BC-6.01.001 | activate skill — per-project activation lifecycle | v1.0 | HIGH | STRUCTURAL-ONLY |
 | BC-6.01.002 | deactivate skill — per-project deactivation | v1.0 | MEDIUM | STRUCTURAL-ONLY |
 
-All six hook BCs (BC-3.01..BC-3.06) carry dual-file (.sh + .ps1) input-hashes for the drift check.
-
 > **BC-3.01.001 now at v1.7 (2026-07-19) — fully re-synced.** Behavior at HEAD (verified vs commit d304fa5,
-> PR #15): (a) **write-block is evaluated BEFORE the allowlist (Invariant #5)** — the PR #15 fix for the
-> SEC-009 CRITICAL bypass; write-block at `require-review.sh:67-78` (deny at :77), allowlist after at 88-110;
-> `--output json` write forms added to the block list, trailing-space guard on `comment`/`comments`; EC-016
-> captures the now-denied bypass pattern; (b) PR #13 moved `jr issue comment` into the **deny** block and
-> flipped the default **fail-closed** (unrecognized `jr` → deny) — old allow/fail-open postconditions and
-> EC-003 superseded; (c) PR #14 expanded the read-only allowlist (`jr issue changelog`, `jr assets search/view`,
-> `jr --version`, seven `--output json` families) with Invariant #4 (the `--output json` flag breaks substring
-> matching), resolving **DI-010**; (d) adversarial pass 1 renumbered the PR-#14 VPs to **VP-HOOK-020/021/022**.
-> `comment`/`edit`/`move` deny is code+BATS-verified; `assign`/`create` + `--output json` write forms are
-> code-analysis-verified only (GAP-2 residual). BATS suite 138 + 12 PR-#15 bypass tests.
+> PR #15): (a) the **write-block if-block is evaluated BEFORE the read-only allowlist (Invariant #5)** — the
+> PR #15 fix for the SEC-009 CRITICAL bypass (source references use construct names, not line numbers — see
+> the anchor-convention note in §6); `--output json` write forms added to the write-block, trailing-space
+> guard on `comment`/`comments`; EC-016 captures the now-denied bypass pattern; (b) PR #13 moved `jr issue
+> comment` into the write-block and flipped the default **fail-closed** (unrecognized `jr` → deny) — old
+> allow/fail-open postconditions and EC-003 superseded; (c) PR #14 expanded the read-only allowlist
+> (`jr issue changelog`, `jr assets search/view`, `jr --version`, seven `--output json` families) with
+> Invariant #4 (the `--output json` flag breaks substring matching), resolving **DI-010**; (d) adversarial
+> pass 1 renumbered the PR-#14 VPs to **VP-HOOK-020/021/022**. `comment`/`edit`/`move` deny is
+> code+BATS-verified; `assign`/`create` + `--output json` write forms are code-analysis-verified only
+> (GAP-2 residual, LOW). BATS suite **150 @tests**.
 
 > **BC-3.02.001 (v1.4) + BC-3.03.001 (v1.3) — aggregate hook semantics (ADV-0-501/606/803).** EC-004 is
 > **DENY**: an `investigation-*` file must contain **all four** sections (Executive Summary, Alert Details,
@@ -200,10 +197,14 @@ All six hook BCs (BC-3.01..BC-3.06) carry dual-file (.sh + .ps1) input-hashes fo
 
 **Three-bucket roll-up: Fully 2 / Partially 11 / Un-verified 0** (of 13 BCs).
 Fully: BC-3.03.001 (**FULLY = declared-VP coverage; the known DI-004 defect is documented as EC-009 and is
-NOT fixed** — see §5), BC-3.06.001. **138/138 BATS pass** locally (was 130 after PR #13; +8 from PR #14
-metrics-suite allow tests) — **caveat:** 12 of 14 parity tests `skip` when `pwsh` is absent (as it is
-locally), so behavioral `.ps1` parity is not actually exercised in a local run; CI relies on the runner
-image preinstalling `pwsh` and does not assert it (**DI-006**).
+NOT fixed** — see §5), BC-3.06.001. **150/150 BATS pass** locally (hooks 44, skills 81, integration 11,
+parity 14; the settled count post PR #15) — **caveat:** 12 of 14 parity tests `skip` when `pwsh` is absent
+(as it is locally), so behavioral `.ps1` parity is not actually exercised in a local run; CI relies on the
+runner image preinstalling `pwsh` and does not assert it (**DI-006**).
+
+**Anchor convention (ADV-0-901):** require-review source references use **construct names** (write-block
+if-block / read-only allowlist / fail-closed catch-all) rather than line numbers, because those anchors
+churned and inverted across PR #13/#14/#15.
 
 **The headline is the verification asymmetry:** the 6 deterministic **hooks** are genuinely
 behaviorally tested; the 7 LLM-executed **skills** are **structural-only** — BATS proves Iron Law text,
@@ -215,16 +216,17 @@ deletion/drift but are not behavioral verification of the Iron Laws.
 Manual mutation probe against the **6-hook mutation-testable set** (5 pure hooks + session-greeting's pure
 activation-gate sub-function): authoritative current aggregate kill-rate **~75–80%** (up from a superseded
 ~55–65% pre-PR-13 baseline — verification-gap-analysis.md §Mutation Testing Baseline → Surviving Mutants
-summary (~line 194)). **PR #15 (d304fa5) closed the SEC-009 CRITICAL bypass** by reordering require-review's
-write-block **before** the allowlist (Inv #5) and adding 12 red→green BATS bypass tests; SM-3 (fail-open)
-RESOLVED, SM-2 (assign/create) downgraded HIGH→LOW, SM-8 (session-greeting activation-gate) KILLED.
-Still-open blind spots feed the drift items (§8): **SM-1 disposition-guard false-pass (HIGH, DI-004) — the
-one remaining HIGH mutant, NOT fixed by PR #15** (PR #15 touched require-review only); SM-4
-enrichment-completeness investigation branch — the DENY-all-4-sections path (BC-3.02.001 v1.4) is untested
-(DI-007); the same-idiom substring gap is DI-014 (LOW); SM-8b session-greeting `jq`-fallback branch (LOW);
-pwsh-not-in-CI silent skip (DI-006). require-review's **≥95% CRITICAL target is not yet demonstrated met**
-(no per-hook mutation run; assign/create + `--output json` write forms code-analysis-verified only). No
-coverage tool applies (declarative plugin); shellcheck clean on
+summary (~line 194)). **PR #15 (d304fa5) effects (require-review only):** reordered the write-block ahead of
+the allowlist (Inv #5) and added 12 red→green BATS tests, **killing SM-3b — the SEC-009/ADV-0-801
+precedence-bypass mutant (was CRITICAL)**. Earlier require-review fixes: SM-3 (fail-open) RESOLVED and SM-2
+(assign/create) downgraded HIGH→LOW (both PR #13). **Separately (unrelated to PR #15):** SM-8
+(session-greeting activation-gate) is KILLED by existing tests. Still-open blind spots feed the drift items
+(§8): **SM-1 disposition-guard false-pass (HIGH, DI-004) — the one remaining HIGH mutant, NOT touched by
+PR #15**; SM-4 enrichment-completeness investigation branch — the DENY-all-4-sections path (BC-3.02.001 v1.4)
+is untested (DI-007); the same-idiom substring gap is DI-014 (LOW); SM-8b session-greeting `jq`-fallback
+branch (LOW); pwsh-not-in-CI silent skip (DI-006). require-review's **≥95% CRITICAL target is not yet
+demonstrated met** (no per-hook mutation run; assign/create + `--output json` write forms
+code-analysis-verified only). No coverage tool applies (declarative plugin); shellcheck clean on
 `.sh`; `.ps1` still gets no static analysis.
 
 Detail + per-BC matrix + remediation plan: `.factory/phase-0-ingestion/verification-gap-analysis.md`
@@ -236,21 +238,18 @@ with Jira project write access). Human disposition gate **PASSED** (2026-07-19).
 0 critical / 0 high / 1 medium / 4 low / 3 info — **plus one post-audit CRITICAL (SEC-009), now RESOLVED.**
 
 > **⚠ SEC-009 (CRITICAL-at-discovery, RESOLVED PR #15 d304fa5) — a REAL shipped-code bypass, not a doc defect.**
-> VSDD Phase 0 adversarial review (ADV-0-801) found that the shipped `require-review` gate evaluated the
-> **read-only allowlist BEFORE the write-block using unanchored substring matching**, so any write command
-> carrying a read-only token was allowed **without review** — e.g. `jr issue edit KEY --summary "see jr board"`
-> matched the `jr board` allowlist token and returned allow before the `jr issue edit` deny could fire. This
-> bypassed all four field-mutation verbs **and defeated the SEC-001 comment gate** added in PR #13. **Fixed
-> in PR #15 (d304fa5):** write-block reordered **first** (new Invariant #5), `--output json` write forms added
-> to the block list, trailing-space guard on `comment`/`comments`; 12 new BATS tests red→green. This closes
-> the highest-severity finding of the whole ingestion and hard-completes SEC-001.
+> VSDD adversarial review (ADV-0-801) found the shipped `require-review` gate evaluated the **read-only
+> allowlist BEFORE the write-block with unanchored substring matching**, so any write command carrying a
+> read-only token was allowed **without review** (`jr issue edit KEY --summary "see jr board"` matched the
+> `jr board` token) — bypassing all field-mutation verbs and defeating the SEC-001 comment gate. **Fixed in
+> PR #15 (d304fa5):** write-block reordered **first** (Invariant #5), `--output json` write forms added,
+> trailing-space guard on `comment`/`comments`, 12 red→green BATS. Highest-severity finding of the ingestion;
+> hard-completes SEC-001.
 
-**SEC-001..005 FIXED and merged (PR #13, commit f450d9f):**
-- SEC-001 (MEDIUM, prompt injection via Jira comment path) — `jr issue comment` review-gated by PR #13, **fully gated only after PR #15's precedence fix** (the PR #13 deny-rule alone was bypassable via allowlist precedence — see SEC-009).
-- SEC-002 (LOW, fail-open) — unrecognized `jr` subcommands now **fail-closed** (emit_deny).
-- SEC-003 (LOW) — MCP versions pinned in `docs/mcp.json.example` (perplexity 0.9.0, playwright 0.0.78).
-- SEC-004 (LOW) — `release.yml` write permission scoped to the release job (validate now read-only).
-- SEC-005 (LOW) — Semgrep pinned to 1.170.0 via direct `semgrep --config auto --error` + health-check (no more silent early-exit).
+**SEC-001..005 FIXED and merged (PR #13, f450d9f):** SEC-001 (MEDIUM, comment-path prompt injection) —
+review-gated by PR #13 but **fully gated only after PR #15's precedence fix** (see SEC-009); SEC-002 (fail-open
+→ **fail-closed**); SEC-003 (MCP versions pinned); SEC-004 (`release.yml` perms job-scoped); SEC-005 (Semgrep
+pinned 1.170.0 + health-check). All LOW except SEC-001.
 
 SEC-006 (jr CLI unversioned) and SEC-007 (Tavily key in URL) **ACCEPTED** (info; review next release).
 SEC-008 / DI-001 **RESOLVED** (PR #12): `.envrc`/`.mcp.json`/`.env`/`.claude/settings.local.json`
@@ -273,7 +272,7 @@ Detail + all findings/dispositions: `.factory/phase-0-ingestion/security-audit.m
 | DI-007 | enrichment-completeness investigation branch untested; hook↔template section-sync gap; handoff-validator 39/40 boundary | MEDIUM | open | first Feature cycle |
 | DI-008 | Component-Map numbering diverged (prose table vs YAML) in recovered-architecture.md | LOW | **RESOLVED** (arch reconciled — C-1..C-24 agree end-to-end) | — |
 | DI-009 | hook-manifests component absent from machine-readable YAML component map | HIGH | **RESOLVED** (added as C-18 HIGH; tail renumbered to C-24) | — |
-| DI-010 | SEC-002 fail-closed regression: `jr issue changelog` (read-only, metrics suite) wrongly denied | HIGH | **RESOLVED** (PR #14, 0ec794a — allowlist expanded incl. `--output json` families; 8 new BATS; 138/138) | — |
+| DI-010 | SEC-002 fail-closed regression: `jr issue changelog` (read-only, metrics suite) wrongly denied | HIGH | **RESOLVED** (PR #14, 0ec794a — allowlist expanded incl. `--output json` families; 8 new BATS) | — |
 | DI-011 | `hooks.json`/`hooks.json.windows` validated by `jq .` only — no JSON-Schema for matcher/event/command structure; a malformed matcher silently de-wires the CRITICAL require-review gate | LOW (likelihood-weighted; **consequence is HIGH** — silent de-wiring of the sole CRITICAL authz gate) | open | first Feature cycle |
 | DI-012 | **BC coverage is partial by design** (pass-2/3 observation): **three** Iron-Law-bearing skills have **no behavioral contract** — `assess-priority` ("NO PRIORITY ASSIGNMENT WITHOUT MULTI-FACTOR ASSESSMENT FIRST", `skills/assess-priority/SKILL.md:13`), `create-advisory`, `analyze-ticket-effort`; plus `read-ticket` (no Iron Law, but the SEC-001 prompt-injection entry point) is uncontracted. The 13 recovered BCs cover the highest-blast-radius modules, not every Iron-Law-bearing skill. | MEDIUM | **PENDING HUMAN DECISION** at Phase 0 gate — expand the BC set before Feature Mode, or accept partial coverage? | Phase 0 exit gate |
 | DI-013 | **Comment-post steps require a manual permission-override every time** (pass-6): PR #13's unconditional `jr issue comment` deny hard-gates the two comment-posting workflow steps — `update-jira` PC#4 and `investigate-event` Stage 7 — but **no marker-based override exists** (require-review matches substrings on stdin only, with no memory of review state). Every legitimate comment post now needs a human permission-override. | MEDIUM-HIGH | **PENDING HUMAN DECISION** at Phase 0 gate — (a) accept the friction as security posture, (b) implement a review-approval marker mechanism (code change), or (c) add a dedicated gated `post-review-comment` command | Phase 0 exit gate |
@@ -298,25 +297,25 @@ consistency/spec/hardening items, not high-severity behavioral defects. DI-008/D
 
 ## 10. Recent Changes (reflected in this document)
 
-- **Adversarial pass 8 (2026-07-19) — HEADLINE:** 6 findings (**1 CRITICAL real shipped-code bug** / 1M / 4m).
-  **SEC-009** was a genuine live vulnerability (not a doc defect): shipped `require-review` checked its
-  allowlist **before** the write-block with unanchored substrings, so a write command carrying a read-only
-  token (`jr issue edit KEY --summary "see jr board"`) was allowed **without review**, also defeating SEC-001.
-  **FIXED PR #15 (d304fa5):** write-block reordered first (Inv #5), `--output json` write forms added,
-  trailing-space guard, 12 new BATS. BC-3.01.001 → v1.7, BC-3.02.001 → v1.4 (**DI-014** LOW); ADV-0-007
-  defense-in-depth RESOLVED; SEC-001 fully gated; HS-026 added (26 scenarios); DAG restated **manually
-  verified acyclic (no DFS tool)**.
+- **Adversarial pass 9 (2026-07-19):** 4 findings (0C/3M/1m), all **propagation/count/anchor-class fallout
+  from the PR #15 edit** — resolved by re-issuing the L1 shards (vga + module-criticality **v1.4** now carry
+  SEC-009), switching require-review references to **construct names** (anchor-churn root cause structurally
+  retired), and settling the test count at **150 @tests** (hooks 44/skills 81/integration 11/parity 14).
+  SM-3b (SEC-009 bypass) recorded killed by PR #15, kept distinct from the unrelated SM-8. BC-4.02.001 → v1.3,
+  BC-5.01.001 → v1.4.
+- **Adversarial pass 8 (2026-07-19) — HEADLINE (CRITICAL, real code):** **SEC-009** — the shipped
+  require-review gate was fully bypassable (allowlist evaluated before write-block), also defeating SEC-001;
+  **FIXED PR #15 (d304fa5)** (full detail in the §7 box). BC-3.01.001 → v1.7, BC-3.02.001 → v1.4 (**DI-014**
+  LOW); ADV-0-007 defense-in-depth RESOLVED; HS-026 added.
 - **Adversarial passes 1–7 (2026-07-19) — condensed** (all findings remediated; details folded into
-  §2/§5/§6/§7/§8): reconciled the C-1..C-24 map (hook-manifests = C-18); fixed the census to 24 (1/12/7/4)
-  + require-review ≥95% not-yet-demonstrated; anchored the ~75–80% 6-hook kill-rate + SM-8/SM-8b; flipped
-  EC-004 to DENY + 13 BC input-hashes; "PRs unmerged" ruled FALSE POSITIVE; ADV-0-501 co-fire semantics
-  VERIFIED-vs-hooks.json + EC-009; opened DI-011/DI-012/DI-013; 12-hit propagation sweep (C-12 5-verb,
-  disposition-guard heading-presence-only). **[process-gap]** flagged: a fan-out/propagation-sweep step is an
+  §2/§5/§6/§7/§8): reconciled the C-1..C-24 map; fixed the census to 24 (1/12/7/4); anchored the ~75–80%
+  6-hook kill-rate; flipped EC-004 to DENY + 13 BC input-hashes; "PRs unmerged" ruled FALSE POSITIVE;
+  ADV-0-501 co-fire VERIFIED-vs-hooks.json + EC-009; opened DI-011/DI-012/DI-013; propagation sweep (C-12
+  5-verb); DAG restated manually-verified-acyclic. **[process-gap]** flagged: fan-out/propagation-sweep is an
   engine codification candidate.
-- **Onboarding-day PRs #12–#14 (merged):** #12 gitignored secret-bearing files (DI-001) + repo hardening
-  (branch protection, Semgrep CI, SHA-pinned actions); #13 fixed SEC-001..005 (comment review-gated,
-  fail-closed, versions pinned; BATS 129→130); #14 expanded the read-only allowlist / `--output json` forms
-  (DI-010; BATS 130→138). Feature-additive v0.6.0→v0.9.0 history; single contributor; strong release hygiene.
+- **Onboarding-day PRs #12–#14 (merged):** #12 gitignored secrets (DI-001) + repo hardening (branch
+  protection, Semgrep CI, SHA-pinned actions); #13 fixed SEC-001..005; #14 expanded the read-only allowlist
+  (DI-010). Feature-additive v0.6.0→v0.9.0 history; single contributor; strong release hygiene.
 
 ## 11. Boundary — Exists vs NEW work
 
@@ -375,13 +374,13 @@ agents. Index metadata only: `.factory/holdout-scenarios/HS-INDEX.md`.
 ## Quality Gate
 
 - [x] Self-contained — a reader understands the project without opening sub-documents
-- [x] Cross-references consistent — backed by an explicit grep sweep (BC versions, DI ids/status, SM mutants, census counts, hook-verb lists, kill-rate figures, hooks.json citations). Verified: census 24 aggregate (1/12/7/4) incl. C-18 / 43 per-artifact (24−1+19+1); templates 6; hooks 6+6+2; DAG **manually verified acyclic (no DFS tool)**. **BC versions enumerated individually** (ADV-0-804): BC-3.01.001 **v1.7**, BC-3.02.001 **v1.4**, BC-3.03.001 v1.3, BC-3.04.001 v1.3, BC-3.05.001 v1.2, BC-3.06.001 v1.2, BC-4.02.001 v1.2, BC-5.01.001 v1.3 (the earlier "hook BCs v1.3" blanket was wrong).
+- [x] Cross-references consistent (honestly re-verified pass 9): census 24 aggregate (1/12/7/4) incl. C-18 / 43 per-artifact; templates 6; hooks 6+6+2; DAG **manually verified acyclic (no DFS tool)**; **test count settled 150** (hooks 44, skills 81, integration 11, parity 14); require-review referenced by **construct name, not line number** (anchor-churn retired). Source shards current: **vga & module-criticality v1.4 both carry SEC-009**. BC versions individually: BC-3.01.001 **v1.7**, BC-3.02.001 **v1.4**, BC-3.03.001 v1.3, BC-3.04.001 v1.3, BC-3.05.001 v1.2, BC-3.06.001 v1.2, BC-4.02.001 **v1.3**, BC-5.01.001 **v1.4**.
 - [x] Restricted areas justified per row; DI mis-cite corrected (hook-wiring cites DI-011, not DI-009)
 - [x] Context-budget estimate per architectural component + strategy recommendation
 - [x] No orphaned references (DI-008/DI-009/DI-010 resolved; DI-011/DI-012/DI-013/DI-014 open; frontmatter DI range DI-001..DI-014)
 - [x] Security posture reflects security-audit.md — original 0C/0H/1M/4L/3I **+ post-audit SEC-009 CRITICAL RESOLVED (PR #15)**; SEC-001 now fully gated; C-12 write-block 5-verb + **evaluated first** (Inv #5)
 - [x] BC drift check functional — 13 BCs carry populated `input-hash`es; 6 hook BCs dual-file (.sh + .ps1); PRs #1–#15 verified merged at HEAD d304fa5 (pass-4 "unmerged" = FALSE POSITIVE, stale snapshot)
-- [x] Recent changes (PRs #12–#15 + adversarial passes 1–8) surfaced; **SEC-009 real-code bug fixed PR #15**; DI-014 opened
+- [x] Recent changes (PRs #12–#15 + adversarial passes 1–9) surfaced; SEC-009 real-code bug fixed PR #15; SM-3b killed (distinct from SM-8); test count = 150
 - [x] Mutation figures — 6-hook aggregate **~75–80%** (vga §Mutation Testing Baseline ~line 194); require-review ≥95% NOT yet demonstrated met; assign/create + `--output json` write forms code-analysis-verified only
 - [x] BC-3.03.001 "FULLY" qualified (declared-VP coverage; DI-004 = EC-009, NOT fixed by PR #15 — require-review only); disposition-guard heading-presence only; holdout **26 = 25 must-pass + 1 fix-target (HS-014); HS-026 guards SEC-009**
 - [x] Two pending Phase 0 gate decisions surfaced (DI-012 partial-BC-coverage; DI-013 comment-post override)
@@ -390,7 +389,7 @@ agents. Index metadata only: `.factory/holdout-scenarios/HS-INDEX.md`.
 pass: 0
 step: "0f"
 status: awaiting-phase-0-gate
-revision: "1.8 — re-synced post adversarial pass 8 (SEC-009 CRITICAL fix, PR #15)"
+revision: "1.9 — re-synced post adversarial pass 9 (test count 150; construct-name anchors)"
 files_synthesized: 9
 timestamp: 2026-07-19T00:00:00Z
 open_gate_decision:

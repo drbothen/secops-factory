@@ -11,9 +11,12 @@
 > - ADV-0-502: Corrected DTU-1 mock guidance for `jr issue comment` — was "allow (hook allows this)" which is wrong at HEAD. `jr issue comment` is in the require-review deny block (`require-review.sh:88-93`). Updated to "verify require-review hook fires (deny without review approval)". Note: the pass-5 fix also included an incorrect claim about a "review-approval override path via marker in the comment command" — that claim was wrong and is corrected in pass 6 (ADV-0-601, see below).
 >
 > **Changelog (2026-07-19, adversarial review pass 6):**
-> - ADV-0-601: Corrected DTU-1 mock guidance — the pass-5 fix was still wrong in claiming a marker-based override exists. The `jr issue comment` deny is unconditional (`require-review.sh:88-94 (deny at :93)` write-block substring match; hook reads stdin JSON only; no bypass mechanism). The only unblock path is human permission-approval of the blocked call (Claude Code permission dialog). DTU should model deny + human-override. Resolution options tracked as DI-013, PENDING HUMAN DECISION at the Phase 0 gate.
+> - ADV-0-601: Corrected DTU-1 mock guidance — the pass-5 fix was still wrong in claiming a marker-based override exists. The `jr issue comment` deny is unconditional (the require-review write-block, evaluated before the allowlist, denies jr issue comment/edit/move/assign/create and their --output json forms; hook reads stdin JSON only; no bypass mechanism). The only unblock path is human permission-approval of the blocked call (Claude Code permission dialog). DTU should model deny + human-override. Resolution options tracked as DI-013, PENDING HUMAN DECISION at the Phase 0 gate.
 > - ADV-0-705: Removed "deny from either wins" from DTU-1 comment-mock line — that phrase is Write-hook co-fire semantics (enrichment-completeness + disposition-guard on every Write event); the Bash/require-review path has only one hook.
 > - ADV-0-706: Standardized `require-review.sh:88-93` → `88-94 (deny at :93)` throughout this file (ADV-0-601 changelog entry and DTU-1 comment-mock line).
+>
+> **Changelog (2026-07-19, adversarial review pass 9):**
+> - ADV-0-901: Replaced brittle `require-review.sh:88-94 (deny at :93)` line-number citations with construct-name references in the ADV-0-601 changelog entry and the DTU-1 comment-mock line. PR#15 reordered require-review.sh so lines 88-110 are now the allowlist (not the write-block); line-number citations in consumer docs now invert. Construct-name references are resilient to future PR churn.
 
 ---
 
@@ -94,7 +97,7 @@ and inbound fallback (NVD/EPSS/CISA read-only feeds).
 - Mock `jr issue comments KEY` → return comment history fixture
 - Mock `jr issue edit KEY` → apply state mutation, verify `require-review` hook fires
 - Mock `jr issue move KEY STATUS` → validate status transitions, verify `require-review` hook fires
-- Mock `jr issue comment KEY "msg"` → verify require-review hook fires (unconditional deny — `require-review.sh:88-94 (deny at :93)` write-block list; no marker-based override exists); DTU mock should model deny + human permission-approval as the only unblock path (DI-013, PENDING HUMAN DECISION)
+- Mock `jr issue comment KEY "msg"` → verify require-review hook fires (unconditional deny — the require-review write-block (evaluated before the allowlist; denies jr issue comment/edit/move/assign/create and their --output json forms); no marker-based override exists); DTU mock should model deny + human permission-approval as the only unblock path (DI-013, PENDING HUMAN DECISION)
 - Mock `jr issue assets KEY` → return CMDB asset fixture
 
 ---

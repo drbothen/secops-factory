@@ -1,7 +1,7 @@
 ---
 document_type: module-criticality
 level: L1
-version: "1.3"
+version: "1.4"
 status: active
 producer: formal-verifier
 phase: "0e.5"
@@ -26,14 +26,15 @@ version_history:
   - "1.1 (2026-07-19) — re-sync 1, post PR #13/#14 (ADV-0-004 census reconciliation, ADV-0-003 staleness, ADV-0-010 session-greeting numeric target)"
   - "1.2 (2026-07-19) — re-sync 2, post adversarial pass 2 (ADV-0-202 C-ID realign to C-1..C-24 incl. C-18 hook-manifests, ADV-0-203 architect note resolved, ADV-0-205 require-review overclaim)"
   - "1.3 (2026-07-19) — re-sync 3 + pass-4 finalization, post adversarial passes 3–4 (ADV-0-301 kill-rate figure/anchor, ADV-0-302 6-hook scope; ADV-0-404 secops-health double-count, ADV-0-405 hook line refs verified, ADV-0-406 vga anchor, ADV-0-408 versioning); status → active (capstone-authoritative)"
+  - "1.4 (2026-07-19) — re-issue post PR #15 (d304fa5), adversarial pass 9 (ADV-0-901, ADV-0-903): added SEC-009 (allowlist-precedence bypass, CRITICAL, RESOLVED PR #15) to the Resolved table and rewrote the require-review narrative to acknowledge the gate was fully bypassable until PR #15; replaced churned require-review.sh line-number citations with construct-name references; test count 138 → 150 (hooks 44 + skills 81 + integration 11 + parity 14)"
 ---
 
 # Module Criticality Classification — secops-factory v0.9.0
 
-> **Reconciliation note — re-synced 2026-07-19 (4th pass, post adversarial pass 4). Version 1.3, status active.**
+> **Reconciliation note — re-issued 2026-07-19 (5th pass, post adversarial pass 9, post PR #15). Version 1.4, status active.**
 > First re-sync (post PR #13 f450d9f / PR #14 0ec794a): census recounted to one
 > authoritative granularity (ADV-0-004); open items refreshed against merged fixes,
-> suite 138/138 (ADV-0-003); session-greeting numeric target stated (ADV-0-010).
+> suite green (ADV-0-003); session-greeting numeric target stated (ADV-0-010).
 > Second re-sync (post adversarial pass 2): C-IDs realigned to the pass-1 architecture
 > reconciliation — hook-manifests is now **C-18 (HIGH)** and the tail renumbered to
 > **C-24**; authoritative aggregate is now **24 modules — 1 CRITICAL / 12 HIGH / 7
@@ -48,8 +49,15 @@ version_history:
 > distinct LOW module, explicit derivation `24 − 1 + 19 + 1 = 43` added (ADV-0-404);
 > kill-rate citations re-anchored to a section-name reference (vga §Mutation Testing
 > Baseline, ~line 194) to stop line-number churn (ADV-0-406); require-review.sh line
-> refs (fail-closed 96–98, assign/create 91–92) verified against source (ADV-0-405);
-> frontmatter bumped to v1.3 / status active with a version-history block (ADV-0-408).
+> refs verified against source (ADV-0-405); frontmatter bumped to v1.3 / status active
+> with a version-history block (ADV-0-408).
+> Fifth re-issue (post PR #15 d304fa5, adversarial pass 9): added **SEC-009**
+> (allowlist-precedence bypass — CRITICAL, gate was fully bypassable, RESOLVED PR #15)
+> to the Resolved table and rewrote the require-review narrative accordingly
+> (ADV-0-901/ADV-0-903); replaced now-churned require-review.sh line-number citations
+> with **construct-name references** (write-block if-block / fail-closed catch-all /
+> write-verb patterns) since line numbers inverted across PR #13/#14/#15; test count
+> updated **138 → 150** (hooks 44 + skills 81 + integration 11 + parity 14).
 
 > Step 0e.5 (Module Criticality Classification). Agent: formal-verifier.
 > Classifies every Component-Map module into a DF-004 criticality tier, driving
@@ -120,7 +128,7 @@ corruption of the authoritative Jira record or of the user's `settings.local.jso
 
 | Module | Path | Tier | Mut. target | Rationale |
 |--------|------|------|-------------|-----------|
-| require-review hook | `hooks/require-review.{sh,ps1}` | **CRITICAL** | ≥95% (not yet demonstrated) | The authorization gate on the Jira system of record — now blocks `jr issue comment/edit/move/assign/create` and **fail-closes (default-deny) on unrecognized subcommands** (BC-3.01.001). Post PR #13/#14 the design **materially improves** assurance: SEC-001 (comment path denied) and SEC-002/SM-3 (fail-open → fail-closed) are resolved with red-first BATS vectors, and the fail-closed fallthrough makes the SM-2 "delete assign/create from blocklist" mutant behaviorally inert. **The ≥95% numeric target is NOT yet demonstrated met** — no per-hook mutation run has been executed; it remains open until Phase 6 / Feature Mode mutation testing. require-review's individual kill rate is not yet measured (the current **~75–80%** figure in verification-gap-analysis.md §Mutation Testing Baseline → Surviving Mutants summary (~line 194) is the post-remediation aggregate across the 6-hook mutation-testable set, not this hook alone; the ~55–65% figure is the original pre-PR-13 baseline, now superseded). Suite 138/138 green, shellcheck clean. |
+| require-review hook | `hooks/require-review.{sh,ps1}` | **CRITICAL** | ≥95% (not yet demonstrated) | The authorization gate on the Jira system of record — blocks `jr issue comment/edit/move/assign/create` and **fail-closes (default-deny) on unrecognized subcommands** (BC-3.01.001). **Assurance history is non-monotonic and must not be overstated:** PR #13/#14 resolved SEC-001 (comment path denied) and SEC-002/SM-3 (fail-open → fail-closed), but the gate remained **FULLY BYPASSABLE until PR #15** — the read-only allowlist was evaluated *before* the write-block, so any write command carrying an embedded allowlist token (e.g., `jr issue edit KEY --summary "see jr board"`) matched the allowlist and was allowed, silently **defeating SEC-001** (SEC-009 / ADV-0-801, CRITICAL). **PR #15 (d304fa5)** reorders the write-block ahead of the allowlist and adds 12 red-first BATS vectors; the SM-2 "delete assign/create from blocklist" mutant is behaviorally inert via the fail-closed catch-all. **The ≥95% numeric target is NOT yet demonstrated met** — no per-hook mutation run has executed; it remains open until Phase 6 / Feature Mode. require-review's individual kill rate is unmeasured (the current **~75–80%** figure in verification-gap-analysis.md §Mutation Testing Baseline → Surviving Mutants summary (~line 194) is the post-remediation aggregate across the 6-hook mutation-testable set, not this hook alone; the ~55–65% figure is the original pre-PR-13 baseline, now superseded). Suite 150/150 green, shellcheck clean. |
 | enrichment-completeness hook | `hooks/enrichment-completeness.{sh,ps1}` | **HIGH** | ≥90% | Enforces the required-section completeness invariant on saved enrichment/investigation docs (BC-3.02.001); the entire investigation 4-section branch is untested (SM-4) and hook-hardcoded section lists can drift from templates (GAP-5). Blast radius bounded to local doc quality, not the authoritative record. |
 | disposition-guard hook | `hooks/disposition-guard.{sh,ps1}` | **HIGH** | ≥90% | Anti-confirmation-bias invariant gate requiring "Alternatives Considered" on dispositions (BC-3.03.001); **DI-004 confirmed false-pass (SM-1)** — a negating sentence containing the phrase defeats the substring match, silently bypassing a security-analysis quality gate. Effective assurance is currently below tier until the heading-anchored fix lands (GAP-1). |
 | bias-check-reminder hook | `hooks/bias-check-reminder.{sh,ps1}` | **LOW** | ≥70% | Non-blocking PostToolUse advisory that injects a cognitive-bias reminder to stderr (BC-3.04.001); cannot corrupt state or block any operation. |
@@ -230,18 +238,24 @@ delta. `24 − 1 + 19 + 1 = 43` ✓.
 > 12 HIGH / 7 MEDIUM / 4 LOW** (frontmatter). The per-artifact 43-module figure is a
 > secondary breakdown showing the finer granularity used in the ranking tables above.
 
-## Open-item impact on effective assurance (re-synced post PR #13/#14)
+## Open-item impact on effective assurance (re-issued post PR #13/#14/#15)
 
-### Resolved — no longer degrade tier assurance (verified against merged code, suite 138/138)
+### Resolved — no longer degrade tier assurance (verified against merged code, suite 150/150)
+
+> **Reference convention (pass 9):** hook citations below use **construct names**
+> (the write-block if-block / the fail-closed catch-all / the specific write-verb
+> patterns), not `require-review.sh:NN` line numbers — line numbers churned and
+> inverted across PR #13/#14/#15 and are no longer stable anchors.
 
 | Item | Module | Resolution |
 |------|--------|-----------|
-| SEC-001 | require-review (CRITICAL), update-jira (skill CRITICAL) | **RESOLVED (PR #13, f450d9f).** `jr issue comment` moved into the deny block — the injection route to the authoritative record via comments is now hard-gated. Red-first BATS vector added. (Residual defense-in-depth: read-ticket system-prompt framing of untrusted ticket content is still advisable but not blocking.) |
-| SEC-002 / SM-3 / GAP-2 (fail-open) | require-review (CRITICAL) | **RESOLVED (PR #13).** Final fallthrough changed from `emit_allow` to `emit_deny` (fail-closed default-deny) for unrecognized subcommands; verified at `require-review.sh:96-98`. SM-3 killed. |
-| SM-2 (assign/create) | require-review (CRITICAL) | **NEUTRALIZED (PR #13).** assign/create remain explicitly denied (`require-review.sh:91-92`) and the fail-closed fallthrough makes the "delete assign/create from blocklist" mutant behaviorally inert (still denied). Residual: a dedicated assign/create partition test is nice-to-have, not load-bearing. |
+| SEC-001 | require-review (CRITICAL), update-jira (skill CRITICAL) | **RESOLVED (PR #13, f450d9f).** `jr issue comment` moved into the write-block if-block — the injection route to the authoritative record via comments is hard-gated. Red-first BATS vector added. (Residual defense-in-depth: read-ticket system-prompt framing of untrusted ticket content is still advisable but not blocking.) Note: this fix was silently **defeated by the SEC-009 precedence bypass until PR #15** — see SEC-009 below. |
+| SEC-002 / SM-3 / GAP-2 (fail-open) | require-review (CRITICAL) | **RESOLVED (PR #13).** The unrecognized-subcommand path changed from allow to deny — verified at the **fail-closed catch-all** (the terminal `emit_deny` after the read-only allowlist). SM-3 killed. |
+| SM-2 (assign/create) | require-review (CRITICAL) | **NEUTRALIZED (PR #13).** assign/create remain explicitly denied by the **write-block if-block's `jr issue assign` / `jr issue create` patterns**, and the fail-closed catch-all makes the "delete assign/create from blocklist" mutant behaviorally inert (still denied). Residual: a dedicated assign/create partition test is nice-to-have, not load-bearing. |
 | SEC-003 | Perplexity MCP / jr CLI (MEDIUM) | **RESOLVED (PR #13).** MCP server versions pinned in `docs/mcp.json.example` (perplexity 0.9.0, playwright 0.0.78). |
 | SEC-004 | test-suite + CI (HIGH) | **RESOLVED (PR #13).** release.yml permission scoping addressed under the SEC-001..005 fix set. |
 | SEC-005 | test-suite + CI (HIGH) | **RESOLVED (PR #13).** Semgrep early-exit addressed under the SEC-001..005 fix set. |
+| **SEC-009 / ADV-0-801** (allowlist-precedence bypass) | require-review (CRITICAL) | **RESOLVED (PR #15, d304fa5).** CRITICAL at discovery: the require-review hook evaluated the read-only allowlist **before** the write-block, so any write command with an embedded read-only token (e.g., `jr issue edit KEY --summary "see jr board"` matching the `jr board` allowlist entry) matched the allowlist and emitted allow — the gate was **fully bypassable and SEC-001 was defeated**. Fix reorders the **write-block if-block ahead of the read-only allowlist** and adds 12 red-first BATS vectors (bypass-class must-DENY + `jr --output json issue <write>` forms + regression must-ALLOW). Suite 150/150 green. |
 
 ### Still open — effective assurance below tier until remediated (verified still present)
 

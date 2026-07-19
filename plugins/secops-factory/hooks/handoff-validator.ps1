@@ -15,7 +15,7 @@ $result = ''
 try {
     $payload = $raw | ConvertFrom-Json
     if ($payload -and $payload.result) { $result = [string]$payload.result }
-} catch { }
+} catch { Write-Verbose "handoff-validator: ignoring hook payload JSON parse error — treating result as empty string" }
 
 $len = $result.Length
 

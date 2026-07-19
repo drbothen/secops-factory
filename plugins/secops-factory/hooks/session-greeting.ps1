@@ -17,7 +17,7 @@ $projectDir = ''
 try {
     $payload = $raw | ConvertFrom-Json
     if ($payload -and $payload.cwd) { $projectDir = [string]$payload.cwd }
-} catch { }
+} catch { Write-Verbose "session-greeting: ignoring hook payload JSON parse error — falling back to env/PWD for project dir" }
 if (-not $projectDir) {
     if ($env:CLAUDE_PROJECT_DIR) { $projectDir = $env:CLAUDE_PROJECT_DIR }
     else { $projectDir = (Get-Location).Path }

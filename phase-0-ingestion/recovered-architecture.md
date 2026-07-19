@@ -311,8 +311,8 @@ components:
     layer: "infrastructure"
     purity: "effectful-shell"
     criticality: "HIGH"
-    dependencies: ["C-12", "C-13", "C-14", "C-15", "C-16", "C-2"]
-    interfaces_provided: ["hooks.bats: allow/block path coverage for all 5 hooks", "skills.bats: Iron Law + Announce-at-Start + template portability validation", "integration.bats: end-to-end pipeline path tests", "parity.bats: .sh/.ps1 cross-platform behavioral parity"]
+    dependencies: ["C-12", "C-13", "C-14", "C-15", "C-16", "C-17", "C-2"]
+    interfaces_provided: ["hooks.bats: allow/block path coverage for all 6 hooks (C-12/C-13/C-14 are blocking; C-15/C-16/C-17 are advisory — bias-check/handoff/session-greeting)", "skills.bats: Iron Law + Announce-at-Start + template portability validation", "integration.bats: end-to-end pipeline path tests", "parity.bats: .sh/.ps1 cross-platform behavioral parity"]
     interfaces_consumed: ["bats-core", "jq", "python3 (yaml)", "optional pwsh"]
     confidence: "high"
 
@@ -440,7 +440,7 @@ External Integration Boundary:
   +-- [C-18: hook-manifests] wires: [C-12..C-17: hooks]
 
 [C-22: test-suite]
-  +-- validates: [C-12..C-16: hooks]
+  +-- validates: [C-12..C-17: hooks] (C-12..C-14 blocking; C-15..C-17 advisory)
   +-- validates: [C-2: skill-procedures] (Iron Laws, Announce-at-Start)
 
 Notable intra-skill dependencies (via Skill tool invocation):

@@ -65,8 +65,8 @@ functional procedure. The table below documents dispatch behavior and the Iron L
 | `fact-verify` | (verify claims against authoritative sources) | security-reviewer | none | none |
 | `update-jira` | NO JIRA UPDATE WITHOUT REVIEW APPROVAL FIRST | none (direct jr CLI) | none | require-review (blocks without marker) |
 | `scan-threats` | (none — discovery skill) | advisory-writer | none | bias-check-reminder (PostToolUse on Perplexity) |
-| `create-advisory` | (none — advisory skill) | advisory-writer | scan-threats (via routing) | none |
-| `generate-metrics` | NO EFFORT REPORT WITHOUT STATED BIASES FIRST | metrics-analyst | analyze-ticket-effort (routing) | none |
+| `create-advisory` | NO ADVISORY PUBLICATION WITHOUT SOURCE VERIFICATION FIRST | advisory-writer | scan-threats (via routing) | none |
+| `generate-metrics` | (none — metrics routing skill) | metrics-analyst | analyze-ticket-effort (routing) | none |
 | `analyze-ticket-effort` | NO EFFORT REPORT WITHOUT STATED BIASES FIRST | metrics-analyst | none | none |
 | `model-ticket-cost` | (modeling skill) | metrics-analyst | analyze-ticket-effort (data source) | none |
 | `extract-severity` | (extraction skill) | metrics-analyst | none | none |

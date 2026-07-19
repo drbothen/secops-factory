@@ -82,7 +82,7 @@ removal_reason: null
 | Field | Value |
 |-------|-------|
 | L2 Capability | CAP-ENFORCEMENT-03 |
-| L2 Domain Invariants | Iron Law: NO DISPOSITION WITHOUT EVIDENCE CHAIN FIRST (bias-prevention gate) |
+| L2 Domain Invariants | Anti-confirmation-bias invariant: NO INVESTIGATION DISPOSITION SAVED WITHOUT ALTERNATIVES CONSIDERED FIRST — enforces that analysts document alternative hypotheses before committing a TP/FP/BTP disposition (prevents anchoring on the first interpretation) |
 | Architecture Module | C-14 (disposition-guard-hook) |
 | Stories | TBD (filled by story-writer) |
 

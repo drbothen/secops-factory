@@ -2,7 +2,9 @@
 
 _Phase 0, Step 0a (Project Discovery). Agent: codebase-analyzer (T1, read-only). Generated 2026-07-19._
 
-> **Erratum (2026-07-19):** counts corrected per adversarial review ADV-0-005/006 — hook `.sh` count 7→6 (LOC 400→329, prior figure erroneously included `tests/run-all.sh`); template count 5→6 (adds `security-advisory-tmpl.md`).
+> **Erratum (2026-07-19):** counts corrected per adversarial review.
+> - Pass 1 (ADV-0-005/006): hook `.sh` count 7→6 (LOC 400→329, prior figure erroneously included `tests/run-all.sh`); template count 5→6 (adds `security-advisory-tmpl.md`).
+> - Pass 2 (ADV-0-209/211): §5 git stats recounted after onboarding-day merges (PRs #12–#14) — total commits 38→41, last-3-months 11→14, PR range #1–#11 → #1–#14; §4 agents line reworded to remove additive (7) reading — 6 total = 5 specialists + 1 orchestrator.
 
 ## 1. Project Identity
 
@@ -58,7 +60,7 @@ secops-factory/
 ├── docs/guide/                          # 8 marketplace-level user guides
 ├── plugins/secops-factory/              # THE PRODUCT
 │   ├── .claude-plugin/plugin.json       # plugin manifest + hooks registration
-│   ├── agents/                          # 6 agents (+ orchestrator/ subdir w/ 3 workflows)
+│   ├── agents/                          # 6 agents total: 5 specialists + orchestrator/ (companion + 3 workflow files)
 │   ├── commands/                        # 20 slash-command entry points
 │   ├── skills/<name>/SKILL.md           # 19 skills
 │   ├── checklists/                      # 15 quality checklists (8 CVE + 7 event)
@@ -85,17 +87,17 @@ secops-factory/
 
 | Metric | Value |
 |--------|-------|
-| Total commits | 38 (entire history) |
-| Commits in last 3 months | 11 (window ~2026-04-19 → 2026-07-19) |
-| Date range | first `2026-04-09`, latest `2026-07-19` |
+| Total commits | 41 (entire `main` history; recounted 2026-07-19 post-onboarding merges) |
+| Commits in last 3 months | 14 (window ~2026-04-19 → 2026-07-19) |
+| Date range | first `2026-04-09`, latest `2026-07-19 12:58` |
 | Contributors | 1 — **Joshua Magady** (all 38 commits; note: marketplace/plugin author metadata says `drbothen`) |
 | Commit convention | **Conventional Commits** (`feat(scope):`, `chore:`, `docs:`, `ci:`). `rules/secops-protocol.md` additionally specifies a `secops(<scope>):` form for plugin-content commits |
-| PR discipline | Every substantive change lands via numbered PR (#1–#11), squash-merged |
+| PR discipline | Every substantive change lands via numbered PR (#1–#14), squash-merged |
 | Branching strategy | `main` (default, protected — direct push blocked by vsdd `verify-git-push` hook per RELEASING.md) + short-lived `feat/*` and `docs/*` branches + `release/vX.Y.Z` branches + `factory-artifacts` orphan branch |
 | Release model | Tag `vX.Y.Z` cut **after** squash-merge on the merge commit; `release.yml` validates tag == `plugin.json` version == `marketplace.json` version |
 | Hot files (last 3mo, by change count) | `README.md` (9), `CHANGELOG.md` (8), `plugin.json` (4), `marketplace.json` (4), `tests/skills.bats` (3), `docs/guide/getting-started.md` (3), `generate-metrics/SKILL.md` (2), `ci.yml` (2) |
 
-**Recent development focus (last 3 months):** orchestrator companion + activation flow (v0.6.0), cross-platform hooks + session greeting (v0.7.0), Jira-native metrics suite (v0.8.0), concrete Jira metrics recipes (v0.9.0), then CI hardening (SHA-pinned actions, timeouts, Semgrep). The trajectory is feature-additive with strong release hygiene.
+**Recent development focus (last 3 months):** orchestrator companion + activation flow (v0.6.0), cross-platform hooks + session greeting (v0.7.0), Jira-native metrics suite (v0.8.0), concrete Jira metrics recipes (v0.9.0), then CI hardening (SHA-pinned actions, timeouts, Semgrep, #11), and onboarding-day hardening merges: gitignore local secret-bearing files (#12), resolve Phase 0 security audit findings SEC-001..005 (#13), expand hook read-only allowlist (#14). The trajectory is feature-additive with strong release hygiene.
 
 ## 6. External Dependencies (runtime)
 

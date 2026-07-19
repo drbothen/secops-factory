@@ -169,7 +169,7 @@ removal_reason: null
 
 **DI-010 root cause (documented in source at `hooks/require-review.sh:55-59`):** `jr issue view KEY` is NOT a substring of `jr --output json issue view KEY` because the global flag `--output json` sits between `jr` and `issue`. Separate allowlist entries are required for each family. See Invariant #4.
 
-**BATS test changes (PR #14):** Lines 21-67 in `hooks.bats` are nine new allow tests covering changelog plain/json forms, `--output json` issue view/list/comments, assets search/view (CMDB), and `jr --version`. Total test count: 130 → 138.
+**BATS test changes (PR #14):** Lines 21-67 in `hooks.bats` are eight new allow tests covering changelog plain/json forms, `--output json` issue view/list/comments, assets search/view (CMDB), and `jr --version`. Total test count: 130 → 138.
 
 #### Evidence Types Used
 

@@ -3,6 +3,9 @@
 > Detail file for `recovered-architecture.md` (DF-021 shard)
 > Step 0b: Architecture Recovery
 > Date: 2026-07-19
+>
+> **Changelog (2026-07-19, adversarial review pass 2):**
+> - ADV-0-206 / DI-001 RESOLVED: `.envrc` and `.mcp.json` credential exposure risk was resolved via PR #12 (merged 2026-07-19). Environment Variables table and Security Note updated to reflect gitignored status. The original HIGH-risk annotation was correct at extraction time but is now stale.
 
 ---
 
@@ -140,12 +143,14 @@ and inbound fallback (NVD/EPSS/CISA read-only feeds).
 
 | Variable | Set Where | Purpose | Risk |
 |----------|-----------|---------|------|
-| `ANTHROPIC_AWS_API_KEY` | `.envrc` (untracked, direnv) | Routes Claude Code to Anthropic API via AWS Marketplace | HIGH — live key, file not gitignored |
-| `PERPLEXITY_API_KEY` | `.mcp.json` (untracked) | Perplexity MCP authentication | HIGH — live key, file not gitignored |
+| `ANTHROPIC_AWS_API_KEY` | `.envrc` (untracked, direnv) | Routes Claude Code to Anthropic API via AWS Marketplace | RESOLVED (PR #12, 2026-07-19) — `.envrc` is now gitignored; was HIGH at extraction time |
+| `PERPLEXITY_API_KEY` | `.mcp.json` (untracked) | Perplexity MCP authentication | RESOLVED (PR #12, 2026-07-19) — `.mcp.json` is now gitignored; was HIGH at extraction time |
 | Tavily API key (URL-embedded) | `.mcp.json` (untracked) | Tavily MCP (dev/optional) | MEDIUM |
 | `CONTEXT7_API_KEY` | `.mcp.json` (untracked) | Context7 MCP (dev/optional) | MEDIUM |
 | `CLAUDE_PLUGIN_ROOT` | Set by Claude Code plugin runtime | Base path for all ${CLAUDE_PLUGIN_ROOT}/ references in skills/agents | NONE — runtime-provided |
 
-**Security Note (from Step 0a):** Neither `.envrc` nor `.mcp.json` is gitignored. Both
-show as untracked (`??`) in git status. Risk of accidental commit. Recommend adding both
-to `.gitignore` before next commit.
+**Security Note (updated 2026-07-19 — DI-001 RESOLVED):** `.envrc` and `.mcp.json` were
+not gitignored at initial extraction (Step 0a finding). Both were added to `.gitignore`
+via PR #12 (merged 2026-07-19, commit da58b9a) and confirmed never committed to git
+history. The credential exposure risk is resolved. Both files remain untracked (`??`)
+in git status — correctly local-only and not committed.

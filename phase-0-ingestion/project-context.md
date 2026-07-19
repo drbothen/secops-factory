@@ -1,14 +1,14 @@
 ---
 document_type: project-context
 level: L0
-version: "1.1"
+version: "1.2"
 status: active
 producer: codebase-analyzer
 phase: 0
 step: "0f"
 project: secops-factory
-date: "2026-07-19 (re-synced post adversarial pass 1)"
-source_state: "v0.9.0 + PR #12 (gitignore) + PR #13 (SEC-001..005 fixed, f450d9f) + PR #14 (read-only allowlist expansion / DI-010, 0ec794a); BATS suite 138/138 green"
+date: "2026-07-19 (re-synced post adversarial pass 2)"
+source_state: "v0.9.0 + PR #12 (gitignore) + PR #13 (SEC-001..005 fixed, f450d9f) + PR #14 (read-only allowlist expansion / DI-010, 0ec794a); 41 commits / PRs #1–#14; BATS suite 138/138 green"
 inputs:
   - phase-0-ingestion/project-discovery.md
   - phase-0-ingestion/recovered-architecture.md (+ arch-recov-api-surface.md, arch-recov-integrations.md)
@@ -77,11 +77,12 @@ Integrations / DTU candidates: `.factory/phase-0-ingestion/arch-recov-integratio
 
 ### Component criticality (from `specs/module-criticality.md`)
 
-**Authoritative census — YAML component-map aggregate (C-1..C-24): 23 modules — 1 CRITICAL / 11 HIGH / 7 MEDIUM / 4 LOW.**
+**Authoritative census — YAML component-map aggregate (C-1..C-24): 24 modules — 1 CRITICAL / 12 HIGH / 7 MEDIUM / 4 LOW.**
 `update-jira` folds into the HIGH `skill-procedures` aggregate (C-2) at this granularity, so
-require-review (C-12) is the sole CRITICAL. A secondary **per-artifact figure of 43 modules
-(2 CRITICAL / 16 HIGH / 20 MEDIUM / 5 LOW)** explodes C-2 into its 19 skills + the hooks.json
-manifest module; at that granularity update-jira surfaces as a distinct CRITICAL skill.
+require-review (C-12) is the sole CRITICAL; hook-manifests (C-18) is a counted HIGH member. A secondary
+**per-artifact figure of 43 modules (2 CRITICAL / 16 HIGH / 20 MEDIUM / 5 LOW)** explodes C-2 into its 19
+skills (hook-manifests is already its own C-18 in the aggregate, so the per-artifact total is unchanged);
+at that granularity update-jira surfaces as a distinct CRITICAL skill.
 
 | Tier | Modules (per-artifact view; aggregate note where it differs) |
 |------|---------|
@@ -93,10 +94,12 @@ manifest module; at that granularity update-jira surfaces as a distinct CRITICAL
 Mutation/verification numeric targets apply to the **6 mutation-testable hooks** (input-partition
 BATS analog — session-greeting included: it is effectful but its gate/compare logic is a pure,
 enumerable sub-function): require-review ≥95%, enrichment-completeness ≥90%, disposition-guard ≥90%,
-bias-check-reminder / handoff-validator / session-greeting ≥70%. **require-review now MEETS its
-CRITICAL-tier assurance** (estimate ~75–80% and rising): SM-3 (fail-open) resolved and SM-2
-(assign/create) neutralized by the fail-closed default-deny fallthrough (PR #13); a dedicated
-assign/create partition test remains nice-to-have, not load-bearing. All other modules are
+bias-check-reminder / handoff-validator / session-greeting ≥70%. For require-review, the fail-closed
+design **materially improves** assurance — SM-3 (fail-open) resolved and SM-2 (assign/create) rendered
+behaviorally inert by the default-deny fallthrough (PR #13) — but its **≥95% CRITICAL kill-rate target is
+NOT yet demonstrated met**: no per-hook mutation run has executed, and its individual kill rate is unmeasured
+(the ~55–65% figure in verification-gap-analysis is the aggregate across all 5 pure hooks, not this hook
+alone). The target stays open until Phase 6 / Feature Mode mutation testing. All other modules are
 declarative/LLM/static — tier governs review depth, not a numeric kill-rate.
 
 ## 3. Context Budget
@@ -176,8 +179,9 @@ their preconditions/postconditions/invariants at runtime** (that is LLM behavior
 deletion/drift but are not behavioral verification of the Iron Laws.
 
 Surviving-mutant status re-synced post PR #13/#14: **SM-3 (require-review fail-open) RESOLVED** and
-**SM-2 (assign/create) NEUTRALIZED** by the fail-closed default-deny fallthrough — require-review now
-meets CRITICAL assurance (~75–80% and rising). Still-open blind spots feed the drift items (§8):
+**SM-2 (assign/create) NEUTRALIZED** by the fail-closed default-deny fallthrough — this materially improves
+require-review's assurance, but its **≥95% CRITICAL kill-rate target is not yet demonstrated met** (no
+per-hook mutation run; individual kill rate unmeasured). Still-open blind spots feed the drift items (§8):
 disposition-guard false-pass (SM-1 / DI-004), enrichment-completeness investigation branch (SM-4 / DI-007),
 pwsh-not-in-CI silent skip (DI-006). No coverage tool applies (declarative plugin); shellcheck clean on
 `.sh`; `.ps1` still gets no static analysis.
@@ -219,6 +223,7 @@ Detail + all findings/dispositions: `.factory/phase-0-ingestion/security-audit.m
 | DI-009 | hook-manifests component absent from machine-readable YAML component map | HIGH | **RESOLVED** (added as C-18 HIGH; tail renumbered to C-24) | — |
 | DI-010 | SEC-002 fail-closed regression: `jr issue changelog` (read-only, metrics suite) wrongly denied | HIGH | **RESOLVED** (PR #14, 0ec794a — allowlist expanded incl. `--output json` families; 8 new BATS; 138/138) | — |
 | DI-011 | `hooks.json`/`hooks.json.windows` validated by `jq .` only — no JSON-Schema for matcher/event/command structure; a malformed matcher silently de-wires the CRITICAL require-review gate | LOW | open | first Feature cycle |
+| DI-012 | **BC coverage is partial by design** (pass-2 observation): `create-advisory` and `analyze-ticket-effort` carry Iron Laws but have **no behavioral contract**; `read-ticket` (the SEC-001 prompt-injection entry point) is **uncontracted**. The 13 recovered BCs cover the highest-blast-radius modules, not every Iron-Law-bearing skill. | MEDIUM | **PENDING HUMAN DECISION** at Phase 0 gate — expand the BC set before Feature Mode, or accept partial coverage? | Phase 0 exit gate |
 
 Note: DI-005 is largely superseded by PR #13 (fail-open→fail-closed resolved, SM-2 neutralized); only a
 dedicated assign/create partition test remains, and it is no longer load-bearing. DI-002/DI-003/DI-011 are
@@ -228,7 +233,7 @@ consistency/spec/hardening items, not behavioral defects. DI-008/DI-009/DI-010 r
 
 | Area | Path | Justification |
 |------|------|---------------|
-| Authorization gate | `plugins/secops-factory/hooks/require-review.{sh,ps1}` | CRITICAL — the only hard gate on Jira system-of-record writes; behavior changed twice recently (PR #13 comment-deny + fail-closed; PR #14 allowlist expansion); now meets CRITICAL-tier assurance but any change re-touches the sole authz gate |
+| Authorization gate | `plugins/secops-factory/hooks/require-review.{sh,ps1}` | CRITICAL — the only hard gate on Jira system-of-record writes; behavior changed twice recently (PR #13 comment-deny + fail-closed; PR #14 allowlist expansion); fail-closed design improves assurance but the ≥95% CRITICAL kill-rate target is not yet demonstrated met, and any change re-touches the sole authz gate |
 | Jira writer | `plugins/secops-factory/skills/update-jira/SKILL.md` | CRITICAL — last-mile writer; review-approval marker is LLM-soft and spoofable; only the require-review hook stands between it and record corruption |
 | Injection entry point | `plugins/secops-factory/skills/read-ticket/SKILL.md` | SEC-001 surface — ingests Jira ticket bodies verbatim (unsanitized external data); mitigation is defense-in-depth framing |
 | Hook wiring | `plugins/secops-factory/hooks/hooks.json`, `hooks.json.windows` | A wrong matcher silently de-wires the CRITICAL require-review gate; `jq .`-validated only, no JSON-Schema (DI-011) |
@@ -238,14 +243,18 @@ consistency/spec/hardening items, not behavioral defects. DI-008/DI-009/DI-010 r
 
 ## 10. Recent Changes (reflected in this document)
 
+- **Adversarial pass 2 (2026-07-19):** census corrected to the authoritative **24-module aggregate
+  (1/12/7/4)** — hook-manifests (C-18) is a counted HIGH member (was mis-stated as 23); require-review
+  ≥95% assurance restated as **not yet demonstrated met** (no per-hook mutation run); git stats recounted
+  (41 commits, PRs #1–#14); BC-coverage-is-partial-by-design surfaced as DI-012 (pending human decision).
 - **PR #14 (merged, 0ec794a):** Read-only allowlist expanded — `jr issue changelog`, `jr assets search/view`,
   `jr --version`, and full `--output json` family (7 forms) for metrics suite. DI-010 resolved (`jr issue
   changelog` no longer blocked under fail-closed behavior). BATS 130→138 green.
   **BC-3.01.001 revised to v1.3 (2026-07-19) — PR #14 allowlist + DI-010 resolution + adversarial-pass-1
   VP renumber (VP-HOOK-020/021/022) reflected.**
 - **Adversarial pass 1 (2026-07-19):** upstream shards reconciled — recovered-architecture C-1..C-24 now
-  agree prose↔YAML (hook-manifests = C-18); module-criticality census recounted to 23 aggregate / 43
-  per-artifact; DI-008/DI-009 closed. This capstone re-synced accordingly.
+  agree prose↔YAML (hook-manifests = C-18); DI-008/DI-009 closed. (Pass-1's interim 23-module aggregate
+  was superseded by pass-2's authoritative 24-module count — see the pass-2 bullet above.)
 - **PR #13 (merged, f450d9f):** SEC-001..005 fixed; `jr issue comment` now review-gated; require-review
   **fails closed** on unknown subcommands; MCP versions pinned; release.yml job-scoped perms; Semgrep pinned.
   BATS 129→130 green.
@@ -263,6 +272,12 @@ regression scenarios seeded.
 
 **Not in scope / excluded:** `.factory/` (pipeline state on factory-artifacts orphan branch),
 `.reference/jira-cli/` (reference material for the external `jr` dependency), `.git`, `.claude`.
+
+**Contract-coverage boundary (pending human decision — DI-012):** the 13 BCs cover the
+highest-blast-radius modules by design, not every Iron-Law-bearing skill. Known uncontracted surface:
+`create-advisory` and `analyze-ticket-effort` (both carry Iron Laws but have no BC) and `read-ticket`
+(the SEC-001 prompt-injection entry point). At the Phase 0 exit gate the human decides whether to expand
+the BC set before Feature Mode or accept partial coverage as the baseline.
 
 **Would be NEW work (no code today; candidates for Feature Mode):**
 - Behavioral verification of skill Iron Laws (currently structural-only) — e.g., extracting pure
@@ -299,19 +314,20 @@ Index metadata only: `.factory/holdout-scenarios/HS-INDEX.md`.
 ## Quality Gate
 
 - [x] Self-contained — a reader understands the project without opening sub-documents
-- [x] Cross-references consistent — re-verified vs corrected shards: census 23 aggregate / 43 per-artifact (1/11/7/4), templates 6, hooks 6+6+2 manifests, BC-3.01.001 v1.3 with VP-HOOK-020/021/022
-- [x] Restricted areas justified per row; DI mis-cite corrected (hook-wiring now cites DI-011, not DI-009)
+- [x] Cross-references consistent — re-verified vs pass-2 shards: census **24 aggregate (1/12/7/4)** incl. hook-manifests C-18 / 43 per-artifact (2/16/20/5); range label, count, and member lists mutually consistent; templates 6, hooks 6+6+2 manifests; BC-3.01.001 v1.3 with VP-HOOK-020/021/022
+- [x] Restricted areas justified per row; DI mis-cite corrected (hook-wiring cites DI-011, not DI-009)
 - [x] Context-budget estimate per architectural component + strategy recommendation
-- [x] No orphaned references (DI-008/DI-009 marked resolved; DI-010 added; DI-011 introduced)
+- [x] No orphaned references (DI-008/DI-009 resolved; DI-010 added; DI-011 + DI-012 introduced)
 - [x] Security posture reflects security-audit.md (post-fix, SEC-001..005 merged; SM-2 neutralized / SM-3 resolved)
-- [x] Recent changes (PR #12/#13/#14 + adversarial pass 1) surfaced; BC-3.01.001 v1.3; DI-010 resolved
-- [x] Mutation targets corrected — 6 mutation-testable hooks (session-greeting ≥70%); require-review meets CRITICAL assurance
+- [x] Recent changes (PR #12/#13/#14 + adversarial passes 1 & 2) surfaced; BC-3.01.001 v1.3; DI-010 resolved
+- [x] Mutation targets corrected — 6 mutation-testable hooks (session-greeting ≥70%); require-review ≥95% target NOT yet demonstrated met (no per-hook mutation run)
+- [x] Partial-BC-coverage-by-design surfaced as a pending Phase 0 gate decision (DI-012; §11 boundary)
 
 ```yaml
 pass: 0
 step: "0f"
 status: complete
-revision: "1.1 — re-synced post adversarial pass 1"
+revision: "1.2 — re-synced post adversarial pass 2"
 files_synthesized: 9
 timestamp: 2026-07-19T00:00:00Z
 next_step: "phase-1-spec-crystallization"

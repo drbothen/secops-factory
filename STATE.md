@@ -4,7 +4,7 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-19T11:00:00Z
+timestamp: 2026-07-19T12:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
@@ -73,6 +73,7 @@ dtu_required: false
 | 0f-pre: holdout-seeding | codebase-analyzer | DONE | `.factory/holdout-scenarios/` — 25 scenarios seeded (HS-INDEX.md + 25 brownfield-regression-*.md); 4+4 CRITICAL (require-review/update-jira), 16 HIGH across 7 modules, 1 MEDIUM; epic: BROWNFIELD-REGRESSION. Notable: HS-003 SM-2 surviving mutant; HS-008 SEC-001 injection vector (now fixed via PR #13, scenario retained as regression guard); HS-014 DI-004 false-pass; HS-021 end-to-end investigation gate. |
 | 0f: project-context-synthesis | codebase-analyzer | DONE | `.factory/phase-0-ingestion/project-context.md` (new, 287 lines, DF-021 shard links); `behavioral-contracts/BC-3.01.001.md` revised v1.0→v1.1 (PR #13 behavior). DI-010 logged (SEC-002 regression) then RESOLVED: PR #14 (0ec794a) — 11 read-only allowlist entries incl. `--output json` global-flag forms; root cause: global flag between `jr` and subcommand defeated substring match; 8 new BATS tests, suite 138/138. BC-3.01.001.md at v1.2. |
 | 0f-adv pass 1 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0.md` — 12 findings (1C/6M/5m), all remediated same-day. ADV-0-001: BC v1.3 + VPs renumbered VP-HOOK-020/021/022. ADV-0-003 [process-gap]: stale shards re-synced, reconciliation headers added; SM-2 neutralized, require-review kill-rate ~75-80%. Census authoritative at 23 primary + 43 secondary. ADV-0-008: DI-010 row added. ADV-0-009: DI-011 created (hooks.json JSON-Schema, OPEN LOW). Capstone project-context.md re-synced to v1.1 (318 lines). Pass 2 dispatched. |
+| 0f-adv pass 2 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass2.md` — 11 findings (2C/5M/4m), all remediated same-day. Root cause: partial-fix propagation (census not synced across sibling shards). Census now authoritative 24 modules (1/12/7/4) everywhere; C-IDs C-18..C-24 realigned; api-surface Iron-Law corrected (incl. generate-metrics bonus fix); assurance overclaim replaced; git stats updated to 41 commits/PRs #1-#14. DI-012 logged. [process-gap-2]: census-sync assertion missing from pipeline. Capstone v1.2 (334 lines). Pass 3 dispatched. |
 
 ## Decisions Log
 
@@ -106,6 +107,7 @@ dtu_required: false
 | DI-008 | Component-Map numbering diverges between prose table and YAML in `recovered-architecture.md` — consistency validation needed | LOW | 0f-post consistency validation | 0e5 module-criticality | RESOLVED (ADV-0-001/004 remediation) |
 | DI-009 | hook-manifests component absent from machine-readable YAML component map — classified HIGH; YAML map incomplete. Scope clarified: YAML component-map only (hooks.json JSON-Schema gap is separate → DI-011). | HIGH | 0f-post consistency validation | 0e5 module-criticality | RESOLVED (ADV-0-009 remediation) |
 | DI-011 | `hooks.json` has no JSON-Schema validation — no machine-readable contract for hook manifest structure | LOW | first Feature Mode cycle | 0f-adv pass 1 (ADV-0-009) | open |
+| DI-012 | `create-advisory`, `analyze-ticket-effort`, and read-ticket injection entry point have no behavioral contracts — behavioral surfaces with zero BC coverage | MEDIUM | PENDING HUMAN DECISION at Phase 0 gate (BC coverage expansion) | 0f-adv pass 2 (ADV-0-211 coverage observation) | open |
 | DI-010 | SEC-002 fail-closed regression: `jr issue changelog` (read-only, used by metrics-analyst + 2 data KBs) wrongly denied. PR #14 merged (0ec794a): 11 read-only allowlist entries incl. `--output json` global-flag forms; root cause: global flag defeated substring match; 8 new BATS tests, 138/138 green. | HIGH | in flight | 0f project-context-synthesis | RESOLVED |
 
 ## Blocking Issues
@@ -120,8 +122,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 — step 0f-adv pass 2 in progress |
-| **Context** | Pass 1: 12 findings (1C/6M/5m), all remediated same-day. BC-3.01.001.md at v1.3 (VP-HOOK-020/021/022). project-context.md v1.1 (318 lines). DI-008/DI-009 RESOLVED. DI-011 added (hooks.json JSON-Schema, LOW). DI-005 downgraded to MEDIUM. Process-gap ADV-0-003 flagged for cycle-close pipeline codification. DI-001/DI-010 RESOLVED. CRITICAL: require-review hook, update-jira skill. |
+| **Position** | Phase 0 — step 0f-adv pass 3 in progress |
+| **Context** | Pass 2: 11 findings (2C/5M/4m), all remediated same-day. Census authoritative 24 modules (1/12/7/4). C-IDs realigned. DI-012 added (BC coverage gap for create-advisory/analyze-ticket-effort/read-ticket, MEDIUM, PENDING HUMAN DECISION). Process-gap-2: census-sync assertion missing from pipeline. Capstone v1.2 (334 lines). DI-001/DI-008/DI-009/DI-010 RESOLVED. CRITICAL: require-review hook, update-jira skill. |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

@@ -1,0 +1,42 @@
+schema: 1
+
+project:
+  name: secops-factory
+  target_branch: main
+
+worktrees:
+  root: .worktrees
+  pattern: "feature/STORY-{id}"
+
+merge:
+  strategy: squash           # story PRs squash-merge to keep main history clean
+  delete_branch_on_merge: true
+  require_up_to_date: true   # matches branch protection strict mode
+
+rerere:
+  enabled: true
+  autoupdate: true
+
+required_checks:
+  - "BATS Tests"
+  - "Plugin Structure Validation"
+  - "Shellcheck Hooks"
+  - "Semgrep Scan"
+
+inter_wave_rebase:
+  auto: true                 # attempt rerere-assisted rebase on wave boundary
+  escalate_on_conflict: true # halt and report to human if rerere cannot resolve
+
+release:
+  changelog_file: CHANGELOG.md
+  changelog_format: keep-a-changelog
+  version_sources:
+    - file: plugins/secops-factory/.claude-plugin/plugin.json
+      format: json
+      path: "version"
+    - file: README.md
+      format: regex
+      path: "version-([0-9.]+)-green"
+    - file: .claude-plugin/marketplace.json
+      format: json
+      path: "plugins[0].version"

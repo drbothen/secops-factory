@@ -1,2 +1,8 @@
 .factory/
 .reference/
+
+# Local environment & MCP configs (contain API keys — never commit)
+.envrc
+.env
+.mcp.json
+.claude/settings.local.json

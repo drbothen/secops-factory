@@ -41,11 +41,15 @@ if ($payload -and $payload.tool_input) {
 # Fast path: not an enrichment/investigation file
 if ($filePath -notlike '*enrichment*' -and $filePath -notlike '*investigation*') { Emit-Allow }
 
-# Check required sections for enrichment documents
+# Check required sections for enrichment documents.
+# Sections must appear as markdown headings (^#{1,6}\s+<name>) so that body
+# text merely mentioning a section name does not falsely satisfy the gate (DI-014).
 if ($filePath -like '*enrichment*') {
     $missing = @()
     foreach ($section in @('Executive Summary', 'Vulnerability Details', 'Severity Metrics', 'Priority Assessment', 'Remediation Guidance')) {
-        if (-not $content.Contains($section)) { $missing += $section }
+        $escapedSection = [regex]::Escape($section)
+        $hasHeading = ($content -split "`n") | Where-Object { $_ -match "^#{1,6}\s+$escapedSection" }
+        if (-not $hasHeading) { $missing += $section }
     }
     if ($missing.Count -gt 0) {
         $list = $missing -join ', '
@@ -53,11 +57,14 @@ if ($filePath -like '*enrichment*') {
     }
 }
 
-# Check required sections for investigation documents
+# Check required sections for investigation documents.
+# Same heading-anchored check as enrichment (DI-014).
 if ($filePath -like '*investigation*') {
     $missing = @()
     foreach ($section in @('Executive Summary', 'Alert Details', 'Disposition', 'Next Actions')) {
-        if (-not $content.Contains($section)) { $missing += $section }
+        $escapedSection = [regex]::Escape($section)
+        $hasHeading = ($content -split "`n") | Where-Object { $_ -match "^#{1,6}\s+$escapedSection" }
+        if (-not $hasHeading) { $missing += $section }
     }
     if ($missing.Count -gt 0) {
         $list = $missing -join ', '

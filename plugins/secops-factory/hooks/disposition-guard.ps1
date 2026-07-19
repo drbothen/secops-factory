@@ -47,8 +47,12 @@ if ($content.IndexOf('Disposition', [System.StringComparison]::OrdinalIgnoreCase
     Emit-Allow
 }
 
-# Has a disposition — verify alternatives were considered
-if ($content.IndexOf('Alternatives Considered', [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
+# Has a disposition — verify alternatives were considered as a markdown heading.
+# Require the section header form (^#{1,6}\s+Alternatives Considered) so that
+# body text mentioning "Alternatives Considered" in prose does not falsely satisfy
+# the anti-confirmation-bias gate (DI-004).
+$hasAltsHeading = ($content -split "`n") | Where-Object { $_ -match '^#{1,6}\s+Alternatives Considered' }
+if (-not $hasAltsHeading) {
     Emit-Deny "Investigation document contains a disposition but no 'Alternatives Considered' section. Before finalizing a disposition (TP/FP/BTP), you must document at least 2 alternative hypotheses with supporting and contradicting evidence for each. This prevents confirmation bias. See the investigate-event skill, Stage 4: Hypothesis Formation."
 }
 

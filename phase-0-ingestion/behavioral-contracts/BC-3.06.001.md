@@ -1,13 +1,15 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/session-greeting.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: "e1068218d7d7a89f52d289020dbbbfaa832db0f78d01f55f5e351f74839cbc4b"
+input-hash: |
+  e1068218d7d7a89f52d289020dbbbfaa832db0f78d01f55f5e351f74839cbc4b  plugins/secops-factory/hooks/session-greeting.sh
+  b1a920bc4371563bf3d602117a9bcb8a2db99a8a55b6f399a1e37ff663ecd56a  plugins/secops-factory/hooks/session-greeting.ps1
 traces_to: phase-0-ingestion/recovered-architecture.md
 origin: recovered
 extracted_from: plugins/secops-factory/hooks/session-greeting.sh
@@ -15,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-06
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v1.1-ADV-0-403-2026-07-19"]
+modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-507-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null

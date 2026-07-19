@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.5"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
@@ -17,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-01
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19", "v0.9.x-ADV0-001-ADV0-007-2026-07-19", "v1.4-ADV-0-405-2026-07-19"]
+modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19", "v0.9.x-ADV0-001-ADV0-007-2026-07-19", "v1.4-ADV-0-405-2026-07-19", "v1.5-ADV-0-504-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -34,6 +34,7 @@ removal_reason: null
 > - v1.2 (2026-07-19): Revised to reflect PR #14 (commit 0ec794a) — expanded read-only allowlist with two families: plain forms (`jr issue changelog`, `jr assets search/view`, `jr --version`) and `--output json` forms for the metrics suite. EC-010 flips from Deny to Allow. New Invariant #4 documents the `--output json` global-flag placement nuance (root cause of DI-010 regression). BATS count updated to 138 tests.
 > - v1.3 (2026-07-19): Adversarial review pass 1 fixes — ADV-0-001: renumbered VP-HOOK-004/005/006 to VP-HOOK-020/021/022 (global sequential namespace; 004-006 are owned by BC-3.02.001 enrichment-completeness). ADV-0-007: corrected EC-015 mechanism — `jr --output json issue comment` is denied by the fail-closed catch-all, NOT by the write-block check (Invariant #4 applies; `jr issue comment` is not a substring of that command). Security extensibility note added to Refactoring Notes.
 > - v1.4 (2026-07-19): ADV-0-405: corrected three stale line-number anchors — non-jr fast path is `require-review.sh:47-50` (not 48-50), fail-closed block is `require-review.sh:96-98` (not 97-98), source file is 98 lines (not 99).
+> - v1.5 (2026-07-19): ADV-0-504: corrected one remaining stale anchor in EC-015 — fail-closed catch-all is `(lines 96-98)` not `(lines 97-98)`. Missed by v1.4 sweep.
 
 ## Preconditions
 
@@ -100,7 +101,7 @@ removal_reason: null
 | EC-012 | `jr --output json issue view SEC-123` (metrics suite form) | Allow — `--output json issue view` is in the allowlist. Note: `jr issue view` (plain) does NOT match this form due to Invariant #4 |
 | EC-013 | `jr --output json assets search objectType=Client` (CMDB query) | Allow — `--output json assets search` is in the allowlist (PR #14) |
 | EC-014 | `jr --version` | Allow — explicitly in the allowlist (PR #14) |
-| EC-015 | `jr --output json issue comment SEC-123 "msg"` | Deny via fail-closed catch-all (lines 97-98) — `jr issue comment` is NOT a substring of this command (Invariant #4: `--output json` sits between `jr` and `issue`, breaking the substring match); `--output json issue comment` (singular) is also not on the allowlist (allowlist has plural `--output json issue comments`). Reason contains "Unrecognized jr subcommand. Add to the read-only allowlist..." — the SEC-001 comment gate is NOT what triggers the deny here |
+| EC-015 | `jr --output json issue comment SEC-123 "msg"` | Deny via fail-closed catch-all (lines 96-98) — `jr issue comment` is NOT a substring of this command (Invariant #4: `--output json` sits between `jr` and `issue`, breaking the substring match); `--output json issue comment` (singular) is also not on the allowlist (allowlist has plural `--output json issue comments`). Reason contains "Unrecognized jr subcommand. Add to the read-only allowlist..." — the SEC-001 comment gate is NOT what triggers the deny here |
 
 ## Canonical Test Vectors
 

@@ -52,7 +52,7 @@ All use `priority: must-pass` and `epic_id: BROWNFIELD-REGRESSION`.
 | HS-007 | update-jira Skill — Priority Mapped to Jira Priority Names | BC-4.02.001 | CRITICAL | behavioral-subtleties |
 | HS-008 | update-jira Skill — Adversarial Content in Ticket Body Does Not Alter Update Behavior | BC-4.02.001 | CRITICAL | security-probes |
 | HS-009 | enrichment-completeness Hook — Incomplete Enrichment Document Blocked | BC-3.02.001 | HIGH | security-probes |
-| HS-010 | enrichment-completeness Hook — Investigation In-Progress Save Allowed | BC-3.02.001 | HIGH | behavioral-subtleties |
+| HS-010 | enrichment-completeness Hook — Complete Investigation Document (All 4 Sections) Saves Successfully | BC-3.02.001 | HIGH | regression-baseline |
 | HS-011 | enrichment-completeness Hook — Non-Enrichment Files Never Blocked | BC-3.02.001 | HIGH | behavioral-subtleties |
 | HS-012 | disposition-guard Hook — Disposition Without Alternatives Considered Blocked | BC-3.03.001 | HIGH | security-probes |
 | HS-013 | disposition-guard Hook — In-Progress Investigation (No Disposition Yet) Allowed | BC-3.03.001 | HIGH | behavioral-subtleties |

@@ -1,13 +1,15 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/bias-check-reminder.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: "a208d8c08d021738686076eaab0461f88f450b27851af4a845cb743371fc7d0e"
+input-hash: |
+  a208d8c08d021738686076eaab0461f88f450b27851af4a845cb743371fc7d0e  plugins/secops-factory/hooks/bias-check-reminder.sh
+  867b0fcf8eb7d443b54fa622d45a6645204b7d299a0f2e736de1bbd5cba2fa01  plugins/secops-factory/hooks/bias-check-reminder.ps1
 traces_to: phase-0-ingestion/recovered-architecture.md
 origin: recovered
 extracted_from: plugins/secops-factory/hooks/bias-check-reminder.sh
@@ -15,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-04
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v1.1-ADV-0-403-2026-07-19"]
+modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-507-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null

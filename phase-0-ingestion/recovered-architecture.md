@@ -282,7 +282,7 @@ components:
     interfaces_provided: ["Claude Code hook event routing: wires SessionStart/PreToolUse/PostToolUse/SubagentStop events to handler scripts; cross-platform variants (.json for macOS/Linux, .json.windows for Windows)"]
     interfaces_consumed: ["Claude Code runtime (reads hooks.json at session start)"]
     confidence: "high"
-    notes: "A wrong matcher silently de-wires the CRITICAL require-review gate; jq-validated in CI but no schema (DI-009 resolved by adding this entry)"
+    notes: "A wrong matcher silently de-wires the CRITICAL require-review gate; jq-validated in CI but no schema — hardening gap cited as DI-011 (DI-009 resolved by adding this entry)"
 
   - id: C-19
     name: "knowledge-bases"

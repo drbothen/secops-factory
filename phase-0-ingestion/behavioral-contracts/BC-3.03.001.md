@@ -1,13 +1,15 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/disposition-guard.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: "ede6ff97959cbcb1a137ed8f28a1271250dd46bcefc4d2b397d7d591dd180289"
+input-hash: |
+  ede6ff97959cbcb1a137ed8f28a1271250dd46bcefc4d2b397d7d591dd180289  plugins/secops-factory/hooks/disposition-guard.sh
+  8a0a6a40fea6f5fbe4d850dba9a61596815c02f56ade34ab6c44edaf1669fb54  plugins/secops-factory/hooks/disposition-guard.ps1
 traces_to: phase-0-ingestion/recovered-architecture.md
 origin: recovered
 extracted_from: plugins/secops-factory/hooks/disposition-guard.sh
@@ -15,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-03
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v1.1-ADV-0-403-2026-07-19"]
+modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-501-ADV-0-507-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -26,6 +28,11 @@ removal_reason: null
 
 # Behavioral Contract BC-3.03.001: disposition-guard Hook — Alternatives-Required Gate
 
+> **Revision history:**
+> - v1.0 (2026-07-19): Initial extraction from `disposition-guard.sh` at v0.9.0 HEAD (Step 0d).
+> - v1.1 (2026-07-19): ADV-0-403: Re-anchored stale BATS test references to @test names at current line positions (post-PR #14).
+> - v1.2 (2026-07-19): ADV-0-501: Annotated PC#2, EC-003, and canonical vector row 2 as HOOK-ISOLATED — in standard workflow, Stage 7 generates investigation document once from a complete template; enrichment-completeness BC-3.02.001 co-fires and denies any file missing four required sections. Added Aggregate Gate Behavior note. ADV-0-507: Normalized input-hash to dual-file form (.sh + .ps1).
+
 ## Preconditions
 
 1. The hook receives a `PreToolUse/Write` event envelope via stdin as JSON, containing `tool_input.file_path` (string) and `tool_input.content` (string). Confidence: verified by code analysis (`hooks/disposition-guard.sh:39-40`).
@@ -35,7 +42,7 @@ removal_reason: null
 ## Postconditions
 
 1. If `file_path` does not contain `investigation` as a substring, the hook emits `permissionDecision: allow` (fast path). Confidence: verified by code analysis (`hooks/disposition-guard.sh:43-45`).
-2. If `file_path` contains `investigation` but `content` does not contain the string "Disposition" (case-insensitive), the hook emits `permissionDecision: allow` — the document is still in-progress. Confidence: verified by code analysis (`hooks/disposition-guard.sh:48-51`) and test `@test "disposition-guard allows investigation without disposition yet"` (hooks.bats:164).
+2. If `file_path` contains `investigation` but `content` does not contain the string "Disposition" (case-insensitive), the hook emits `permissionDecision: allow` — the document is still in-progress. Confidence: verified by code analysis (`hooks/disposition-guard.sh:48-51`) and test `@test "disposition-guard allows investigation without disposition yet"` (hooks.bats:164). **HOOK-ISOLATED behavior**: in the standard investigate-event workflow, Stage 7 generates the investigation document once from a complete template (event-investigation-tmpl.yaml) that already contains all four required section headings; the enrichment-completeness hook (BC-3.02.001) co-fires on the same PreToolUse/Write event and would deny any investigation file missing those sections before this hook's in-progress-allow path is exercised. See Aggregate Gate Behavior note.
 3. If `file_path` contains `investigation` AND `content` contains "Disposition" AND `content` does NOT contain "Alternatives Considered" (case-insensitive), the hook emits `permissionDecision: deny` with a reason containing "Alternatives Considered". Confidence: verified by code analysis (`hooks/disposition-guard.sh:54-56`) and test `@test "disposition-guard blocks disposition without alternatives"` (hooks.bats:170).
 4. If `file_path` contains `investigation` AND `content` contains both "Disposition" and "Alternatives Considered", the hook emits `permissionDecision: allow`. Confidence: verified by code analysis (`hooks/disposition-guard.sh:58`) and test `@test "disposition-guard allows disposition with alternatives"` (hooks.bats:177).
 5. Both "Disposition" and "Alternatives Considered" checks are case-insensitive (`grep -qiF`). Confidence: verified by code analysis (`hooks/disposition-guard.sh:48, 54`).
@@ -52,7 +59,7 @@ removal_reason: null
 |----|-------------|-------------------|
 | EC-001 | `jq` not installed | Exit code 1, stderr error, no JSON output |
 | EC-002 | File path `/tmp/readme.md` | Allow — not an investigation file |
-| EC-003 | Investigation file with no Disposition section | Allow — in-progress; gate only fires once Disposition is declared |
+| EC-003 | Investigation file with no Disposition section | Allow — in-progress; gate only fires once Disposition is declared. **HOOK-ISOLATED**: in aggregate, enrichment-completeness BC-3.02.001 co-fires and denies investigation files missing any of the four required sections; this allow path is unreachable in the standard workflow where Stage 7 generates from a complete template. |
 | EC-004 | Investigation file with "Disposition: True Positive" but no Alternatives Considered | Deny with reason mentioning "Alternatives Considered" |
 | EC-005 | Investigation file with both "Disposition" and "Alternatives Considered" sections | Allow |
 | EC-006 | Investigation file with "disposition" (lowercase) section | Deny if Alternatives absent — `grep -qiF` matches case-insensitively |
@@ -64,7 +71,7 @@ removal_reason: null
 | Input (file_path → content) | Expected Output | Category |
 |-----------------------------|----------------|----------|
 | `/tmp/readme.md` → any | `permissionDecision: allow` | happy-path |
-| `investigation-ALERT-001.md` → "# Alert Details\nEvidence..." (no Disposition) | `permissionDecision: allow` | happy-path |
+| `investigation-ALERT-001.md` → "# Alert Details\nEvidence..." (no Disposition) | `permissionDecision: allow` **(HOOK-ISOLATED: in aggregate, enrichment-completeness BC-3.02.001 would deny this file — missing 3 of 4 required sections)** | hook-isolated-allow |
 | `investigation-ALERT-001.md` → "# Disposition\nTrue Positive\n# Evidence\n..." | `permissionDecision: deny`, reason contains "Alternatives Considered" | error |
 | `investigation-ALERT-001.md` → "# Disposition\nTrue Positive\n# Alternatives Considered\n1. FP...\n2. BTP..." | `permissionDecision: allow` | happy-path |
 | `investigation-ALERT-001.md` → "# disposition\nFalse Positive" (lowercase) | `permissionDecision: deny` | edge-case |
@@ -118,5 +125,7 @@ removal_reason: null
 #### Refactoring Notes
 
 Pure. The three-state routing logic (non-investigation / in-progress / complete) is clearly separated and verifiable. No refactoring needed.
+
+**Aggregate Gate Behavior (ADV-0-501):** Both `enrichment-completeness` (BC-3.02.001) and `disposition-guard` (this hook) are wired to fire on every `PreToolUse/Write` event. When both hooks evaluate the same Write event, deny from either hook wins — Claude Code does not proceed with the write if any hook denies. In the standard investigate-event workflow, Stage 7 generates the investigation document once from event-investigation-tmpl.yaml, which contains all four required section headings (Executive Summary, Alert Details, Disposition, Next Actions); the enrichment-completeness hook is satisfied immediately. This hook then evaluates whether a Disposition section is present and, if so, whether Alternatives Considered accompanies it. The in-progress-allow path (PC#2, EC-003, canonical vector row 2) is documented for hook-isolated testing but is unreachable via the standard workflow write path.
 
 **Undocumented behavior (ambiguity):** The "Alternatives Considered" section check is by substring presence in the full document content. If an analyst writes "No alternatives considered" as free text in the body of the Disposition section (not as a section heading), the gate passes incorrectly. The hook does not enforce minimum alternative count (the deny message says "at least 2 alternative hypotheses" but the hook only checks for the section heading). The quality of alternatives is validated by `review-enrichment`, not by this hook.

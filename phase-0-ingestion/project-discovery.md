@@ -5,6 +5,8 @@ _Phase 0, Step 0a (Project Discovery). Agent: codebase-analyzer (T1, read-only).
 > **Erratum (2026-07-19):** counts corrected per adversarial review.
 > - Pass 1 (ADV-0-005/006): hook `.sh` count 7→6 (LOC 400→329, prior figure erroneously included `tests/run-all.sh`); template count 5→6 (adds `security-advisory-tmpl.md`).
 > - Pass 2 (ADV-0-209/211): §5 git stats recounted after onboarding-day merges (PRs #12–#14) — total commits 38→41, last-3-months 11→14, PR range #1–#11 → #1–#14; §4 agents line reworded to remove additive (7) reading — 6 total = 5 specialists + 1 orchestrator.
+> - Pass 3 (ADV-0-305): §5 Contributors row commit count 38→41.
+> - Pass 5 (ADV-0-503): §8.1 annotated with DI-001 RESOLVED (PR #12 gitignored the secret-bearing local files); original text retained as Step-0a snapshot.
 
 ## 1. Project Identity
 
@@ -117,6 +119,7 @@ secops-factory/
 ## 8. Ambiguities & Flags
 
 1. **SECURITY — live secrets in untracked files (HIGH).** `.envrc` contains a plaintext `ANTHROPIC_AWS_API_KEY`; `.mcp.json` contains plaintext `PERPLEXITY_API_KEY`, a Tavily key in a URL, and a `CONTEXT7_API_KEY`. `.gitignore` lists only `.factory/` and `.reference/` — **neither `.envrc` nor `.mcp.json` is gitignored**, and both show as untracked (`??`) in git status. Risk of accidental commit of live credentials. Recommend adding both to `.gitignore` and rotating any exposed keys. (Key values intentionally not reproduced here.)
+   > **DI-001 RESOLVED (2026-07-19, via PR #12):** `.gitignore` now lists `.factory/`, `.reference/`, `.envrc`, `.env`, `.mcp.json`, and `.claude/settings.local.json` — the secret-bearing local files are no longer trackable. Original text above is retained as the Step-0a snapshot (git audit findings SEC-001..005 also resolved via PR #13). Key rotation remains an operator action.
 2. **Author identity vs. ownership.** All commits are authored by `Joshua Magady`; manifests declare owner/author `drbothen`. Likely the same operator under different identities, but flagged for confirmation. Per MEMORY: commits omit Co-Authored-By attribution by design.
 3. **README count drift.** README "What's Inside" cites 129 tests and mixed skill counts (11 vs 19 in different sections); actual on-disk: 19 skills, 20 commands, 6 agents, 15 checklists, 10 data KBs, 6 templates, 4 BATS suites. Minor doc/reality drift worth reconciling in later passes.
 4. **No standard build/dependency manifest.** Absence of `package.json`/`Cargo.toml` etc. is expected for a declarative plugin, but means "build/test commands" are defined only by `tests/run-all.sh` and CI YAML — not a package script.

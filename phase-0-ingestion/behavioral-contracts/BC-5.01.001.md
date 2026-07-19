@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
@@ -15,7 +15,7 @@ subsystem: event-investigation-pipeline
 capability: CAP-EVENT-01
 lifecycle_status: active
 introduced: v0.6.0
-modified: []
+modified: ["v1.1-ADV-0-501-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -25,6 +25,10 @@ removal_reason: null
 ---
 
 # Behavioral Contract BC-5.01.001: investigate-event Skill — 7-Stage Event Investigation Workflow
+
+> **Revision history:**
+> - v1.0 (2026-07-19): Initial extraction from `investigate-event/SKILL.md` at v0.9.0 HEAD (Step 0d).
+> - v1.1 (2026-07-19): ADV-0-501: Annotated EC-006 to clarify the in-progress-save assumption — standard workflow generates from a complete template at Stage 7; EC-006 applies when analyst manually edits investigation file post-generation.
 
 ## Preconditions
 
@@ -60,7 +64,7 @@ removal_reason: null
 | EC-003 | Perplexity unavailable for threat intelligence | Switch to WebSearch/WebFetch for all Stages 3-5; announce switch; do not retry Perplexity per-stage |
 | EC-004 | Source IP is internal | Must assess lateral movement possibility; do not assume safe |
 | EC-005 | Low-confidence disposition reached | Automatically recommend escalation in Stage 6 output |
-| EC-006 | Analyst saves investigation file without "Alternatives Considered" | `disposition-guard` hook blocks if "Disposition" section is present |
+| EC-006 | Analyst saves investigation file without "Alternatives Considered" after manually adding a "Disposition" section | `disposition-guard` hook blocks. Standard Stage 7 workflow generates from event-investigation-tmpl.yaml (a complete template with all section headings already present); EC-006 applies when analyst edits the investigation file post-generation to add or modify Disposition content before completing the Alternatives Considered section. |
 | EC-007 | Alert is an ICS/SCADA alert | Apply ICS-specific considerations (Purdue zones, safety systems, OT protocol context) |
 
 ## Canonical Test Vectors

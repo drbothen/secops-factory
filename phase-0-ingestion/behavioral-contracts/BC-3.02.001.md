@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
@@ -17,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-02
 lifecycle_status: active
 introduced: v0.6.0
-modified: ["v1.1-ADV-0-402-ADV-0-403-2026-07-19"]
+modified: ["v1.1-ADV-0-402-ADV-0-403-2026-07-19", "v1.2-ADV-0-501-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -31,6 +31,7 @@ removal_reason: null
 > **Revision history:**
 > - v1.0 (2026-07-19): Initial extraction from `enrichment-completeness.sh` at v0.9.0 HEAD (Step 0d).
 > - v1.1 (2026-07-19): ADV-0-402: Corrected EC-004 — investigation file with only "Alert Details" produces Deny, not Allow. The hook requires ALL FOUR sections before saving any investigation file; there is no partial-save capability. ADV-0-403: Re-anchored stale BATS test references from `hooks.bats:41-60` to current @test names (lines 97-115 post-PR #14).
+> - v1.2 (2026-07-19): ADV-0-501: Extended Refactoring Notes to document workflow context — in the standard investigate-event workflow, Stage 7 generates from event-investigation-tmpl.yaml (a complete template satisfying all four section requirements), so the workflow never produces partial investigation files. Added note on single-shot template generation and complementary hook responsibilities.
 
 ## Preconditions
 
@@ -127,4 +128,4 @@ Pure stdin→stdout transformer. The section-detection logic is a string members
 
 **Undocumented behavior (ambiguity):** The enrichment required-section list (5 items) and the investigation required-section list (4 items) are hardcoded in the hook script. The template files (`security-enrichment-tmpl.yaml`, `event-investigation-tmpl.yaml`) define the full section structure but the hook does not read them at runtime. If templates are updated to add required sections, the hook must be manually updated — there is no automated sync. This drift risk is noted for architecture attention.
 
-**Note (ADV-0-402 correction):** The investigation check requires ALL FOUR sections to be present before saving — there is no partial-save capability for investigation files. A file missing any of "Executive Summary", "Alert Details", "Disposition", or "Next Actions" will be denied. The `disposition-guard` hook separately handles the additional constraint that once a Disposition section appears, Alternatives Considered must also appear. The two hooks enforce complementary completeness gates: enrichment-completeness enforces structural completeness (all four sections present); disposition-guard enforces analytical completeness (alternatives documented before disposition is committed).
+**Note (ADV-0-402 correction, extended ADV-0-501):** The investigation check requires ALL FOUR sections to be present before saving — there is no partial-save capability for investigation files. A file missing any of "Executive Summary", "Alert Details", "Disposition", or "Next Actions" will be denied. The `disposition-guard` hook separately handles the additional constraint that once a Disposition section appears, Alternatives Considered must also appear. The two hooks enforce complementary completeness gates: enrichment-completeness enforces structural completeness (all four section headings present — satisfied by the investigate-event Stage 7 template generation from event-investigation-tmpl.yaml, which contains all four headings); disposition-guard enforces analytical completeness (alternatives documented before disposition is committed). In the standard investigate-event workflow, Stage 7 generates the investigation document once from a complete template — the workflow never produces partial investigation files. The in-progress-allow path in disposition-guard (BC-3.03.001 PC#2, EC-003) is documented for hook-isolated testing and is unreachable via the standard workflow write path.

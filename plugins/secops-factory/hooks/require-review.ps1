@@ -5,6 +5,7 @@
 # JSON envelopes and exit codes are identical to the bash implementation;
 # the parity test suite (parity.bats) enforces this.
 # jr issue comment is now blocked (SEC-001). Unknown subcommands are fail-closed (SEC-002).
+# Allowlist expanded to cover jr issue changelog, jr assets, --output json forms (metrics suite).
 #
 # Emits a PreToolUse JSON envelope with permissionDecision.
 # Deterministic, <100ms, no LLM.
@@ -40,10 +41,21 @@ if ($payload -and $payload.tool_input -and $payload.tool_input.command) {
 # Fast path: not a jr command -> allow immediately
 if ($command -notlike '*jr *') { Emit-Allow }
 
-# Allow read-only jr operations without review
+# Allow read-only jr operations without review.
+# Two families: plain forms (jr issue view KEY) and --output json forms
+# (jr --output json issue view KEY). Both are read-only and need separate entries
+# because "jr issue view" is NOT a substring of "jr --output json issue view".
 $readOnly = @(
+    # Plain forms
     'jr issue view', 'jr issue list', 'jr issue comments', 'jr issue assets',
-    'jr issue transitions', 'jr sprint', 'jr board', 'jr project', 'jr me', 'jr auth'
+    'jr issue transitions', 'jr issue changelog',
+    'jr assets search', 'jr assets view',
+    'jr sprint', 'jr board', 'jr project', 'jr me', 'jr auth', 'jr --version',
+    # --output json forms (metrics suite: jr --output json <subcommand>)
+    '--output json issue view', '--output json issue list',
+    '--output json issue comments', '--output json issue changelog',
+    '--output json issue assets',
+    '--output json assets search', '--output json assets view'
 )
 foreach ($op in $readOnly) {
     if ($command -like "*$op*") { Emit-Allow }

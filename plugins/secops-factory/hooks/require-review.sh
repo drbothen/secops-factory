@@ -3,9 +3,14 @@
 # via jr CLI without review approval.
 #
 # Matches Bash tool calls. Only intervenes when the command contains
-# jr CLI operations. Allows read-only jr commands (view, list, sprint, etc.)
-# and denies all write operations — including jr issue comment — as well as
-# any unrecognized jr subcommands (fail-closed, SEC-002).
+# jr CLI operations. Allows read-only jr commands (view, list, changelog,
+# sprint, assets, version, etc.) and denies all write operations —
+# including jr issue comment — as well as any unrecognized jr subcommands
+# (fail-closed, SEC-002).
+#
+# The allowlist covers both plain forms (jr issue view KEY) and the
+# --output json forms used by the metrics suite (jr --output json issue view KEY).
+# Both forms are read-only; they differ only in output encoding.
 #
 # Emits a PreToolUse JSON envelope with permissionDecision.
 # Deterministic, <100ms, no LLM.
@@ -44,17 +49,35 @@ if [[ "$COMMAND" != *"jr "* ]]; then
   emit_allow
 fi
 
-# Allow read-only jr operations without review
+# Allow read-only jr operations without review.
+#
+# Two families of patterns:
+#   (a) Plain forms:  jr issue view KEY, jr issue changelog KEY, etc.
+#   (b) --output json forms: jr --output json issue view KEY, etc.
+# Both families are read-only. They are listed separately because the plain form
+# "jr issue view" is NOT a substring of "jr --output json issue view" (the global
+# flag --output json sits between "jr" and "issue"), so each needs its own entry.
 if [[ "$COMMAND" == *"jr issue view"* ]] || \
    [[ "$COMMAND" == *"jr issue list"* ]] || \
    [[ "$COMMAND" == *"jr issue comments"* ]] || \
    [[ "$COMMAND" == *"jr issue assets"* ]] || \
    [[ "$COMMAND" == *"jr issue transitions"* ]] || \
+   [[ "$COMMAND" == *"jr issue changelog"* ]] || \
+   [[ "$COMMAND" == *"jr assets search"* ]] || \
+   [[ "$COMMAND" == *"jr assets view"* ]] || \
    [[ "$COMMAND" == *"jr sprint"* ]] || \
    [[ "$COMMAND" == *"jr board"* ]] || \
    [[ "$COMMAND" == *"jr project"* ]] || \
    [[ "$COMMAND" == *"jr me"* ]] || \
-   [[ "$COMMAND" == *"jr auth"* ]]; then
+   [[ "$COMMAND" == *"jr auth"* ]] || \
+   [[ "$COMMAND" == *"jr --version"* ]] || \
+   [[ "$COMMAND" == *"--output json issue view"* ]] || \
+   [[ "$COMMAND" == *"--output json issue list"* ]] || \
+   [[ "$COMMAND" == *"--output json issue comments"* ]] || \
+   [[ "$COMMAND" == *"--output json issue changelog"* ]] || \
+   [[ "$COMMAND" == *"--output json issue assets"* ]] || \
+   [[ "$COMMAND" == *"--output json assets search"* ]] || \
+   [[ "$COMMAND" == *"--output json assets view"* ]]; then
   emit_allow
 fi
 

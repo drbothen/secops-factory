@@ -18,6 +18,54 @@ PLUGIN_ROOT="${BATS_TEST_DIRNAME}/.."
     [[ "$output" == *'"permissionDecision":"allow"'* ]]
 }
 
+@test "require-review allows jr issue changelog plain form" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr issue changelog SEC-123\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"allow"'* ]]
+}
+
+@test "require-review allows jr issue changelog json form (metrics suite)" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr --output json issue changelog SEC-123\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"allow"'* ]]
+}
+
+@test "require-review allows jr --output json issue view (metrics suite)" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr --output json issue view SEC-123\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"allow"'* ]]
+}
+
+@test "require-review allows jr --output json issue list (metrics suite)" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr --output json issue list --jql project=SEC\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"allow"'* ]]
+}
+
+@test "require-review allows jr --output json issue comments (metrics suite)" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr --output json issue comments SEC-123\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"allow"'* ]]
+}
+
+@test "require-review allows jr assets search (CMDB)" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr --output json assets search objectType=Client\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"allow"'* ]]
+}
+
+@test "require-review allows jr assets view (CMDB)" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr --output json assets view SEC-001\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"allow"'* ]]
+}
+
+@test "require-review allows jr --version health check" {
+    run bash -c 'echo "{\"tool_input\": {\"command\": \"jr --version\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"permissionDecision":"allow"'* ]]
+}
+
 @test "require-review blocks jr issue comment without review (SEC-001)" {
     run bash -c 'echo "{\"tool_input\": {\"command\": \"jr issue comment SEC-123 \\\"enrichment complete\\\"\"}}" | "$1/hooks/require-review.sh"' -- "$PLUGIN_ROOT"
     [ "$status" -eq 0 ]

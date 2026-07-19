@@ -137,11 +137,11 @@ Every SKILL.md (except thin utility skills) follows this canonical section order
 | Convention | Detail | Evidence |
 |-----------|--------|----------|
 | Shebang | `#!/usr/bin/env bash` | `hooks/require-review.sh:1`, `hooks/enrichment-completeness.sh:1` |
-| Error mode | `set -euo pipefail` | `hooks/require-review.sh:13`, `hooks/enrichment-completeness.sh:13` |
-| jq guard | Check `command -v jq` at top; write error to stderr; exit 1 | `hooks/require-review.sh:14-17`, `hooks/enrichment-completeness.sh:14-17` |
-| Input ingestion | `INPUT=$(cat)` — read full stdin once | `hooks/require-review.sh:19` |
-| Allow function name | `emit_allow()` — prints JSON envelope, exits 0 | `hooks/require-review.sh:21-24` |
-| Deny function name | `emit_deny()` — takes reason arg, prints JSON via `jq -nc`, exits 0 | `hooks/require-review.sh:26-34` |
+| Error mode | `set -euo pipefail` | `hooks/require-review.sh:18`, `hooks/enrichment-completeness.sh:11` |
+| jq guard | Check `command -v jq` at top; write error to stderr; exit 1 | `hooks/require-review.sh:20-23`, `hooks/enrichment-completeness.sh:13-16` |
+| Input ingestion | `INPUT=$(cat)` — read full stdin once | `hooks/require-review.sh:25` |
+| Allow function name | `emit_allow()` — prints JSON envelope, exits 0 | `hooks/require-review.sh:27-30` (exit 0 at line 29), `hooks/enrichment-completeness.sh:20-23` (exit 0 at line 22) |
+| Deny function name | `emit_deny()` — takes reason arg, prints JSON via `jq -nc`, exits 0 | `hooks/require-review.sh:32-42` (exit 0 at line 41), `hooks/enrichment-completeness.sh:25-35` (exit 0 at line 34) |
 | Fast path ordering | Whitelist/allow conditions first (non-jr fast-path, then read-only jr allowlist), deny conditions at bottom | `hooks/require-review.sh:47-81` |
 | Fail-open for non-jr inputs | Non-jr commands take fast-path `emit_allow` immediately (line 49); unrecognized `jr` subcommands `emit_deny` (fail-CLOSED, SEC-002, PR #13) — prevents future jr write subcommands from bypassing the gate | `hooks/require-review.sh:47-50` (allow), `hooks/require-review.sh:96-98` (deny) |
 | Advisory hooks | Write to stderr only; always exit 0; never emit `permissionDecision` JSON | `hooks/bias-check-reminder.sh`, `hooks/handoff-validator.sh` |
@@ -539,8 +539,8 @@ enforceable_rules:
     scope: "plugins/secops-factory/hooks/*.sh"
     severity: error
     evidence:
-      - "hooks/require-review.sh:23, 35 (both exit 0)"
-      - "hooks/enrichment-completeness.sh:24, 35"
+      - "hooks/require-review.sh:29, 41 (both exit 0)"
+      - "hooks/enrichment-completeness.sh:22, 34 (both exit 0)"
 
   - id: CONV-013
     description: "Hook fail-open/fail-closed scoping — advisory hooks and non-jr inputs fail-open; require-review jr fallthrough is fail-CLOSED (SEC-002)"
@@ -630,3 +630,4 @@ enforceable_rules:
 | 2026-07-19 | Initial extraction — Phase 0c | Step 0c |
 | 2026-07-19 | ADV-0-002: Scoped fail-open/fail-CLOSED — require-review blocking gate is fail-CLOSED for unrecognized jr subcommands (SEC-002); advisory hooks and non-jr inputs remain fail-open. Updated line 146, MUST-Follow #9, MUST-AVOID #2, CONV-013. | PR #13 (SEC-002), PR #14 (SEC-001) |
 | 2026-07-19 | ADV-0-403/ADV-0-405: Re-anchored stale hooks.bats line citations to @test names + current line numbers (190, 185, group headers 7/95/117/136/156/183). Corrected fast-path line range in require-review.sh from 47-49 to 47-50. | PR #13/#14 |
+| 2026-07-19 | ADV-0-603: Re-anchored all require-review.sh header citations to HEAD (PR #14 added Invariant-4 comment block, shifting body down 7 lines). set -euo pipefail: 13→18; jq guard: 14-17→20-23; INPUT=$(cat): 19→25; emit_allow: 21-24→27-30 (exit 0 at 29); emit_deny: 26-34→32-42 (exit 0 at 41). CONV-012 exit-0 citations corrected: require-review.sh 23,35→29,41; enrichment-completeness.sh 24,35→22,34. | PR #14 |

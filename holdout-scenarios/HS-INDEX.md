@@ -20,8 +20,13 @@ scenario_count: 25
 
 Step 0f-pre produced 25 regression baseline scenarios from 10 behavioral contracts
 (2 CRITICAL, 7 HIGH, 1 MEDIUM). All scenarios use `category: regression-baseline`
-semantics but are categorized by their actual test style per the template schema.
-All use `priority: must-pass` and `epic_id: BROWNFIELD-REGRESSION`.
+and `epic_id: BROWNFIELD-REGRESSION`.
+
+**Baseline split:** 24 scenarios use `priority: must-pass` (current HEAD passes).
+1 scenario (HS-014) uses `priority: should-pass` / `fix_target: pending DI-004` —
+it encodes INTENDED post-fix behavior that current HEAD fails by design of the
+open DI-004 defect. HS-014 MUST NOT be counted in the must-pass gate until the
+heading-anchored fix lands. (ADV-0-602 reclassification, 2026-07-19.)
 
 ## Scenario Count by Module / Criticality Tier
 
@@ -56,7 +61,7 @@ All use `priority: must-pass` and `epic_id: BROWNFIELD-REGRESSION`.
 | HS-011 | enrichment-completeness Hook — Non-Enrichment Files Never Blocked | BC-3.02.001 | HIGH | behavioral-subtleties |
 | HS-012 | disposition-guard Hook — Disposition Without Alternatives Considered Blocked | BC-3.03.001 | HIGH | security-probes |
 | HS-013 | disposition-guard Hook — In-Progress Investigation (No Disposition Yet) Allowed | BC-3.03.001 | HIGH | behavioral-subtleties |
-| HS-014 | disposition-guard Hook — Negating Body Text Does Not Defeat the Gate (SM-1 Regression) | BC-3.03.001 | HIGH | security-probes |
+| HS-014 | disposition-guard Hook — Negating Body Text Does Not Defeat the Gate (SM-1 Fix-Target) | BC-3.03.001 | HIGH | **fix-target** (should-pass; current HEAD fails by design — DI-004 open) |
 | HS-015 | enrich-ticket Skill — Ticket Without CVE ID Prompts Before Proceeding | BC-4.01.001 | HIGH | edge-case-combinations |
 | HS-016 | enrich-ticket Skill — EPSS Is Mandatory and Never Skipped | BC-4.01.001 | HIGH | behavioral-subtleties |
 | HS-017 | review-enrichment Skill — CVE Enrichment Missing EPSS Produces a Finding | BC-4.03.001 | HIGH | behavioral-subtleties |
@@ -74,7 +79,7 @@ All use `priority: must-pass` and `epic_id: BROWNFIELD-REGRESSION`.
 - [x] At least 2 scenarios per CRITICAL module: require-review (4), update-jira (4)
 - [x] At least 1 scenario per HIGH module: enrichment-completeness (3), disposition-guard (3), enrich-ticket (2), review-enrichment (2), adversarial-review-secops (2), investigate-event (2), activate (2)
 - [x] All scenarios cite the behavioral contract element they derive from
-- [x] All scenarios use `priority: must-pass`
+- [x] 24/25 scenarios use `priority: must-pass`; 1/25 (HS-014) uses `priority: should-pass` / `fix_target: pending DI-004` — excluded from must-pass gate (ADV-0-602)
 - [x] All scenarios use `epic_id: BROWNFIELD-REGRESSION`
 - [x] Scenarios are actionable without knowledge of plugin internals (black-box, analyst's-seat perspective)
 
@@ -84,4 +89,4 @@ All use `priority: must-pass` and `epic_id: BROWNFIELD-REGRESSION`.
 |-------|-------------------|----------|--------|
 | HS-003 | SM-2 surviving mutant: `jr issue assign` untested in BATS | LOW | Neutralized by fail-closed default (PR #13); `assign` now denied by both explicit blocklist AND fail-closed fallthrough. Scenario retained as regression baseline. |
 | HS-008 | SEC-001 prompt-injection vector: ticket body content reaching update-jira writer unfiltered | LOW | Fixed via PR #13 (fail-closed default reduces attack surface); scenario retained as regression baseline to prevent reintroduction. |
-| HS-014 | DI-004 / SM-1 false-pass: negating body text defeats disposition-guard substring check | HIGH | OPEN — heading-anchored fix not yet landed; effective assurance below tier. |
+| HS-014 | DI-004 / SM-1 false-pass: negating body text defeats disposition-guard substring check | HIGH | OPEN — heading-anchored fix not yet landed; reclassified to fix-target / should-pass (ADV-0-602); excluded from 24-scenario must-pass baseline. Promote to must-pass when DI-004 is resolved. |

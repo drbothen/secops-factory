@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
@@ -15,7 +15,7 @@ subsystem: vulnerability-pipeline
 capability: CAP-VULN-02
 lifecycle_status: active
 introduced: v0.6.0
-modified: []
+modified: ["v0.9.x-PR13-2026-07-19", "v1.1-ADV-0-601-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -25,6 +25,10 @@ removal_reason: null
 ---
 
 # Behavioral Contract BC-4.02.001: update-jira Skill — Review-Gated Jira Field Update
+
+> **Revision history:**
+> - v0.9.x / PR #13 (2026-07-19): Initial extraction from `update-jira/SKILL.md` at v0.9.0 HEAD (Step 0d). `modified:` was not populated at ingestion time — re-synced now.
+> - v1.1 (2026-07-19): ADV-0-601: Added `jr issue comment` to Invariant #1 gated-mutations list (was absent). Annotated PC#4 — the JIRA comment posting step hits require-review.sh unconditional deny; proceeds only via human permission-approval. Added DI-013 note.
 
 ## Preconditions
 
@@ -38,13 +42,13 @@ removal_reason: null
 1. If no review-approval marker is found, the skill halts with the message "Review approval required before JIRA update. Run /review-enrichment first." and makes no JIRA mutations. Confidence: verified by code analysis (`skills/update-jira/SKILL.md:Step 1`).
 2. Invalid fields (outside stated ranges) are skipped with a warning; the skill continues updating valid fields (partial success is acceptable). Confidence: verified by code analysis (Step 2: "Skip invalid fields with warning").
 3. Priority is mapped to JIRA priority names: P1→Critical, P2→High, P3→Medium, P4→Low, P5→Trivial. Confidence: verified by code analysis (`skills/update-jira/SKILL.md:Step 3`).
-4. After field updates, the enrichment summary is posted as a JIRA comment (not only as a field edit). Confidence: verified by code analysis (`skills/update-jira/SKILL.md:Step 3`).
+4. After field updates, the enrichment summary is posted as a JIRA comment (not only as a field edit). Confidence: verified by code analysis (`skills/update-jira/SKILL.md:Step 3`). **Infrastructure behavior (ADV-0-601):** The `jr issue comment` command is in the require-review.sh write-block list (`require-review.sh:88-93`) as an unconditional deny — there is no marker-based override; the hook reads only stdin JSON and the deny path has no bypass mechanism. The comment posting step proceeds only via human permission-approval of the blocked call (Claude Code permission dialog). Resolution options (marker-file mechanism vs permanent human-override vs dedicated post-review-comment command) are tracked as **DI-013, PENDING HUMAN DECISION at the Phase 0 gate.**
 5. After updates, the ticket is re-read via `jr issue view` to verify updates succeeded. Confidence: verified by code analysis (Step 3, final item).
 6. Cloud ID is never exposed in user-facing output. Confidence: verified by code analysis (Red Flag: "The cloud_id is in the error message, that's fine").
 
 ## Invariants
 
-1. JIRA mutations (`jr issue edit`, `jr issue move`, `jr issue assign`, `jr issue create`) are gated by the `require-review` hook at the infrastructure layer AND by the skill-level review-approval check. Two-layer defense in depth. Confidence: verified by code analysis and hook architecture.
+1. JIRA mutations (`jr issue edit`, `jr issue move`, `jr issue assign`, `jr issue create`, `jr issue comment`) are gated by the `require-review` hook at the infrastructure layer AND by the skill-level review-approval check. Two-layer defense in depth. Confidence: verified by code analysis and hook architecture.
 2. All fields must be updated atomically in a single pass — not sequentially over time. Partial-field-then-later-finish is explicitly prohibited by the Red Flags. Confidence: verified by code analysis (Red Flag: "I'll update priority first and finish the rest later" → "Partial updates create inconsistent state").
 3. A `jr issue edit` call failure (e.g., field not found, permission error) does not abort the skill; it logs the failure and continues with remaining fields. The final report documents which fields succeeded and which failed. Confidence: verified by code analysis (Red Flag: "Field update failed, I'll skip it" → "Log the failure, continue with other fields, report partial success").
 

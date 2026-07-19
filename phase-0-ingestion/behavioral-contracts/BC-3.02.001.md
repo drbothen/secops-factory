@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
@@ -17,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-02
 lifecycle_status: active
 introduced: v0.6.0
-modified: ["v1.1-ADV-0-402-ADV-0-403-2026-07-19", "v1.2-ADV-0-501-2026-07-19"]
+modified: ["v1.1-ADV-0-402-ADV-0-403-ADV-0-507-2026-07-19", "v1.2-ADV-0-501-2026-07-19", "v1.3-ADV-0-604-ADV-0-606-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -30,14 +30,15 @@ removal_reason: null
 
 > **Revision history:**
 > - v1.0 (2026-07-19): Initial extraction from `enrichment-completeness.sh` at v0.9.0 HEAD (Step 0d).
-> - v1.1 (2026-07-19): ADV-0-402: Corrected EC-004 — investigation file with only "Alert Details" produces Deny, not Allow. The hook requires ALL FOUR sections before saving any investigation file; there is no partial-save capability. ADV-0-403: Re-anchored stale BATS test references from `hooks.bats:41-60` to current @test names (lines 97-115 post-PR #14).
+> - v1.1 (2026-07-19): ADV-0-402: Corrected EC-004 — investigation file with only "Alert Details" produces Deny, not Allow. The hook requires ALL FOUR sections before saving any investigation file; there is no partial-save capability. ADV-0-403: Re-anchored stale BATS test references from `hooks.bats:41-60` to current @test names (lines 97-115 post-PR #14). ADV-0-507 (pass-4 input-hash batch): input-hash established as dual-file block scalar (enrichment-completeness.sh + .ps1 sibling).
 > - v1.2 (2026-07-19): ADV-0-501: Extended Refactoring Notes to document workflow context — in the standard investigate-event workflow, Stage 7 generates from event-investigation-tmpl.yaml (a complete template satisfying all four section requirements), so the workflow never produces partial investigation files. Added note on single-shot template generation and complementary hook responsibilities.
+> - v1.3 (2026-07-19): ADV-0-604: Re-synced `modified:` array to include ADV-0-507 pass-4 dual-file entry in v1.1. ADV-0-606: Upgraded PC#3 confidence from "inferred" to "verified" based on confirmed hooks.json PreToolUse/Write matcher (both enrichment-completeness.sh and disposition-guard.sh in the same sequential Write hooks array).
 
 ## Preconditions
 
 1. The hook receives a `PreToolUse/Write` event envelope via stdin as JSON, containing `tool_input.file_path` (string) and `tool_input.content` (string). Confidence: verified by code analysis (`hooks/enrichment-completeness.sh:38-39`).
 2. `jq` is installed and available on `$PATH`. Confidence: verified by code analysis (`hooks/enrichment-completeness.sh:14-17`).
-3. The hook is wired to fire on `PreToolUse` events for the `Write` tool (file-save operations). Confidence: inferred from hook purpose and BATS test payloads: `@test "enrichment-completeness allows non-enrichment files"` (hooks.bats:97), `@test "enrichment-completeness blocks incomplete enrichment"` (hooks.bats:103), `@test "enrichment-completeness allows complete enrichment"` (hooks.bats:110).
+3. The hook is wired to fire on `PreToolUse` events for the `Write` tool (file-save operations). Confidence: verified against hooks.json PreToolUse/Write matcher (both enrichment-completeness.sh and disposition-guard.sh are in the same Write hooks array — sequential execution, deny from either wins) and BATS test payloads: `@test "enrichment-completeness allows non-enrichment files"` (hooks.bats:97), `@test "enrichment-completeness blocks incomplete enrichment"` (hooks.bats:103), `@test "enrichment-completeness allows complete enrichment"` (hooks.bats:110).
 
 ## Postconditions
 

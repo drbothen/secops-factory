@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
@@ -15,7 +15,7 @@ subsystem: event-investigation-pipeline
 capability: CAP-EVENT-01
 lifecycle_status: active
 introduced: v0.6.0
-modified: ["v1.1-ADV-0-501-2026-07-19"]
+modified: ["v1.1-ADV-0-501-2026-07-19", "v1.2-ADV-0-601-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -29,6 +29,7 @@ removal_reason: null
 > **Revision history:**
 > - v1.0 (2026-07-19): Initial extraction from `investigate-event/SKILL.md` at v0.9.0 HEAD (Step 0d).
 > - v1.1 (2026-07-19): ADV-0-501: Annotated EC-006 to clarify the in-progress-save assumption — standard workflow generates from a complete template at Stage 7; EC-006 applies when analyst manually edits investigation file post-generation.
+> - v1.2 (2026-07-19): ADV-0-601: Added Invariant #7 documenting that Stage 7's `jr issue comment` step hits require-review.sh unconditional deny and requires human permission-approval (no marker-based override). Added DI-013 reference.
 
 ## Preconditions
 
@@ -54,6 +55,7 @@ removal_reason: null
 4. The `enrichment-completeness` hook enforces required investigation document sections (Executive Summary, Alert Details, Disposition, Next Actions). Confidence: verified by hook BC-3.02.001.
 5. The `disposition-guard` hook enforces that Alternatives Considered is present when a Disposition section exists. Confidence: verified by hook BC-3.03.001.
 6. The Perplexity availability check happens once before Stage 3 and the result is announced to the user. Confidence: verified by code analysis (Research Tool Selection section).
+7. Stage 7 includes a `jr issue comment` call to post the investigation summary to the JIRA ticket. The `require-review` hook (C-12, `require-review.sh:88-93`) denies `jr issue comment` unconditionally — the command is in the write-block substring list with no marker-based override path. The comment posting step proceeds only via human permission-approval of the blocked call (Claude Code permission dialog). There is no way for a skill command to include text that bypasses this deny. Resolution options are tracked as **DI-013, PENDING HUMAN DECISION at the Phase 0 gate.**
 
 ## Edge Cases
 

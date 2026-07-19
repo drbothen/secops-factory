@@ -17,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-01
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19", "v0.9.x-ADV0-001-ADV0-007-2026-07-19", "v1.4-ADV-0-405-2026-07-19", "v1.5-ADV-0-504-2026-07-19"]
+modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19", "v0.9.x-ADV0-001-ADV0-007-2026-07-19", "v1.4-ADV-0-405-ADV-0-507-2026-07-19", "v1.5-ADV-0-504-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -33,7 +33,7 @@ removal_reason: null
 > - v1.1 (2026-07-19): Revised to reflect PR #13 (commit f450d9f) behavior changes — SEC-001 (`jr issue comment` moved from allow to deny) and SEC-002 (unknown jr subcommands changed from fail-open to fail-closed). Previous postconditions #4 and #5 and invariant #3 were stale.
 > - v1.2 (2026-07-19): Revised to reflect PR #14 (commit 0ec794a) — expanded read-only allowlist with two families: plain forms (`jr issue changelog`, `jr assets search/view`, `jr --version`) and `--output json` forms for the metrics suite. EC-010 flips from Deny to Allow. New Invariant #4 documents the `--output json` global-flag placement nuance (root cause of DI-010 regression). BATS count updated to 138 tests.
 > - v1.3 (2026-07-19): Adversarial review pass 1 fixes — ADV-0-001: renumbered VP-HOOK-004/005/006 to VP-HOOK-020/021/022 (global sequential namespace; 004-006 are owned by BC-3.02.001 enrichment-completeness). ADV-0-007: corrected EC-015 mechanism — `jr --output json issue comment` is denied by the fail-closed catch-all, NOT by the write-block check (Invariant #4 applies; `jr issue comment` is not a substring of that command). Security extensibility note added to Refactoring Notes.
-> - v1.4 (2026-07-19): ADV-0-405: corrected three stale line-number anchors — non-jr fast path is `require-review.sh:47-50` (not 48-50), fail-closed block is `require-review.sh:96-98` (not 97-98), source file is 98 lines (not 99).
+> - v1.4 (2026-07-19): ADV-0-405: corrected three stale line-number anchors — non-jr fast path is `require-review.sh:47-50` (not 48-50), fail-closed block is `require-review.sh:96-98` (not 97-98), source file is 98 lines (not 99). ADV-0-507 (pass-4 input-hash batch): input-hash established as dual-file block scalar (require-review.sh + require-review.ps1 sibling).
 > - v1.5 (2026-07-19): ADV-0-504: corrected one remaining stale anchor in EC-015 — fail-closed catch-all is `(lines 96-98)` not `(lines 97-98)`. Missed by v1.4 sweep.
 
 ## Preconditions

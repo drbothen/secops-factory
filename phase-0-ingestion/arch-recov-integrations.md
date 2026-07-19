@@ -8,7 +8,10 @@
 > - ADV-0-206 / DI-001 RESOLVED: `.envrc` and `.mcp.json` credential exposure risk was resolved via PR #12 (merged 2026-07-19). Environment Variables table and Security Note updated to reflect gitignored status. The original HIGH-risk annotation was correct at extraction time but is now stale.
 >
 > **Changelog (2026-07-19, adversarial review pass 5):**
-> - ADV-0-502: Corrected DTU-1 mock guidance for `jr issue comment` — was "allow (hook allows this)" which is wrong at HEAD. `jr issue comment` is in the require-review deny block (`require-review.sh:88-93`). Updated to "verify require-review hook fires (deny without review approval)" and added note to model the review-approval override path.
+> - ADV-0-502: Corrected DTU-1 mock guidance for `jr issue comment` — was "allow (hook allows this)" which is wrong at HEAD. `jr issue comment` is in the require-review deny block (`require-review.sh:88-93`). Updated to "verify require-review hook fires (deny without review approval)". Note: the pass-5 fix also included an incorrect claim about a "review-approval override path via marker in the comment command" — that claim was wrong and is corrected in pass 6 (ADV-0-601, see below).
+>
+> **Changelog (2026-07-19, adversarial review pass 6):**
+> - ADV-0-601: Corrected DTU-1 mock guidance — the pass-5 fix was still wrong in claiming a marker-based override exists. The `jr issue comment` deny is unconditional (`require-review.sh:88-93` write-block substring match; hook reads stdin JSON only; no bypass mechanism). The only unblock path is human permission-approval of the blocked call (Claude Code permission dialog). DTU should model deny + human-override. Resolution options tracked as DI-013, PENDING HUMAN DECISION at the Phase 0 gate.
 
 ---
 
@@ -89,7 +92,7 @@ and inbound fallback (NVD/EPSS/CISA read-only feeds).
 - Mock `jr issue comments KEY` → return comment history fixture
 - Mock `jr issue edit KEY` → apply state mutation, verify `require-review` hook fires
 - Mock `jr issue move KEY STATUS` → validate status transitions, verify `require-review` hook fires
-- Mock `jr issue comment KEY "msg"` → verify require-review hook fires (deny without review approval); DTU mock should also model the review-approval override path (the deny reason instructs the operator to include a review-approval marker in the comment command)
+- Mock `jr issue comment KEY "msg"` → verify require-review hook fires (unconditional deny — `require-review.sh:88-93` write-block list; no marker-based override exists; deny from either wins); DTU mock should model deny + human permission-approval as the only unblock path (DI-013, PENDING HUMAN DECISION)
 - Mock `jr issue assets KEY` → return CMDB asset fixture
 
 ---

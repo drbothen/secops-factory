@@ -4,7 +4,7 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-19T15:00:00Z
+timestamp: 2026-07-19T16:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
@@ -77,6 +77,7 @@ dtu_required: false
 | 0f-adv pass 3 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass3.md` — 7 findings (0C/4M/3m), all remediated same-day. Finding decay: 12→11→7; criticals: 1→2→0. Kill-rate re-anchored (~75-80% current, ~55-65% labeled superseded); 6-hook mutation set consistent with SM-8/SM-8b vectors; C-2↔C-3 cycle removed, DAG verified acyclic; DI-012 expanded to 3 Iron-Law skills + read-ticket; HS-003 downgraded LOW, HS-008 fixed-guard annotation. Capstone v1.3 (346 lines). [process-gap-3]: no shard sync-status convention. Pass 4 dispatched. |
 | 0f-adv pass 4 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass4.md` — 8 findings (1 FP-C / 3M / 4m), all remediated. ADV-0-401 FALSE POSITIVE (stale snapshot trust, adjudicated by orchestrator). BC-3.02.001 v1.1 (EC-004 DENY). 5 BCs + conventions re-anchored by @test NAME. Census derivation explicit (24-1+19+1=43). ALL 13 BCs got sha256 input-hashes. Capstone v1.4 (375 lines). Finding decay: 12→11→7→8(1FP). [process-gap-4]: adversary stale-snapshot trust. [process-gap-5]: BC input-hashes never computed at extraction. Pass 5 dispatched. |
 | 0f-adv pass 5 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass5.md` — 6 findings (0C/2M/4m), all remediated. Finding decay: 12→11→7→8(1FP)→6; majors: 6→5→4→3→2; zero criticals for 3 consecutive passes. Core axes GREEN: census (24/43+derivation), DAG, VP namespaces, Iron-Law attributions, 138 tests, holdout distribution, DI statuses. ADV-0-501: cross-BC enrichment-completeness/disposition-guard contradiction resolved via HOOK-ISOLATED annotations. ADV-0-502: integrations DTU mock corrected to deny. HS-010 v1.1. Capstone v1.5. Pass 6 dispatched as convergence-candidate (bar: 0C+0M). |
+| 0f-adv pass 6 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass6.md` — 6 findings (0C/2M/4m), all remediated. Decay 12→11→7→8(1FP)→6→6; zero criticals 4 consecutive passes. ADV-0-601: SEC-001 comment-deny propagated to consumer BCs (BC-4.02.001 v1.1, BC-5.01.001 v1.2, integrations corrected); DI-013 opened. ADV-0-602: HS-014 reclassified fix-target; baseline 24/25 must-pass + 1 fix-target. ADV-0-605: EC-009 added to BC-3.03.001 v1.3 (DI-004 canonical vector). ADV-0-606: co-fire wiring VERIFIED. Pass 7 dispatched (convergence bar: 0C+0M). |
 
 ## Decisions Log
 
@@ -111,6 +112,7 @@ dtu_required: false
 | DI-009 | hook-manifests component absent from machine-readable YAML component map — classified HIGH; YAML map incomplete. Scope clarified: YAML component-map only (hooks.json JSON-Schema gap is separate → DI-011). | HIGH | 0f-post consistency validation | 0e5 module-criticality | RESOLVED (ADV-0-009 remediation) |
 | DI-011 | `hooks.json` has no JSON-Schema validation — no machine-readable contract for hook manifest structure | LOW | first Feature Mode cycle | 0f-adv pass 1 (ADV-0-009) | open |
 | DI-012 | `create-advisory`, `analyze-ticket-effort`, `assess-priority` (Iron Law at SKILL.md:13), and read-ticket injection entry point have no behavioral contracts — 3 Iron-Law skills + 1 injection surface with zero BC coverage | MEDIUM | PENDING HUMAN DECISION at Phase 0 gate (BC coverage expansion) | 0f-adv pass 3 (ADV-0-304 scope correction) | open |
+| DI-013 | Comment-gate workflow friction: `jr issue comment` unconditionally denied by require-review hook; consumer skills (investigate-event, orchestration) cannot complete their comment steps without human permission-override. Options: accept friction / implement marker mechanism / add dedicated non-blocked command | MEDIUM-HIGH | PENDING HUMAN DECISION at Phase 0 gate | 0f-adv pass 6 (ADV-0-601) | open |
 | DI-010 | SEC-002 fail-closed regression: `jr issue changelog` (read-only, used by metrics-analyst + 2 data KBs) wrongly denied. PR #14 merged (0ec794a): 11 read-only allowlist entries incl. `--output json` global-flag forms; root cause: global flag defeated substring match; 8 new BATS tests, 138/138 green. | HIGH | in flight | 0f project-context-synthesis | RESOLVED |
 
 ## Blocking Issues
@@ -125,8 +127,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 — step 0f-adv pass 6 in progress (convergence-candidate) |
-| **Context** | Pass 5: 6 findings (0C/2M/4m), all remediated. Decay 12→11→7→8(1FP)→6; majors 6→5→4→3→2; zero criticals 3 consecutive passes. Core axes GREEN. Pass 6 is convergence-candidate: bar is 0 critical + 0 major. DI-001/DI-008/DI-009/DI-010 RESOLVED. CRITICAL: require-review hook, update-jira skill. |
+| **Position** | Phase 0 — step 0f-adv pass 7 in progress (convergence bar: 0C+0M) |
+| **Context** | Pass 6: 6 findings (0C/2M/4m), all remediated. Decay 12→11→7→8(1FP)→6→6; zero criticals 4 consecutive passes. SEC-001 comment-deny propagated to consumer BCs. HS-014 reclassified fix-target (baseline 24/25+1). DI-013 added (comment-gate friction, PENDING HUMAN DECISION). DI-001/DI-008/DI-009/DI-010 RESOLVED. CRITICAL: require-review hook, update-jira skill. |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

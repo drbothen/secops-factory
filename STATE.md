@@ -1,10 +1,10 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "2.0"
+version: "2.1"
 status: active
 producer: state-manager
-timestamp: 2026-07-20T05:00:00Z
+timestamp: 2026-07-20T05:30:00Z
 phase: 0-complete
 pipeline: phase-0-COMPLETE
 inputs: []
@@ -146,8 +146,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | PARKED — Phase 0 complete; awaiting feature-request to enter Feature Mode |
-| **Context** | Phase 0 onboarding + post-gate remediation COMPLETE. Entry point for future work: Feature Mode with project-context.md v2.3 as scope document. Key metrics: 17 BCs / 165 tests / 34 holdouts / 24-module criticality map / kill-rate ~90-95% / SM-1+SM-2 KILLED / 7 PRs merged (#11-#17) / 13/14 drift items resolved (DI-013 deferred). Session-review logged 8 engine IPs (IP-001..IP-008) for vsdd-factory maintainer. |
+| **Position** | PARKED — session wrap complete; SESSION-HANDOFF.md written; awaiting feature-request |
+| **Context** | Phase 0 + remediation COMPLETE. SESSION-HANDOFF.md contains full RESUME snapshot. Entry: Feature Mode with project-context.md v2.3 (Phase 0 skipped). DI-013 deferred to first Feature Mode cycle. 8 engine IPs in session-review. Nothing in flight; all pushed. |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

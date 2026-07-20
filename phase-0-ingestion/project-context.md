@@ -1,7 +1,7 @@
 ---
 document_type: project-context
 level: ops
-version: "2.1"
+version: "2.2"
 status: phase-0-complete-remediated / awaiting-feature-request
 producer: codebase-analyzer
 timestamp: 2026-07-19T00:00:00Z
@@ -81,11 +81,12 @@ Integrations / DTU candidates: `.factory/phase-0-ingestion/arch-recov-integratio
 **Authoritative census — YAML component-map aggregate (C-1..C-24): 24 modules — 1 CRITICAL / 12 HIGH / 7 MEDIUM / 4 LOW.**
 `update-jira` folds into the HIGH `skill-procedures` aggregate (C-2) at this granularity, so
 require-review (C-12) is the sole CRITICAL; hook-manifests (C-18) is a counted HIGH member. A secondary
-**per-artifact figure of 43 modules (2 CRITICAL / 16 HIGH / 20 MEDIUM / 5 LOW)** explodes C-2 into its 20
+**per-artifact figure of 43 modules (2 CRITICAL / 16 HIGH / 21 MEDIUM / 4 LOW)** explodes C-2 into its 20
 skills (hook-manifests is already its own C-18 in the aggregate, so the per-artifact total is unchanged);
 at that granularity update-jira surfaces as a distinct CRITICAL skill. Derivation: **24 − 1 (C-2) + 20
 (skills) = 43** — since PR #16 gave `secops-health` its own SKILL.md, there are now 20 skills 1:1 with the
-20 commands (secops-health is one of the 20 exploded skills, no longer a separate carve-out).
+20 commands; `secops-health` is one of the 20 exploded skills (promoted LOW→**MEDIUM** in module-criticality
+v1.6), no longer a separate LOW carve-out.
 
 | Tier | Modules (per-artifact view; aggregate note where it differs) |
 |------|---------|
@@ -348,7 +349,7 @@ require-review bypass guard) and **HS-029** (read-ticket SEC-001 prompt-injectio
 pass: 0
 step: "0f"
 status: phase-0-complete-remediated / awaiting-feature-request
-revision: "2.1 — skill count corrected 19→20 (secops-health SKILL.md, PR #16 / DI-002; now 20 skills 1:1 with 20 commands). Base: 2.0 — onboarding + full drift remediation (PRs #11–#17; 13/14 DIs RESOLVED, DI-013 DEFERRED; BC 13→17; tests →165; holdouts →34)"
+revision: "2.2 — per-artifact distribution corrected to 2/16/21/4 (secops-health promoted LOW→MEDIUM, module-criticality v1.6). 2.1 — skill count 19→20 (secops-health SKILL.md, PR #16 / DI-002). 2.0 — onboarding + full drift remediation (PRs #11–#17; 13/14 DIs RESOLVED, DI-013 DEFERRED; BC 13→17; tests →165; holdouts →34)"
 files_synthesized: 13
 timestamp: 2026-07-19T00:00:00Z
 open_gate_decision:

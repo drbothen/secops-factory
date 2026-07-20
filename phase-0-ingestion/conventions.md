@@ -15,15 +15,15 @@
 
 | Convention | Pattern | Frequency | Examples |
 |-----------|---------|-----------|----------|
-| Dominant | kebab-case directory under `skills/` | 19/19 skills | `enrich-ticket/`, `research-cve/`, `adversarial-review-secops/`, `analyze-ticket-effort/`, `review-enrichment/` |
-| Entry file name | uppercase `SKILL.md` within each directory | 19/19 skills | `skills/enrich-ticket/SKILL.md`, `skills/create-advisory/SKILL.md`, `skills/activate/SKILL.md` |
+| Dominant | kebab-case directory under `skills/` | 20/20 skills | `enrich-ticket/`, `research-cve/`, `adversarial-review-secops/`, `analyze-ticket-effort/`, `review-enrichment/` |
+| Entry file name | uppercase `SKILL.md` within each directory | 20/20 skills | `skills/enrich-ticket/SKILL.md`, `skills/create-advisory/SKILL.md`, `skills/activate/SKILL.md` |
 
 ### Command File Names
 
 | Convention | Pattern | Frequency | Examples |
 |-----------|---------|-----------|----------|
 | Dominant | kebab-case `<name>.md` under `commands/` | 20/20 commands | `enrich-ticket.md`, `research-cve.md`, `adversarial-review-secops.md` |
-| Match rule | command name MUST match skill directory name exactly | 19/20 (one exception) | Exception: `secops-health.md` has no `skills/secops-health/` directory (CI explicitly carve-outs it) |
+| Match rule | command name MUST match skill directory name exactly | 20/20 | `secops-health.md` now has a matching `skills/secops-health/SKILL.md` (added PR #16, DI-002); the CI carve-out for this command was removed |
 
 ### Agent File Names
 
@@ -383,7 +383,7 @@ Every `.sh` hook has a multi-line comment block immediately after the shebang:
 |-----------|--------|---------|----------|
 | SKILL.md | ~77 lines | `skills/create-advisory/SKILL.md` (169 lines) | `skills/deactivate/SKILL.md` (44 lines) |
 | Agent `.md` | ~98 lines | `agents/security-reviewer.md` (184 lines) | `agents/orchestrator/enrichment-workflow.md` (42 lines) |
-| Command `.md` | ~8 lines | `commands/secops-health.md` (53 lines — anomaly: no matching skill) | 8 lines (standard wrapper) |
+| Command `.md` | ~8 lines | `commands/secops-health.md` (53 lines — formerly anomaly: no matching skill; resolved in PR #16) | 8 lines (standard wrapper) |
 | Hook `.sh` | ~50 lines | `hooks/session-greeting.sh` | `hooks/bias-check-reminder.sh` |
 | Data KB | ~1000 lines | `data/event-investigation-best-practices.md` (~3027 lines — chunked-read flag) | `data/priority-framework.md` |
 | BATS suite | ~175 lines | `tests/skills.bats` (471 lines) | `tests/parity.bats` (144 lines) |
@@ -423,7 +423,7 @@ Files over ~1000 lines require chunked reading (500-line chunks via Read tool of
 ### Style Ambiguities
 
 1. **`secops(<scope>):` vs `feat(<scope>):`:** `rules/secops-protocol.md` specifies `secops(<scope>):` for plugin-content commits, but the actual commit history uses `feat(scope):`. Human should clarify which prefix is canonical for new feature work.
-2. **`secops-health` command anomaly:** This command has no matching skill directory; CI exempts it. Whether to add a `skills/secops-health/SKILL.md` in a future PR is unresolved.
+2. ~~**`secops-health` command anomaly:**~~ Resolved in PR #16 (DI-002): `skills/secops-health/SKILL.md` was added, giving all 20 commands a 1:1 skill. The CI carve-out for this command has been removed.
 
 ---
 
@@ -452,8 +452,8 @@ enforceable_rules:
       - "ci.yml:62-70 (structure job validates this)"
 
   - id: CONV-003
-    description: "Every command file must have a matching skill directory (exception: secops-health)"
-    pattern: "commands/<name>.md requires skills/<name>/ to exist, except secops-health"
+    description: "Every command file must have a matching skill directory (no exceptions — secops-health exemption removed in PR #16)"
+    pattern: "commands/<name>.md requires skills/<name>/ to exist"
     scope: "plugins/secops-factory/commands/*.md"
     severity: error
     evidence:
@@ -638,5 +638,6 @@ enforceable_rules:
 | 2026-07-19 | ADV-0-403/ADV-0-405: Re-anchored stale hooks.bats line citations to @test names + current line numbers (190, 185, group headers 7/95/117/136/156/183). Corrected fast-path line range in require-review.sh from 47-49 to 47-50. | PR #13/#14 |
 | 2026-07-19 | ADV-0-603: Re-anchored all require-review.sh header citations to HEAD (PR #14 added Invariant-4 comment block, shifting body down 7 lines). set -euo pipefail: 13→18; jq guard: 14-17→20-23; INPUT=$(cat): 19→25; emit_allow: 21-24→27-30 (exit 0 at 29); emit_deny: 26-34→32-42 (exit 0 at 41). CONV-012 exit-0 citations corrected: require-review.sh 23,35→29,41; enrichment-completeness.sh 24,35→22,34. | PR #14 |
 | 2026-07-19 | ADV-0-B02: Converted hooks.bats group-header and test-naming-example line-number citations to @test-name references (line numbers now secondary/approximate) for churn-resilience. Require-review block now 26 tests (:9–:177 post-PR-15). Group anchors: enrichment-completeness ~:185, bias-check-reminder ~:207, handoff-validator ~:226, disposition-guard ~:246, session-greeting ~:278. | PR #15 |
+| 2026-07-19 | DI-002: Updated skill count from 19 to 20 (PR #16 added skills/secops-factory/SKILL.md for secops-health, giving all 20 commands a 1:1 skill and removing the CI carve-out). Fixed in: Skill Directory Names table (×2), Command Match rule (19/20→20/20), File Size Norms, Style Ambiguities, CONV-003. | PR #16, DI-002 |
 | 2026-07-19 | ADV-0-801 / PR #15: CRITICAL evaluation-order fix — write-block must be evaluated BEFORE the allowlist (old allow-first order was a bypass vulnerability). Updated Fast path ordering row, Fail-open row, and CONV-013 to the corrected order: fast-path → write-block (deny) → allowlist (allow) → fail-closed (deny). Line anchors updated to PR #15 HEAD. Added security note explaining why allow-first caused the bypass. | PR #15 (ADV-0-801) |
 | 2026-07-19 | ADV-0-A01: Replaced all live require-review.sh line-number citations in Bash Hook Pattern table (Shebang, Error mode, jq guard, Input ingestion, Allow/Deny function rows, Fast path ordering, Fail-open rows), CONV-012 evidence, and CONV-013 evidence with construct-name references (fast-path guard / write-block if-block / read-only allowlist / fail-closed catch-all / jq-availability guard / emit_allow / emit_deny). Historical Document History entries preserved as-is. | ADV-0-A01 |

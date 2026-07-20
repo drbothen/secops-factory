@@ -8,6 +8,7 @@ _Phase 0, Step 0a (Project Discovery). Agent: codebase-analyzer (T1, read-only).
 > - Pass 3 (ADV-0-305): §5 Contributors row commit count 38→41.
 > - Pass 5 (ADV-0-503): §8.1 annotated with DI-001 RESOLVED (PR #12 gitignored the secret-bearing local files); original text retained as Step-0a snapshot.
 > - Pass 10 (ADV-0-A05): §5 refreshed after PR #15 (SEC-009 CRITICAL) merged — total commits 41→42, last-3-months 14→15, Contributors row 41→42, PR range #1–#14 → #1–#15.
+> - Pass 11 (delta re-verify): skill count 19→20 (§4 tree, §8.3 on-disk figure) — PR #16 added `skills/secops-health/SKILL.md`, making skills:commands 20:20 (1:1).
 
 ## 1. Project Identity
 
@@ -65,7 +66,7 @@ secops-factory/
 │   ├── .claude-plugin/plugin.json       # plugin manifest + hooks registration
 │   ├── agents/                          # 6 agents total: 5 specialists + orchestrator/ (companion + 3 workflow files)
 │   ├── commands/                        # 20 slash-command entry points
-│   ├── skills/<name>/SKILL.md           # 19 skills
+│   ├── skills/<name>/SKILL.md           # 20 skills
 │   ├── checklists/                      # 15 quality checklists (8 CVE + 7 event)
 │   ├── data/                            # 10 knowledge-base docs
 │   ├── templates/                       # 6 output templates (5 YAML + 1 Markdown)
@@ -122,7 +123,7 @@ secops-factory/
 1. **SECURITY — live secrets in untracked files (HIGH).** `.envrc` contains a plaintext `ANTHROPIC_AWS_API_KEY`; `.mcp.json` contains plaintext `PERPLEXITY_API_KEY`, a Tavily key in a URL, and a `CONTEXT7_API_KEY`. `.gitignore` lists only `.factory/` and `.reference/` — **neither `.envrc` nor `.mcp.json` is gitignored**, and both show as untracked (`??`) in git status. Risk of accidental commit of live credentials. Recommend adding both to `.gitignore` and rotating any exposed keys. (Key values intentionally not reproduced here.)
    > **DI-001 RESOLVED (2026-07-19, via PR #12):** `.gitignore` now lists `.factory/`, `.reference/`, `.envrc`, `.env`, `.mcp.json`, and `.claude/settings.local.json` — the secret-bearing local files are no longer trackable. Original text above is retained as the Step-0a snapshot (git audit findings SEC-001..005 also resolved via PR #13). Key rotation remains an operator action.
 2. **Author identity vs. ownership.** All commits are authored by `Joshua Magady`; manifests declare owner/author `drbothen`. Likely the same operator under different identities, but flagged for confirmation. Per MEMORY: commits omit Co-Authored-By attribution by design.
-3. **README count drift.** README "What's Inside" cites 129 tests and mixed skill counts (11 vs 19 in different sections); actual on-disk: 19 skills, 20 commands, 6 agents, 15 checklists, 10 data KBs, 6 templates, 4 BATS suites. Minor doc/reality drift worth reconciling in later passes.
+3. **README count drift.** README "What's Inside" cites 129 tests and mixed skill counts (11 vs 19 in different sections); actual on-disk: 20 skills, 20 commands, 6 agents, 15 checklists, 10 data KBs, 6 templates, 4 BATS suites. Minor doc/reality drift worth reconciling in later passes.
 4. **No standard build/dependency manifest.** Absence of `package.json`/`Cargo.toml` etc. is expected for a declarative plugin, but means "build/test commands" are defined only by `tests/run-all.sh` and CI YAML — not a package script.
 5. **Unknown/external tools flagged for research delegation (DF-027):** `jr` (`Zious11/jira-cli`, aka `jira-cli-rs`) and the Claude Code plugin/marketplace + MCP execution model. Both are documented in-repo; delegate to research-agent only if deeper external verification is needed.
 

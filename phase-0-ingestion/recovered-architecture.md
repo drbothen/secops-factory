@@ -34,6 +34,7 @@
 > - **Test count:** 150 → **165** (hooks 44→**59**, skills 81, integration 11, parity 14). Suite 165/165 green at HEAD d181ca2.
 > - **BC count:** 13 → **17** (4 new BCs: BC-4.05, BC-4.06, BC-7.01, BC-8.01 added post-ingestion).
 > - **SM-1 KILLED:** disposition-guard substring false-pass mutant eliminated by PR #17 heading-anchored fix.
+ - **ADV-R2-01:** Layer diagram PROCEDURE LAYER box corrected: "19 skills" → "20 skills" (matches C-2 row and YAML interfaces_provided).
 
 ---
 
@@ -399,7 +400,7 @@ components:
                              v
 +-----------------------------------------------------------------------+
 | PROCEDURE LAYER (Business Logic)                                      |
-|   skills/<name>/SKILL.md (19 skills)                                 |
+|   skills/<name>/SKILL.md (20 skills)                                 |
 |   Evidence: each SKILL.md defines multi-stage workflows with Iron     |
 |   Laws, Red Flag tables, stage outputs, and ${CLAUDE_PLUGIN_ROOT}/   |
 |   data/ references. Skills invoke sub-skills (enrich-ticket invokes  |

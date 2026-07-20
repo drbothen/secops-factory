@@ -9,7 +9,7 @@ phase: "0f-pre"
 inputs:
   - phase-0-ingestion/behavioral-contracts/BC-3.01.001.md
   - specs/module-criticality.md
-input-hash: "892eea8"
+input-hash: "d361b25"
 traces_to: phase-0-ingestion/behavioral-contracts/BC-3.01.001.md
 id: "HS-003"
 category: "regression-baseline"
@@ -56,7 +56,7 @@ Observe:
 - The block reason must reference "review approval" or similar gating language.
 - No successful assignment confirmation should appear.
 
-This scenario specifically validates that `assign` is in the blocklist — the module-criticality analysis (SM-2) identified `assign` as an untested surviving mutant in earlier BATS coverage.
+This scenario specifically validates that `assign` is in the blocklist — the module-criticality analysis (SM-2) identified `assign` as an untested surviving mutant in earlier BATS coverage. PR #17 added a dedicated assign-deny BATS test (hooks.bats:426), so SM-2 is now KILLED; this scenario is retained as a regression guard against reintroduction.
 
 ## Evaluation Rubric
 
@@ -68,7 +68,7 @@ This scenario specifically validates that `assign` is in the blocklist — the m
 
 ## Edge Conditions
 
-- This is a targeted regression for the SM-2 surviving mutant: `jr issue assign` was not covered by prior BATS tests. A regression here is high-severity.
+- SM-2 is KILLED: PR #17 added dedicated assign-deny and create-deny BATS tests (hooks.bats:426/:433). This scenario guards against any reversion that removes those tests or weakens the blocklist entry — a regression here is high-severity.
 
 ## Failure Guidance
 

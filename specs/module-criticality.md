@@ -6,7 +6,7 @@ status: active
 producer: formal-verifier
 timestamp: 2026-07-19T00:00:00Z
 traces_to: phase-0-ingestion/recovered-architecture.md
-input-hash: "b95829a"
+input-hash: "e5e92b6"
 phase: "0e.5"
 project: secops-factory
 inputs:
@@ -30,7 +30,7 @@ version_history:
   - "1.3 (2026-07-19) — re-sync 3 + pass-4 finalization, post adversarial passes 3–4 (ADV-0-301 kill-rate figure/anchor, ADV-0-302 6-hook scope; ADV-0-404 secops-health double-count, ADV-0-405 hook line refs verified, ADV-0-406 vga anchor, ADV-0-408 versioning); status → active (capstone-authoritative)"
   - "1.4 (2026-07-19) — re-issue post PR #15 (d304fa5), adversarial pass 9 (ADV-0-901, ADV-0-903): added SEC-009 (allowlist-precedence bypass, CRITICAL, RESOLVED PR #15) to the Resolved table and rewrote the require-review narrative to acknowledge the gate was fully bypassable until PR #15; replaced churned require-review.sh line-number citations with construct-name references; test count 138 → 150 (hooks 44 + skills 81 + integration 11 + parity 14)"
   - "1.5 (2026-07-19) — RESYNC_MERGED post PRs #16/#17 (HEAD d181ca2): DI-004/SM-1 RESOLVED (disposition-guard heading-anchored fix); DI-006 RESOLVED (CI pwsh install asserted); DI-005 assign/create BATS-verified (SM-2 now KILLED); test count 150 → 165 (hooks 44→59); Still-Open table updated; disposition-guard and investigate-event rationale rows updated; mutation targets summary updated"
-  - "1.6 (2026-07-19) — RESYNC_DI_PROPAGATE post PR #16: DI-002 RESOLVED (secops-health SKILL.md created, CI special-case removed); DI-011 RESOLVED (hooks.json JSON-Schema validation added); secops-health promoted from standalone LOW to MEDIUM skill; per-artifact derivation updated to 24 − 1 + 20 = 43; MEDIUM 20→21, LOW 5→4; SM-2 updated to KILLED (PR #17, was NEUTRALIZED PR #13)"
+  - "1.6 (2026-07-19) — RESYNC_DI_PROPAGATE post PR #16: DI-002 RESOLVED (secops-health SKILL.md created, CI special-case removed); DI-011 RESOLVED (hooks.json JSON-Schema validation added); secops-health promoted from standalone LOW to MEDIUM skill; per-artifact derivation updated to 24 − 1 + 20 = 43; MEDIUM 20→21, LOW 5→4; SM-2 updated to KILLED (PR #17, was NEUTRALIZED PR #13); ADV-R2-03: Quality-Gate checklist secondary figure corrected (2/16/20/5 → 2/16/21/4)"
 ---
 
 # Module Criticality Classification — secops-factory v0.9.0
@@ -314,7 +314,7 @@ is the sole path to the authoritative Jira record.
 - [x] Each classification cites evidence from behavioral contracts / gap analysis / security audit / discovery
 - [x] Component Map YAML `criticality` fields updated in `recovered-architecture.md` to match (C-1..C-24, incl. C-18 hook-manifests)
 - [x] Known open items re-synced post PRs #13/#14/#15/#16/#17: SEC-001..005 resolved; SM-2/SM-3/SM-1/SM-4 KILLED; DI-002, DI-004, DI-005, DI-006, DI-011, DI-014 RESOLVED; only DI-013 remains open (deferred to Feature Mode)
-- [x] Census reconciled to one authoritative granularity (24 aggregate: 1/12/7/4) with a secondary per-artifact figure (43: 2/16/20/5); frontmatter + Distribution + tier rows all sum
+- [x] Census reconciled to one authoritative granularity (24 aggregate: 1/12/7/4) with a secondary per-artifact figure (43: 2/16/21/4); frontmatter + Distribution + tier rows all sum
 - [x] session-greeting numeric mutation target (≥70%) stated unambiguously (6-hook target set)
 - [x] C-IDs realigned to pass-1 architecture reconciliation (hook-manifests = C-18); require-review ≥95% restated as not-yet-demonstrated
 

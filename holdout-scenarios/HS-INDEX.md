@@ -1,7 +1,7 @@
 ---
 document_type: holdout-scenario-index
 level: ops
-version: "1.5"
+version: "1.6"
 status: active
 producer: product-owner
 timestamp: 2026-07-19T00:00:00
@@ -20,6 +20,7 @@ scenario_count: 34
 > - v1.3 (2026-07-19): ADV-0-801 — added HS-026 (require-review bypass coverage hole; embedded read-only token in write command; PR #15 regression guard); ADV-0-806 — renamed Full Scenario Listing "Category" column to "Scenario Type" facet; updated HS-008 regression marker (SEC-001 fully gated by PR #15). Baseline: 26 scenarios, 25 must-pass + 1 fix-target.
 > - v1.4 (2026-07-19): Stream D DI-012 resolution — seeded 8 new scenarios (HS-027–HS-034) for 4 new BCs: assess-priority (BC-4.05.001), read-ticket (BC-4.06.001), create-advisory (BC-7.01.001), analyze-ticket-effort (BC-8.01.001). Baseline: 34 scenarios, 33 must-pass + 1 fix-target (HS-014).
 > - v1.5 (2026-07-19): DI-004 fixed PR #17 — HS-014 promoted from fix-target/should-pass to must-pass regression guard; heading-anchored fix now passes. Baseline: 34 scenarios, all 34 must-pass (0 fix-targets).
+> - v1.6 (2026-07-19): ADV-R2-04 — HS-003 Known Regression Marker updated: SM-2 KILLED by PR #17 (dedicated assign-deny BATS test hooks.bats:426/:433); HS-003 scenario file lines updated accordingly. ADV-R2-05 — HS-014 Known Regression Marker version reference corrected: (v1.2) → (v1.5).
 
 > **WARNING:** This index and all files in this directory are stored under
 > `.factory/holdout-scenarios/` and must NEVER be shown to the implementer
@@ -119,7 +120,7 @@ promoted from fix-target/should-pass to must-pass regression guard (v1.5,
 
 | HS ID | Tracks Known Issue | Severity | Status |
 |-------|-------------------|----------|--------|
-| HS-003 | SM-2 surviving mutant: `jr issue assign` untested in BATS | LOW | Neutralized by fail-closed default (PR #13); `assign` now denied by both explicit blocklist AND fail-closed fallthrough. Scenario retained as regression baseline. |
+| HS-003 | SM-2 (assign) KILLED — PR #17 added dedicated assign-deny BATS test (hooks.bats:426/:433) | LOW | SM-2 KILLED by PR #17; assign now covered by dedicated BATS test in addition to fail-closed fallthrough. Scenario retained as regression guard against reintroduction. |
 | HS-008 | SEC-001 prompt-injection vector: ticket body content reaching update-jira writer unfiltered | LOW | Fully gated by PR #15 (embedded-token routing fix closes the bypass path PR #13 partially addressed); scenario retained as regression baseline to prevent reintroduction. |
 | HS-026 | ADV-0-801 bypass: write command with embedded read-only token routes to allow | LOW | Fixed by PR #15 (embedded-token routing); HS-026 added as regression guard against reintroduction. |
-| HS-014 | DI-004 / SM-1 false-pass: negating body text defeats disposition-guard substring check | HIGH | RESOLVED PR #17 — heading-anchored fix landed; HS-014 promoted to must-pass regression guard (v1.2, 2026-07-19). Any future regression to substring matching will be caught by this scenario. |
+| HS-014 | DI-004 / SM-1 false-pass: negating body text defeats disposition-guard substring check | HIGH | RESOLVED PR #17 — heading-anchored fix landed; HS-014 promoted to must-pass regression guard (v1.5, 2026-07-19). Any future regression to substring matching will be caught by this scenario. |

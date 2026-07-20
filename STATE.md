@@ -4,14 +4,16 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-20T04:00:00Z
-phase: 0
+timestamp: 2026-07-20T05:00:00Z
+phase: 0-complete
+pipeline: phase-0-COMPLETE
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: brownfield
-current_step: "phase-0-gate-final"
+current_step: "PARKED"
+awaiting: feature-request
 current_cycle: ""
 dtu_required: false
 ---
@@ -36,15 +38,15 @@ dtu_required: false
 | **Engine** | /Users/jmagady/Dev/dark-factory (vsdd-factory plugin) |
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-19 |
-| **Current Phase** | 0: Codebase Ingestion |
-| **Current Step** | phase-0-gate-final (awaiting human approval) |
+| **Current Phase** | 0-complete: Codebase Ingestion + Remediation DONE |
+| **Current Step** | PARKED — awaiting feature-request |
 
 ## Phase Progress
 
 | Phase | Status | Started | Completed | Gate | Finding Progression |
 |-------|--------|---------|-----------|------|---------------------|
 | pre-0: Pre-pipeline | PASSED | 2026-07-19 | 2026-07-19 | PASS | — |
-| 0: Codebase Ingestion | in-progress | 2026-07-19 | | | |
+| 0: Codebase Ingestion + Remediation | COMPLETE | 2026-07-19 | 2026-07-20 | PASS | 12→11→7→8(1FP)→6→6→6→6(CRITICAL)→4→5→2→1→0; ADV-R1-4 CLEAN |
 | 1: Spec Crystallization | not-started | | | | |
 | 2: Story Decomposition | not-started | | | | |
 | 3: TDD Implementation | not-started | | | | |
@@ -92,6 +94,8 @@ dtu_required: false
 | phase-0-remediation adv round 2 (sweep) | adversary + remediation | DONE | Second-order sweep ADV-R2: 6 findings (0C/4M/2m), all second-order propagation residue of 19→20/secops-health promotion. M1: arch layer diagram 19→20. M2: conventions.md 19→20 + 6 refs. M3: project-discovery.md 20 skills. M4: vga re-issued 165/17 (SM-1 KILLED, kill-rate ~90-95%). m1: capstone QG distribution 2/16/21/4. m2: HS-INDEX SM-2 KILLED + HS-014 v1.5. Input-drift: STALE=0 (3-pass). |
 | phase-0-remediation adv round 3 (consumer-sync) | adversary + remediation | DONE | Third-order consumer-sync ADV-R3: 3 findings (0C/2M/1m) + 2 obs, all consumer-sync residue. M1: kill-rate/HS-INDEX cite in capstone. M2: kill-rate + DI-012 RESOLVED in module-criticality. m1: recovered-architecture DI-012 status. obs: vga SM-2 wording; conventions typo ×3. Remediated: project-context.md v2.3, module-criticality, recovered-architecture, vga, conventions. |
 | phase-0-remediation adv round 4 (delta pass 4) | adversary | DONE | Delta pass 4 CLEAN — only observations, no graded findings. Remediation delta CONVERGED. validation-report.md synced: DI-012 RESOLVED, open_gate reduced to DI-013 only. Drift register FINAL: 13 RESOLVED / 1 DEFERRED (DI-013) / 0 open. Input-drift: TOTAL=53 MATCH=52 STALE=0 (3-pass cascade). |
+| session-review | session-reviewer | DONE | `.factory/session-reviews/2026-07-19-brownfield-phase0-session-review.md` — 8 improvement proposals (IP-001..IP-008) targeting the vsdd-factory ENGINE at /Users/jmagady/Dev/dark-factory. IP-001: census-sync assertion at BC-extraction. IP-002: shard sync-status convention. IP-003: BC input-hashes at extraction time. IP-004: adversary stale-snapshot protocol. IP-005: fan-out grep-before-consistency discipline. IP-006: substring-matching-idiom sweep. IP-007: anchor-churn class — construct-name-first policy. IP-008: HS expected-result verification gate. These are engine improvement proposals for the engine maintainer — NOT secops-factory work items. Cycle-closing process-gaps codified per S-7.02. |
+| PARK | orchestrator | DONE | secops-factory is VSDD-managed. Phase 0 COMPLETE. Project parked awaiting feature-request. Future work enters via Feature Mode with project-context.md v2.3 as scope (Phase 0 skipped on next entry). Orchestrator detects phase: 0-complete and routes to Feature Mode / Phase 1 with Phase 0 context. DI-013 (comment-gate friction) deferred to first Feature Mode cycle. |
 
 ## Decisions Log
 
@@ -142,8 +146,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 COMPLETE — remediation delta CONVERGED; at phase-0-gate-final awaiting human approval |
-| **Context** | Remediation delta passes 1-4 complete: 4 adversarial rounds, all findings remediated. Delta pass 4 CLEAN (only observations). validation-report.md v1.1 synced (DI-012 RESOLVED, open_gate DI-013 only). Drift register FINAL: 13 RESOLVED / 1 DEFERRED (DI-013) / 0 open. Test suite 165/17 BCs / kill-rate ~90-95% / SM-1+SM-2 KILLED / zero open HIGH mutants. Input-drift STALE=0 (TOTAL=53 MATCH=52). Human approval needed to close Phase 0. |
+| **Position** | PARKED — Phase 0 complete; awaiting feature-request to enter Feature Mode |
+| **Context** | Phase 0 onboarding + post-gate remediation COMPLETE. Entry point for future work: Feature Mode with project-context.md v2.3 as scope document. Key metrics: 17 BCs / 165 tests / 34 holdouts / 24-module criticality map / kill-rate ~90-95% / SM-1+SM-2 KILLED / 7 PRs merged (#11-#17) / 13/14 drift items resolved (DI-013 deferred). Session-review logged 8 engine IPs (IP-001..IP-008) for vsdd-factory maintainer. |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

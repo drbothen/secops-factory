@@ -1,15 +1,15 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/handoff-validator.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: "4bd7a8a"
+input-hash: "5266d05"
   4cd4245b0a60683b59f6d8130be7331b8571083ed8c47fab107d485a86c6ee43  plugins/secops-factory/hooks/handoff-validator.sh
-  56c828f1eeb8acb7d7107c39f6e101d4f45fadd325cc60efab03e605833d6100  plugins/secops-factory/hooks/handoff-validator.ps1
+  210f921cd1f15bc36056518dd42889bbc2a6ca5d31e984f464c5519048eb7eb8  plugins/secops-factory/hooks/handoff-validator.ps1
 traces_to: phase-0-ingestion/recovered-architecture.md
 origin: recovered
 extracted_from: plugins/secops-factory/hooks/handoff-validator.sh
@@ -17,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-05
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-507-2026-07-19", "v1.3-ADV-0-B01-2026-07-19"]
+modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-507-2026-07-19", "v1.3-ADV-0-B01-2026-07-19", "v1.4-RESYNC-PR17-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -31,6 +31,7 @@ removal_reason: null
 > **Revision history:**
 > - v1.1 (2026-07-19): ADV-0-403: Re-anchored BATS test references to @test names at current line positions.
 > - v1.2 (2026-07-19): ADV-0-507: Normalized input-hash to dual-file block scalar (.sh + .ps1).
+> - v1.4 (2026-07-19): RESYNC-PR17: `handoff-validator.ps1` updated in PR #17 (explicit catches); input-hash recomputed for `.ps1` (`.sh` hash unchanged). Two new BATS boundary tests added: `@test "handoff-validator warns on 39-char result (lower boundary)"` (hooks.bats:410) covers EC-005 (exactly 39 chars = suspiciously short), `@test "handoff-validator silent on 40-char result (boundary)"` (hooks.bats:417) covers EC-006 (exactly 40 chars = silent). EC-005/EC-006 now BATS-verified.
 > - v1.3 (2026-07-19): ADV-0-B01: Updated all live hooks.bats line-number citations to current positions (PR #15 shifted handoff-validator tests +88 lines: :138→:226, :144→:232, :150→:238). hooks.bats references now use @test names for churn resilience.
 
 ## Preconditions
@@ -60,8 +61,8 @@ removal_reason: null
 | EC-002 | `result` field missing from JSON | `jq -r '.result // empty'` returns empty string; triggers EMPTY warning |
 | EC-003 | `result` = "ok" (2 chars) | Warns "suspiciously short (2 chars)" |
 | EC-004 | `result` = "Review complete. SUBSTANTIVE findings: 3 items..." (62 chars) | Silent — no warning |
-| EC-005 | `result` = exactly 39 chars | Warns "suspiciously short (39 chars)" |
-| EC-006 | `result` = exactly 40 chars | Silent |
+| EC-005 | `result` = exactly 39 chars | Warns "suspiciously short (39 chars)" — BATS-verified: `@test "handoff-validator warns on 39-char result (lower boundary)"` (hooks.bats:410) |
+| EC-006 | `result` = exactly 40 chars | Silent — BATS-verified: `@test "handoff-validator silent on 40-char result (boundary)"` (hooks.bats:417) |
 | EC-007 | Malformed JSON stdin | `jq` returns empty for result; triggers EMPTY warning |
 
 ## Canonical Test Vectors
@@ -99,7 +100,7 @@ removal_reason: null
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/secops-factory/hooks/handoff-validator.sh` (31 lines) + `.ps1` sibling |
-| **Confidence** | high — simple length check; BATS tests `@test "handoff-validator warns on empty result"` (hooks.bats:226), `@test "handoff-validator warns on short result"` (hooks.bats:232), `@test "handoff-validator silent on normal result"` (hooks.bats:238) exercise all three cases exactly |
+| **Confidence** | high — simple length check; BATS tests `@test "handoff-validator warns on empty result"` (hooks.bats:226), `@test "handoff-validator warns on short result"` (hooks.bats:232), `@test "handoff-validator silent on normal result"` (hooks.bats:238) exercise all three cases exactly; boundary tests `@test "handoff-validator warns on 39-char result (lower boundary)"` (hooks.bats:410) and `@test "handoff-validator silent on 40-char result (boundary)"` (hooks.bats:417) BATS-verify the exact threshold boundaries (EC-005/EC-006) |
 | **Extraction Date** | 2026-07-19 |
 
 #### Evidence Types Used

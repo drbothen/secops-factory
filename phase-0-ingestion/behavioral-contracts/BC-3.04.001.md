@@ -7,7 +7,7 @@ producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/bias-check-reminder.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: "98934bb"
+input-hash: "c04bf40"
   a208d8c08d021738686076eaab0461f88f450b27851af4a845cb743371fc7d0e  plugins/secops-factory/hooks/bias-check-reminder.sh
   867b0fcf8eb7d443b54fa622d45a6645204b7d299a0f2e736de1bbd5cba2fa01  plugins/secops-factory/hooks/bias-check-reminder.ps1
 traces_to: phase-0-ingestion/recovered-architecture.md

@@ -1,12 +1,12 @@
 ---
 document_type: module-criticality
 level: ops
-version: "1.4"
+version: "1.5"
 status: active
 producer: formal-verifier
 timestamp: 2026-07-19T00:00:00Z
 traces_to: phase-0-ingestion/recovered-architecture.md
-input-hash: "848e19a"
+input-hash: "997272b"
 phase: "0e.5"
 project: secops-factory
 inputs:
@@ -29,11 +29,12 @@ version_history:
   - "1.2 (2026-07-19) — re-sync 2, post adversarial pass 2 (ADV-0-202 C-ID realign to C-1..C-24 incl. C-18 hook-manifests, ADV-0-203 architect note resolved, ADV-0-205 require-review overclaim)"
   - "1.3 (2026-07-19) — re-sync 3 + pass-4 finalization, post adversarial passes 3–4 (ADV-0-301 kill-rate figure/anchor, ADV-0-302 6-hook scope; ADV-0-404 secops-health double-count, ADV-0-405 hook line refs verified, ADV-0-406 vga anchor, ADV-0-408 versioning); status → active (capstone-authoritative)"
   - "1.4 (2026-07-19) — re-issue post PR #15 (d304fa5), adversarial pass 9 (ADV-0-901, ADV-0-903): added SEC-009 (allowlist-precedence bypass, CRITICAL, RESOLVED PR #15) to the Resolved table and rewrote the require-review narrative to acknowledge the gate was fully bypassable until PR #15; replaced churned require-review.sh line-number citations with construct-name references; test count 138 → 150 (hooks 44 + skills 81 + integration 11 + parity 14)"
+  - "1.5 (2026-07-19) — RESYNC_MERGED post PRs #16/#17 (HEAD d181ca2): DI-004/SM-1 RESOLVED (disposition-guard heading-anchored fix); DI-006 RESOLVED (CI pwsh install asserted); DI-005 assign/create BATS-verified (SM-2 now KILLED); test count 150 → 165 (hooks 44→59); Still-Open table updated; disposition-guard and investigate-event rationale rows updated; mutation targets summary updated"
 ---
 
 # Module Criticality Classification — secops-factory v0.9.0
 
-> **Reconciliation note — re-issued 2026-07-19 (5th pass, post adversarial pass 9, post PR #15). Version 1.4, status active.**
+> **Reconciliation note — re-issued 2026-07-19 (6th pass, RESYNC_MERGED post PRs #16/#17, HEAD d181ca2). Version 1.5, status active.**
 > First re-sync (post PR #13 f450d9f / PR #14 0ec794a): census recounted to one
 > authoritative granularity (ADV-0-004); open items refreshed against merged fixes,
 > suite green (ADV-0-003); session-greeting numeric target stated (ADV-0-010).
@@ -60,6 +61,14 @@ version_history:
 > with **construct-name references** (write-block if-block / fail-closed catch-all /
 > write-verb patterns) since line numbers inverted across PR #13/#14/#15; test count
 > updated **138 → 150** (hooks 44 + skills 81 + integration 11 + parity 14).
+> (Overall test count further updated to 165 in v1.5 — see Sixth re-issue note.)
+> Sixth re-issue (RESYNC_MERGED, PRs #16/#17, HEAD d181ca2): **DI-004/SM-1 RESOLVED**
+> (disposition-guard heading-anchored fix, PR #17); **DI-006 RESOLVED** (CI pwsh install
+> asserted, PR #16); **DI-005 assign/create BATS-verified** — SM-2 now KILLED (PR #17
+> added hooks.bats:426/:433); test count updated **150 → 165** (hooks 44→**59**).
+> Still-Open table updated; disposition-guard and investigate-event rationale rows
+> corrected. require-review assurance genuinely hardened but ≥95% numeric target
+> remains NOT yet demonstrated (no per-hook mutation run executed).
 
 > Step 0e.5 (Module Criticality Classification). Agent: formal-verifier.
 > Classifies every Component-Map module into a DF-004 criticality tier, driving
@@ -130,9 +139,9 @@ corruption of the authoritative Jira record or of the user's `settings.local.jso
 
 | Module | Path | Tier | Mut. target | Rationale |
 |--------|------|------|-------------|-----------|
-| require-review hook | `hooks/require-review.{sh,ps1}` | **CRITICAL** | ≥95% (not yet demonstrated) | The authorization gate on the Jira system of record — blocks `jr issue comment/edit/move/assign/create` and **fail-closes (default-deny) on unrecognized subcommands** (BC-3.01.001). **Assurance history is non-monotonic and must not be overstated:** PR #13/#14 resolved SEC-001 (comment path denied) and SEC-002/SM-3 (fail-open → fail-closed), but the gate remained **FULLY BYPASSABLE until PR #15** — the read-only allowlist was evaluated *before* the write-block, so any write command carrying an embedded allowlist token (e.g., `jr issue edit KEY --summary "see jr board"`) matched the allowlist and was allowed, silently **defeating SEC-001** (SEC-009 / ADV-0-801, CRITICAL). **PR #15 (d304fa5)** reorders the write-block ahead of the allowlist and adds 12 red-first BATS vectors; the SM-2 "delete assign/create from blocklist" mutant is behaviorally inert via the fail-closed catch-all. **The ≥95% numeric target is NOT yet demonstrated met** — no per-hook mutation run has executed; it remains open until Phase 6 / Feature Mode. require-review's individual kill rate is unmeasured (the current **~75–80%** figure in verification-gap-analysis.md §Mutation Testing Baseline → Surviving Mutants summary (~line 194) is the post-remediation aggregate across the 6-hook mutation-testable set, not this hook alone; the ~55–65% figure is the original pre-PR-13 baseline, now superseded). Suite 150/150 green, shellcheck clean. |
+| require-review hook | `hooks/require-review.{sh,ps1}` | **CRITICAL** | ≥95% (not yet demonstrated) | The authorization gate on the Jira system of record — blocks `jr issue comment/edit/move/assign/create` and **fail-closes (default-deny) on unrecognized subcommands** (BC-3.01.001). **Assurance history is non-monotonic and must not be overstated:** PR #13/#14 resolved SEC-001 (comment path denied) and SEC-002/SM-3 (fail-open → fail-closed), but the gate remained **FULLY BYPASSABLE until PR #15** — the read-only allowlist was evaluated *before* the write-block, so any write command carrying an embedded allowlist token (e.g., `jr issue edit KEY --summary "see jr board"`) matched the allowlist and was allowed, silently **defeating SEC-001** (SEC-009 / ADV-0-801, CRITICAL). **PR #15 (d304fa5)** reorders the write-block ahead of the allowlist and adds 12 red-first BATS vectors. **PR #17 (d181ca2)** adds dedicated assign/create BATS tests — SM-2 ("delete assign/create from blocklist") is now **KILLED** (both code + BATS, hooks.bats:426/:433). **The ≥95% numeric target is NOT yet demonstrated met** — no per-hook mutation run has executed; it remains open until Phase 6 / Feature Mode. require-review's individual kill rate is unmeasured (the current **~75–80%** figure in verification-gap-analysis.md §Mutation Testing Baseline → Surviving Mutants summary (~line 194) is the post-remediation aggregate across the 6-hook mutation-testable set, not this hook alone; the ~55–65% figure is the original pre-PR-13 baseline, now superseded). Suite 165/165 green (post PRs #16/#17), shellcheck clean. |
 | enrichment-completeness hook | `hooks/enrichment-completeness.{sh,ps1}` | **HIGH** | ≥90% | Enforces the required-section completeness invariant on saved enrichment/investigation docs (BC-3.02.001); the entire investigation 4-section branch is untested (SM-4) and hook-hardcoded section lists can drift from templates (GAP-5). Blast radius bounded to local doc quality, not the authoritative record. |
-| disposition-guard hook | `hooks/disposition-guard.{sh,ps1}` | **HIGH** | ≥90% | Anti-confirmation-bias invariant gate requiring "Alternatives Considered" on dispositions (BC-3.03.001); **DI-004 confirmed false-pass (SM-1)** — a negating sentence containing the phrase defeats the substring match, silently bypassing a security-analysis quality gate. Effective assurance is currently below tier until the heading-anchored fix lands (GAP-1). |
+| disposition-guard hook | `hooks/disposition-guard.{sh,ps1}` | **HIGH** | ≥90% | Anti-confirmation-bias invariant gate requiring "Alternatives Considered" on dispositions (BC-3.03.001). **DI-004/SM-1 RESOLVED (PR #17):** heading-anchored `grep -qiE "^#{1,6}[[:space:]]+Alternatives Considered"` fix merged; body-text negation no longer falsely satisfies the gate. SM-1 KILLED. Assurance at HIGH tier. |
 | bias-check-reminder hook | `hooks/bias-check-reminder.{sh,ps1}` | **LOW** | ≥70% | Non-blocking PostToolUse advisory that injects a cognitive-bias reminder to stderr (BC-3.04.001); cannot corrupt state or block any operation. |
 | handoff-validator hook | `hooks/handoff-validator.{sh,ps1}` | **LOW** | ≥70% | SubagentStop hook — advisory only, structurally cannot block (per security audit); emits a "suspiciously short" note (BC-3.05.001). No enforcement blast radius. |
 | session-greeting hook | `hooks/session-greeting.{sh,ps1}` | **LOW** | **≥70% (numeric)** | Cosmetic SessionStart welcome banner, activation-gated, fail-open on corrupt config (BC-3.06.001). Purely presentational. **This effectful hook DOES carry a numeric input-partition target (≥70%)** — it is the 6th mutation-testable hook (see Mutation targets summary). |
@@ -151,7 +160,7 @@ corruption of the authoritative Jira record or of the user's `settings.local.jso
 
 | Module | Path | Tier | Mut. target | Rationale |
 |--------|------|------|-------------|-----------|
-| investigate-event skill | `skills/investigate-event/SKILL.md` | **HIGH** | N/A (LLM) | 7-stage investigation with TP/FP/BTP disposition (BC-5.01.001) — a wrong disposition is a missed threat or misdirected response; its only executable enforcement is the disposition-guard hook, which currently false-passes (DI-004). |
+| investigate-event skill | `skills/investigate-event/SKILL.md` | **HIGH** | N/A (LLM) | 7-stage investigation with TP/FP/BTP disposition (BC-5.01.001) — a wrong disposition is a missed threat or misdirected response; its executable enforcement is the disposition-guard hook (DI-004 RESOLVED PR #17 — heading-anchored fix landed). |
 
 ### Activation lifecycle
 
@@ -198,7 +207,7 @@ corruption of the authoritative Jira record or of the user's `settings.local.jso
 | advisory pipeline skills | `skills/{scan-threats,create-advisory,fact-verify}/SKILL.md` | **MEDIUM** | N/A (LLM) | Advisory drafting/verification; external-facing but reviewed, not on the Jira write path. |
 | metrics pipeline skills | `skills/{generate-metrics,analyze-ticket-effort,model-ticket-cost,extract-severity,verify-metrics-report}/SKILL.md` | **MEDIUM** | N/A (LLM) | Analytic reporting; `generate-metrics` is a hot file (recent churn). Wrong metrics mislead but do not corrupt the security record. |
 | secops-health command | `commands/secops-health.md` | **LOW** | ≥70% | Diagnostic-only, no backing skill (CI special-cases it). |
-| test suite + CI | `tests/*.bats`, `tests/run-all.sh`, `.github/workflows/*.yml` | **HIGH** | N/A (meta-gate) | The verification safety net and gate-of-gates. **DI-006:** 12 of 14 parity tests silently skip without `pwsh`, which CI neither installs nor asserts — a false-pass that could ship unverified `.ps1` hooks. **SEC-005:** Semgrep exits early yet reports success. A false-passing gate has high blast radius (regressions ship green). |
+| test suite + CI | `tests/*.bats`, `tests/run-all.sh`, `.github/workflows/*.yml` | **HIGH** | N/A (meta-gate) | The verification safety net and gate-of-gates. **DI-006 RESOLVED (PR #16):** `pwsh` install now asserted in `ci.yml`; 14/14 parity tests run in CI (no more silent skips). **SEC-005 RESOLVED (PR #13):** Semgrep early-exit addressed. Suite 165/165 green at HEAD d181ca2. |
 | jr CLI (external) | `github.com/Zious11/jira-cli` | **MEDIUM** | N/A (external) | The sole Jira write channel; out of our mutation scope but SEC-002 (fail-open interaction) and SEC-006 (unversioned) apply. |
 | Perplexity MCP (external) | `@perplexity-ai/mcp-server` | **MEDIUM** | N/A (external) | Recommended with graceful WebSearch/WebFetch fallback; functionally low-risk but SEC-003 (unpinned `npx -y`) is a supply-chain exposure. |
 
@@ -258,13 +267,19 @@ delta. `24 − 1 + 19 + 1 = 43` ✓.
 | SEC-004 | test-suite + CI (HIGH) | **RESOLVED (PR #13).** release.yml permission scoping addressed under the SEC-001..005 fix set. |
 | SEC-005 | test-suite + CI (HIGH) | **RESOLVED (PR #13).** Semgrep early-exit addressed under the SEC-001..005 fix set. |
 | **SEC-009 / ADV-0-801** (allowlist-precedence bypass) | require-review (CRITICAL) | **RESOLVED (PR #15, d304fa5).** CRITICAL at discovery: the require-review hook evaluated the read-only allowlist **before** the write-block, so any write command with an embedded read-only token (e.g., `jr issue edit KEY --summary "see jr board"` matching the `jr board` allowlist entry) matched the allowlist and emitted allow — the gate was **fully bypassable and SEC-001 was defeated**. Fix reorders the **write-block if-block ahead of the read-only allowlist** and adds 12 red-first BATS vectors (bypass-class must-DENY + `jr --output json issue <write>` forms + regression must-ALLOW). Suite 150/150 green. |
+| **DI-005** (assign/create code-analysis-only gap) | require-review (CRITICAL) | **RESOLVED (PR #17, d181ca2).** `jr issue assign` and `jr issue create` deny paths previously verified by code analysis only — no dedicated BATS tests. PR #17 added `@test "require-review blocks jr issue assign without review (DI-005)"` (hooks.bats:426) and `@test "require-review blocks jr issue create without review (DI-005)"` (hooks.bats:433). SM-2 ("delete assign/create from blocklist") mutant now **KILLED** (both code + BATS). |
+| **DI-004 / SM-1 / GAP-1** (disposition-guard substring false-pass) | disposition-guard (HIGH) | **RESOLVED (PR #17, d181ca2).** `disposition-guard.sh` now uses heading-anchored `grep -qiE "^#{1,6}[[:space:]]+Alternatives Considered"` instead of bare `grep -qiF`. Body-text negation phrases (e.g., "No Alternatives Considered were required") no longer falsely satisfy the anti-confirmation-bias gate. SM-1 **KILLED**. New BATS: hooks.bats:323 (body-text denies) and :330 (heading-form allows). BC-3.03.001 bumped to v1.5. |
+| **DI-006 / GAP-3** (parity tests silently skip without pwsh) | test-suite + CI (HIGH) | **RESOLVED (PR #16, d181ca2).** `ci.yml` now installs and asserts `pwsh`; 14/14 parity tests run in CI with no conditional skips. False-pass risk for `.ps1` hooks eliminated. |
+| **DI-014** (enrichment-completeness unanchored section check) | enrichment-completeness (HIGH) | **RESOLVED (PR #17, d181ca2).** Same heading-anchor sweep as DI-004: `enrichment-completeness.sh` section checks now use `grep -qiE "^#{1,6}[[:space:]]+${section}"`. Body text mentioning a section name no longer falsely passes. 9 new BATS tests (hooks.bats:340-402). BC-3.02.001 bumped to v1.6. |
 
 ### Still open — effective assurance below tier until remediated (verified still present)
 
 | Item | Module | Effect |
 |------|--------|--------|
-| DI-004 / SM-1 / GAP-1 | disposition-guard (HIGH) | **STILL OPEN.** `disposition-guard.sh:54` still uses a bare `grep -qiF "Alternatives Considered"` substring match (untouched by PR #13/#14, last modified v0.2.0). A negating sentence containing the phrase defeats the anti-confirmation-bias gate. Effective assurance below HIGH until the heading-anchored fix + failing BATS vector land. |
-| DI-006 / GAP-3 | test-suite + CI (HIGH) | **STILL OPEN.** No `pwsh` reference in `ci.yml`; the 12 conditional parity tests + `.ps1` syntax check still silently skip if the runner image drops `pwsh` (false-pass). |
+| DI-011 / GAP (hooks.json schema) | hook-manifests (HIGH) | **OPEN.** `hooks.json` is `jq`-validated in CI but has no schema — a wrong matcher silently de-wires the CRITICAL require-review gate without breaking validation. Tracked separately; no structural fix merged yet. |
+| DI-013 (jr issue comment override) | require-review (CRITICAL) | **DEFERRED to Feature Mode.** `jr issue comment` is unconditionally denied; no marker-based override exists. The only unblock path is human permission-approval (Claude Code dialog). Mechanism decision deferred to Feature Mode story; no code change pending. |
+
+> All major high-severity open items from v1.4 are now RESOLVED: DI-004/SM-1 (PR #17), DI-006 (PR #16), DI-005/SM-2 (PR #17), DI-014 (PR #17). See Resolved table above.
 
 ## Mutation / verification targets summary
 
@@ -274,9 +289,9 @@ Authoritative decision (ADV-0-010): session-greeting, although effectful (it rea
 its gate/compare logic is a pure, enumerable sub-function. So the numeric-target set is
 the **6 hooks**, not 5:
 
-- require-review → **≥95%** (CRITICAL) — SM-3 killed and SM-2 neutralized by fail-closed design (PR #13); this materially improves assurance but the **≥95% target is NOT yet demonstrated met** — no per-hook mutation run has executed. Individual kill rate unmeasured (the current **~75–80%** in verification-gap-analysis.md §Mutation Testing Baseline → Surviving Mutants summary (~line 194) is the post-remediation 6-hook mutation-testable-set aggregate, not require-review alone; ~55–65% was the pre-PR-13 baseline, now superseded). Target remains open until Phase 6 / Feature Mode.
-- enrichment-completeness → **≥90%** (HIGH) — must still kill SM-4 (investigation branch untested).
-- disposition-guard → **≥90%** (HIGH) — must still kill SM-1 (false-pass, DI-004 — STILL OPEN).
+- require-review → **≥95%** (CRITICAL) — SM-3 killed (PR #13), SM-2 **KILLED** (PR #17 added assign/create BATS tests); gate genuinely hardened post PRs #13/#14/#15/#17. **The ≥95% numeric target is NOT yet demonstrated met** — no per-hook mutation run has executed. Individual kill rate unmeasured (the current **~75–80%** in verification-gap-analysis.md §Mutation Testing Baseline → Surviving Mutants summary (~line 194) is the post-remediation 6-hook mutation-testable-set aggregate; ~55–65% was the pre-PR-13 baseline, superseded). Target remains open until Phase 6 / Feature Mode.
+- enrichment-completeness → **≥90%** (HIGH) — SM-4 (investigation branch) now covered by PR #17 BATS tests (hooks.bats:357-385). SM-4 KILLED.
+- disposition-guard → **≥90%** (HIGH) — SM-1 **KILLED** (DI-004 RESOLVED, PR #17 heading-anchored fix).
 - bias-check-reminder → **≥70%** (LOW).
 - handoff-validator → **≥70%** (LOW).
 - session-greeting → **≥70%** (LOW) — effectful but mutation-testable; numeric target applies.
@@ -298,7 +313,7 @@ is the sole path to the authoritative Jira record.
 - [x] Every module in the Component Map (C-1..C-24) has a criticality classification
 - [x] Each classification cites evidence from behavioral contracts / gap analysis / security audit / discovery
 - [x] Component Map YAML `criticality` fields updated in `recovered-architecture.md` to match (C-1..C-24, incl. C-18 hook-manifests)
-- [x] Known open items re-synced post PR #13/#14: SEC-001..005 + SM-2/SM-3 resolved; DI-004 and DI-006 verified still open
+- [x] Known open items re-synced post PRs #13/#14/#15/#16/#17: SEC-001..005 resolved; SM-2/SM-3/SM-1/SM-4 KILLED; DI-004, DI-006, DI-014 RESOLVED; DI-005 assign/create BATS-verified; DI-011 and DI-013 remain open (tracked separately)
 - [x] Census reconciled to one authoritative granularity (24 aggregate: 1/12/7/4) with a secondary per-artifact figure (43: 2/16/20/5); frontmatter + Distribution + tier rows all sum
 - [x] session-greeting numeric mutation target (≥70%) stated unambiguously (6-hook target set)
 - [x] C-IDs realigned to pass-1 architecture reconciliation (hook-manifests = C-18); require-review ≥95% restated as not-yet-demonstrated

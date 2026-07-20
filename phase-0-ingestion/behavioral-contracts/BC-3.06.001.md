@@ -1,15 +1,15 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/session-greeting.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: "0b3a844"
+input-hash: "25a0a92"
   e1068218d7d7a89f52d289020dbbbfaa832db0f78d01f55f5e351f74839cbc4b  plugins/secops-factory/hooks/session-greeting.sh
-  b1a920bc4371563bf3d602117a9bcb8a2db99a8a55b6f399a1e37ff663ecd56a  plugins/secops-factory/hooks/session-greeting.ps1
+  88809bf79647c68e93b66898507412069499901a218daa156f393409b83fdd16  plugins/secops-factory/hooks/session-greeting.ps1
 traces_to: phase-0-ingestion/recovered-architecture.md
 origin: recovered
 extracted_from: plugins/secops-factory/hooks/session-greeting.sh
@@ -17,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-06
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-507-2026-07-19", "v1.3-ADV-0-B01-2026-07-19"]
+modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-507-2026-07-19", "v1.3-ADV-0-B01-2026-07-19", "v1.4-RESYNC-PR17-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -31,6 +31,7 @@ removal_reason: null
 > **Revision history:**
 > - v1.1 (2026-07-19): ADV-0-403: Re-anchored BATS test references to @test names at current line positions.
 > - v1.2 (2026-07-19): ADV-0-507: Normalized input-hash to dual-file block scalar (.sh + .ps1).
+> - v1.4 (2026-07-19): RESYNC-PR17: `session-greeting.ps1` updated in PR #17 (explicit catches); input-hash recomputed for `.ps1` (`.sh` hash unchanged). No new BATS tests for session-greeting; no behavior change.
 > - v1.3 (2026-07-19): ADV-0-B01: Updated all live hooks.bats line-number citations to current positions (PR #15 shifted session-greeting tests +88 lines: :190→:278, :197→:285, :205→:293, :216→:304, :223→:311). Internal assertion sub-lines converted to @test-name-only references. hooks.bats references now use @test names for churn resilience.
 
 ## Preconditions

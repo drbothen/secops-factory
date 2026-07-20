@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-19T23:45:00Z
+timestamp: 2026-07-20T00:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: brownfield
-current_step: "phase-0-human-approval-gate"
+current_step: "phase-0-remediation-adversarial-review"
 current_cycle: ""
 dtu_required: false
 ---
@@ -37,7 +37,7 @@ dtu_required: false
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-19 |
 | **Current Phase** | 0: Codebase Ingestion |
-| **Current Step** | phase-0-human-approval-gate |
+| **Current Step** | phase-0-remediation-adversarial-review |
 
 ## Phase Progress
 
@@ -86,7 +86,8 @@ dtu_required: false
 | 0f-adv pass 12 | adversary + remediation | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass12.md` — 1 finding (0C/0M/1m) + 3 obs, all remediated. Adversary verdict: "converged and honest." Decay 12→11→7→8(1FP)→6→6→6→6(real)→4→5→2→1. ADV-0-C01: capstone stale `BC-3.02.001 v1.4` pins (3 occurrences, incl §6 SM-4 third) corrected to v1.5. Capstone v1.12. Pass 13 dispatched (convergence candidate). |
 | 0f-adv pass 13 (CONVERGENCE) | adversary | DONE | `.factory/phase-0-ingestion/adversarial-review-0-pass13.md` — **0 graded findings** (0C/0M/0m) + 4 cosmetic obs. CONVERGED after 13 passes. Full decay: 12→11→7→8(1FP)→6→6→6→6(1 real shipped-code CRITICAL)→4→5→2→1→**0**. All load-bearing counts re-derived from first principles — all reconcile. Capstone judged honest. Notable: loop discovered+fixed live SEC-009 auth-gate bypass (PR#15) + SEC-001..005 (PR#13). 7 process-gaps codified. Open items carried to gate (DI-004/005/006/007/011/014 → first Feature Mode; DI-012/013 → human decision). Next: 0f-post consistency validation. |
 | 0f-post: consistency validation | consistency-validator | DONE | `.factory/phase-0-ingestion/validation-report.md` — CONSISTENCY_VALIDATION: PASS (clean). All 10 schema-compliance checks passed. 5 minor frontmatter deviations resolved (F-6a/6b: holdout filename convention + empty input-hash documented; F-7a: module-criticality.md frontmatter aligned; F-9a: security-audit.md frontmatter aligned; F-10a: project-context.md frontmatter aligned). 1 conditional pass (DI-012: 9 HIGH modules without BCs — PENDING HUMAN DECISION). Phase 0 artifact set structurally ready for Feature Mode. |
-| input-drift check | state-manager | DONE | `compute-input-hash --scan . --update` — PASS. Final: TOTAL=41 MATCH=40 STALE=0 UNCOMPUTED=0 NOINPUT=1. 13 BC hashes bumped (benign drift: project-discovery.md + recovered-architecture.md edited during 13-pass adversarial remediation; require-review BCs' source changed via PR#13/14/15; content pre-verified by all passes + 0f-post). 27 holdout/module-criticality hashes populated (tool handles empty input-hash: "" cleanly — bumped for fully-clean report). NOINPUT=1 is an artifact with no inputs: field (expected). |
+| input-drift check | state-manager | DONE | `compute-input-hash --scan . --update` — PASS. Final: TOTAL=41 MATCH=40 STALE=0 UNCOMPUTED=0 NOINPUT=1. 13 BC hashes bumped (benign drift); 27 holdout/module-criticality hashes populated. |
+| phase-0 drift remediation | devops-engineer + codebase-analyzer | DONE | PRs #16 + #17 merged to main (HEAD d181ca2). PR #16: CI pwsh+PSScriptAnalyzer+schema+secops-health; surfaced+fixed 2 empty-catch silent failures. PR #17: hooks heading-anchored soundness + coverage. Suite 129→165 tests. Specs: 13→17 BCs (4 new: BC-4.05/4.06/7.01/8.01 — advisory-pipeline + metrics-pipeline subsystems). Holdouts 26→34 (8 new: analyze-ticket-effort×2, assess-priority×2, create-advisory×2, read-ticket×2; all must-pass; HS-029 injection guard; HS-014 promoted must-pass). SM-1 killed, SM-2 killed. DI register: 13 RESOLVED, DI-013 DEFERRED (human-approved), 0 open. |
 
 ## Decisions Log
 
@@ -111,18 +112,18 @@ dtu_required: false
 | ID | Item | Severity | Target Step | Flagged By | Status |
 |----|------|----------|-------------|------------|--------|
 | DI-001 | Live API keys in untracked, non-gitignored `.envrc` and `.mcp.json` at repo root — exposure risk on accidental commit. PR #12 merged: adds `.envrc`, `.env`, `.mcp.json`, `.claude/settings.local.json` to `.gitignore`. Keys were never committed (untracked only), no git-history exposure. Key rotation optional; 0e-sec to confirm. | HIGH | 0e-sec security audit triage | 0a project-discovery | RESOLVED |
-| DI-002 | `secops-health` command has no corresponding skill directory — special-cased in CI rather than following standard command→skill convention | LOW | Phase 1 spec crystallization | 0b architecture-recovery | open |
-| DI-003 | `adversarial-review-secops` skill directly references orchestrator canonical playbook — intentional layer inversion (skill depends on orchestrator artifact) | LOW | Phase 1 spec crystallization | 0b architecture-recovery | open |
-| DI-004 | disposition-guard substring false-pass live-demonstrated: header-only match passes BC-3.04 even when body text is absent — hook assert is unsound | HIGH | first Feature Mode cycle | 0e verification-gap-analysis | open |
-| DI-005 | require-review hook: assign/create/fail-open paths untested — review bypass and error-path behaviors have no BATS coverage. Largely superseded by fail-closed fix (PR #13); residual assign/create-path gap remains. | MEDIUM | first Feature Mode cycle | 0e verification-gap-analysis | open (downgraded) |
-| DI-006 | PowerShell parity tests skip silently when `pwsh` absent; CI does not assert `pwsh` presence, so `.ps1` hooks receive no static analysis in standard CI runs | HIGH | first Feature Mode cycle | 0e verification-gap-analysis | open |
-| DI-007 | enrichment-completeness investigation-branch path untested; hook↔template section-name sync gap; handoff-validator 39/40 boundary not exercised | MEDIUM | first Feature Mode cycle | 0e verification-gap-analysis | open |
+| DI-002 | `secops-health` command has no corresponding skill directory — special-cased in CI rather than following standard command→skill convention | LOW | Phase 1 spec crystallization | 0b architecture-recovery | RESOLVED (PR #16 — secops-health CI coverage added) |
+| DI-003 | `adversarial-review-secops` skill directly references orchestrator canonical playbook — intentional layer inversion (skill depends on orchestrator artifact) | LOW | Phase 1 spec crystallization | 0b architecture-recovery | RESOLVED (Stream D — documented as intentional design; layer-inversion annotated in BC-4.06.001) |
+| DI-004 | disposition-guard substring false-pass live-demonstrated: header-only match passes BC-3.04 even when body text is absent — hook assert is unsound | HIGH | first Feature Mode cycle | 0e verification-gap-analysis | RESOLVED (PR #17 — heading-anchored section match implemented; HS-014 promoted must-pass) |
+| DI-005 | require-review hook: assign/create/fail-open paths untested — review bypass and error-path behaviors have no BATS coverage. Largely superseded by fail-closed fix (PR #13); residual assign/create-path gap remains. | MEDIUM | first Feature Mode cycle | 0e verification-gap-analysis | RESOLVED (PR #17 — assign/create/fail-open path coverage added) |
+| DI-006 | PowerShell parity tests skip silently when `pwsh` absent; CI does not assert `pwsh` presence, so `.ps1` hooks receive no static analysis in standard CI runs | HIGH | first Feature Mode cycle | 0e verification-gap-analysis | RESOLVED (PR #16 — CI asserts pwsh present; PSScriptAnalyzer integrated) |
+| DI-007 | enrichment-completeness investigation-branch path untested; hook↔template section-name sync gap; handoff-validator 39/40 boundary not exercised | MEDIUM | first Feature Mode cycle | 0e verification-gap-analysis | RESOLVED (PR #17 — investigation-branch path + 39/40 boundary + section-name sync covered) |
 | DI-008 | Component-Map numbering diverges between prose table and YAML in `recovered-architecture.md` — consistency validation needed | LOW | 0f-post consistency validation | 0e5 module-criticality | RESOLVED (ADV-0-001/004 remediation) |
 | DI-009 | hook-manifests component absent from machine-readable YAML component map — classified HIGH; YAML map incomplete. Scope clarified: YAML component-map only (hooks.json JSON-Schema gap is separate → DI-011). | HIGH | 0f-post consistency validation | 0e5 module-criticality | RESOLVED (ADV-0-009 remediation) |
-| DI-011 | `hooks.json` has no JSON-Schema validation — no machine-readable contract for hook manifest structure | LOW | first Feature Mode cycle | 0f-adv pass 1 (ADV-0-009) | open |
-| DI-012 | `create-advisory`, `analyze-ticket-effort`, `assess-priority` (Iron Law at SKILL.md:13), and read-ticket injection entry point have no behavioral contracts — 3 Iron-Law skills + 1 injection surface with zero BC coverage | MEDIUM | PENDING HUMAN DECISION at Phase 0 gate (BC coverage expansion) | 0f-adv pass 3 (ADV-0-304 scope correction) | open |
-| DI-013 | Comment-gate workflow friction: `jr issue comment` unconditionally denied by require-review hook; consumer skills (investigate-event, orchestration) cannot complete their comment steps without human permission-override. Options: accept friction / implement marker mechanism / add dedicated non-blocked command | MEDIUM-HIGH | PENDING HUMAN DECISION at Phase 0 gate | 0f-adv pass 6 (ADV-0-601) | open |
-| DI-014 | enrichment-completeness hook uses same unanchored-grep substring-matching idiom as require-review pre-PR#15 — same class of bypass risk; scope: lower criticality because enrichment-completeness is not an auth gate | LOW | first Feature Mode cycle | 0f-adv pass 8 (ADV-0-803) | open |
+| DI-011 | `hooks.json` has no JSON-Schema validation — no machine-readable contract for hook manifest structure | LOW | first Feature Mode cycle | 0f-adv pass 1 (ADV-0-009) | RESOLVED (PR #16 — JSON-Schema added to hooks.json validation in CI) |
+| DI-012 | `create-advisory`, `analyze-ticket-effort`, `assess-priority` (Iron Law at SKILL.md:13), and read-ticket injection entry point have no behavioral contracts — 3 Iron-Law skills + 1 injection surface with zero BC coverage | MEDIUM | resolved at Phase 0 drift remediation | 0f-adv pass 3 (ADV-0-304 scope correction) | RESOLVED (Stream D — BC-4.05.001 advisory-pipeline, BC-4.06.001 metrics-pipeline, BC-7.01.001 investigation-entry, BC-8.01.001 read-ticket added) |
+| DI-013 | Comment-gate workflow friction: `jr issue comment` unconditionally denied by require-review hook; consumer skills (investigate-event, orchestration) cannot complete their comment steps without human permission-override. Options: accept friction / implement marker mechanism / add dedicated non-blocked command | MEDIUM-HIGH | human-approved deferral | 0f-adv pass 6 (ADV-0-601) | DEFERRED (human-approved: accept friction for now; marker mechanism deferred to first Feature Mode cycle) |
+| DI-014 | enrichment-completeness hook uses same unanchored-grep substring-matching idiom as require-review pre-PR#15 — same class of bypass risk; scope: lower criticality because enrichment-completeness is not an auth gate | LOW | first Feature Mode cycle | 0f-adv pass 8 (ADV-0-803) | RESOLVED (PR #17 — anchored-grep pattern applied to enrichment-completeness hook) |
 | DI-010 | SEC-002 fail-closed regression: `jr issue changelog` (read-only, used by metrics-analyst + 2 data KBs) wrongly denied. PR #14 merged (0ec794a): 11 read-only allowlist entries incl. `--output json` global-flag forms; root cause: global flag defeated substring match; 8 new BATS tests, 138/138 green. | HIGH | in flight | 0f project-context-synthesis | RESOLVED |
 
 ## Blocking Issues
@@ -137,8 +138,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 COMPLETE — all steps done; at phase-0-human-approval-gate |
-| **Context** | All Phase 0 steps DONE: adversarial loop converged (13 passes, 0 graded findings), consistency validation PASS, input-drift check PASS (STALE=0, MATCH=40/41). Pending human decisions: DI-012 (BC coverage expansion) and DI-013 (comment-post override) flagged in project-context.md §8/§11. Ready for human Phase 0 gate sign-off. |
+| **Position** | Phase 0 post-gate — drift remediation DONE; at phase-0-remediation-adversarial-review (scoped pass on deltas) |
+| **Context** | Drift remediation complete: PRs #16+#17 merged (main HEAD d181ca2), suite 129→165 tests, 13→17 BCs, 26→34 holdouts, SM-1/SM-2 killed. DI register closed: 13 RESOLVED, DI-013 DEFERRED (human-approved), 0 open. Input-drift: TOTAL=53 MATCH=52 STALE=0. Remediation-scoped adversarial pass dispatched (delta review: 4 new BCs + 8 new holdouts + PR#16/17 spec changes). |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

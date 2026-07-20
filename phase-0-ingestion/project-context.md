@@ -1,19 +1,19 @@
 ---
 document_type: project-context
 level: ops
-version: "1.12"
-status: active
+version: "2.0"
+status: phase-0-complete-remediated / awaiting-feature-request
 producer: codebase-analyzer
 timestamp: 2026-07-19T00:00:00Z
 phase: 0
 step: "0f"
 project: secops-factory
-source_state: "v0.9.0 + PR #12 (gitignore) + PR #13 (SEC-001..005, f450d9f) + PR #14 (allowlist / DI-010, 0ec794a) + PR #15 (SEC-009 write-block-precedence CRITICAL fix, d304fa5); 42 commits / PRs #1–#15 verified merged at HEAD d304fa5; BATS suite 150 @tests (hooks 44, skills 81, integration 11, parity 14; 12/14 parity skip w/o pwsh); 6-hook mutation aggregate ~75–80%"
+source_state: "v0.9.0 + PRs #12–#17 (gitignore; SEC-001..005 f450d9f; allowlist/DI-010 0ec794a; SEC-009 write-block-precedence d304fa5; #16 secops-health skill + pwsh/PSScriptAnalyzer CI + hooks.json JSON-Schema; #17 disposition-guard & enrichment-completeness heading-anchored + assign/create & boundary BATS); PRs #1–#17 merged; BATS suite 165 @tests (hooks 59, skills 81, integration 11, parity 14); full drift remediation complete (13/14 DIs RESOLVED, DI-013 DEFERRED)"
 inputs:
   - phase-0-ingestion/project-discovery.md
   - phase-0-ingestion/recovered-architecture.md (+ arch-recov-api-surface.md, arch-recov-integrations.md)
   - phase-0-ingestion/conventions.md
-  - phase-0-ingestion/behavioral-contracts/*.md (13 BCs)
+  - phase-0-ingestion/behavioral-contracts/*.md (17 BCs — 13 original + 4 new: BC-4.05.001, BC-4.06.001, BC-7.01.001, BC-8.01.001)
   - phase-0-ingestion/verification-gap-analysis.md
   - phase-0-ingestion/security-audit.md
   - specs/module-criticality.md
@@ -95,17 +95,14 @@ counts as 19 slash-command stubs distinct from the separately-counted `secops-he
 | **LOW** | hooks bias-check-reminder, handoff-validator, session-greeting; command dispatch; secops-health |
 
 Mutation/verification numeric targets apply to the **6 mutation-testable hooks** (input-partition
-BATS analog — session-greeting included: it is effectful but its gate/compare logic is a pure,
-enumerable sub-function): require-review ≥95%, enrichment-completeness ≥90%, disposition-guard ≥90%,
-bias-check-reminder / handoff-validator / session-greeting ≥70%. For require-review, the fail-closed
-design **materially improves** assurance — SM-3 (fail-open) resolved and SM-2 (assign/create) rendered
-behaviorally inert by the default-deny fallthrough (PR #13) — but its **≥95% CRITICAL kill-rate target is
-NOT yet demonstrated met**: no per-hook mutation run has executed, and its individual kill rate is unmeasured
-(the authoritative current aggregate across the 6-hook mutation-testable set is **~75–80%**, up from a
-superseded ~55–65% pre-PR-13 baseline — verification-gap-analysis.md §Mutation Testing Baseline →
-Surviving Mutants summary (~line 194) — not a per-hook figure). The
-target stays open until Phase 6 / Feature Mode mutation testing. All other modules are
-declarative/LLM/static — tier governs review depth, not a numeric kill-rate.
+BATS analog): require-review ≥95%, enrichment-completeness ≥90%, disposition-guard ≥90%,
+bias-check-reminder / handoff-validator / session-greeting ≥70%. **Post-remediation (PRs #13/#15/#17):
+SM-1 (disposition-guard false-pass) and SM-2 (require-review assign/create) are both KILLED, SM-3/SM-3b
+resolved** — the known surviving-mutant set on enforcement paths is closed. **Nonetheless the require-review
+≥95% CRITICAL kill-rate target is NOT empirically demonstrated met**: no per-hook mutation run has executed;
+coverage gains raise confidence but the numeric target stays open until Phase 6 / Feature Mode mutation
+testing (kept honest despite the coverage improvements). All other modules are declarative/LLM/static —
+tier governs review depth, not a numeric kill-rate.
 
 ## 3. Context Budget
 
@@ -129,80 +126,65 @@ Declarative conventions, not code style. 20 machine-readable enforceable rules (
 YAML block of the shard. Load-bearing must-follows:
 
 - **Skills:** `skills/<kebab>/SKILL.md`; section order Iron Law → Announce at Start → Red Flags (≥6 rows) → Prerequisites → Workflow (staged) → References. Iron Law form: `NO <ACTION> WITHOUT <PREREQUISITE> FIRST` (blockquote).
-- **Commands:** thin wrappers — body is exactly ``Use the `secops-factory <name>` skill via the Skill tool.`` Every command needs a matching skill dir (exception: `secops-health`).
+- **Commands:** thin wrappers — body is exactly ``Use the `secops-factory <name>` skill via the Skill tool.`` Every command has a matching skill dir (the former `secops-health` exception was closed in PR #16 / DI-002).
 - **Paths:** always `${CLAUDE_PLUGIN_ROOT}/` — never hardcoded.
 - **Hooks:** every `.sh` has a byte-parity `.ps1` sibling; exit 0 for all business decisions (exit 1 only if `jq` missing). **Fail-open historically**, but see the require-review change in §5/§8.
 - **Agents:** frontmatter `name/description/model/color/tools`; security-reviewer (Riley) is opus + read-only (no Write tool).
 - **Release:** Conventional Commits, **no Co-Authored-By / AI attribution**; squash-merge via PR; tag `vX.Y.Z` after merge; triple version lock (plugin.json + marketplace.json + tag); Keep-a-Changelog.
 
-Two unresolved style ambiguities: `secops(<scope>):` vs `feat(<scope>):` commit prefix (see DI tracking);
-`secops-health` command-without-skill anomaly (DI-002).
+One residual style ambiguity: `secops(<scope>):` vs `feat(<scope>):` commit prefix (the `secops-health`
+command-without-skill anomaly was resolved in PR #16 / DI-002).
 
 Detail + CONV-001..020 YAML: `.factory/phase-0-ingestion/conventions.md`
 
-## 5. Behavioral Contracts (13 recovered — index)
+## 5. Behavioral Contracts (17 recovered — index)
 
 Contract files: `.factory/phase-0-ingestion/behavioral-contracts/<id>.md`
 
 | BC | Subject | Rev | Tier | Verification |
 |----|---------|-----|------|--------------|
-| BC-3.01.001 | require-review hook — Jira field-modification gate | **v1.9** | CRITICAL | PARTIAL — **write-block now evaluated FIRST (Inv #5, PR #15)** closing the SEC-009 bypass; PR #13 5-verb comment-deny + fail-closed; PR #14 allowlist / DI-010; construct-name + @test-name anchors + VP-HOOK-023 |
-| BC-3.02.001 | enrichment-completeness hook — section completeness gate | **v1.5** | HIGH | PARTIAL — **EC-004 = DENY** (all 4 sections, no partial-save, §6); substring-not-heading idiom logged **DI-014** (LOW) |
-| BC-3.03.001 | disposition-guard hook — Alternatives-required gate | **v1.4** | HIGH | FULLY (declared-VP coverage); known defect DI-004 now first-class **EC-009** (see §6) |
+| BC-3.01.001 | require-review hook — Jira field-modification gate | **v1.10** | CRITICAL | write-block FIRST (Inv #5, PR #15); comment-deny + fail-closed (PR #13); allowlist/DI-010 (PR #14); **assign/create positive-deny BATS + SM-2 KILLED (PR #17)** |
+| BC-3.02.001 | enrichment-completeness hook — section completeness gate | **v1.6** | HIGH | EC-004 = DENY (all 4 sections, no partial-save); **DI-014 RESOLVED — heading-anchored (PR #17)** |
+| BC-3.03.001 | disposition-guard hook — Alternatives-required gate | **v1.5** | HIGH | **FULLY — DI-004 RESOLVED (heading-anchored, PR #17); SM-1 KILLED; HS-014 promoted to must-pass** |
 | BC-3.04.001 | bias-check-reminder hook — PostToolUse advisory | **v1.4** | LOW | PARTIAL |
-| BC-3.05.001 | handoff-validator hook — SubagentStop empty-output guard | **v1.3** | LOW | PARTIAL |
-| BC-3.06.001 | session-greeting hook — activation-gated SessionStart banner | **v1.3** | LOW | FULLY (core); jq-fallback open |
+| BC-3.05.001 | handoff-validator hook — SubagentStop empty-output guard | **v1.4** | LOW | **39/40 boundary + missing-result tests added (PR #17, DI-007)** |
+| BC-3.06.001 | session-greeting hook — activation-gated SessionStart banner | **v1.4** | LOW | FULLY (core); **jq-fallback + .ps1 empty-catch fixed (PR #16, DI-006)** |
 | BC-4.01.001 | enrich-ticket skill — 8-stage CVE enrichment | v1.0 | HIGH | STRUCTURAL-ONLY |
-| BC-4.02.001 | update-jira skill — review-gated Jira field update | **v1.3** | CRITICAL | STRUCTURAL-ONLY — comment-post step (PC#4) needs human override (DI-013) |
+| BC-4.02.001 | update-jira skill — review-gated Jira field update | **v1.3** | CRITICAL | STRUCTURAL-ONLY — comment-post step (PC#4) needs human override (**DI-013 DEFERRED**) |
 | BC-4.03.001 | review-enrichment skill — fresh-context quality review | v1.0 | HIGH | STRUCTURAL-ONLY (strongest) |
 | BC-4.04.001 | adversarial-review-secops skill — convergence loop | v1.0 | HIGH | STRUCTURAL-ONLY |
-| BC-5.01.001 | investigate-event skill — 7-stage investigation | **v1.4** | HIGH | STRUCTURAL-ONLY — Stage 7 comment-post needs human override (DI-013) |
+| BC-4.05.001 | assess-priority skill — 6-factor vulnerability priority calculation | v1.0 | MEDIUM | STRUCTURAL-ONLY — **new (DI-012 expansion)** |
+| BC-4.06.001 | read-ticket skill — Jira ticket read / SEC-001 prompt-injection entry point | v1.0 | MEDIUM | STRUCTURAL-ONLY — **new (DI-012 expansion)**; SEC-001 injection surface documented; no Iron Law |
+| BC-5.01.001 | investigate-event skill — 7-stage investigation | **v1.4** | HIGH | STRUCTURAL-ONLY — Stage 7 comment-post needs human override (**DI-013 DEFERRED**) |
 | BC-6.01.001 | activate skill — per-project activation lifecycle | v1.0 | HIGH | STRUCTURAL-ONLY |
 | BC-6.01.002 | deactivate skill — per-project deactivation | v1.0 | MEDIUM | STRUCTURAL-ONLY |
+| BC-7.01.001 | create-advisory skill — source-verified advisory authoring | v1.0 | MEDIUM | STRUCTURAL-ONLY — **new (DI-012 expansion)**; disable-model-invocation: true; advisory-pipeline subsystem |
+| BC-8.01.001 | analyze-ticket-effort skill — session-reconstruction effort measurement | v1.0 | MEDIUM | STRUCTURAL-ONLY — **new (DI-012 expansion)**; metrics-pipeline subsystem |
 
-> **BC-3.01.001 now at v1.9 (2026-07-19) — fully re-synced** (v1.8 converted require-review.sh anchors to
-> construct names + added **VP-HOOK-023**; v1.9 converted the BATS citations from `hooks.bats:NN` line anchors
-> to **@test-name references** — the last churnable anchor source). Behavior at HEAD (verified vs commit d304fa5,
-> PR #15): (a) the **write-block if-block is evaluated BEFORE the read-only allowlist (Invariant #5)** — the
-> PR #15 fix for the SEC-009 CRITICAL bypass (source references use construct names, not line numbers — see
-> the anchor-convention note in §6); `--output json` write forms added to the write-block, trailing-space
-> guard on `comment`/`comments`; EC-016 captures the now-denied bypass pattern; (b) PR #13 moved `jr issue
-> comment` into the write-block and flipped the default **fail-closed** (unrecognized `jr` → deny) — old
-> allow/fail-open postconditions and EC-003 superseded; (c) PR #14 expanded the read-only allowlist
-> (`jr issue changelog`, `jr assets search/view`, `jr --version`, seven `--output json` families) with
-> Invariant #4 (the `--output json` flag breaks substring matching), resolving **DI-010**; (d) adversarial
-> pass 1 renumbered the PR-#14 VPs to **VP-HOOK-020/021/022**, and PR #15 added **VP-HOOK-023** (`--output
-> json` write-block family). `comment`/`edit`/`move` deny is code+BATS-verified; `assign`/`create` +
-> `--output json` write forms are code-analysis-verified only (GAP-2 residual, LOW). BATS suite **150 @tests**.
+> **BC-3.01.001 (v1.10) require-review — CRITICAL gate.** At HEAD (PRs #13/#14/#15/#17): the **write-block
+> if-block is evaluated BEFORE the read-only allowlist (Inv #5)** — the PR #15 fix for the SEC-009 bypass;
+> `jr issue comment/edit/move/assign/create` (+ `--output json` forms) deny with fail-closed default for
+> unknown subcommands; VP-HOOK-020..023. **PR #17 added assign/create positive-deny BATS → SM-2 KILLED.**
+> Source cited by construct name; BATS by @test name (churn-resistant).
 
-> **BC-3.02.001 (v1.5) + BC-3.03.001 (v1.4) — aggregate hook semantics (ADV-0-501/606/803).** EC-004 is
-> **DENY**: an `investigation-*` file must contain **all four** sections (Executive Summary, Alert Details,
-> Disposition, Next Actions) before enrichment-completeness permits the save — **no partial-save** capability.
-> The two completeness hooks co-firing is now **VERIFIED against `hooks.json`** (not inferred): both
-> `enrichment-completeness.sh` and `disposition-guard.sh` sit in the same `PreToolUse/Write` hooks array,
-> execute sequentially, and **a deny from either wins**. In the standard investigate-event workflow, Stage 7
-> generates the document **once** from `event-investigation-tmpl.yaml` (which already carries all four
-> headings), so no partial-save path is ever produced. Consequently disposition-guard's **in-progress-allow
-> path (PC#2 / EC-003) is HOOK-ISOLATED** — reachable only in isolated hook testing, not via the standard
-> workflow write path. **The DI-004 false-pass is now a first-class edge case, EC-009** (+ canonical vector):
-> `grep -qiF "Alternatives Considered"` matches negating body text such as "No Alternatives Considered were
-> required", so a disposition can pass the anti-bias gate without genuine alternatives; HS-014 targets a
-> section-heading-anchored fix. **Scope note (no overclaim):** disposition-guard enforces **heading-presence
-> only** — the "at least 2 alternative hypotheses" wording in its deny reason is LLM-soft guidance, not
-> enforced (it never counts alternatives); alternative *quality* is validated by review-enrichment. All six
-> hook BCs also normalized their input-hash to dual-file .sh + .ps1 form. **DI-014 (BC-3.02.001 v1.5):**
-> enrichment-completeness uses the same unanchored `grep -qF` substring idiom as DI-004 (a section name in
-> body text satisfies the check), classified **LOW** — bounded local-document blast radius, no Jira-record or
-> blocking-gate impact; targeted by the same heading-anchored sweep as DI-004 in Feature Mode.
+> **BC-3.02.001 (v1.6) + BC-3.03.001 (v1.5) — aggregate hook semantics.** EC-004 is **DENY**: an
+> `investigation-*` file must contain **all four** sections before enrichment-completeness saves (no
+> partial-save). Both completeness hooks **co-fire on `PreToolUse/Write` (VERIFIED vs hooks.json), deny from
+> either wins**; Stage 7 generates once from a complete template, so disposition-guard's in-progress-allow
+> (PC#2/EC-003) is **HOOK-ISOLATED**. **DI-004 (disposition-guard) and DI-014 (enrichment-completeness) are
+> both RESOLVED (PR #17)** — the unanchored `grep -qF` substring idiom is replaced by **section-heading-anchored**
+> matching, so negating body text ("No Alternatives Considered…") no longer passes; **SM-1 KILLED**, HS-014
+> promoted to must-pass. (disposition-guard still enforces heading presence only — alternative *quality* is
+> validated by review-enrichment, not this hook.)
 
 ## 6. Verification Posture
 
-**Three-bucket roll-up: Fully 2 / Partially 11 / Un-verified 0** (of 13 BCs).
-Fully: BC-3.03.001 (**FULLY = declared-VP coverage; the known DI-004 defect is documented as EC-009 and is
-NOT fixed** — see §5), BC-3.06.001. **150/150 BATS pass** locally (hooks 44, skills 81, integration 11,
-parity 14; the settled count post PR #15) — **caveat:** 12 of 14 parity tests `skip` when `pwsh` is absent
-(as it is locally), so behavioral `.ps1` parity is not actually exercised in a local run; CI relies on the
-runner image preinstalling `pwsh` and does not assert it (**DI-006**).
+**Roll-up (original 13 BCs): Fully 2 / Partially 11 / Un-verified 0**; the **4 new skill BCs**
+(BC-4.05/4.06/7.01/8.01) are STRUCTURAL-ONLY. BC-3.03.001 is now **FULLY with the DI-004 defect actually
+fixed** (PR #17 heading-anchored), not merely documented. **165/165 BATS pass** (hooks 59, skills 81,
+integration 11, parity 14) — **DI-006 RESOLVED (PR #16):** CI now installs+asserts `pwsh` and runs
+PSScriptAnalyzer, so `.ps1` hooks are validated (the fix surfaced+closed 2 empty-catch silent-failures);
+parity no longer skips silently.
 
 **Anchor convention (ADV-0-901/A01/pass-11):** across all hook BCs + conventions.md the hook subsystem now
 cites **churn-resistant references** — require-review.sh by **construct name** and BATS by **@test name** —
@@ -217,21 +199,15 @@ existence, and agent frontmatter/tool constraints, but **no executable check con
 their preconditions/postconditions/invariants at runtime** (that is LLM behavior). Structural gates catch
 deletion/drift but are not behavioral verification of the Iron Laws.
 
-Manual mutation probe against the **6-hook mutation-testable set** (5 pure hooks + session-greeting's pure
-activation-gate sub-function): authoritative current aggregate kill-rate **~75–80%** (up from a superseded
-~55–65% pre-PR-13 baseline — verification-gap-analysis.md §Mutation Testing Baseline → Surviving Mutants
-summary (~line 194)). **PR #15 (d304fa5) effects (require-review only):** reordered the write-block ahead of
-the allowlist (Inv #5) and added 12 red→green BATS tests, **killing SM-3b — the SEC-009/ADV-0-801
-precedence-bypass mutant (was CRITICAL)**. Earlier require-review fixes: SM-3 (fail-open) RESOLVED and SM-2
-(assign/create) downgraded HIGH→LOW (both PR #13). **Separately (unrelated to PR #15):** SM-8
-(session-greeting activation-gate) is KILLED by existing tests. Still-open blind spots feed the drift items
-(§8): **SM-1 disposition-guard false-pass (HIGH, DI-004) — the one remaining HIGH mutant, NOT touched by
-PR #15**; SM-4 enrichment-completeness investigation branch — the DENY-all-4-sections path (BC-3.02.001 v1.5)
-is untested (DI-007); the same-idiom substring gap is DI-014 (LOW); SM-8b session-greeting `jq`-fallback
-branch (LOW); pwsh-not-in-CI silent skip (DI-006). require-review's **≥95% CRITICAL target is not yet
-demonstrated met** (no per-hook mutation run; assign/create + `--output json` write forms
-code-analysis-verified only). No coverage tool applies (declarative plugin); shellcheck clean on
-`.sh`; `.ps1` still gets no static analysis.
+Manual mutation probe against the **6-hook mutation-testable set**: aggregate kill-rate **~75–80%** at the
+last measured baseline (verification-gap-analysis.md §Mutation Testing Baseline ~line 194). **Post-remediation
+mutant status — all previously-surviving enforcement mutants CLOSED:** SM-1 (disposition-guard false-pass)
+KILLED (PR #17, DI-004); SM-2 (assign/create) KILLED (PR #17, DI-005); SM-3/SM-3b (fail-open + SEC-009
+precedence) resolved (PR #13/#15); SM-4 enrichment investigation branch + handoff 39/40 boundary covered
+(PR #17, DI-007); SM-8 killed; only SM-8b (session-greeting `jq`-fallback, LOW) remains. **Even so, the
+require-review ≥95% CRITICAL kill-rate is NOT empirically demonstrated** — no per-hook mutation run has been
+executed; the coverage gains raise confidence but the numeric target is honestly still open until Feature
+Mode. shellcheck clean on `.sh`; `.ps1` now covered by PSScriptAnalyzer (PR #16).
 
 Detail + per-BC matrix + remediation plan: `.factory/phase-0-ingestion/verification-gap-analysis.md`
 
@@ -259,33 +235,35 @@ SEC-006 (jr CLI unversioned) and SEC-007 (Tavily key in URL) **ACCEPTED** (info;
 SEC-008 / DI-001 **RESOLVED** (PR #12): `.envrc`/`.mcp.json`/`.env`/`.claude/settings.local.json`
 gitignored; confirmed never committed; no credentials in git history.
 **SEC-009 (CRITICAL) RESOLVED** (PR #15, d304fa5) — see the boxed note above.
-Now also active: **branch protection on `main`** + **Semgrep in CI**.
+Now also active: **branch protection on `main`** + **Semgrep in CI**. **PR #16 hardening:** `pwsh` installed +
+asserted in CI and **PSScriptAnalyzer** lint added — the `.ps1` hooks are now validated, which **surfaced and
+closed 2 empty-catch silent-failures**; `hooks.json` now has a **JSON-Schema + CI validation** (DI-011).
+**PR #17:** disposition-guard + enrichment-completeness heading-anchored (DI-004/DI-014), assign/create
+positive-deny + boundary tests (DI-005/DI-007).
 
 Detail + all findings/dispositions: `.factory/phase-0-ingestion/security-audit.md`
 
-## 8. Open Drift Items (from STATE.md)
+## 8. Drift Register — FINAL STATE (13 of 14 RESOLVED, 1 DEFERRED, 0 open)
 
-| ID | Item | Severity | Status | Target |
-|----|------|----------|--------|--------|
-| DI-001 | Live keys in untracked non-gitignored `.envrc`/`.mcp.json` | HIGH | **RESOLVED** (PR #12) | — |
-| DI-002 | `secops-health` command has no skill dir (CI-special-cased) | LOW | open | Phase 1 |
-| DI-003 | `adversarial-review-secops` skill references orchestrator playbook (intentional layer inversion) | LOW | open | Phase 1 |
-| DI-004 | disposition-guard substring false-pass (live-demonstrated, SM-1) | HIGH | open | first Feature cycle |
-| DI-005 | require-review assign/create/fail-open paths untested | HIGH | largely superseded — fail-open→fail-closed resolved & SM-2 neutralized (PR #13); dedicated assign/create partition test still open | first Feature cycle |
-| DI-006 | pwsh parity tests skip silently; CI does not assert pwsh; no `.ps1` static analysis | HIGH | open | first Feature cycle |
-| DI-007 | enrichment-completeness investigation branch untested; hook↔template section-sync gap; handoff-validator 39/40 boundary | MEDIUM | open | first Feature cycle |
-| DI-008 | Component-Map numbering diverged (prose table vs YAML) in recovered-architecture.md | LOW | **RESOLVED** (arch reconciled — C-1..C-24 agree end-to-end) | — |
-| DI-009 | hook-manifests component absent from machine-readable YAML component map | HIGH | **RESOLVED** (added as C-18 HIGH; tail renumbered to C-24) | — |
-| DI-010 | SEC-002 fail-closed regression: `jr issue changelog` (read-only, metrics suite) wrongly denied | HIGH | **RESOLVED** (PR #14, 0ec794a — allowlist expanded incl. `--output json` families; 8 new BATS) | — |
-| DI-011 | `hooks.json`/`hooks.json.windows` validated by `jq .` only — no JSON-Schema for matcher/event/command structure; a malformed matcher silently de-wires the CRITICAL require-review gate | LOW (likelihood-weighted; **consequence is HIGH** — silent de-wiring of the sole CRITICAL authz gate) | open | first Feature cycle |
-| DI-012 | **BC coverage is partial by design** (pass-2/3 observation): **three** Iron-Law-bearing skills have **no behavioral contract** — `assess-priority` ("NO PRIORITY ASSIGNMENT WITHOUT MULTI-FACTOR ASSESSMENT FIRST", `skills/assess-priority/SKILL.md:13`), `create-advisory`, `analyze-ticket-effort`; plus `read-ticket` (no Iron Law, but the SEC-001 prompt-injection entry point) is uncontracted. The 13 recovered BCs cover the highest-blast-radius modules, not every Iron-Law-bearing skill. | MEDIUM | **PENDING HUMAN DECISION** at Phase 0 gate — expand the BC set before Feature Mode, or accept partial coverage? | Phase 0 exit gate |
-| DI-013 | **Comment-post steps require a manual permission-override every time** (pass-6): PR #13's unconditional `jr issue comment` deny hard-gates the two comment-posting workflow steps — `update-jira` PC#4 and `investigate-event` Stage 7 — but **no marker-based override exists** (require-review matches substrings on stdin only, with no memory of review state). Every legitimate comment post now needs a human permission-override. | MEDIUM-HIGH | **PENDING HUMAN DECISION** at Phase 0 gate — (a) accept the friction as security posture, (b) implement a review-approval marker mechanism (code change), or (c) add a dedicated gated `post-review-comment` command | Phase 0 exit gate |
-| DI-014 | enrichment-completeness section check uses the same **unanchored `grep -qF` substring idiom** as DI-004 — a section name appearing in body text satisfies the completeness gate (BC-3.02.001 v1.5, EC-008) | LOW (bounded — local document completeness only; no Jira-record or blocking-gate impact) | open | first Feature cycle (same heading-anchored sweep as DI-004) |
+| ID | Item | Sev | Final state |
+|----|------|-----|-------------|
+| DI-001 | Live keys in untracked non-gitignored `.envrc`/`.mcp.json` | HIGH | **RESOLVED** (PR #12 — gitignore) |
+| DI-002 | `secops-health` command has no skill dir (CI special-case) | LOW | **RESOLVED** (PR #16 — `secops-health/SKILL.md` created; CI special-case removed) |
+| DI-003 | `adversarial-review-secops` references the orchestrator playbook | LOW | **RESOLVED — accepted by design** (Stream D — intentional single-source-of-truth; C-2→C-6 edge acyclic, documented in YAML map) |
+| DI-004 | disposition-guard substring false-pass (SM-1) | HIGH | **RESOLVED** (PR #17 — heading-anchored; SM-1 KILLED; HS-014 promoted to must-pass) |
+| DI-005 | require-review assign/create paths untested | HIGH | **RESOLVED** (PR #17 — assign/create positive-deny BATS; SM-2 killed) |
+| DI-006 | pwsh parity skips silently; no `.ps1` static analysis | HIGH | **RESOLVED** (PR #16 — pwsh installed+asserted in CI + PSScriptAnalyzer; **surfaced+fixed 2 empty-catch silent-failures**) |
+| DI-007 | enrichment investigation branch / hook↔template sync / handoff 39/40 boundary | MEDIUM | **RESOLVED** (PR #17 — branch coverage, hook↔template sync guard, boundary tests) |
+| DI-008 | Component-Map numbering diverged (prose vs YAML) | LOW | **RESOLVED** (pass-1/2 reconciliation — C-1..C-24 agree) |
+| DI-009 | hook-manifests absent from YAML component map | HIGH | **RESOLVED** (pass-2 — added as C-18 HIGH) |
+| DI-010 | SEC-002 fail-closed regression: `jr issue changelog` wrongly denied | HIGH | **RESOLVED** (PR #14 — allowlist + `--output json` families) |
+| DI-011 | `hooks.json` validated by `jq .` only, no JSON-Schema | LOW (consequence HIGH) | **RESOLVED** (PR #16 — JSON-Schema + CI validation) |
+| DI-012 | 3 Iron-Law skills + read-ticket uncontracted | MEDIUM | **RESOLVED** (Stream D — 4 new BCs: BC-4.05/4.06/7.01/8.01; BC total 13→17) |
+| DI-013 | Comment-post steps need a manual permission-override every time (no marker override) | MEDIUM-HIGH | **DEFERRED to first Feature Mode cycle** (human decision: deferred — accept friction / marker mechanism / gated `post-review-comment` command) |
+| DI-014 | enrichment-completeness same unanchored `grep -qF` idiom as DI-004 | LOW | **RESOLVED** (PR #17 — heading-anchored) |
 
-Note: DI-005 is largely superseded by PR #13 (fail-open→fail-closed resolved, SM-2 neutralized); only a
-dedicated assign/create partition test remains, and it is no longer load-bearing. **SEC-001 is now fully
-gated (PR #13 deny-rule + PR #15 write-block-precedence fix).** DI-002/DI-003/DI-011/DI-014 are
-consistency/spec/hardening items, not high-severity behavioral defects. DI-008/DI-009/DI-010 resolved.
+**Zero open drift items.** All remediation landed via PRs #11–#17. The sole non-resolved item, **DI-013**, is
+a human-approved **deferral** (comment-gate friction) carried into the first Feature Mode cycle, not an open gap.
 
 ## 9. Restricted Areas (require explicit human review before change)
 
@@ -293,71 +271,52 @@ consistency/spec/hardening items, not high-severity behavioral defects. DI-008/D
 |------|------|---------------|
 | Authorization gate | `plugins/secops-factory/hooks/require-review.{sh,ps1}` | CRITICAL — the only hard gate on Jira system-of-record writes; changed three times recently (PR #13 comment-deny + fail-closed; PR #14 allowlist; **PR #15 write-block-first ordering, closing the SEC-009 bypass**); the ADV-0-007 `--output json` defense-in-depth item is now RESOLVED. Assurance improved but the ≥95% CRITICAL kill-rate target is not yet demonstrated met, and any change re-touches the sole authz gate |
 | Jira writer | `plugins/secops-factory/skills/update-jira/SKILL.md` | CRITICAL — last-mile writer; review-approval marker is LLM-soft and spoofable; only the require-review hook stands between it and record corruption |
-| Injection entry point | `plugins/secops-factory/skills/read-ticket/SKILL.md` | SEC-001 surface — ingests Jira ticket bodies verbatim (unsanitized external data); mitigation is defense-in-depth framing |
-| Hook wiring | `plugins/secops-factory/hooks/hooks.json`, `hooks.json.windows` | A wrong matcher silently de-wires the CRITICAL require-review gate; `jq .`-validated only, no JSON-Schema (DI-011) |
-| Anti-bias gate | `plugins/secops-factory/hooks/disposition-guard.{sh,ps1}` | Confirmed false-pass (DI-004) — bypassable quality gate on investigation dispositions |
+| Injection entry point | `plugins/secops-factory/skills/read-ticket/SKILL.md` | SEC-001 surface — ingests Jira ticket bodies verbatim; now contracted (BC-4.06.001); mitigation is defense-in-depth framing |
+| Hook wiring | `plugins/secops-factory/hooks/hooks.json`, `hooks.json.windows` | A wrong matcher silently de-wires the CRITICAL require-review gate — now guarded by JSON-Schema + CI validation (DI-011 RESOLVED, PR #16) |
+| Anti-bias gate | `plugins/secops-factory/hooks/disposition-guard.{sh,ps1}` | Anti-confirmation-bias quality gate; false-pass fixed (DI-004 RESOLVED, heading-anchored, PR #17) — still review-critical on change |
 | User-config writer | `plugins/secops-factory/skills/activate/SKILL.md` | JSON-merge into `settings.local.json` (never-clobber-corrupt path unexecuted) — invalid-state risk on local user config |
 | Release/CI + credentials | `.github/workflows/*.yml`, `.envrc`, `.mcp.json` | Supply-chain / privilege boundary; credentials local-only (gitignored) — never commit |
 
 ## 10. Recent Changes (reflected in this document)
 
-- **Adversarial pass 12 (2026-07-19):** 1 minor (ADV-0-C01) — stale `BC-3.02.001 v1.4` pins (§5 note, §8
-  DI-014 row) corrected to **v1.5**. Adversary re-derived **ALL axes CLEAN**, set converged/honest; 3 cosmetic
-  observations (revision-history order, invariant numbering) accepted non-blocking.
-- **Adversarial pass 11 (2026-07-19):** 2 findings (0C/0M/2m) — stale `hooks.bats:NN` anchors from PR #15's
-  in-block test insertion, fixed by **@test-name conversion** across all 6 hook BCs + conventions (last churn
-  source retired). Hook BC revs: 3.01→v1.9, 3.02→v1.5, 3.03/3.04→v1.4, 3.05/3.06→v1.3. Adversary re-derived all axes **CLEAN**; set judged **"converged and honest."**
-
-- **Adversarial pass 8 + passes 9–10 (2026-07-19):** pass 8 HEADLINE (CRITICAL, real code) — **SEC-009**,
-  shipped require-review fully bypassable (allowlist before write-block), **FIXED PR #15** (§7 box), plus
-  DI-014 (LOW) / ADV-0-007 resolved / HS-026 / **VP-HOOK-023**. Passes 9–10 were **PR #15 propagation residue**
-  (no new gaps): re-issued L1 shards (vga + module-criticality v1.4 carry SEC-009); test count **150**; SM-3b
-  killed (distinct from SM-8); construct-name anchors; 42 commits / PRs #1–#15.
-- **Adversarial passes 1–7 (2026-07-19) — condensed** (all remediated; details in §2/§5/§6/§7/§8): C-1..C-24
-  reconciled; census 24 (1/12/7/4); ~75–80% 6-hook kill-rate; EC-004 → DENY + 13 BC input-hashes; "PRs
-  unmerged" FALSE POSITIVE; ADV-0-501 co-fire VERIFIED + EC-009; DI-011/012/013 opened; DAG manually-acyclic.
-- **Onboarding-day PRs #12–#14 (merged):** #12 gitignored secrets (DI-001) + repo hardening; #13 fixed
-  SEC-001..005; #14 expanded the read-only allowlist (DI-010). Feature-additive v0.6.0→v0.9.0; 1 contributor.
+- **Onboarding + drift remediation (2026-07-19):** the capstone **converged after 13 adversarial review
+  passes + full drift remediation, landed via PRs #11–#17** (repo/CI hardening; SEC-001..005 + the SEC-009
+  CRITICAL write-block-precedence bypass fixed; read-only allowlist expansion; secops-health skill;
+  pwsh/PSScriptAnalyzer CI; hooks.json JSON-Schema; disposition-guard & enrichment-completeness
+  heading-anchored; assign/create + boundary BATS; 4 new BCs). Net: BC 13→17, tests 129→**165**, holdouts
+  25→**34**, SM-1/SM-2/SM-3/SM-3b/SM-4/SM-8 all killed/resolved, 13/14 DIs RESOLVED (DI-013 DEFERRED).
+  Per-pass detail lives in the shard revision histories.
 
 ## 11. Boundary — Exists vs NEW work
 
 **Exists (brownfield, in scope):** the full v0.9.0 plugin — 20 commands, 19 skills, 6 agents (+3 playbooks),
-6 hook pairs + manifests, 10 data KBs, 6 templates, 15 checklists, 4 BATS suites; 3 CI workflows; 13
-behavioral contracts recovered; module criticality classified; security audit dispositioned (incl. the
-post-audit SEC-009 CRITICAL, fixed via PR #15); 26 holdout regression scenarios seeded.
+6 hook pairs + manifests, 10 data KBs, 6 templates, 15 checklists, 4 BATS suites (**165 @tests**); 3 CI
+workflows; **17 behavioral contracts**; module criticality classified; security audit dispositioned (incl.
+SEC-009 CRITICAL, fixed PR #15); **34 holdout scenarios (all must-pass)**. All 4 new BCs (assess-priority,
+read-ticket/SEC-001 surface, create-advisory [advisory-pipeline], analyze-ticket-effort [metrics-pipeline])
+are STRUCTURAL-ONLY. **All 13 remediable drift items are RESOLVED; DI-013 is a human-approved deferral.**
 
 **Not in scope / excluded:** `.factory/` (pipeline state on factory-artifacts orphan branch),
 `.reference/jira-cli/` (reference material for the external `jr` dependency), `.git`, `.claude`.
 
-**Contract-coverage boundary (pending human decision — DI-012):** the 13 BCs cover the
-highest-blast-radius modules by design, not every Iron-Law-bearing skill. Known uncontracted surface:
-**three Iron-Law-bearing skills with no BC** — `assess-priority` ("NO PRIORITY ASSIGNMENT WITHOUT
-MULTI-FACTOR ASSESSMENT FIRST"), `create-advisory`, and `analyze-ticket-effort` — plus `read-ticket`
-(no Iron Law, but the SEC-001 prompt-injection entry point). At the Phase 0 exit gate the human decides
-whether to expand the BC set before Feature Mode or accept partial coverage as the baseline.
-
 **Would be NEW work (no code today; candidates for Feature Mode):**
-- Behavioral verification of skill Iron Laws (currently structural-only) — e.g., extracting pure
+- **Behavioral verification of skill Iron Laws** (all 11 skill BCs are structural-only) — extract pure
   sub-functions (activate JSON-merge, update-jira field validation, review scoring) to testable shims.
-- Remediation of DI-004, DI-006, DI-007, DI-014 (disposition-guard false-pass + the same-idiom
-  enrichment-completeness substring gap via one heading-anchored sweep + pwsh-in-CI + investigation-branch /
-  hook↔template sync / handoff-validator boundary). DI-005 largely closed.
-- A persisted/cryptographic review-approval marker (today it is spoofable LLM conversation state); this also
-  underlies the **DI-013** comment-post override decision (accept friction / marker mechanism / gated
-  `post-review-comment` command — see §8).
-- A `skills/secops-health/` skill (DI-002); JSON-Schema validation for `hooks.json` (DI-011).
-- PSScriptAnalyzer for `.ps1`; system-prompt framing for untrusted ticket content (SEC-001 defense-in-depth).
+- **An empirical mutation run** to demonstrate the require-review ≥95% CRITICAL kill-rate (coverage is in
+  place; the number is not yet measured).
+- **DI-013** comment-post override (deferred): a persisted/cryptographic review-approval marker, or a gated
+  `post-review-comment` command, vs. accepting the friction.
+- Holdout scenarios extending coverage to the 4 new BCs; system-prompt framing for untrusted ticket content
+  (SEC-001 defense-in-depth).
 
 ## 12. Holdout Reference (index only — DO NOT load details)
 
-**26** regression-baseline scenarios (epic **BROWNFIELD-REGRESSION**, HS-INDEX v1.3), HS-001..HS-026, derived
-from the BC set. **Baseline split: 25 must-pass (current HEAD passes) + 1 fix-target** (HS-014,
-`should-pass` / `fix_target: pending DI-004` — the disposition-guard false-pass; HEAD fails it by design and
-it MUST NOT count in the must-pass gate until the DI-004 heading-anchored fix lands). **HS-026 (added by
-ADV-0-801)** is a must-pass regression guard for the SEC-009 require-review bypass — an embedded read-only
-token in a write command must still be denied (PR #15 guard). The listing's facet column was renamed
-"Category" → "Scenario Type". **Holdout-protected** (DF-009): must NEVER be shown to implementer/test-writer
-agents. Index metadata only: `.factory/holdout-scenarios/HS-INDEX.md`.
+**34** regression-baseline scenarios (epic **BROWNFIELD-REGRESSION**, HS-INDEX **v1.5**), HS-001..HS-034 —
+**all must-pass, 0 fix-targets** (HS-014 was promoted to must-pass once the DI-004 heading-anchored fix
+landed in PR #17). Coverage extended to the 4 new BCs; notable additions include **HS-026** (SEC-009
+require-review bypass guard) and **HS-029** (read-ticket SEC-001 prompt-injection guard). **Holdout-protected**
+(DF-009): must NEVER be shown to implementer/test-writer agents. Index metadata only:
+`.factory/holdout-scenarios/HS-INDEX.md`.
 
 ## 13. Source Map (all Phase 0 shards)
 
@@ -366,7 +325,7 @@ agents. Index metadata only: `.factory/holdout-scenarios/HS-INDEX.md`.
 | Discovery | `.factory/phase-0-ingestion/project-discovery.md` |
 | Architecture (+2 detail) | `.factory/phase-0-ingestion/recovered-architecture.md`, `arch-recov-api-surface.md`, `arch-recov-integrations.md` |
 | Conventions | `.factory/phase-0-ingestion/conventions.md` |
-| Behavioral contracts (13) | `.factory/phase-0-ingestion/behavioral-contracts/BC-*.md` |
+| Behavioral contracts (17) | `.factory/phase-0-ingestion/behavioral-contracts/BC-*.md` |
 | Verification gaps | `.factory/phase-0-ingestion/verification-gap-analysis.md` |
 | Security audit | `.factory/phase-0-ingestion/security-audit.md` |
 | Module criticality | `.factory/specs/module-criticality.md` |
@@ -376,25 +335,23 @@ agents. Index metadata only: `.factory/holdout-scenarios/HS-INDEX.md`.
 ## Quality Gate
 
 - [x] Self-contained — a reader understands the project without opening sub-documents
-- [x] Cross-references consistent (honestly re-verified pass 12): census 24 aggregate (1/12/7/4) incl. C-18 / 43 per-artifact; templates 6; hooks 6+6+2; DAG **manually verified acyclic (no DFS tool)**; **test count settled 150** (hooks 44, skills 81, integration 11, parity 14); hook subsystem cites **construct names + @test names** (zero line-number-only anchors in normative sections; residual `hooks.bats:NN` are secondary locators); 42 commits / PRs #1–#15. Source shards current: **vga & module-criticality v1.4 carry SEC-009**. Hook BC versions individually: BC-3.01.001 **v1.9**, BC-3.02.001 **v1.5**, BC-3.03.001 **v1.4**, BC-3.04.001 **v1.4**, BC-3.05.001 **v1.3**, BC-3.06.001 **v1.3**; BC-4.02.001 v1.3, BC-5.01.001 v1.4; VP-HOOK-023 present.
-- [x] Restricted areas justified per row; DI mis-cite corrected (hook-wiring cites DI-011, not DI-009)
+- [x] Cross-references consistent (v2.0): census 24 aggregate (1/12/7/4) incl. C-18 / 43 per-artifact; templates 6; hooks 6+6+2; DAG manually-verified acyclic; **17 BCs**; **165 @tests** (hooks 59, skills 81, integration 11, parity 14); PRs #1–#17 merged. Hook BC versions: BC-3.01.001 **v1.10**, BC-3.02.001 **v1.6**, BC-3.03.001 **v1.5**, BC-3.04.001 v1.4, BC-3.05.001 **v1.4**, BC-3.06.001 **v1.4**; BC-4.02.001 v1.3, BC-5.01.001 v1.4; 4 new BCs v1.0.
+- [x] Restricted areas justified per row (DI-004/DI-011 fixes reflected; modules stay review-critical)
 - [x] Context-budget estimate per architectural component + strategy recommendation
-- [x] No orphaned references (DI-008/DI-009/DI-010 resolved; DI-011/DI-012/DI-013/DI-014 open; frontmatter DI range DI-001..DI-014)
-- [x] Security posture reflects security-audit.md — original 0C/0H/1M/4L/3I **+ post-audit SEC-009 CRITICAL RESOLVED (PR #15)**; SEC-001 now fully gated; C-12 write-block 5-verb + **evaluated first** (Inv #5)
-- [x] BC drift check functional — 13 BCs carry populated `input-hash`es; 6 hook BCs dual-file (.sh + .ps1); PRs #1–#15 verified merged at HEAD d304fa5 (pass-4 "unmerged" = FALSE POSITIVE, stale snapshot)
-- [x] Recent changes (PRs #12–#15 + adversarial passes 1–12) surfaced; SEC-009 fixed PR #15; SM-3b killed (distinct from SM-8); test count = 150; VP-HOOK-023 provable; hook BATS citations now @test-name (pass 11); DI-014 pin corrected v1.5 (pass 12)
-- [x] Mutation figures — 6-hook aggregate **~75–80%** (vga §Mutation Testing Baseline ~line 194); require-review ≥95% NOT yet demonstrated met; assign/create + `--output json` write forms code-analysis-verified only
-- [x] BC-3.03.001 "FULLY" qualified (declared-VP coverage; DI-004 = EC-009, NOT fixed by PR #15); disposition-guard heading-presence only; holdout **26 = 25 must-pass + 1 fix-target (HS-014); HS-026 guards SEC-009**; two pending Phase 0 gate decisions (DI-012, DI-013)
+- [x] **Drift register FINAL: 13/14 RESOLVED, DI-013 DEFERRED, 0 open**; frontmatter DI range DI-001..DI-014
+- [x] Security posture reflects security-audit.md — 0C/0H/1M/4L/3I + SEC-009 CRITICAL RESOLVED (PR #15); PRs #16/#17 hardening (pwsh+PSScriptAnalyzer surfaced/fixed 2 empty-catch failures; hooks.json JSON-Schema)
+- [x] Mutation: SM-1/SM-2/SM-3/SM-3b/SM-4/SM-8 killed/resolved; **require-review ≥95% still NOT empirically demonstrated (no mutation run) — kept honest despite coverage gains**
+- [x] Holdout **34 = all must-pass, 0 fix-targets** (HS-014 promoted; HS-026 SEC-009 guard; HS-029 read-ticket SEC-001 guard)
+- [x] Status = phase-0-complete-remediated / awaiting-feature-request (PARK point; human-approved gate)
 
 ```yaml
 pass: 0
 step: "0f"
-status: awaiting-phase-0-gate
-revision: "1.12 — re-synced post adversarial pass 12 (DI-014 version pin; set converged/honest)"
-files_synthesized: 9
+status: phase-0-complete-remediated / awaiting-feature-request
+revision: "2.0 — onboarding + full drift remediation complete (PRs #11–#17; 13/14 DIs RESOLVED, DI-013 DEFERRED; BC 13→17; tests →165; holdouts →34)"
+files_synthesized: 13
 timestamp: 2026-07-19T00:00:00Z
 open_gate_decision:
-  - "DI-012 — expand BC set or accept partial coverage (human)"
-  - "DI-013 — comment-post override: accept friction / marker mechanism / gated post-review-comment command (human)"
-next_step: "phase-0 human approval gate (post-gate routing decided: PARK, not Phase 1)"
+  - "DI-013 (DEFERRED to first Feature Mode cycle) — comment-post override: accept friction / marker mechanism / gated post-review-comment command"
+next_step: "PARK — awaiting feature-request (human-approved Phase 0 gate + park)"
 ```

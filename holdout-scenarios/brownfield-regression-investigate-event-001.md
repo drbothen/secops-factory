@@ -9,7 +9,7 @@ phase: "0f-pre"
 inputs:
   - phase-0-ingestion/behavioral-contracts/BC-5.01.001.md
   - specs/module-criticality.md
-input-hash: "9ab3369"
+input-hash: "9ee621d"
 traces_to: phase-0-ingestion/behavioral-contracts/BC-5.01.001.md
 id: "HS-021"
 category: "regression-baseline"

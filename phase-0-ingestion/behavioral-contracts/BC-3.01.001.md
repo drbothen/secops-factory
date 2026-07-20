@@ -1,13 +1,13 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.9"
+version: "1.10"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/require-review.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: "65f45bd"
+input-hash: "9c7d6f8"
   1f01e0a7d67947c28e78931f8c4818e454f6a884afa5f7768bda0a3603e40e28  plugins/secops-factory/hooks/require-review.sh
   bd8199a77b13f2ad1a884362862984c6f331799796f8d09576bcda0dffa403f1  plugins/secops-factory/hooks/require-review.ps1
 traces_to: phase-0-ingestion/recovered-architecture.md
@@ -17,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-01
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19", "v0.9.x-ADV0-001-ADV0-007-2026-07-19", "v1.4-ADV-0-405-ADV-0-507-2026-07-19", "v1.5-ADV-0-504-2026-07-19", "v1.6-ADV-0-706-obs-PC2-2026-07-19", "v1.7-ADV-0-801-PR15-2026-07-19", "v1.8-ADV-0-A01-ADV-0-A02-ADV-0-A04-2026-07-19", "v1.9-ADV-0-B01-2026-07-19"]
+modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19", "v0.9.x-ADV0-001-ADV0-007-2026-07-19", "v1.4-ADV-0-405-ADV-0-507-2026-07-19", "v1.5-ADV-0-504-2026-07-19", "v1.6-ADV-0-706-obs-PC2-2026-07-19", "v1.7-ADV-0-801-PR15-2026-07-19", "v1.8-ADV-0-A01-ADV-0-A02-ADV-0-A04-2026-07-19", "v1.9-ADV-0-B01-2026-07-19", "v1.10-RESYNC-PR17-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -37,6 +37,7 @@ removal_reason: null
 > - v1.5 (2026-07-19): ADV-0-504: corrected one remaining stale anchor in EC-015 — fail-closed catch-all is `(lines 96-98)` not `(lines 97-98)`. Missed by v1.4 sweep.
 > - v1.6 (2026-07-19): ADV-0-706: Standardized write-block citations to canonical form `88-94 (deny at :93)`. Observation: Softened PC#2 confidence note — `comment`/`edit`/`move` deny verified by both code analysis and BATS; `assign`/`create` deny verified by code analysis only (no dedicated positive BATS tests for these two verbs; residual gap noted in GAP-2 of verification-gap-analysis.md).
 > - v1.7 (2026-07-19): ADV-0-801 / PR #15 (commit d304fa5): CRITICAL evaluation-order fix — write-block is now evaluated BEFORE the allowlist (old order was allowlist → write-block, enabling a bypass: `jr issue edit KEY --summary "see jr board"` matched the `jr board` allowlist token). `--output json` write forms explicitly added to the write-block list. New line anchors throughout. New Invariant #5 (write-block precedence). EC-015 updated (jr --output json issue comment now hits write-block directly). EC-016 added (bypass pattern now denied). Input-hash recomputed (both .sh and .ps1 changed).
+> - v1.10 (2026-07-19): RESYNC-PR17: DI-005 `assign`/`create` deny now **BATS-verified** — PR #17 added `@test "require-review blocks jr issue assign without review (DI-005)"` (hooks.bats:426) and `@test "require-review blocks jr issue create without review (DI-005)"` (hooks.bats:433). PC#2 confidence note updated. Source Evidence test count updated 150→165 (hooks 44→59). Last Verified Against updated to d181ca2.
 > - v1.9 (2026-07-19): ADV-0-B01: Converted all live hooks.bats line-range citations to @test-NAME references with current line numbers (PR #15 expanded require-review block to lines 9-177; downstream tests shifted +88 lines). Source Evidence range updated 9-93 → 9-177 (26 tests). Stale VP-HOOK-003/020/021/022 range refs replaced with exact @test names. PC#3 stale test name "allows jr issue view" corrected to "allows jr read-only commands" (test was renamed when PR #14 expanded the allowlist). PC#2 line :88 corrected to :89 (move test shifted one line within the block). hooks.bats references now use @test names for churn resilience.
 > - v1.8 (2026-07-19): ADV-0-A01: Replaced all live require-review.sh line-number citations with construct-name references (fast-path guard / write-block if-block / read-only allowlist / fail-closed catch-all / jq-availability guard / emit_allow / emit_deny) — makes the "anchor-churn retired" capstone claim true and prevents future PR-induced staleness. ADV-0-A02: Source Evidence test count updated to 150 @tests (hooks 44, skills 81, integration 11, parity 14); PR #15 +12 row added to Change Log. ADV-0-A04: VP-HOOK-023 added (--output json write-block family as provable property); canonical deny vector row added to test vectors table.
 
@@ -49,7 +50,7 @@ removal_reason: null
 ## Postconditions
 
 1. If `tool_input.command` does not contain the substring `jr `, the hook emits `permissionDecision: allow` and exits 0. Confidence: verified by code analysis (fast-path guard in require-review.sh) and BATS test `@test "require-review allows non-jr commands"` (hooks.bats:9).
-2. If `tool_input.command` contains any write-block pattern, the hook emits `permissionDecision: deny` with a reason string containing "review approval". **This check is evaluated BEFORE the allowlist (Invariant #5)** — a command matching both a write-block pattern and an allowlist pattern is denied. Two families of write patterns are blocked (10 entries total): **Plain forms:** `jr issue comment ` (trailing-space guard against `jr issue comments` collision), `jr issue edit`, `jr issue move`, `jr issue assign`, `jr issue create`. **`--output json` forms (added PR #15/ADV-0-801):** `--output json issue comment ` (trailing-space guard), `--output json issue edit`, `--output json issue move`, `--output json issue assign`, `--output json issue create`. Confidence: verified by code analysis (write-block if-block in require-review.sh) and BATS tests `@test "require-review blocks jr issue comment without review (SEC-001)"` (hooks.bats:69), `@test "require-review blocks jr issue edit without review"` (hooks.bats:82), `@test "require-review blocks jr issue move without review"` (hooks.bats:89). Note: `comment`, `edit`, and `move` deny verified by both code analysis and BATS; `assign`, `create`, and all `--output json` write forms verified by code analysis only.
+2. If `tool_input.command` contains any write-block pattern, the hook emits `permissionDecision: deny` with a reason string containing "review approval". **This check is evaluated BEFORE the allowlist (Invariant #5)** — a command matching both a write-block pattern and an allowlist pattern is denied. Two families of write patterns are blocked (10 entries total): **Plain forms:** `jr issue comment ` (trailing-space guard against `jr issue comments` collision), `jr issue edit`, `jr issue move`, `jr issue assign`, `jr issue create`. **`--output json` forms (added PR #15/ADV-0-801):** `--output json issue comment ` (trailing-space guard), `--output json issue edit`, `--output json issue move`, `--output json issue assign`, `--output json issue create`. Confidence: verified by code analysis (write-block if-block in require-review.sh) and BATS tests `@test "require-review blocks jr issue comment without review (SEC-001)"` (hooks.bats:69), `@test "require-review blocks jr issue edit without review"` (hooks.bats:82), `@test "require-review blocks jr issue move without review"` (hooks.bats:89), `@test "require-review blocks jr issue assign without review (DI-005)"` (hooks.bats:426), `@test "require-review blocks jr issue create without review (DI-005)"` (hooks.bats:433). Note: `comment`, `edit`, `move`, `assign`, and `create` deny verified by both code analysis and BATS (PR #17 added assign/create BATS coverage); all `--output json` write forms verified by code analysis only.
 3. If `tool_input.command` — after passing the write-block check (postcondition #2) — contains any entry from the explicit read-only allowlist, the hook emits `permissionDecision: allow` and exits 0. The allowlist is evaluated AFTER the write-block. The allowlist has two families: Confidence: verified by code analysis (read-only allowlist in require-review.sh) and BATS tests `@test "require-review allows jr read-only commands"` (hooks.bats:15).
 
    **Plain forms (family a):**
@@ -156,9 +157,9 @@ removal_reason: null
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/secops-factory/hooks/require-review.sh` (115 lines, post-PR #15) + `.ps1` sibling |
-| **Confidence** | high — explicit allow/deny logic fully visible in source; BATS tests at `tests/hooks.bats:9-177` (26 require-review tests, including the 12 PR-15 bypass/--output json/regression tests) exercise all documented paths; 150 @tests total (hooks 44, skills 81, integration 11, parity 14); PR #15 added 12 new tests (bypass scenarios and regressions) |
+| **Confidence** | high — explicit allow/deny logic fully visible in source; BATS tests at `tests/hooks.bats:9-177` (26 require-review tests, including the 12 PR-15 bypass/--output json/regression tests, and the 2 PR-17 DI-005 assign/create tests at :426/:433) exercise all documented paths; 165 @tests total (hooks 59, skills 81, integration 11, parity 14); PR #15 added 12 new tests (bypass scenarios and regressions); PR #17 added 15 new tests across all 6 hooks (including 2 require-review assign/create tests) |
 | **Extraction Date** | 2026-07-19 |
-| **Last Verified Against** | commit d304fa5 (PR #15 merge commit) |
+| **Last Verified Against** | commit d181ca2 (HEAD post PR #17) |
 
 #### Change Log
 
@@ -195,6 +196,15 @@ removal_reason: null
 **BATS test changes (PR #14):** Lines 21-67 in `hooks.bats` are eight new allow tests covering changelog plain/json forms, `--output json` issue view/list/comments, assets search/view (CMDB), and `jr --version`. Total test count: 130 → 138.
 
 **BATS test changes (PR #15):** 12 new tests covering `--output json` write-block family (bypass scenarios) and regression coverage for the ADV-0-801 allowlist-precedence fix. Total test count: 138 → 150.
+
+**PR #17 (commit d181ca2, 2026-07-19) — DI-005 assign/create BATS coverage (v1.9 → v1.10):**
+
+| Change | Driver | Old Coverage | New Coverage |
+|--------|--------|-------------|--------------|
+| `jr issue assign` deny BATS test | DI-005: no dedicated BATS verify | Code analysis only (write-block if-block) | `@test "require-review blocks jr issue assign without review (DI-005)"` (hooks.bats:426) |
+| `jr issue create` deny BATS test | DI-005: no dedicated BATS verify | Code analysis only (write-block if-block) | `@test "require-review blocks jr issue create without review (DI-005)"` (hooks.bats:433) |
+
+**BATS test changes (PR #17):** 2 new require-review tests for assign/create + 13 tests for other hooks. Total test count: 150 → 165 (hooks 44→59).
 
 #### Evidence Types Used
 

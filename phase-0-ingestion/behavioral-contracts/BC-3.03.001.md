@@ -1,15 +1,15 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.5"
 status: draft
 producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/disposition-guard.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: "e33c76b"
-  ede6ff97959cbcb1a137ed8f28a1271250dd46bcefc4d2b397d7d591dd180289  plugins/secops-factory/hooks/disposition-guard.sh
-  8a0a6a40fea6f5fbe4d850dba9a61596815c02f56ade34ab6c44edaf1669fb54  plugins/secops-factory/hooks/disposition-guard.ps1
+input-hash: "f3fe254"
+  e7eae5faee1574527d5d574a964da8f8282e0adb36ebbbea0ac6b1db756859f4  plugins/secops-factory/hooks/disposition-guard.sh
+  bf3cc1ed39122a62109c964371be3aa61e9252fc1b51dae9b438068e21d81838  plugins/secops-factory/hooks/disposition-guard.ps1
 traces_to: phase-0-ingestion/recovered-architecture.md
 origin: recovered
 extracted_from: plugins/secops-factory/hooks/disposition-guard.sh
@@ -17,7 +17,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-03
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-501-ADV-0-507-2026-07-19", "v1.3-ADV-0-605-ADV-0-606-2026-07-19", "v1.4-ADV-0-B01-2026-07-19"]
+modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-501-ADV-0-507-2026-07-19", "v1.3-ADV-0-605-ADV-0-606-2026-07-19", "v1.4-ADV-0-B01-2026-07-19", "v1.5-RESYNC-PR17-2026-07-19"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -29,6 +29,7 @@ removal_reason: null
 # Behavioral Contract BC-3.03.001: disposition-guard Hook — Alternatives-Required Gate
 
 > **Revision history:**
+> - v1.5 (2026-07-19): RESYNC-PR17: DI-004/SM-1 **RESOLVED** — PR #17 replaced bare `grep -qiF "Alternatives Considered"` with heading-anchored `grep -qiE "^#{1,6}[[:space:]]+Alternatives Considered"` (`disposition-guard.sh:57`). Body-text negation phrases (e.g., "No Alternatives Considered were required") no longer falsely satisfy the gate. EC-009 canonical output flipped allow→deny. Canonical test vector row 5 flipped. Refactoring Notes defect paragraph updated to RESOLVED. Two new BATS tests added: `@test "disposition-guard body-text alternatives-considered (no heading) denies"` (hooks.bats:323) and `@test "disposition-guard heading-form alternatives-considered allows"` (hooks.bats:330). input-hash recomputed (both .sh and .ps1 changed in PR #17).
 > - v1.0 (2026-07-19): Initial extraction from `disposition-guard.sh` at v0.9.0 HEAD (Step 0d).
 > - v1.1 (2026-07-19): ADV-0-403: Re-anchored stale BATS test references to @test names at current line positions (post-PR #14).
 > - v1.2 (2026-07-19): ADV-0-501: Annotated PC#2, EC-003, and canonical vector row 2 as HOOK-ISOLATED — in standard workflow, Stage 7 generates investigation document once from a complete template; enrichment-completeness BC-3.02.001 co-fires and denies any file missing four required sections. Added Aggregate Gate Behavior note. ADV-0-507: Normalized input-hash to dual-file form (.sh + .ps1).
@@ -45,9 +46,9 @@ removal_reason: null
 
 1. If `file_path` does not contain `investigation` as a substring, the hook emits `permissionDecision: allow` (fast path). Confidence: verified by code analysis (`hooks/disposition-guard.sh:43-45`).
 2. If `file_path` contains `investigation` but `content` does not contain the string "Disposition" (case-insensitive), the hook emits `permissionDecision: allow` — the document is still in-progress. Confidence: verified by code analysis (`hooks/disposition-guard.sh:48-51`) and test `@test "disposition-guard allows investigation without disposition yet"` (hooks.bats:252). **HOOK-ISOLATED behavior**: in the standard investigate-event workflow, Stage 7 generates the investigation document once from a complete template (event-investigation-tmpl.yaml) that already contains all four required section headings; the enrichment-completeness hook (BC-3.02.001) co-fires on the same PreToolUse/Write event and would deny any investigation file missing those sections before this hook's in-progress-allow path is exercised. See Aggregate Gate Behavior note.
-3. If `file_path` contains `investigation` AND `content` contains "Disposition" AND `content` does NOT contain "Alternatives Considered" (case-insensitive), the hook emits `permissionDecision: deny` with a reason containing "Alternatives Considered". Confidence: verified by code analysis (`hooks/disposition-guard.sh:54-56`) and test `@test "disposition-guard blocks disposition without alternatives"` (hooks.bats:258).
+3. If `file_path` contains `investigation` AND `content` contains "Disposition" AND `content` does NOT contain a heading-form "Alternatives Considered" (i.e., `grep -qiE "^#{1,6}[[:space:]]+Alternatives Considered"` finds no match), the hook emits `permissionDecision: deny` with a reason containing "Alternatives Considered". Body text mentioning the phrase without a markdown heading does not satisfy the gate (DI-004 RESOLVED, PR #17). Confidence: verified by code analysis (`hooks/disposition-guard.sh:53-58`) and tests `@test "disposition-guard blocks disposition without alternatives"` (hooks.bats:258) and `@test "disposition-guard body-text alternatives-considered (no heading) denies"` (hooks.bats:323).
 4. If `file_path` contains `investigation` AND `content` contains both "Disposition" and "Alternatives Considered", the hook emits `permissionDecision: allow`. Confidence: verified by code analysis (`hooks/disposition-guard.sh:58`) and test `@test "disposition-guard allows disposition with alternatives"` (hooks.bats:265).
-5. Both "Disposition" and "Alternatives Considered" checks are case-insensitive (`grep -qiF`). Confidence: verified by code analysis (`hooks/disposition-guard.sh:48, 54`).
+5. The "Disposition" check is case-insensitive substring (`grep -qiF`). The "Alternatives Considered" check uses a heading-anchored case-insensitive regex (`grep -qiE "^#{1,6}[[:space:]]+Alternatives Considered"`) — body text mentioning the phrase without a markdown heading does not satisfy the gate (DI-004 RESOLVED, PR #17). Confidence: verified by code analysis (`hooks/disposition-guard.sh:48, 57`) and `@test "disposition-guard heading-form alternatives-considered allows"` (hooks.bats:330).
 
 ## Invariants
 
@@ -67,7 +68,7 @@ removal_reason: null
 | EC-006 | Investigation file with "disposition" (lowercase) section | Deny if Alternatives absent — `grep -qiF` matches case-insensitively |
 | EC-007 | Content containing "Disposition" in body text (not a section header) | Allow if "Alternatives Considered" also present anywhere; Deny if absent. The check is on substring presence in the full content, not section-header structure. |
 | EC-008 | Malformed JSON stdin | `jq` returns empty string for file_path; path doesn't match `investigation`; emit allow |
-| EC-009 | Investigation file with "Disposition" section present AND "Alternatives Considered" appearing as negating body text (e.g., `investigation-ALERT-001.md` → "# Disposition\nTrue Positive\nNo Alternatives Considered were required.") | Allow (current defect — DI-004/SM-1): `grep -qiF "Alternatives Considered"` matches any substring occurrence, including negating phrases; the hook cannot distinguish "# Alternatives Considered" (section heading) from "No Alternatives Considered were needed" (negating body text). Intended behavior: deny. HS-014 targets this with a section-heading-anchored pattern. |
+| EC-009 | Investigation file with "Disposition" section present AND "Alternatives Considered" appearing as negating body text only (e.g., `investigation-ALERT-001.md` → "# Disposition\nTrue Positive\nNo Alternatives Considered were required.") | **RESOLVED (DI-004/SM-1, PR #17):** `permissionDecision: deny`. The heading-anchored check `grep -qiE "^#{1,6}[[:space:]]+Alternatives Considered"` requires an actual markdown heading; body-text negation phrases no longer satisfy the gate. BATS: `@test "disposition-guard body-text alternatives-considered (no heading) denies"` (hooks.bats:323). |
 
 ## Canonical Test Vectors
 
@@ -78,7 +79,7 @@ removal_reason: null
 | `investigation-ALERT-001.md` → "# Disposition\nTrue Positive\n# Evidence\n..." | `permissionDecision: deny`, reason contains "Alternatives Considered" | error |
 | `investigation-ALERT-001.md` → "# Disposition\nTrue Positive\n# Alternatives Considered\n1. FP...\n2. BTP..." | `permissionDecision: allow` | happy-path |
 | `investigation-ALERT-001.md` → "# disposition\nFalse Positive" (lowercase) | `permissionDecision: deny` | edge-case |
-| `investigation-ALERT-001.md` → "# Disposition\nTrue Positive\nNo Alternatives Considered were required." | `permissionDecision: allow` (current defect — DI-004/SM-1; `grep -qiF` matches negating substring; intended: `permissionDecision: deny`) | defect |
+| `investigation-ALERT-001.md` → "# Disposition\nTrue Positive\nNo Alternatives Considered were required." | `permissionDecision: deny` (RESOLVED — PR #17 heading-anchored check; body-text negation no longer passes) | edge-case |
 
 ## Verification Properties
 
@@ -105,15 +106,15 @@ removal_reason: null
 
 | Property | Value |
 |----------|-------|
-| **Path** | `plugins/secops-factory/hooks/disposition-guard.sh` (59 lines) + `.ps1` sibling |
-| **Confidence** | high — three-state logic (non-investigation / in-progress / complete-without-alternatives) fully visible in source; BATS tests `@test "disposition-guard allows non-investigation files"` (hooks.bats:246), `@test "disposition-guard allows investigation without disposition yet"` (hooks.bats:252), `@test "disposition-guard blocks disposition without alternatives"` (hooks.bats:258), `@test "disposition-guard allows disposition with alternatives"` (hooks.bats:265) exercise all four cases |
+| **Path** | `plugins/secops-factory/hooks/disposition-guard.sh` (62 lines, post-PR #17) + `.ps1` sibling |
+| **Confidence** | high — three-state logic (non-investigation / in-progress / complete-without-alternatives) fully visible in source; BATS tests `@test "disposition-guard allows non-investigation files"` (hooks.bats:246), `@test "disposition-guard allows investigation without disposition yet"` (hooks.bats:252), `@test "disposition-guard blocks disposition without alternatives"` (hooks.bats:258), `@test "disposition-guard allows disposition with alternatives"` (hooks.bats:265) exercise all four cases; `@test "disposition-guard body-text alternatives-considered (no heading) denies"` (hooks.bats:323) and `@test "disposition-guard heading-form alternatives-considered allows"` (hooks.bats:330) exercise the heading-anchored DI-004 fix (PR #17) |
 | **Extraction Date** | 2026-07-19 |
 
 #### Evidence Types Used
 
 - **guard clause**: file path substring check for `investigation` (line 43)
 - **guard clause**: case-insensitive content check for "Disposition" presence (lines 48-51)
-- **guard clause**: case-insensitive content check for "Alternatives Considered" absence (lines 54-56)
+- **guard clause**: heading-anchored case-insensitive content check for "Alternatives Considered" absence (`grep -qiE "^#{1,6}[[:space:]]+Alternatives Considered"`, line 57 — DI-004 RESOLVED, PR #17)
 - **documentation**: deny reason text documents the intent (prevent confirmation bias via undocumented dispositions)
 
 #### Purity Classification
@@ -132,4 +133,4 @@ Pure. The three-state routing logic (non-investigation / in-progress / complete)
 
 **Aggregate Gate Behavior (ADV-0-501):** Both `enrichment-completeness` (BC-3.02.001) and `disposition-guard` (this hook) are wired to fire on every `PreToolUse/Write` event. When both hooks evaluate the same Write event, deny from either hook wins — Claude Code does not proceed with the write if any hook denies. In the standard investigate-event workflow, Stage 7 generates the investigation document once from event-investigation-tmpl.yaml, which contains all four required section headings (Executive Summary, Alert Details, Disposition, Next Actions); the enrichment-completeness hook is satisfied immediately. This hook then evaluates whether a Disposition section is present and, if so, whether Alternatives Considered accompanies it. The in-progress-allow path (PC#2, EC-003, canonical vector row 2) is documented for hook-isolated testing but is unreachable via the standard workflow write path.
 
-**Known defect (DI-004/SM-1, see EC-009):** The "Alternatives Considered" section check is by substring presence in the full document content (`grep -qiF "Alternatives Considered"`). This means an investigation file whose Disposition body contains a negating phrase such as "No Alternatives Considered were required" will incorrectly pass the gate — the substring "Alternatives Considered" is present but in a negating context. This is documented as defect DI-004 (SM-1 classification) and is a first-class edge case in EC-009. HS-014 targets remediation via a section-heading-anchored regex. The hook also does not enforce minimum alternative count (the deny reason says "at least 2 alternative hypotheses" but the hook only checks for the section heading text). Quality of alternatives is validated by `review-enrichment`, not by this hook.
+**Resolved (DI-004/SM-1, PR #17):** The "Alternatives Considered" section check now uses a heading-anchored regex (`grep -qiE "^#{1,6}[[:space:]]+Alternatives Considered"`) rather than a bare substring match (`grep -qiF`). Body text mentioning "Alternatives Considered" in a negating context (e.g., "No Alternatives Considered were required") no longer falsely satisfies the gate — the regex requires the markdown heading form. DI-004/SM-1 is **KILLED**. EC-009 updated to reflect `permissionDecision: deny`. New BATS coverage: `@test "disposition-guard body-text alternatives-considered (no heading) denies"` (hooks.bats:323) and `@test "disposition-guard heading-form alternatives-considered allows"` (hooks.bats:330). The hook still does not enforce minimum alternative count (the deny reason says "at least 2 alternative hypotheses" but the hook only checks for the section heading presence). Quality of alternatives is validated by `review-enrichment`, not by this hook.

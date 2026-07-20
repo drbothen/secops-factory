@@ -21,6 +21,17 @@
 >
 > **Changelog (2026-07-19, adversarial review pass 10):**
 > - Observation/ADV-0-A05: Corrected C-15 bias-check-reminder trigger scope in prose table and YAML interfaces_provided — was "after research tool calls", now "on every Bash call and Perplexity MCP call (hooks.json matcher Bash|mcp__perplexity__*)", matching BC-3.04.001 v1.3 verified trigger scope.
+>
+> **Changelog (2026-07-19, RESYNC_MERGED — PRs #15/#16/#17, HEAD d181ca2):**
+> - **DI-004/SM-1 RESOLVED (PR #17):** disposition-guard heading-anchored `grep -qiE` fix merged; body-text negation no longer falsely satisfies the Alternatives Considered gate. BC-3.03.001 bumped to v1.5.
+> - **DI-014 RESOLVED (PR #17):** enrichment-completeness heading-anchored section check merged; same idiom as DI-004 eliminated from both enrichment and investigation branches. BC-3.02.001 bumped to v1.6.
+> - **DI-005 RESOLVED (PR #17):** `jr issue assign` and `jr issue create` deny paths now BATS-verified (new tests hooks.bats:426, :433). BC-3.01.001 bumped to v1.10.
+> - **DI-006 RESOLVED (PR #16):** CI hardening — `pwsh` install asserted in `ci.yml`; parity tests no longer silently skip. 14/14 parity tests now run in CI.
+> - **DI-002/DI-003/DI-007/DI-011/DI-012 status:** DI-002 (SEC-003 mcp pinning), DI-003 (accepted-by-design skill→playbook edge), DI-007 (heading-anchor fix targets), DI-011 (hooks.json jq-only validation — tracked separately), DI-012 (HIGH-module BC coverage — pending human decision). These were at their prior status pre-RESYNC; see project-context.md §8 for the authoritative DI registry.
+> - **DI-013 DEFERRED to Feature Mode:** `jr issue comment` unconditional deny — no marker-based override; override mechanism requires human decision and Feature Mode story.
+> - **Test count:** 150 → **165** (hooks 44→**59**, skills 81, integration 11, parity 14). Suite 165/165 green at HEAD d181ca2.
+> - **BC count:** 13 → **17** (4 new BCs: BC-4.05, BC-4.06, BC-7.01, BC-8.01 added post-ingestion).
+> - **SM-1 KILLED:** disposition-guard substring false-pass mutant eliminated by PR #17 heading-anchored fix.
 
 ---
 
@@ -565,7 +576,7 @@ Advisory Creation:
 | Smell | Location | Severity | Description |
 |-------|----------|----------|-------------|
 | Missing skill for secops-health command | `commands/secops-health.md` — no `skills/secops-health/` | LOW | CI special-cases this command (excluded from the "all commands reference existing skills" check). Low risk: it's a diagnostic command, but it lacks the standard skill structure. |
-| Skill references orchestrator canonical source | `skills/adversarial-review-secops/SKILL.md` line: "If the two disagree, the orchestrator file wins" | LOW | The skill procedure layer directly invokes the orchestration layer's canonical playbook. Intentional architectural decision to resolve version drift, but blurs layer separation. |
+| Skill references orchestrator canonical source | `skills/adversarial-review-secops/SKILL.md` line: "If the two disagree, the orchestrator file wins" | LOW — **ACCEPTED-BY-DESIGN (DI-003, 2026-07-19)** | The skill procedure layer directly invokes the orchestration layer's canonical playbook (`review-convergence-workflow.md` via C-2→C-6 edge). **Rationale for acceptance:** this is a deliberate single-source-of-truth governance decision: the convergence playbook lives in the orchestrator layer (C-6) and the adversarial-review skill references it explicitly so that if the two ever diverge, the orchestrator file wins. This eliminates copy-drift between the skill and the canonical procedure. The C-2→C-6 dependency edge is explicitly documented in the YAML component map (ADV-0-407) and verified as acyclic (no path from C-6 back to C-2). The alternative — duplicating the convergence procedure inside the skill — would create a maintenance burden and the exact version-drift problem the reference is designed to prevent. Not a defect; pattern is intentional and documented. |
 | enrich-ticket acts as a mini-orchestrator | `skills/enrich-ticket/SKILL.md` | LOW | This skill dispatches 4 sub-skills (research-cve, map-attack, assess-priority, read-ticket) rather than delegating to the orchestrator. Duplicates some orchestration responsibility. |
 | Very large knowledge base files | `data/event-investigation-best-practices.md` (~3027 lines) | LOW | Agents document a chunked-read workaround (500 lines/chunk), meaning this file is too large for a single context load. Not a structural defect but an operational constraint. |
 

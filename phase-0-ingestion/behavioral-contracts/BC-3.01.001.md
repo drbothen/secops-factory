@@ -7,7 +7,7 @@ producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/require-review.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: "9c7d6f8"
+input-hash: "9725be7"
   1f01e0a7d67947c28e78931f8c4818e454f6a884afa5f7768bda0a3603e40e28  plugins/secops-factory/hooks/require-review.sh
   bd8199a77b13f2ad1a884362862984c6f331799796f8d09576bcda0dffa403f1  plugins/secops-factory/hooks/require-review.ps1
 traces_to: phase-0-ingestion/recovered-architecture.md

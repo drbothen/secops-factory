@@ -1,7 +1,7 @@
 ---
 document_type: project-context
 level: ops
-version: "2.0"
+version: "2.1"
 status: phase-0-complete-remediated / awaiting-feature-request
 producer: codebase-analyzer
 timestamp: 2026-07-19T00:00:00Z
@@ -62,7 +62,7 @@ no LLM) and are the only executable enforcement surface.
 
 ```
 commands/ (20 dispatch stubs) → agents/orchestrator/ (Morgan + 3 playbooks)
-  → skills/<name>/SKILL.md (19 procedures) + agents/*.md (5 specialists)
+  → skills/<name>/SKILL.md (20 procedures) + agents/*.md (5 specialists)
     → data/ (10 KBs) · templates/ (6) · checklists/ (15)   [knowledge layer]
   ⟂ hooks/*.{sh,ps1} (6 pairs) + hooks.json(.windows)       [cross-cutting enforcement]
 External boundary: jr CLI (required) · Perplexity MCP (recommended) · NVD/EPSS/KEV (fallback)
@@ -81,11 +81,11 @@ Integrations / DTU candidates: `.factory/phase-0-ingestion/arch-recov-integratio
 **Authoritative census — YAML component-map aggregate (C-1..C-24): 24 modules — 1 CRITICAL / 12 HIGH / 7 MEDIUM / 4 LOW.**
 `update-jira` folds into the HIGH `skill-procedures` aggregate (C-2) at this granularity, so
 require-review (C-12) is the sole CRITICAL; hook-manifests (C-18) is a counted HIGH member. A secondary
-**per-artifact figure of 43 modules (2 CRITICAL / 16 HIGH / 20 MEDIUM / 5 LOW)** explodes C-2 into its 19
+**per-artifact figure of 43 modules (2 CRITICAL / 16 HIGH / 20 MEDIUM / 5 LOW)** explodes C-2 into its 20
 skills (hook-manifests is already its own C-18 in the aggregate, so the per-artifact total is unchanged);
-at that granularity update-jira surfaces as a distinct CRITICAL skill. Derivation: **24 − 1 (C-2) + 19
-(skills) + 1 (secops-health promoted from the command-dispatch aggregate) = 43**, where command-dispatch
-counts as 19 slash-command stubs distinct from the separately-counted `secops-health` diagnostic command.
+at that granularity update-jira surfaces as a distinct CRITICAL skill. Derivation: **24 − 1 (C-2) + 20
+(skills) = 43** — since PR #16 gave `secops-health` its own SKILL.md, there are now 20 skills 1:1 with the
+20 commands (secops-health is one of the 20 exploded skills, no longer a separate carve-out).
 
 | Tier | Modules (per-artifact view; aggregate note where it differs) |
 |------|---------|
@@ -112,7 +112,7 @@ Load per-component, not whole-repo. Chunk the large KBs (500-line Read offsets).
 | Component | Approx LOC | Est. tokens | Load note |
 |-----------|-----------|-------------|-----------|
 | commands/ (20) | ~160 | ~1.5K | trivially loadable |
-| skills/ (19 SKILL.md) | ~1,500 | ~15K | load per-skill |
+| skills/ (20 SKILL.md) | ~1,500 | ~15K | load per-skill |
 | agents/ + orchestrator (6 + 3 playbooks) | ~800 | ~8K | load per-agent |
 | hooks/ (6 × sh+ps1) | ~680 | ~7K | full-load OK |
 | templates/ (6) | ~480 | ~5K | full-load OK |
@@ -289,7 +289,7 @@ a human-approved **deferral** (comment-gate friction) carried into the first Fea
 
 ## 11. Boundary — Exists vs NEW work
 
-**Exists (brownfield, in scope):** the full v0.9.0 plugin — 20 commands, 19 skills, 6 agents (+3 playbooks),
+**Exists (brownfield, in scope):** the full v0.9.0 plugin — 20 commands, 20 skills (1:1 with commands), 6 agents (+3 playbooks),
 6 hook pairs + manifests, 10 data KBs, 6 templates, 15 checklists, 4 BATS suites (**165 @tests**); 3 CI
 workflows; **17 behavioral contracts**; module criticality classified; security audit dispositioned (incl.
 SEC-009 CRITICAL, fixed PR #15); **34 holdout scenarios (all must-pass)**. All 4 new BCs (assess-priority,
@@ -348,7 +348,7 @@ require-review bypass guard) and **HS-029** (read-ticket SEC-001 prompt-injectio
 pass: 0
 step: "0f"
 status: phase-0-complete-remediated / awaiting-feature-request
-revision: "2.0 — onboarding + full drift remediation complete (PRs #11–#17; 13/14 DIs RESOLVED, DI-013 DEFERRED; BC 13→17; tests →165; holdouts →34)"
+revision: "2.1 — skill count corrected 19→20 (secops-health SKILL.md, PR #16 / DI-002; now 20 skills 1:1 with 20 commands). Base: 2.0 — onboarding + full drift remediation (PRs #11–#17; 13/14 DIs RESOLVED, DI-013 DEFERRED; BC 13→17; tests →165; holdouts →34)"
 files_synthesized: 13
 timestamp: 2026-07-19T00:00:00Z
 open_gate_decision:

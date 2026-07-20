@@ -1,12 +1,12 @@
 ---
 document_type: module-criticality
 level: ops
-version: "1.5"
+version: "1.6"
 status: active
 producer: formal-verifier
 timestamp: 2026-07-19T00:00:00Z
 traces_to: phase-0-ingestion/recovered-architecture.md
-input-hash: "997272b"
+input-hash: "b95829a"
 phase: "0e.5"
 project: secops-factory
 inputs:
@@ -22,7 +22,7 @@ critical: 1
 high: 12
 medium: 7
 low: 4
-submodule_census: "per-artifact: 43 modules — 2 CRITICAL / 16 HIGH / 20 MEDIUM / 5 LOW"
+submodule_census: "per-artifact: 43 modules — 2 CRITICAL / 16 HIGH / 21 MEDIUM / 4 LOW"
 version_history:
   - "1.0 (2026-07-19) — initial Step 0e.5 classification"
   - "1.1 (2026-07-19) — re-sync 1, post PR #13/#14 (ADV-0-004 census reconciliation, ADV-0-003 staleness, ADV-0-010 session-greeting numeric target)"
@@ -30,11 +30,12 @@ version_history:
   - "1.3 (2026-07-19) — re-sync 3 + pass-4 finalization, post adversarial passes 3–4 (ADV-0-301 kill-rate figure/anchor, ADV-0-302 6-hook scope; ADV-0-404 secops-health double-count, ADV-0-405 hook line refs verified, ADV-0-406 vga anchor, ADV-0-408 versioning); status → active (capstone-authoritative)"
   - "1.4 (2026-07-19) — re-issue post PR #15 (d304fa5), adversarial pass 9 (ADV-0-901, ADV-0-903): added SEC-009 (allowlist-precedence bypass, CRITICAL, RESOLVED PR #15) to the Resolved table and rewrote the require-review narrative to acknowledge the gate was fully bypassable until PR #15; replaced churned require-review.sh line-number citations with construct-name references; test count 138 → 150 (hooks 44 + skills 81 + integration 11 + parity 14)"
   - "1.5 (2026-07-19) — RESYNC_MERGED post PRs #16/#17 (HEAD d181ca2): DI-004/SM-1 RESOLVED (disposition-guard heading-anchored fix); DI-006 RESOLVED (CI pwsh install asserted); DI-005 assign/create BATS-verified (SM-2 now KILLED); test count 150 → 165 (hooks 44→59); Still-Open table updated; disposition-guard and investigate-event rationale rows updated; mutation targets summary updated"
+  - "1.6 (2026-07-19) — RESYNC_DI_PROPAGATE post PR #16: DI-002 RESOLVED (secops-health SKILL.md created, CI special-case removed); DI-011 RESOLVED (hooks.json JSON-Schema validation added); secops-health promoted from standalone LOW to MEDIUM skill; per-artifact derivation updated to 24 − 1 + 20 = 43; MEDIUM 20→21, LOW 5→4; SM-2 updated to KILLED (PR #17, was NEUTRALIZED PR #13)"
 ---
 
 # Module Criticality Classification — secops-factory v0.9.0
 
-> **Reconciliation note — re-issued 2026-07-19 (6th pass, RESYNC_MERGED post PRs #16/#17, HEAD d181ca2). Version 1.5, status active.**
+> **Reconciliation note — re-issued 2026-07-19 (7th pass, RESYNC_DI_PROPAGATE post PRs #16/#17, HEAD d181ca2). Version 1.6, status active.**
 > First re-sync (post PR #13 f450d9f / PR #14 0ec794a): census recounted to one
 > authoritative granularity (ADV-0-004); open items refreshed against merged fixes,
 > suite green (ADV-0-003); session-greeting numeric target stated (ADV-0-010).
@@ -83,7 +84,7 @@ is what the capstone must sync to. The finer per-artifact view is a secondary fi
 | Granularity | Count | CRITICAL | HIGH | MEDIUM | LOW | Notes |
 |-------------|-------|----------|------|--------|-----|-------|
 | **Authoritative — YAML component-map aggregate (C-1..C-24)** | **24** | **1** | **12** | **7** | **4** | update-jira is folded into the C-2 `skill-procedures` aggregate (HIGH), so only require-review (C-12) is CRITICAL at this level. Includes hook-manifests (C-18, HIGH) added in the pass-1 architecture reconciliation. |
-| Secondary — per-artifact / sub-module | 43 | 2 | 16 | 20 | 5 | Explodes C-2 into 19 skills; here update-jira surfaces as a distinct CRITICAL. |
+| Secondary — per-artifact / sub-module | 43 | 2 | 16 | 21 | 4 | Explodes C-2 into 20 skills (incl. secops-health); here update-jira surfaces as a distinct CRITICAL. |
 
 The earlier arithmetic mixed these two views (frontmatter counted 24 with a 2/12/7/5
 that summed to 26; the Distribution HIGH/MEDIUM rows quoted per-artifact members
@@ -145,7 +146,7 @@ corruption of the authoritative Jira record or of the user's `settings.local.jso
 | bias-check-reminder hook | `hooks/bias-check-reminder.{sh,ps1}` | **LOW** | ≥70% | Non-blocking PostToolUse advisory that injects a cognitive-bias reminder to stderr (BC-3.04.001); cannot corrupt state or block any operation. |
 | handoff-validator hook | `hooks/handoff-validator.{sh,ps1}` | **LOW** | ≥70% | SubagentStop hook — advisory only, structurally cannot block (per security audit); emits a "suspiciously short" note (BC-3.05.001). No enforcement blast radius. |
 | session-greeting hook | `hooks/session-greeting.{sh,ps1}` | **LOW** | **≥70% (numeric)** | Cosmetic SessionStart welcome banner, activation-gated, fail-open on corrupt config (BC-3.06.001). Purely presentational. **This effectful hook DOES carry a numeric input-partition target (≥70%)** — it is the 6th mutation-testable hook (see Mutation targets summary). |
-| hook manifests (C-18) | `hooks/hooks.json`, `hooks/hooks.json.windows` | **HIGH** | N/A (config) | Now a distinct Component-Map entry (**C-18**, added in the pass-1 architecture reconciliation). The event→handler wiring; a wrong matcher silently disables the CRITICAL require-review gate. `jq`-validated only, no schema check. High blast radius by de-wiring. |
+| hook manifests (C-18) | `hooks/hooks.json`, `hooks/hooks.json.windows` | **HIGH** | N/A (config) | Now a distinct Component-Map entry (**C-18**, added in the pass-1 architecture reconciliation). The event→handler wiring; a wrong matcher silently disables the CRITICAL require-review gate. **DI-011 RESOLVED (PR #16):** JSON Schema validation (`.github/schemas/hooks.schema.json`) added to CI; `jq`-validated AND schema-validated. High blast radius by de-wiring — now gated. |
 
 ### Vulnerability-pipeline skills (write to / gate the authoritative Jira record)
 
@@ -200,13 +201,13 @@ corruption of the authoritative Jira record or of the user's `settings.local.jso
 
 | Module | Path | Tier | Mut. target | Rationale |
 |--------|------|------|-------------|-----------|
-| command dispatch | `commands/*.md` | **LOW** | ≥70% | 20 thin slash-command stubs with no embedded logic ("Use the X skill"); pure dispatch/utility. |
+| command dispatch | `commands/*.md` | **LOW** | ≥70% | 20 thin slash-command stubs with no embedded logic ("Use the X skill"); pure dispatch/utility. All 20 commands now have a corresponding skill (DI-002 RESOLVED PR #16). |
 | research-cve skill | `skills/research-cve/SKILL.md` | **MEDIUM** | N/A (LLM) | Grounds severity via Perplexity/NVD/EPSS/KEV; errors are caught downstream by enrichment/review. |
 | read-ticket skill | `skills/read-ticket/SKILL.md` | **MEDIUM** | N/A (LLM) | Ingests Jira ticket bodies verbatim — the **SEC-001 prompt-injection entry point** (unsanitized external data). Simple ingest module; mitigation is defense-in-depth framing, tracked separately. Flag prominently despite MEDIUM tier. |
 | assess-priority / map-attack skills | `skills/{assess-priority,map-attack}/SKILL.md` | **MEDIUM** | N/A (LLM) | Business-logic sub-skills feeding enrichment; bounded, review-caught. |
 | advisory pipeline skills | `skills/{scan-threats,create-advisory,fact-verify}/SKILL.md` | **MEDIUM** | N/A (LLM) | Advisory drafting/verification; external-facing but reviewed, not on the Jira write path. |
 | metrics pipeline skills | `skills/{generate-metrics,analyze-ticket-effort,model-ticket-cost,extract-severity,verify-metrics-report}/SKILL.md` | **MEDIUM** | N/A (LLM) | Analytic reporting; `generate-metrics` is a hot file (recent churn). Wrong metrics mislead but do not corrupt the security record. |
-| secops-health command | `commands/secops-health.md` | **LOW** | ≥70% | Diagnostic-only, no backing skill (CI special-cases it). |
+| secops-health skill | `skills/secops-health/SKILL.md` | **MEDIUM** | N/A (LLM) | Diagnostic-only; backing SKILL.md added (PR #16) — **DI-002 RESOLVED**. CI special-case removed; now passes the "all commands reference existing skills" check. |
 | test suite + CI | `tests/*.bats`, `tests/run-all.sh`, `.github/workflows/*.yml` | **HIGH** | N/A (meta-gate) | The verification safety net and gate-of-gates. **DI-006 RESOLVED (PR #16):** `pwsh` install now asserted in `ci.yml`; 14/14 parity tests run in CI (no more silent skips). **SEC-005 RESOLVED (PR #13):** Semgrep early-exit addressed. Suite 165/165 green at HEAD d181ca2. |
 | jr CLI (external) | `github.com/Zious11/jira-cli` | **MEDIUM** | N/A (external) | The sole Jira write channel; out of our mutation scope but SEC-002 (fail-open interaction) and SEC-006 (unversioned) apply. |
 | Perplexity MCP (external) | `@perplexity-ai/mcp-server` | **MEDIUM** | N/A (external) | Recommended with graceful WebSearch/WebFetch fallback; functionally low-risk but SEC-003 (unpinned `npx -y`) is a supply-chain exposure. |
@@ -227,33 +228,31 @@ corruption of the authoritative Jira record or of the user's `settings.local.jso
 
 ### Secondary — per-artifact / sub-module granularity, total 43
 
-**Derivation (explicit, ADV-0-404):** start from the 24 aggregate components →
-**remove** the C-2 `skill-procedures` aggregate (−1 = 23) → **add** its 19 individual
-skills (+19 = 42) → **promote** `secops-health` (a command file with no backing skill)
-out of the C-1 command-stub bundle into its own distinct LOW module (+1 = **43**).
-Because secops-health is carved out, the C-1 command-dispatch entry is relabelled
-**"19 stubs"** (the 20 command files = 19 stubs + secops-health) so it is not
-double-counted. update-jira surfaces here as a distinct CRITICAL skill; hook-manifests
-is already its own component (C-18) in the aggregate view, so it does not add to the
-delta. `24 − 1 + 19 + 1 = 43` ✓.
+**Derivation (updated, RESYNC_DI_PROPAGATE):** start from the 24 aggregate components →
+**remove** the C-2 `skill-procedures` aggregate (−1 = 23) → **add** its 20 individual
+skills (+20 = **43**), secops-health now included as a standard MEDIUM skill (PR #16
+added `skills/secops-health/SKILL.md`). The C-1 command-dispatch entry covers all
+**20 stubs** (no carve-out needed). update-jira surfaces here as a distinct CRITICAL
+skill; hook-manifests is already its own component (C-18) in the aggregate view.
+`24 − 1 + 20 = 43` ✓.
 
 | Tier | Count | Members |
 |------|-------|---------|
 | CRITICAL | **2** | require-review hook; update-jira skill |
 | HIGH | **16** | enrichment-completeness hook; disposition-guard hook; hook-manifests (C-18); enrich-ticket; review-enrichment; adversarial-review-secops; investigate-event; activate; orchestrator (Morgan); enrichment-workflow; investigation-workflow; review-convergence; security-analyst; security-reviewer; data KBs; test-suite+CI |
-| MEDIUM | **20** | deactivate; research-cve; read-ticket; assess-priority; map-attack; scan-threats; create-advisory; fact-verify; generate-metrics; analyze-ticket-effort; model-ticket-cost; extract-severity; verify-metrics-report; metrics-analyst; osint-researcher; advisory-writer; templates; checklists; jr CLI; Perplexity MCP |
-| LOW | **5** | bias-check-reminder hook; handoff-validator hook; session-greeting hook; command dispatch (19 stubs — secops-health carved out); secops-health (promoted, no backing skill) |
-| **Total** | **43** | 2 + 16 + 20 + 5 = 43 ✓ |
+| MEDIUM | **21** | deactivate; research-cve; read-ticket; assess-priority; map-attack; scan-threats; create-advisory; fact-verify; generate-metrics; analyze-ticket-effort; model-ticket-cost; extract-severity; verify-metrics-report; metrics-analyst; osint-researcher; advisory-writer; templates; checklists; jr CLI; Perplexity MCP; secops-health skill |
+| LOW | **4** | bias-check-reminder hook; handoff-validator hook; session-greeting hook; command dispatch (20 stubs) |
+| **Total** | **43** | 2 + 16 + 21 + 4 = 43 ✓ |
 
 > The **authoritative** figure the capstone must sync to is **24 modules — 1 CRITICAL /
 > 12 HIGH / 7 MEDIUM / 4 LOW** (frontmatter). The per-artifact 43-module figure is a
 > secondary breakdown showing the finer granularity used in the ranking tables above.
 
-## Open-item impact on effective assurance (re-issued post PR #13/#14/#15)
+## Open-item impact on effective assurance (re-issued post PR #13/#14/#15/#16/#17)
 
-### Resolved — no longer degrade tier assurance (verified against merged code, suite 150/150)
+### Resolved — no longer degrade tier assurance (verified against merged code, suite 165/165)
 
-> **Reference convention (pass 9):** hook citations below use **construct names**
+> **Reference convention (pass 9/10):** hook citations below use **construct names**
 > (the write-block if-block / the fail-closed catch-all / the specific write-verb
 > patterns), not `require-review.sh:NN` line numbers — line numbers churned and
 > inverted across PR #13/#14/#15 and are no longer stable anchors.
@@ -262,7 +261,7 @@ delta. `24 − 1 + 19 + 1 = 43` ✓.
 |------|--------|-----------|
 | SEC-001 | require-review (CRITICAL), update-jira (skill CRITICAL) | **RESOLVED (PR #13, f450d9f).** `jr issue comment` moved into the write-block if-block — the injection route to the authoritative record via comments is hard-gated. Red-first BATS vector added. (Residual defense-in-depth: read-ticket system-prompt framing of untrusted ticket content is still advisable but not blocking.) Note: this fix was silently **defeated by the SEC-009 precedence bypass until PR #15** — see SEC-009 below. |
 | SEC-002 / SM-3 / GAP-2 (fail-open) | require-review (CRITICAL) | **RESOLVED (PR #13).** The unrecognized-subcommand path changed from allow to deny — verified at the **fail-closed catch-all** (the terminal `emit_deny` after the read-only allowlist). SM-3 killed. |
-| SM-2 (assign/create) | require-review (CRITICAL) | **NEUTRALIZED (PR #13).** assign/create remain explicitly denied by the **write-block if-block's `jr issue assign` / `jr issue create` patterns**, and the fail-closed catch-all makes the "delete assign/create from blocklist" mutant behaviorally inert (still denied). Residual: a dedicated assign/create partition test is nice-to-have, not load-bearing. |
+| SM-2 (assign/create) | require-review (CRITICAL) | **KILLED (PR #17, d181ca2).** assign/create explicitly denied by the write-block if-block's `jr issue assign` / `jr issue create` patterns; dedicated BATS tests added (hooks.bats:426/:433) verify the deny paths directly. The "delete assign/create from blocklist" mutant is now **KILLED** — both code and BATS. (Was NEUTRALIZED by fail-closed catch-all after PR #13; PR #17 upgraded to fully KILLED.) |
 | SEC-003 | Perplexity MCP / jr CLI (MEDIUM) | **RESOLVED (PR #13).** MCP server versions pinned in `docs/mcp.json.example` (perplexity 0.9.0, playwright 0.0.78). |
 | SEC-004 | test-suite + CI (HIGH) | **RESOLVED (PR #13).** release.yml permission scoping addressed under the SEC-001..005 fix set. |
 | SEC-005 | test-suite + CI (HIGH) | **RESOLVED (PR #13).** Semgrep early-exit addressed under the SEC-001..005 fix set. |
@@ -271,15 +270,16 @@ delta. `24 − 1 + 19 + 1 = 43` ✓.
 | **DI-004 / SM-1 / GAP-1** (disposition-guard substring false-pass) | disposition-guard (HIGH) | **RESOLVED (PR #17, d181ca2).** `disposition-guard.sh` now uses heading-anchored `grep -qiE "^#{1,6}[[:space:]]+Alternatives Considered"` instead of bare `grep -qiF`. Body-text negation phrases (e.g., "No Alternatives Considered were required") no longer falsely satisfy the anti-confirmation-bias gate. SM-1 **KILLED**. New BATS: hooks.bats:323 (body-text denies) and :330 (heading-form allows). BC-3.03.001 bumped to v1.5. |
 | **DI-006 / GAP-3** (parity tests silently skip without pwsh) | test-suite + CI (HIGH) | **RESOLVED (PR #16, d181ca2).** `ci.yml` now installs and asserts `pwsh`; 14/14 parity tests run in CI with no conditional skips. False-pass risk for `.ps1` hooks eliminated. |
 | **DI-014** (enrichment-completeness unanchored section check) | enrichment-completeness (HIGH) | **RESOLVED (PR #17, d181ca2).** Same heading-anchor sweep as DI-004: `enrichment-completeness.sh` section checks now use `grep -qiE "^#{1,6}[[:space:]]+${section}"`. Body text mentioning a section name no longer falsely passes. 9 new BATS tests (hooks.bats:340-402). BC-3.02.001 bumped to v1.6. |
+| **DI-011 / GAP** (hooks.json schema) | hook-manifests (HIGH) | **RESOLVED (PR #16, d181ca2).** JSON Schema file `.github/schemas/hooks.schema.json` added; CI validates `hooks.json` against the schema on every push. A wrong matcher now fails validation before reaching the CRITICAL require-review gate. |
+| **DI-002** (secops-health missing skill) | command-dispatch / secops-health (LOW→MEDIUM) | **RESOLVED (PR #16, d181ca2).** `plugins/secops-factory/skills/secops-health/SKILL.md` added; CI special-case (excluded from "all commands reference existing skills" check) removed. secops-health is now a standard MEDIUM skill in the C-2 aggregate. |
 
 ### Still open — effective assurance below tier until remediated (verified still present)
 
 | Item | Module | Effect |
 |------|--------|--------|
-| DI-011 / GAP (hooks.json schema) | hook-manifests (HIGH) | **OPEN.** `hooks.json` is `jq`-validated in CI but has no schema — a wrong matcher silently de-wires the CRITICAL require-review gate without breaking validation. Tracked separately; no structural fix merged yet. |
 | DI-013 (jr issue comment override) | require-review (CRITICAL) | **DEFERRED to Feature Mode.** `jr issue comment` is unconditionally denied; no marker-based override exists. The only unblock path is human permission-approval (Claude Code dialog). Mechanism decision deferred to Feature Mode story; no code change pending. |
 
-> All major high-severity open items from v1.4 are now RESOLVED: DI-004/SM-1 (PR #17), DI-006 (PR #16), DI-005/SM-2 (PR #17), DI-014 (PR #17). See Resolved table above.
+> All major high-severity open items from v1.4 and v1.5 are now RESOLVED: DI-004/SM-1 (PR #17), DI-006 (PR #16), DI-005/SM-2 (PR #17), DI-014 (PR #17), DI-011 (PR #16), DI-002 (PR #16). Only DI-013 remains open (deferred). See Resolved table above.
 
 ## Mutation / verification targets summary
 
@@ -313,7 +313,7 @@ is the sole path to the authoritative Jira record.
 - [x] Every module in the Component Map (C-1..C-24) has a criticality classification
 - [x] Each classification cites evidence from behavioral contracts / gap analysis / security audit / discovery
 - [x] Component Map YAML `criticality` fields updated in `recovered-architecture.md` to match (C-1..C-24, incl. C-18 hook-manifests)
-- [x] Known open items re-synced post PRs #13/#14/#15/#16/#17: SEC-001..005 resolved; SM-2/SM-3/SM-1/SM-4 KILLED; DI-004, DI-006, DI-014 RESOLVED; DI-005 assign/create BATS-verified; DI-011 and DI-013 remain open (tracked separately)
+- [x] Known open items re-synced post PRs #13/#14/#15/#16/#17: SEC-001..005 resolved; SM-2/SM-3/SM-1/SM-4 KILLED; DI-002, DI-004, DI-005, DI-006, DI-011, DI-014 RESOLVED; only DI-013 remains open (deferred to Feature Mode)
 - [x] Census reconciled to one authoritative granularity (24 aggregate: 1/12/7/4) with a secondary per-artifact figure (43: 2/16/20/5); frontmatter + Distribution + tier rows all sum
 - [x] session-greeting numeric mutation target (≥70%) stated unambiguously (6-hook target set)
 - [x] C-IDs realigned to pass-1 architecture reconciliation (hook-manifests = C-18); require-review ≥95% restated as not-yet-demonstrated

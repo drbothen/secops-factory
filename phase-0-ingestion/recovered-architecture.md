@@ -27,7 +27,9 @@
 > - **DI-014 RESOLVED (PR #17):** enrichment-completeness heading-anchored section check merged; same idiom as DI-004 eliminated from both enrichment and investigation branches. BC-3.02.001 bumped to v1.6.
 > - **DI-005 RESOLVED (PR #17):** `jr issue assign` and `jr issue create` deny paths now BATS-verified (new tests hooks.bats:426, :433). BC-3.01.001 bumped to v1.10.
 > - **DI-006 RESOLVED (PR #16):** CI hardening — `pwsh` install asserted in `ci.yml`; parity tests no longer silently skip. 14/14 parity tests now run in CI.
-> - **DI-002/DI-003/DI-007/DI-011/DI-012 status:** DI-002 (SEC-003 mcp pinning), DI-003 (accepted-by-design skill→playbook edge), DI-007 (heading-anchor fix targets), DI-011 (hooks.json jq-only validation — tracked separately), DI-012 (HIGH-module BC coverage — pending human decision). These were at their prior status pre-RESYNC; see project-context.md §8 for the authoritative DI registry.
+> - **DI-002 RESOLVED (PR #16):** `plugins/secops-factory/skills/secops-health/SKILL.md` added; CI special-case (excluded from "all commands reference existing skills" check) removed. All 20 commands now have a backing skill.
+ - **DI-011 RESOLVED (PR #16):** `.github/schemas/hooks.schema.json` added; CI validates `hooks.json` against the schema on every push. Hardening gap closed.
+ - **DI-003/DI-007/DI-012 status:** DI-003 (accepted-by-design skill→playbook edge), DI-007 (heading-anchor fix targets — RESOLVED by DI-004/DI-014 fixes), DI-012 (HIGH-module BC coverage — pending human decision). See project-context.md §8 for the authoritative DI registry.
 > - **DI-013 DEFERRED to Feature Mode:** `jr issue comment` unconditional deny — no marker-based override; override mechanism requires human decision and Feature Mode story.
 > - **Test count:** 150 → **165** (hooks 44→**59**, skills 81, integration 11, parity 14). Suite 165/165 green at HEAD d181ca2.
 > - **BC count:** 13 → **17** (4 new BCs: BC-4.05, BC-4.06, BC-7.01, BC-8.01 added post-ingestion).
@@ -63,7 +65,7 @@ advisory-writer. Three canonical workflow playbooks live alongside the orchestra
 | # | Component | Path | Layer | Purpose |
 |---|-----------|------|-------|---------|
 | C-1 | Command dispatch layer | `commands/*.md` (20 files) | Dispatch | Thin slash-command stubs that delegate to same-name skills |
-| C-2 | Skill procedures | `skills/<name>/SKILL.md` (19 dirs) | Procedure | Staged workflows with Iron Laws, Red Flags, template/data refs |
+| C-2 | Skill procedures | `skills/<name>/SKILL.md` (20 dirs) | Procedure | Staged workflows with Iron Laws, Red Flags, template/data refs |
 | C-3 | Orchestrator agent (Morgan) | `agents/orchestrator/orchestrator.md` | Orchestration | SOC companion; session routing, pipeline tracking, quality-gate enforcement |
 | C-4 | Enrichment workflow | `agents/orchestrator/enrichment-workflow.md` | Orchestration | 8-stage CVE enrichment playbook (canonical source) |
 | C-5 | Investigation workflow | `agents/orchestrator/investigation-workflow.md` | Orchestration | 7-stage event investigation playbook (canonical source) |
@@ -119,7 +121,7 @@ components:
     purity: "mixed"
     criticality: "HIGH"
     dependencies: ["C-6", "C-7", "C-8", "C-9", "C-10", "C-11", "C-19", "C-20", "C-21", "C-23", "C-24"]
-    interfaces_provided: ["19 SKILL.md procedure files with staged workflows, Iron Laws, Red Flag tables"]
+    interfaces_provided: ["20 SKILL.md procedure files with staged workflows, Iron Laws, Red Flag tables"]
     interfaces_consumed: ["data/ KBs via ${CLAUDE_PLUGIN_ROOT} path", "templates/ schemas", "checklists/ quality gates", "jr CLI via Bash", "Perplexity MCP tools"]
     confidence: "high"
     notes: "C-3 (orchestrator) is NOT a dependency of skill-procedures — the orchestrator dispatches skills at runtime. C-2→C-3 was a back-edge forming a cycle; removed per ADV-0-303. adversarial-review-secops (within C-2) statically references review-convergence-workflow.md (C-6) per DI-003 — C-6 has been added to C-2.dependencies per ADV-0-407. Manually verified acyclic (edge-by-edge reasoning; no DFS tool was run): C-2→C-6→C-8→{C-19,C-21,C-24}, no path back to C-2."
@@ -301,7 +303,7 @@ components:
     interfaces_provided: ["Claude Code hook event routing: wires SessionStart/PreToolUse/PostToolUse/SubagentStop events to handler scripts; cross-platform variants (.json for macOS/Linux, .json.windows for Windows)"]
     interfaces_consumed: ["Claude Code runtime (reads hooks.json at session start)"]
     confidence: "high"
-    notes: "A wrong matcher silently de-wires the CRITICAL require-review gate; jq-validated in CI but no schema — hardening gap cited as DI-011 (DI-009 resolved by adding this entry)"
+    notes: "A wrong matcher silently de-wires the CRITICAL require-review gate; jq-validated in CI AND schema-validated against .github/schemas/hooks.schema.json (PR #16) — DI-011 RESOLVED"
 
   - id: C-19
     name: "knowledge-bases"
@@ -575,7 +577,7 @@ Advisory Creation:
 
 | Smell | Location | Severity | Description |
 |-------|----------|----------|-------------|
-| Missing skill for secops-health command | `commands/secops-health.md` — no `skills/secops-health/` | LOW | CI special-cases this command (excluded from the "all commands reference existing skills" check). Low risk: it's a diagnostic command, but it lacks the standard skill structure. |
+| ~~Missing skill for secops-health command~~ | `commands/secops-health.md` | LOW | **RESOLVED (PR #16, DI-002).** `skills/secops-health/SKILL.md` added; CI special-case removed. All 20 commands now reference an existing skill. |
 | Skill references orchestrator canonical source | `skills/adversarial-review-secops/SKILL.md` line: "If the two disagree, the orchestrator file wins" | LOW — **ACCEPTED-BY-DESIGN (DI-003, 2026-07-19)** | The skill procedure layer directly invokes the orchestration layer's canonical playbook (`review-convergence-workflow.md` via C-2→C-6 edge). **Rationale for acceptance:** this is a deliberate single-source-of-truth governance decision: the convergence playbook lives in the orchestrator layer (C-6) and the adversarial-review skill references it explicitly so that if the two ever diverge, the orchestrator file wins. This eliminates copy-drift between the skill and the canonical procedure. The C-2→C-6 dependency edge is explicitly documented in the YAML component map (ADV-0-407) and verified as acyclic (no path from C-6 back to C-2). The alternative — duplicating the convergence procedure inside the skill — would create a maintenance burden and the exact version-drift problem the reference is designed to prevent. Not a defect; pattern is intentional and documented. |
 | enrich-ticket acts as a mini-orchestrator | `skills/enrich-ticket/SKILL.md` | LOW | This skill dispatches 4 sub-skills (research-cve, map-attack, assess-priority, read-ticket) rather than delegating to the orchestrator. Duplicates some orchestration responsibility. |
 | Very large knowledge base files | `data/event-investigation-best-practices.md` (~3027 lines) | LOW | Agents document a chunked-read workaround (500 lines/chunk), meaning this file is too large for a single context load. Not a structural defect but an operational constraint. |

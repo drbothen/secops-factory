@@ -4,7 +4,7 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-20T00:00:00Z
+timestamp: 2026-07-20T01:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
@@ -88,6 +88,7 @@ dtu_required: false
 | 0f-post: consistency validation | consistency-validator | DONE | `.factory/phase-0-ingestion/validation-report.md` — CONSISTENCY_VALIDATION: PASS (clean). All 10 schema-compliance checks passed. 5 minor frontmatter deviations resolved (F-6a/6b: holdout filename convention + empty input-hash documented; F-7a: module-criticality.md frontmatter aligned; F-9a: security-audit.md frontmatter aligned; F-10a: project-context.md frontmatter aligned). 1 conditional pass (DI-012: 9 HIGH modules without BCs — PENDING HUMAN DECISION). Phase 0 artifact set structurally ready for Feature Mode. |
 | input-drift check | state-manager | DONE | `compute-input-hash --scan . --update` — PASS. Final: TOTAL=41 MATCH=40 STALE=0 UNCOMPUTED=0 NOINPUT=1. 13 BC hashes bumped (benign drift); 27 holdout/module-criticality hashes populated. |
 | phase-0 drift remediation | devops-engineer + codebase-analyzer | DONE | PRs #16 + #17 merged to main (HEAD d181ca2). PR #16: CI pwsh+PSScriptAnalyzer+schema+secops-health; surfaced+fixed 2 empty-catch silent failures. PR #17: hooks heading-anchored soundness + coverage. Suite 129→165 tests. Specs: 13→17 BCs (4 new: BC-4.05/4.06/7.01/8.01 — advisory-pipeline + metrics-pipeline subsystems). Holdouts 26→34 (8 new: analyze-ticket-effort×2, assess-priority×2, create-advisory×2, read-ticket×2; all must-pass; HS-029 injection guard; HS-014 promoted must-pass). SM-1 killed, SM-2 killed. DI register: 13 RESOLVED, DI-013 DEFERRED (human-approved), 0 open. |
+| phase-0-remediation adv (scoped delta) | adversary + remediation | DONE | Scoped delta ADV-R pass: 2 majors found + remediated. ADV-R-01: DI-002/DI-011 resolution not propagated to capstone/shards (skill count 19 in capstone, C-2 skill-dirs count stale, C-18 JSON-Schema note absent). ADV-R-02: census distribution wrong post-DI-002 close (secops-health now a full skill — 19→20 skills, distribution 2/16/21/4=43). Shard edits: project-context.md v2.1, module-criticality.md v1.6, recovered-architecture.md RESYNC. Input-drift post-edits: TOTAL=53 MATCH=52 STALE=0 (3-pass cascade). Re-verifying delta. |
 
 ## Decisions Log
 
@@ -138,8 +139,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 post-gate — drift remediation DONE; at phase-0-remediation-adversarial-review (scoped pass on deltas) |
-| **Context** | Drift remediation complete: PRs #16+#17 merged (main HEAD d181ca2), suite 129→165 tests, 13→17 BCs, 26→34 holdouts, SM-1/SM-2 killed. DI register closed: 13 RESOLVED, DI-013 DEFERRED (human-approved), 0 open. Input-drift: TOTAL=53 MATCH=52 STALE=0. Remediation-scoped adversarial pass dispatched (delta review: 4 new BCs + 8 new holdouts + PR#16/17 spec changes). |
+| **Position** | Phase 0 post-gate — scoped delta ADV-R remediated; re-verifying delta |
+| **Context** | ADV-R scoped pass found 2 majors (DI-002/011 non-propagation + census 19→20 skills). Both remediated: project-context.md v2.1 (20 skills, census 2/16/21/4=43), module-criticality.md v1.6 (distribution corrected, SM-2 KILLED confirmed), recovered-architecture.md RESYNC (C-2 20 dirs, C-18 schema-validated, secops-health smell resolved). DI register final: 13 RESOLVED / 1 DEFERRED (DI-013) / 0 open. Input-drift STALE=0 (TOTAL=53 MATCH=52). |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

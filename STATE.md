@@ -4,7 +4,7 @@ level: ops
 version: "2.0"
 status: active
 producer: state-manager
-timestamp: 2026-07-20T02:00:00Z
+timestamp: 2026-07-20T03:00:00Z
 phase: 0
 inputs: []
 input-hash: "[live-state]"
@@ -89,7 +89,8 @@ dtu_required: false
 | input-drift check | state-manager | DONE | `compute-input-hash --scan . --update` — PASS. Final: TOTAL=41 MATCH=40 STALE=0 UNCOMPUTED=0 NOINPUT=1. 13 BC hashes bumped (benign drift); 27 holdout/module-criticality hashes populated. |
 | phase-0 drift remediation | devops-engineer + codebase-analyzer | DONE | PRs #16 + #17 merged to main (HEAD d181ca2). PR #16: CI pwsh+PSScriptAnalyzer+schema+secops-health; surfaced+fixed 2 empty-catch silent failures. PR #17: hooks heading-anchored soundness + coverage. Suite 129→165 tests. Specs: 13→17 BCs (4 new: BC-4.05/4.06/7.01/8.01 — advisory-pipeline + metrics-pipeline subsystems). Holdouts 26→34 (8 new: analyze-ticket-effort×2, assess-priority×2, create-advisory×2, read-ticket×2; all must-pass; HS-029 injection guard; HS-014 promoted must-pass). SM-1 killed, SM-2 killed. DI register: 13 RESOLVED, DI-013 DEFERRED (human-approved), 0 open. |
 | phase-0-remediation adv round 1 (delta) | adversary + remediation | DONE | Scoped delta ADV-R pass: 2 majors found + remediated. ADV-R-01: DI-002/DI-011 resolution not propagated (skill count 19 stale, C-2/C-18 shards). ADV-R-02: census distribution wrong (2/16/21/4=43, not 2/12/7/4). Shard edits: project-context.md v2.1, module-criticality.md v1.6, recovered-architecture.md RESYNC. Re-verifying. |
-| phase-0-remediation adv round 2 (sweep) | adversary + remediation | DONE | Second-order sweep ADV-R2: 6 findings (0C/4M/2m), all second-order propagation residue of 19→20/secops-health promotion. M1: residual "19 skills" in recovered-architecture.md layer diagram. M2: conventions.md 19→20 + 6 secops-health refs resolved. M3: project-discovery.md 20 skills. M4: vga frozen at 150/13 — re-issued 165/17 (4 new BC coverage rows, SM-1 KILLED, kill-rate ~90-95%, zero open HIGH mutants). m1: project-context.md v2.2 distribution 2/16/21/4 in QG. m2: HS-INDEX.md v1.6 SM-2 KILLED marker + HS-014 v1.5 cite. All remediated via coordinated 6-file grep-sweep. Input-drift: TOTAL=53 MATCH=52 STALE=0 (3-pass cascade). Re-verifying delta round 3. |
+| phase-0-remediation adv round 2 (sweep) | adversary + remediation | DONE | Second-order sweep ADV-R2: 6 findings (0C/4M/2m), all second-order propagation residue of 19→20/secops-health promotion. M1: arch layer diagram 19→20. M2: conventions.md 19→20 + 6 refs. M3: project-discovery.md 20 skills. M4: vga re-issued 165/17 (SM-1 KILLED, kill-rate ~90-95%). m1: capstone QG distribution 2/16/21/4. m2: HS-INDEX SM-2 KILLED + HS-014 v1.5. Input-drift: STALE=0 (3-pass). |
+| phase-0-remediation adv round 3 (consumer-sync) | adversary + remediation | DONE | Third-order consumer-sync ADV-R3: 3 findings (0C/2M/1m) + 2 obs — all consumer-sync residue of vga/kill-rate update not propagating to capstone/module-criticality/recovered-architecture. M1: kill-rate ~90-95% not in project-context.md v2.2 (→v2.3) + HS-INDEX v1.6 cite missing. M2: kill-rate ~90-95% + DI-012 RESOLVED not in module-criticality.md + DI-012 register. m1: recovered-architecture.md DI-012 RESOLVED status. obs: vga SM-2 KILLED wording aligned; conventions secops-health path typo ×3 fixed. All remediated. Kill-rate trajectory uniform: 55-65%→75-80%→90-95%, SM-1/SM-2 KILLED, zero open HIGH mutant. Input-drift: TOTAL=53 MATCH=52 STALE=0 (3-pass). Drift register unchanged: 13 RESOLVED / 1 DEFERRED / 0 open. current_step → delta pass 4. |
 
 ## Decisions Log
 
@@ -140,8 +141,8 @@ dtu_required: false
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-19 |
-| **Position** | Phase 0 post-gate — ADV-R2 second-order sweep remediated; re-verifying round 3 |
-| **Context** | ADV-R2 found 6 second-order findings (0C/4M/2m), all propagation residue of 19→20 skill promotion: arch layer diagram, conventions, discovery, vga (re-issued 165/17 SM-1 KILLED kill-rate ~90-95%), capstone QG distribution, HS-INDEX SM-2/HS-014 cite. All remediated. vga final: 165 tests / 17 BCs / zero open HIGH mutants. DI register: 13 RESOLVED / 1 DEFERRED (DI-013) / 0 open. Input-drift STALE=0 (TOTAL=53 MATCH=52). |
+| **Position** | Phase 0 post-gate — ADV-R3 consumer-sync remediated; at delta pass 4 |
+| **Context** | ADV-R3 found 3 findings (0C/2M/1m) + 2 obs, all consumer-sync residue: kill-rate ~90-95% + DI-012 RESOLVED not propagated to capstone/module-criticality/recovered-architecture; conventions secops-health path typo ×3. All remediated: project-context.md v2.3, module-criticality.md (kill-rate + DI-012 register), recovered-architecture.md (DI-012 RESOLVED). Kill-rate trajectory uniform (55-65%→75-80%→90-95%). DI register: 13 RESOLVED / 1 DEFERRED (DI-013) / 0 open. Input-drift STALE=0 (TOTAL=53 MATCH=52). |
 | **Convergence counter** | n/a (Phase 0) |
 
 ## Historical Content

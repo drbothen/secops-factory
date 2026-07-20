@@ -1,7 +1,7 @@
 ---
 document_type: project-context
 level: ops
-version: "2.2"
+version: "2.3"
 status: phase-0-complete-remediated / awaiting-feature-request
 producer: codebase-analyzer
 timestamp: 2026-07-19T00:00:00Z
@@ -200,9 +200,10 @@ existence, and agent frontmatter/tool constraints, but **no executable check con
 their preconditions/postconditions/invariants at runtime** (that is LLM behavior). Structural gates catch
 deletion/drift but are not behavioral verification of the Iron Laws.
 
-Manual mutation probe against the **6-hook mutation-testable set**: aggregate kill-rate **~75–80%** at the
-last measured baseline (verification-gap-analysis.md §Mutation Testing Baseline ~line 194). **Post-remediation
-mutant status — all previously-surviving enforcement mutants CLOSED:** SM-1 (disposition-guard false-pass)
+Manual mutation probe against the **6-hook mutation-testable set**: aggregate kill-rate **~90–95%
+(post-PR-17)** — verification-gap-analysis.md §Mutation Testing Baseline → post-PR-17 kill-rate; the earlier
+**~75–80% was the post-PR-15 figure, now superseded**. **Post-remediation mutant status — all
+previously-surviving enforcement mutants CLOSED:** SM-1 (disposition-guard false-pass)
 KILLED (PR #17, DI-004); SM-2 (assign/create) KILLED (PR #17, DI-005); SM-3/SM-3b (fail-open + SEC-009
 precedence) resolved (PR #13/#15); SM-4 enrichment investigation branch + handoff 39/40 boundary covered
 (PR #17, DI-007); SM-8 killed; only SM-8b (session-greeting `jq`-fallback, LOW) remains. **Even so, the
@@ -312,7 +313,7 @@ are STRUCTURAL-ONLY. **All 13 remediable drift items are RESOLVED; DI-013 is a h
 
 ## 12. Holdout Reference (index only — DO NOT load details)
 
-**34** regression-baseline scenarios (epic **BROWNFIELD-REGRESSION**, HS-INDEX **v1.5**), HS-001..HS-034 —
+**34** regression-baseline scenarios (epic **BROWNFIELD-REGRESSION**, HS-INDEX **v1.6**), HS-001..HS-034 —
 **all must-pass, 0 fix-targets** (HS-014 was promoted to must-pass once the DI-004 heading-anchored fix
 landed in PR #17). Coverage extended to the 4 new BCs; notable additions include **HS-026** (SEC-009
 require-review bypass guard) and **HS-029** (read-ticket SEC-001 prompt-injection guard). **Holdout-protected**
@@ -349,7 +350,7 @@ require-review bypass guard) and **HS-029** (read-ticket SEC-001 prompt-injectio
 pass: 0
 step: "0f"
 status: phase-0-complete-remediated / awaiting-feature-request
-revision: "2.2 — per-artifact distribution corrected to 2/16/21/4 (secops-health promoted LOW→MEDIUM, module-criticality v1.6). 2.1 — skill count 19→20 (secops-health SKILL.md, PR #16 / DI-002). 2.0 — onboarding + full drift remediation (PRs #11–#17; 13/14 DIs RESOLVED, DI-013 DEFERRED; BC 13→17; tests →165; holdouts →34)"
+revision: "2.3 — mutation kill-rate updated to ~90–95% post-PR-17 (~75–80% was post-PR-15, superseded); HS-INDEX v1.6. 2.2 — per-artifact distribution corrected to 2/16/21/4 (secops-health promoted LOW→MEDIUM, module-criticality v1.6). 2.1 — skill count 19→20 (secops-health SKILL.md, PR #16 / DI-002). 2.0 — onboarding + full drift remediation (PRs #11–#17; 13/14 DIs RESOLVED, DI-013 DEFERRED; BC 13→17; tests →165; holdouts →34)"
 files_synthesized: 13
 timestamp: 2026-07-19T00:00:00Z
 open_gate_decision:

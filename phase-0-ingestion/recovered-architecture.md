@@ -29,12 +29,14 @@
 > - **DI-006 RESOLVED (PR #16):** CI hardening — `pwsh` install asserted in `ci.yml`; parity tests no longer silently skip. 14/14 parity tests now run in CI.
 > - **DI-002 RESOLVED (PR #16):** `plugins/secops-factory/skills/secops-health/SKILL.md` added; CI special-case (excluded from "all commands reference existing skills" check) removed. All 20 commands now have a backing skill.
  - **DI-011 RESOLVED (PR #16):** `.github/schemas/hooks.schema.json` added; CI validates `hooks.json` against the schema on every push. Hardening gap closed.
- - **DI-003/DI-007/DI-012 status:** DI-003 (accepted-by-design skill→playbook edge), DI-007 (heading-anchor fix targets — RESOLVED by DI-004/DI-014 fixes), DI-012 (HIGH-module BC coverage — pending human decision). See project-context.md §8 for the authoritative DI registry.
+ - **DI-012 RESOLVED (Stream D):** 3 Iron-Law skills without BCs (assess-priority/create-advisory/analyze-ticket-effort) + read-ticket uncontracted — resolved by Stream D adding 4 new BCs: BC-4.05/4.06/7.01/8.01. BC count 13→17 (recorded on changelog line above). DI register: **13 RESOLVED / 1 DEFERRED (DI-013) / 0 open**.
+ - **ADV-R3-02:** DI-003 accepted-by-design (skill→playbook edge); DI-007 RESOLVED (heading-anchor fixes via DI-004/DI-014). See project-context.md §8 for the authoritative DI registry.
 > - **DI-013 DEFERRED to Feature Mode:** `jr issue comment` unconditional deny — no marker-based override; override mechanism requires human decision and Feature Mode story.
 > - **Test count:** 150 → **165** (hooks 44→**59**, skills 81, integration 11, parity 14). Suite 165/165 green at HEAD d181ca2.
 > - **BC count:** 13 → **17** (4 new BCs: BC-4.05, BC-4.06, BC-7.01, BC-8.01 added post-ingestion).
 > - **SM-1 KILLED:** disposition-guard substring false-pass mutant eliminated by PR #17 heading-anchored fix.
  - **ADV-R2-01:** Layer diagram PROCEDURE LAYER box corrected: "19 skills" → "20 skills" (matches C-2 row and YAML interfaces_provided).
+ - **ADV-R3-02:** DI-012 corrected from "pending human decision" to RESOLVED (Stream D 4 new BCs BC-4.05/4.06/7.01/8.01). DI register: 13 RESOLVED / 1 DEFERRED (DI-013) / 0 open.
 
 ---
 

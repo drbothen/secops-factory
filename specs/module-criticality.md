@@ -6,7 +6,7 @@ status: active
 producer: formal-verifier
 timestamp: 2026-07-19T00:00:00Z
 traces_to: phase-0-ingestion/recovered-architecture.md
-input-hash: "e5e92b6"
+input-hash: "d70e350"
 phase: "0e.5"
 project: secops-factory
 inputs:

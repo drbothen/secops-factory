@@ -7,7 +7,7 @@ producer: architect
 timestamp: 2026-07-19T00:00:00
 phase: 0d
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/handoff-validator.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: "f7df89f"
+input-hash: "521afb5"
   4cd4245b0a60683b59f6d8130be7331b8571083ed8c47fab107d485a86c6ee43  plugins/secops-factory/hooks/handoff-validator.sh
   210f921cd1f15bc36056518dd42889bbc2a6ca5d31e984f464c5519048eb7eb8  plugins/secops-factory/hooks/handoff-validator.ps1
 traces_to: phase-0-ingestion/recovered-architecture.md

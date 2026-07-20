@@ -1,0 +1,100 @@
+# affected-files.txt
+# Machine-readable delta inventory for v0.10.0-feature-prism-integration
+# Format: <CLASSIFICATION>: <path-from-repo-root>
+# Generated: 2026-07-19 | Phase F1 | Source: delta-analysis.md §2
+
+# ── NEW: Plugin skills and commands (4 pairs × 2 files = 8 files) ─────────
+NEW: plugins/secops-factory/skills/onboard-customer/SKILL.md
+NEW: plugins/secops-factory/commands/onboard-customer.md
+NEW: plugins/secops-factory/skills/onboard-sensor/SKILL.md
+NEW: plugins/secops-factory/commands/onboard-sensor.md
+NEW: plugins/secops-factory/skills/metrics/SKILL.md
+NEW: plugins/secops-factory/commands/metrics.md
+NEW: plugins/secops-factory/skills/monitoring-loop/SKILL.md
+NEW: plugins/secops-factory/commands/monitoring-loop.md
+
+# ── NEW: Shell helpers (3 types × 2 platforms = 6 files) ─────────────────
+# Location is working assumption (skills/<name>/) — D-DEC-007 open in F2
+NEW: plugins/secops-factory/skills/activate/activate-mcp-config.sh
+NEW: plugins/secops-factory/skills/activate/activate-mcp-config.ps1
+NEW: plugins/secops-factory/skills/activate/prism-version-check.sh
+NEW: plugins/secops-factory/skills/activate/prism-version-check.ps1
+NEW: plugins/secops-factory/skills/onboard-sensor/credential-set.sh
+NEW: plugins/secops-factory/skills/onboard-sensor/credential-set.ps1
+
+# ── NEW: Behavioral contract spec files (authored in F2) ──────────────────
+NEW: .factory/phase-0-ingestion/behavioral-contracts/BC-6.01.003.md
+NEW: .factory/phase-0-ingestion/behavioral-contracts/BC-6.01.004.md
+NEW: .factory/phase-0-ingestion/behavioral-contracts/BC-8.02.001.md
+NEW: .factory/phase-0-ingestion/behavioral-contracts/BC-9.01.001.md
+NEW: .factory/phase-0-ingestion/behavioral-contracts/BC-10.01.001.md
+
+# ── MODIFIED: Plugin skills ───────────────────────────────────────────────
+MODIFIED: plugins/secops-factory/skills/activate/SKILL.md
+MODIFIED: plugins/secops-factory/skills/investigate-event/SKILL.md
+MODIFIED: plugins/secops-factory/skills/assess-priority/SKILL.md
+MODIFIED: plugins/secops-factory/skills/scan-threats/SKILL.md
+MODIFIED: plugins/secops-factory/skills/update-jira/SKILL.md
+
+# ── MODIFIED: Enforcement hooks (CRITICAL/HIGH gate changes) ─────────────
+MODIFIED: plugins/secops-factory/hooks/require-review.sh
+MODIFIED: plugins/secops-factory/hooks/require-review.ps1
+MODIFIED: plugins/secops-factory/hooks/disposition-guard.sh
+MODIFIED: plugins/secops-factory/hooks/disposition-guard.ps1
+
+# ── MODIFIED: Hook manifests ──────────────────────────────────────────────
+MODIFIED: plugins/secops-factory/hooks/hooks.json
+MODIFIED: plugins/secops-factory/hooks/hooks.json.windows
+
+# ── MODIFIED: Protocol rules and templates ────────────────────────────────
+MODIFIED: plugins/secops-factory/rules/secops-protocol.md
+MODIFIED: plugins/secops-factory/templates/event-investigation-tmpl.yaml
+
+# ── MODIFIED: CI and meta ─────────────────────────────────────────────────
+MODIFIED: .github/workflows/ci.yml
+
+# ── MODIFIED: Behavioral contract spec files (version bumps) ─────────────
+MODIFIED: .factory/phase-0-ingestion/behavioral-contracts/BC-3.01.001.md
+MODIFIED: .factory/phase-0-ingestion/behavioral-contracts/BC-3.03.001.md
+MODIFIED: .factory/phase-0-ingestion/behavioral-contracts/BC-4.02.001.md
+MODIFIED: .factory/phase-0-ingestion/behavioral-contracts/BC-4.05.001.md
+MODIFIED: .factory/phase-0-ingestion/behavioral-contracts/BC-5.01.001.md
+MODIFIED: .factory/phase-0-ingestion/behavioral-contracts/BC-6.01.001.md
+
+# ── MODIFIED: Module criticality classification ───────────────────────────
+MODIFIED: .factory/specs/module-criticality.md
+
+# ── DEPENDENT: Hooks in regression zone (not changed; co-fire with modified hooks) ──
+DEPENDENT: plugins/secops-factory/hooks/enrichment-completeness.sh
+DEPENDENT: plugins/secops-factory/hooks/enrichment-completeness.ps1
+
+# ── DEPENDENT: Orchestration layer ───────────────────────────────────────
+DEPENDENT: plugins/secops-factory/agents/orchestrator/orchestrator.md
+DEPENDENT: plugins/secops-factory/agents/orchestrator/investigation-workflow.md
+DEPENDENT: plugins/secops-factory/agents/orchestrator/enrichment-workflow.md
+DEPENDENT: plugins/secops-factory/agents/security-analyst.md
+
+# ── DEPENDENT: Command dispatch stubs (thin wrappers for modified skills) ─
+DEPENDENT: plugins/secops-factory/commands/activate.md
+DEPENDENT: plugins/secops-factory/commands/investigate-event.md
+DEPENDENT: plugins/secops-factory/commands/assess-priority.md
+DEPENDENT: plugins/secops-factory/commands/scan-threats.md
+
+# ── DEPENDENT: Data and skills at risk (no mandatory change; watch during F2) ──
+DEPENDENT: plugins/secops-factory/data/event-investigation-best-practices.md
+DEPENDENT: plugins/secops-factory/skills/deactivate/SKILL.md
+DEPENDENT: plugins/secops-factory/skills/read-ticket/SKILL.md
+
+# ── EXPLICITLY NOT CHANGED (regression baseline — must stay byte-identical) ──
+# plugins/secops-factory/hooks/bias-check-reminder.{sh,ps1}
+# plugins/secops-factory/hooks/handoff-validator.{sh,ps1}
+# plugins/secops-factory/hooks/session-greeting.{sh,ps1}
+# plugins/secops-factory/skills/enrich-ticket/SKILL.md
+# plugins/secops-factory/skills/review-enrichment/SKILL.md
+# plugins/secops-factory/skills/adversarial-review-secops/SKILL.md
+# plugins/secops-factory/skills/create-advisory/SKILL.md
+# plugins/secops-factory/skills/analyze-ticket-effort/SKILL.md
+# plugins/secops-factory/data/cvss-guide.md
+# plugins/secops-factory/data/epss-guide.md
+# plugins/secops-factory/data/kev-catalog-guide.md
+# plugins/secops-factory/data/priority-framework.md

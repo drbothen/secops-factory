@@ -20,7 +20,7 @@ producer: orchestrator
 | **Started** | 2026-07-19 |
 | **Source Brief** | `.factory/feature/prism-integration-handoff-brief.md` |
 | **Research** | `.factory/research/soc-analyst-workflow-2026.md` |
-| **Status** | F1-in-progress |
+| **Status** | F1-complete — gate pending human approval |
 
 ## Scope Summary
 
@@ -62,6 +62,32 @@ Retrieve: git show v0.10.0:specs/prd.md
 | ID | Description | Priority | Source |
 |----|-------------|----------|--------|
 | — | TBD | — | — |
+
+## F1 Delta Analysis
+
+| Field | Value |
+|-------|-------|
+| **Completed** | 2026-07-20 |
+| **Gate status** | Awaiting human approval |
+| **Feature classification** | backend / feature / standard |
+| **Regression baseline ref** | `d181ca2` (main — fix(ci): assert pwsh + PSScriptAnalyzer, hooks.json schema, secops-health skill) |
+
+### F1 Artifacts
+
+| File | Description |
+|------|-------------|
+| `.factory/phase-f1-delta-analysis/impact-boundary.md` | 14 NEW / 13 MODIFIED / 12 DEPENDENT plugin artifacts; 8 ASMs, 8 Rs; 9 F2 decisions (D-DEC-001..009) |
+| `.factory/phase-f1-delta-analysis/artifact-mapping.md` (v1.1) | 6 BCs MODIFIED, 3 dependent, 5 NEW BC slots (BC-6.01.003/004, BC-8.02.001, BC-9.01.001, BC-10.01.001); ~57 direct + ~17 dependent regression-zone tests; HS-035..044 new subjects; VP-HOOK-024/025/026, VP-SKILL-050/051 new subjects |
+| `.factory/phase-f1-delta-analysis/delta-analysis.md` (v1.1) | Feature synthesis: backend / feature / standard; REC-001..006 resolved; cross-tenant correlation prism-side only |
+| `.factory/phase-f1-delta-analysis/affected-files.txt` | Machine-readable list of all affected source files |
+| `.factory/phase-f1-delta-analysis/f1-consistency-validation.md` | PASS-WITH-MINORS — 1 MAJOR (VP namespace) + 6 minors; all 7 remediated same-burst |
+
+### F1 Consistency Results
+
+- **Initial findings:** 7 (1 MAJOR VP namespace collision + 6 minors)
+- **Remediated same-burst:** 7
+- **Open at gate:** 0
+- **Gate verdict:** PASS-WITH-MINORS (all clear)
 
 ## Notes
 

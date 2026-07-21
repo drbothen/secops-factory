@@ -4,7 +4,7 @@ level: ops
 version: "2.4"
 status: active
 producer: state-manager
-timestamp: 2026-07-21T18:00:00Z
+timestamp: 2026-07-21T19:00:00Z
 phase: F2
 pipeline: FEATURE-CYCLE
 inputs: []
@@ -12,8 +12,8 @@ input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "F2 adversarial convergence — pass-5 remediation COMPLETE, pass 6 pending"
-awaiting: "F2-adversarial-pass-6"
+current_step: "F2 adversarial convergence — pass 6 done (2C/3M), remediation pending"
+awaiting: "F2-pass6-remediation"
 current_cycle: v0.10.0-feature-prism-integration
 dtu_required: true
 dtu_assessment: "2026-07-20"
@@ -42,7 +42,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-21 |
 | **Current Phase** | F2: Spec Evolution (prism-integration cycle) |
-| **Current Step** | F2 adversarial convergence — pass-5 remediation COMPLETE, pass 6 pending |
+| **Current Step** | F2 adversarial convergence — pass 6 done (2C/3M), remediation pending |
 
 ## Phase Progress
 
@@ -51,7 +51,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | pre-0: Pre-pipeline | PASSED | 2026-07-19 | 2026-07-19 | PASS | — |
 | 0: Codebase Ingestion + Remediation | COMPLETE | 2026-07-19 | 2026-07-20 | PASS | 12→11→7→8(1FP)→6→6→6→6(CRITICAL)→4→5→2→1→0; ADV-R1-4 CLEAN |
 | F1: Delta Analysis | PASSED | 2026-07-19 | 2026-07-20 | PASS | consistency: 7→0 |
-| F2: Spec Evolution | in-progress — pass-5 remediated, pass 6 pending | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated |
+| F2: Spec Evolution | in-progress — pass-6 done, remediation pending | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M (remediation pending) |
 | F3: Incremental Stories | not-started | | | | |
 | F4: Delta Implementation | not-started | | | | |
 | F5: Scoped Adversarial | not-started | | | | |
@@ -64,11 +64,11 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| F2: adversarial pass 3-4 | adversary | DONE | pass3 1C/4M (asset_type=unknown floor), pass4 2C/4M (JSON-first dispatch CRITICAL + anchored create CRITICAL + D-DEC-012) — all remediated |
 | F2: version-coherence sweep | state-manager | DONE | spec-changelog.md authored; BC frozen versions confirmed; D-DEC-001..012 in architecture-delta |
 | F2: adversarial pass 5 | adversary | DONE | 1C/2M/1m/3obs — root cause: disposition-guard trusts LLM ticket_action_type without cross-checking hard_floor_applies(); P5-001 (silent discard) + P5-002 (kill-switch bypass) are under/over-label duals; P5-003 stale §D-DEC-001 schema block; report persisted. |
 | F2: consistency audit pass-5 | consistency-validator | DONE | PASS-WITH-MINORS (0 blocking) — all prior-pass Critical/Major resolved, marker+verdict schemas uniform, VP namespace clean, sensor-silence direction correct. 3 non-blocking: F-001 arch-delta §5.4 (cosmetic), F-002 6 BCs COMPUTE-AT-COMMIT (F2 state-backup), F-003 VP-SKILL-061 silence wording (this burst). CONSISTENCY CLEAN. |
 | F2: pass-5 remediation | architect / product-owner / formal-verifier | DONE | arch-delta v1.8 (fail-loud STEP 5, hard_floor_applies() STEP 3 gate, schema v2.1 sync, O3 rule/D-DEC-012, Option A); BC-3.03.001 v1.14 (STEP 3+5 gates, EC-012, TV-SYNC); BC-10.01.001 v1.10 (Inv#10, VP-SKILL-061 sensor-silence fix); verif-delta v1.8 (VP-HOOK-029 re-scoped, SM-32a/32b, §7 Part F, ~238 tests); prd-delta v1.9 (§4/§6 12/15-field); brief §3.9 Option A confirmed 2026-07-21 |
+| F2: adversarial pass 6 | adversary | DONE | 2C/3M/3m/2obs — trust boundary re-derived end-to-end: P6-001 consumer accepts review tokens for regular commands (kill-switch bypass, CRITICAL); P6-002 STEP 4 kill switch precedes STEP 5 upgrade → silent discard of under-labeled hard-floor verdicts when autonomy=false (CRITICAL); P6-003 Inv#11/VP-SKILL-065 contradict Option A; P6-004 single demo project key voids cross-org create binding; P6-005 sensor-severity→enum normalization unspecified; P6-009 [process-gap] O3 rule applied emitter-only. Report persisted. |
 
 ## Decisions Log
 
@@ -124,9 +124,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-21 |
-| **Position** | Pass-5 remediation COMPLETE + committed. NEXT: adversarial pass 6 (fresh context). Clean streak 0/3. |
+| **Position** | Pass 6 COMPLETE (2C/3M/3m/2obs, report persisted). NEXT: remediation burst 2 — architect fixes P6-001 (bind review markers to review-labeled commands at hook layer), P6-002 (reorder hard-floor/STEP-5 upgrade BEFORE STEP 4 kill switch), P6-003/004/005/006 propagation + normalization spec; PO propagates BCs; FV re-scopes VP-SKILL-065 + VP-HOOK-029 kill-switch-on vector + finalize. Clean streak 0/3. |
 | **Context** | Artifact versions after pass-5 remediation burst: arch-delta v1.8, verif-delta v1.8, prd-delta v1.9, BC-3.03.001 v1.14, BC-10.01.001 v1.10, brief §3.9 amended (Option A confirmed 2026-07-21). Unchanged: BC-3.01.001 v1.17, BC-4.02.001 v1.8, BC-4.05.001 v1.3, BC-5.01.001 v1.8, BC-6.01.001 v1.5, BC-6.01.003/004/BC-8.02.001/BC-9.01.001 v1.1. D-DEC-001..012 locked. D-007 (Option A) committed. DTU required (prism demo server + jr mock). F-001 cosmetic arch-delta §5.4 still open; F-002 COMPUTE-AT-COMMIT bare hashes deferred to F2 state-backup. |
-| **Convergence counter** | 0/3 clean passes (pass 6 next) |
+| **Convergence counter** | 0/3 clean passes (pass 7 next, after remediation) |
 
 ## Historical Content
 

@@ -112,3 +112,41 @@ Pass-5 remediation addressed P5-001 (CRITICAL — silent discard when LLM ticket
 **Decision recorded:** D-007 (kill-switch Option A) — create-review/comment-review escalation markers stay live under `autonomy_enabled=false`, gated on hook-computed `hard_floor_applies()` OR Indeterminate disposition. Brief §3.9 amended accordingly.
 
 **Convergence counter:** 0/3 clean passes. Pass 6 is next (fresh adversary context required).
+
+---
+
+## Burst 4: F2 Adversarial Pass 6 Persisted (2026-07-21)
+
+**Steps rotated from STATE.md Current Phase Steps (5-row limit enforced):**
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 3-4 | adversary | DONE | pass3 1C/4M (asset_type=unknown floor), pass4 2C/4M (JSON-first dispatch CRITICAL + anchored create CRITICAL + D-DEC-012) — all remediated |
+
+**Step added to STATE.md Current Phase Steps this burst:**
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 6 | adversary | DONE | 2C/3M/3m/2obs — trust boundary re-derived end-to-end: P6-001 consumer accepts review tokens for regular commands (kill-switch bypass, CRITICAL); P6-002 STEP 4 kill switch precedes STEP 5 upgrade → silent discard of under-labeled hard-floor verdicts when autonomy=false (CRITICAL); P6-003 Inv#11/VP-SKILL-065 contradict Option A; P6-004 single demo project key voids cross-org create binding; P6-005 sensor-severity→enum normalization unspecified; P6-009 [process-gap] O3 rule applied emitter-only. Report persisted. |
+
+**Narrative:**
+
+adversary (fresh context) ran pass 6 against the full F2 delta package (brief, architecture-delta v1.8, verification-delta v1.8, prd-delta v1.9, BC-3.01.001 v1.17, BC-3.03.001 v1.14, BC-10.01.001 v1.10, supporting BCs/DTU/ASM). Re-derived the trust boundary end-to-end (emit → store → consume → kill switch → fail-loud) rather than inheriting the emitter-centric conclusions of prior passes.
+
+**Findings (2C/3M/3m/2obs):**
+- P6-001 (CRITICAL): `create-review`/`comment-review` markers are fungible with regular `create`/`comment` at the consumer (BC-3.01.001 step (6) accepts either token for the same command pattern) — kill-switch bypass and hard-floor starvation exploitable.
+- P6-002 (CRITICAL): STEP 4 kill switch precedes STEP 5 under-label upgrade; under-labeled hard-floor verdicts with `autonomy_enabled=false` produce silent allow-no-marker (contradicts D-DEC-012 "NEVER silent discard").
+- P6-003 (MAJOR): Invariant #11 and VP-SKILL-065 assert zero jr writes under kill switch, contradicting D-DEC-012 Option A / EC-006 / EC-014 — propagation gap from pass-5 Option-A decision.
+- P6-004 (MAJOR): Create-marker cross-org binding is void with single `PRISM-DEMO` project key (brief §4.1) — per-org-key assumption not satisfied.
+- P6-005 (MAJOR): sensor-native severity encodings (numeric, CVSS) not mapped to `{LOW,MEDIUM,HIGH,CRITICAL}` enum; pipeline mass-escalates or mass-denies non-conforming sensor severities.
+- P6-006 (MINOR): D-DEC-004 BLIND-SPOT dedup stale — no `create-review` mapping.
+- P6-007 (MINOR): grace-window permanent drop has no detection VP.
+- P6-008 (MINOR): ASM-009 (cross-hook marker-store visibility) UNVALIDATED, no go/no-go gate.
+- P6-009 (OBSERVATION): O3 rule applied emitter-only — consumer and ordering surfaces not audited.
+- P6-010 (OBSERVATION): VP-HOOK-029 PROPOSED while carrying the system's most important safety guarantee.
+
+Report: `.factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass6.md` (350 lines).
+
+**Novelty: HIGH.** P6-001/P6-002 are new exploitable defects in component seams; P6-003/P6-004 are live propagation gaps. Package has not converged; P6-001/P6-002 are convergence-blocking.
+
+**Convergence counter:** 0/3 clean passes. Pass 7 after remediation burst 2.

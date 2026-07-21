@@ -10,6 +10,19 @@ Superseded checkpoints rotated out of STATE.md.
 
 ---
 
+## Checkpoint 3 — Pass-5 remediation COMPLETE, pass 6 pending (2026-07-21)
+
+**Superseded by:** Pass-6 COMPLETE checkpoint (2026-07-21)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-07-21 |
+| **Position** | Pass-5 remediation COMPLETE + committed. NEXT: adversarial pass 6 (fresh context). Clean streak 0/3. |
+| **Context** | Artifact versions after pass-5 remediation burst: arch-delta v1.8, verif-delta v1.8, prd-delta v1.9, BC-3.03.001 v1.14, BC-10.01.001 v1.10, brief §3.9 amended (Option A confirmed 2026-07-21). Unchanged: BC-3.01.001 v1.17, BC-4.02.001 v1.8, BC-4.05.001 v1.3, BC-5.01.001 v1.8, BC-6.01.001 v1.5, BC-6.01.003/004/BC-8.02.001/BC-9.01.001 v1.1. D-DEC-001..012 locked. D-007 (Option A) committed. DTU required (prism demo server + jr mock). F-001 cosmetic arch-delta §5.4 still open; F-002 COMPUTE-AT-COMMIT bare hashes deferred to F2 state-backup. |
+| **Convergence counter** | 0/3 clean passes (pass 6 next) |
+
+---
+
 ## Checkpoint 2 — Pass-5 remediation pending (2026-07-21)
 
 **Superseded by:** Pass-5 remediation COMPLETE checkpoint (2026-07-21)

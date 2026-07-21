@@ -11,6 +11,28 @@ Track all spec version changes. Most recent version first.
 
 ## [1.1.0] - 2026-07-20 (patch edits 2026-07-21 — not a version bump)
 
+### F2 Pass-6 Remediation Edits — Burst 2 (2026-07-21) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 2). Root findings: P6-001
+(consumer anti-fungibility — create-review/comment-review markers accepted for regular commands),
+P6-002 (STEP 4/5 ordering — kill switch preceded under-label upgrade, causing silent discard on
+hard-floor verdicts under autonomy_enabled=false), P6-003 (Inv#11/VP-SKILL-065 contradicted Option
+A carve-out), P6-004 (cross-org create binding void with single PRISM-DEMO key — downgrade noted),
+P6-005 (sensor-native severity encodings unmapped to {LOW,MEDIUM,HIGH,CRITICAL} enum — D-DEC-013),
+P6-006 (D-DEC-004 review-token binding stale), P6-007 (late-event grace-window drop had no
+detection VP), P6-008 (ASM-009 cross-hook marker-store visibility unvalidated — elevated to BLOCKING
+pre-Wave-3), P6-009 (O3 rule applied emitter-only — extended to consumer, ordering, trust-boundary).
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.8 | v1.9 | P6-001..009 unified; D-DEC-012 reversal (hook-side label enforcement ADOPTED, D-DEC-012 O3 extended); D-DEC-013 severity normalization; STEP 4/5 reorder; ASM-009 BLOCKING; O3 O3-table consumer+ordering+trust-boundary rows; namespace corrections VP-SKILL-074/SM-36/SM-37 |
+| phase-0-ingestion/behavioral-contracts/BC-3.01.001.md | v1.17 | v1.18 | P6-001: consumer STEP 6a anti-fungibility cross-check both directions; EC-023; OR-accept removed for create (comment retains); org-binding downgrade noted; 4 new canonical test vectors; VP-HOOK-029 FINALIZED ref; SM-36/SM-37 attribution |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.14 | v1.15 | P6-002: STEP 4/5 swap throughout; labeled create-review pattern in 3 locations; Iron Law updated (hook-side label enforcement); ASM-014 note; EC-012 case (d) flipped to upgrade semantics; test vectors updated |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.10 | v1.11 | P6-003: Inv#11 Option A carve-out (zero REGULAR writes, escalation-review writes exempt); VP-SKILL-065 re-scoped + re-marked PROPOSED; Inv#10 concession removed; NORMALIZE_SEVERITY named step per D-DEC-013; EC-006/EC-014 disambiguation |
+| phase-f2-spec-evolution/verification-delta.md | v1.8 | v1.9 | VP-HOOK-029 FINALIZED (P0); consumer anti-fungibility vectors under VP-HOOK-024; VP-SKILL-065 RE-SCOPED PROPOSED; new VP-SKILL-073 (late-event P1) + VP-SKILL-074 (severity normalization P1, namespace-corrected from architect's "VP-SKILL-072"); SM-32-ext/SM-36/SM-37; 31 VPs + 31 mutants; ~238→~258 tests; FV caught VP-SKILL-072+SM-33/34 namespace collisions |
+
+---
+
 ### F2 Pass-5 Remediation Edits (2026-07-21) — spec remains 1.1.0
 
 Remediation edits within the F2 adversarial convergence cycle. Root findings: P5-001

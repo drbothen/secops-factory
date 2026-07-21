@@ -150,3 +150,51 @@ Report: `.factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass6.md
 **Novelty: HIGH.** P6-001/P6-002 are new exploitable defects in component seams; P6-003/P6-004 are live propagation gaps. Package has not converged; P6-001/P6-002 are convergence-blocking.
 
 **Convergence counter:** 0/3 clean passes. Pass 7 after remediation burst 2.
+
+---
+
+## Burst 5: F2 Pass-6 Remediation COMPLETE — Burst 2 (2026-07-21)
+
+**Steps rotated from STATE.md Current Phase Steps (5-row limit enforced):**
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: version-coherence sweep | state-manager | DONE | spec-changelog.md authored; BC frozen versions confirmed; D-DEC-001..012 in architecture-delta |
+
+**Step added to STATE.md Current Phase Steps this burst:**
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-6 remediation burst 2 | architect / product-owner / formal-verifier | DONE | arch-delta v1.9 (P6-001..009: --label in create-review pattern + hook-side label enforcement D-DEC-012 ADOPTED; STEP 4/5 reorder; D-DEC-013 severity normalization; P6-008 ASM-009 BLOCKING; O3 extended to consumer+ordering+trust-boundary; VP-SKILL-074+SM-36/SM-37 namespace-corrected); BC-3.01.001 v1.18 (STEP 6a anti-fungibility both directions, EC-023, VP-HOOK-029 FINALIZED ref, SM-36/SM-37); BC-3.03.001 v1.15 (STEP 4/5 swap, labeled create-review pattern, Iron Law updated); BC-10.01.001 v1.11 (Inv#11 Option A carve-out, NORMALIZE_SEVERITY per D-DEC-013, VP-SKILL-065 re-scoped PROPOSED); verif-delta v1.9 (VP-HOOK-029 FINALIZED P0, VP-HOOK-024 anti-fungibility, VP-SKILL-073/074 new, 31VPs/31mutants; FV caught VP-SKILL-072+SM-33/34 collisions) |
+
+**Narrative:**
+
+Pass-6 remediation (burst 2) addressed P6-001 (CRITICAL — consumer anti-fungibility: create-review/
+comment-review markers accepted for any command without --label check, enabling kill-switch bypass),
+P6-002 (CRITICAL — STEP 4/5 ordering: kill switch ran before under-label upgrade, so
+autonomy_enabled=false silently discarded under-labeled hard-floor verdicts), P6-003 (MAJOR —
+Inv#11/VP-SKILL-065 zero-jr-writes clause contradicted Option A carve-out), P6-004 (MAJOR —
+cross-org create binding void with single PRISM-DEMO key; cross-org isolation claim explicitly
+downgraded), P6-005 (MAJOR — sensor-native severity encodings unmapped; D-DEC-013 severity
+normalization per sensor family added), P6-006 (MINOR — D-DEC-004 review-token binding), P6-007
+(MINOR — late-event grace-window drop; VP-SKILL-073 added), P6-008 (MINOR — ASM-009 elevated to
+BLOCKING pre-Wave-3 go/no-go), and P6-009 (OBSERVATION — O3 rule extended to consumer, ordering,
+and trust-boundary surfaces; D-DEC-012 audit checklist updated).
+
+The formal-verifier independently re-verified the VP/SM namespace and caught two collisions in the
+architect's §8.15 proposal: "VP-SKILL-072" for severity normalization (occupied: first-run 24h
+lookback, FINALIZED v1.5) → corrected to VP-SKILL-074; "SM-33/SM-34" for consumer anti-fungibility
+mutants (occupied: pass-4 sentinels autonomy_enabled-clause-removed + dispatch-order-inverted) →
+corrected to SM-36/SM-37.
+
+**Artifacts produced by this burst:**
+
+- `phase-f2-spec-evolution/architecture-delta.md` v1.8 → v1.9: P6-001/P6-004 unified fix (create-review `command_pattern` now requires `--label (REVIEW-REQUIRED|BLIND-SPOT)` in fixed position; consumer STEP 6a bidirectional exact-type matching EC-023; cross-org isolation claim downgraded for single-PRISM-DEMO config); D-DEC-012 hook-side label enforcement reversal (rejected → ADOPTED, O3 rationale); P6-002 STEP 4/5 reorder (hard-floor under-label upgrade now STEP 4 before STEP 5 kill switch); P6-003 carve-out normative language; P6-005 D-DEC-013 severity normalization (per-sensor-family, unrecognized → CRITICAL + uncertainty_explicit); P6-006 D-DEC-004 review-token binding; P6-007 D-DEC-002 late-event fail-loud detection; P6-008 ASM-009 elevated to BLOCKING pre-Wave-3; P6-009 O3 table extended (consumer + ordering + trust-boundary rows); namespace correction VP-SKILL-074, SM-36/SM-37 appended.
+- `phase-0-ingestion/behavioral-contracts/BC-3.01.001.md` v1.17 → v1.18: First consumer change this cycle. STEP 6a anti-fungibility cross-check both directions; EC-023 added; OR-accept removed for create (comment retains OR-accept pending ASM-014); org-binding downgrade noted; 4 new canonical test vectors; VP-HOOK-029 FINALIZED ref; SM-36/SM-37 attribution [namespace-sync per FV].
+- `phase-0-ingestion/behavioral-contracts/BC-3.03.001.md` v1.14 → v1.15: STEP 4/5 swap throughout; labeled create-review pattern in 3 locations; Iron Law updated (hook-side label enforcement); ASM-014 note; EC-012 case (d) flipped to upgrade semantics; test vectors updated.
+- `phase-0-ingestion/behavioral-contracts/BC-10.01.001.md` v1.10 → v1.11: Inv#11 Option A carve-out (zero REGULAR writes; create-review/comment-review escalation writes for genuine hard-floor verdicts exempt); VP-SKILL-065 re-scoped + re-marked PROPOSED; Inv#10 concession removed; NORMALIZE_SEVERITY named step per D-DEC-013 (Inv#9 field 13 + Stage 1); EC-006/EC-014 disambiguation.
+- `phase-f2-spec-evolution/verification-delta.md` v1.8 → v1.9: VP-HOOK-029 FINALIZED (P0) + 3 kill-switch-on under-label vectors; VP-HOOK-024 consumer anti-fungibility vectors; VP-SKILL-065 RE-SCOPED PROPOSED; new VP-SKILL-073 (late-event detection P1) + VP-SKILL-074 (severity normalization P1, namespace-corrected from "VP-SKILL-072"); SM-32-ext/SM-36/SM-37; STEP-renumber stale sweep; VPs 29→31, mutants 28→31, test estimate ~238→~258.
+
+**Version-coherence sweep (Task 1):** verification-delta.md v1.9 snapshot BC-version references updated to final burst-2 versions: BC-3.03.001 v1.14→v1.15, BC-10.01.001 v1.10→v1.11 (6 occurrences: YAML changelog, body intro, §7 Part G header/item-1/item-3, closing paragraph). Zero residual stale refs confirmed.
+
+**Convergence counter:** 0/3 clean passes. Pass 7 is next (adversary fresh context required).

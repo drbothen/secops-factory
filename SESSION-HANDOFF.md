@@ -1,10 +1,10 @@
 ---
 document_type: session-handoff
 level: ops
-version: "2.0"
+version: "2.1"
 status: current
 producer: state-manager
-timestamp: 2026-07-21T01:00:00Z
+timestamp: 2026-07-21T10:00:00Z
 project: secops-factory
 supersedes: "2.0 (2026-07-21T00:00:00Z)"
 ---
@@ -69,11 +69,15 @@ secops-factory prism-integration v0.10.0 feature cycle is mid-Phase-F2 (spec evo
 ## PENDING / CARRIED
 
 - Pass-5 remediation IN PROGRESS: architect fix disposition-guard (P5-001/002/003), PO propagate to BCs, FV re-scope VP-HOOK-029 + SM-32, minor prd-delta §4/§6 count fix. Then adversarial pass 6.
-- F2 consistency audit pass-5 NOT on disk at wrap addendum — decide re-run timing (pre vs post pass-5 remediation).
+- F2 consistency audit pass-5 COMPLETE (PASS-WITH-MINORS, 0 blocking) — committed in wrap addendum 2. All prior-pass Critical/Major resolved; marker+verdict schemas uniform; VP namespace clean; sensor-silence direction correct. CONSISTENCY dimension is CLEAN. Only thing gating F2 gate is adversarial pass-5 1C/2M remediation (then pass 6, 7 to reach 3 clean passes).
+- **Pass-5 consistency minor punch-list (resolve before F2 state-backup):**
+  - F-003: VP-SKILL-061 in BC-10.01.001 describes sensor-silence as "last_seen_ts > 24h" — visually echoes pre-P4-003 wrong operator; fold fix (reword as "last_seen_ts age > 24 h") into pass-5 PO propagation burst together with BC-3.03.001/BC-10.01.001 updates.
+  - F-001: arch-delta §5.4 historical quote "as of v1.15 live" shows pre-fix audit path label — audit-trail only, section already RESOLVED; cosmetic label update (low priority, will not block F2 gate).
+  - F-002: 6 established BCs carry bare "COMPUTE-AT-COMMIT" input-hash vs 5 newer BCs' instrumented form — compute the 6 bare hashes at the F2 state-backup commit; does not block adversarial passes.
 - DI-013 now RESOLVED in-spec via marker mechanism (was deferred at Phase 0).
 - Human decisions this cycle: D-004 full-brief scope, D-005 marker mechanism, D-006 demo-unaware; `asset_type=unknown` floor [human-gate-confirm at F2 gate]; confidence enum thresholds 0.75/0.40 (D-DEC-011); P5-002 kill-switch-vs-brief-§3.9 reconciliation [human-gate-confirm if amending brief].
-- AFTER 3 clean passes: F2 state-backup, then F2 human gate, then F3 story decomposition.
-- BCs carry COMPUTE-AT-COMMIT input-hash placeholders where inputs changed — compute at a later backup (noted as resume TODO, does not block).
+- AFTER 3 clean passes: F2 state-backup (compute F-002 bare hashes here), then F2 human gate, then F3 story decomposition.
+- BCs carry COMPUTE-AT-COMMIT input-hash placeholders where inputs changed — compute at F2 state-backup (F-002).
 
 ## DECISION / LESSONS DELTA (pass-5 addendum)
 

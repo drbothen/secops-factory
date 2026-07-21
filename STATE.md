@@ -1,10 +1,10 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "2.2"
+version: "2.3"
 status: active
 producer: state-manager
-timestamp: 2026-07-21T01:00:00Z
+timestamp: 2026-07-21T10:00:00Z
 phase: F2
 pipeline: FEATURE-CYCLE
 inputs: []
@@ -68,7 +68,8 @@ dtu_services: [prism-demo-server, jr-mock]
 | F2: adversarial pass 1-2 | adversary | DONE | pass1 2C/8M (marker TTL + anchor), pass2 1C/3M (ICD-203 12/15-field split) — all remediated |
 | F2: adversarial pass 3-4 | adversary | DONE | pass3 1C/4M (asset_type=unknown floor), pass4 2C/4M (JSON-first dispatch CRITICAL + anchored create CRITICAL + D-DEC-012) — all remediated |
 | F2: version-coherence sweep | state-manager | DONE | spec-changelog.md authored; BC frozen versions confirmed; D-DEC-001..012 in architecture-delta |
-| F2: adversarial pass 5 | adversary | DONE | 1C/2M/1m/3obs — root cause: disposition-guard trusts LLM ticket_action_type without cross-checking hard_floor_applies(); P5-001 (silent discard) + P5-002 (kill-switch bypass) are under/over-label duals; P5-003 stale §D-DEC-001 schema block; report persisted. Consistency pass-5 audit was NOT on disk at wrap addendum; may need re-run. |
+| F2: adversarial pass 5 | adversary | DONE | 1C/2M/1m/3obs — root cause: disposition-guard trusts LLM ticket_action_type without cross-checking hard_floor_applies(); P5-001 (silent discard) + P5-002 (kill-switch bypass) are under/over-label duals; P5-003 stale §D-DEC-001 schema block; report persisted. |
+| F2: consistency audit pass-5 | consistency-validator | DONE | PASS-WITH-MINORS (0 blocking) — all prior-pass Critical/Major resolved, marker+verdict schemas uniform, VP namespace clean, sensor-silence direction correct. 3 non-blocking: F-001 arch-delta §5.4 audit-trail label (cosmetic), F-002 6 BCs bare COMPUTE-AT-COMMIT hashes (resolve at F2 state-backup), F-003 VP-SKILL-061 informal silence wording (fold into pass-5 PO propagation). CONSISTENCY dimension CLEAN. |
 
 ## Decisions Log
 

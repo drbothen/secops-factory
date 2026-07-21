@@ -198,3 +198,11 @@ corrected to SM-36/SM-37.
 **Version-coherence sweep (Task 1):** verification-delta.md v1.9 snapshot BC-version references updated to final burst-2 versions: BC-3.03.001 v1.14→v1.15, BC-10.01.001 v1.10→v1.11 (6 occurrences: YAML changelog, body intro, §7 Part G header/item-1/item-3, closing paragraph). Zero residual stale refs confirmed.
 
 **Convergence counter:** 0/3 clean passes. Pass 7 is next (adversary fresh context required).
+
+---
+
+### Archived Current Phase Steps Row — 2026-07-21 (pass-7 displacement)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 5 | adversary | DONE | 1C/2M/1m/3obs — root cause: disposition-guard trusts LLM ticket_action_type without cross-checking hard_floor_applies(); P5-001 (silent discard) + P5-002 (kill-switch bypass) are under/over-label duals; P5-003 stale §D-DEC-001 schema block; report persisted. |

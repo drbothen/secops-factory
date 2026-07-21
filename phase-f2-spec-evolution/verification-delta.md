@@ -1,12 +1,13 @@
 ---
 document_type: verification-delta
 producer: formal-verifier
-version: "1.7"
+version: "1.8"
 date: 2026-07-21
 cycle: v0.10.0-feature-prism-integration
 phase: f2
 status: draft
 changelog:
+  - "1.8 (2026-07-21): Adversarial pass-5 re-scope (ADV-F2-P5-001 CRITICAL / P5-002 MAJOR) per architecture-delta v1.8 §8.13 FORMAL-VERIFIER LIST. Root cause (§8.13 / D-DEC-012 O3 standing rule): the deterministic disposition-guard hook trusted the LLM-supplied ticket_action_type without cross-checking hook-computed hard_floor_applies(); P5-001 (under-label) and P5-002 (over-label) are the duals of that single gap. (1) [P5-001 CRITICAL] RE-SCOPED VP-HOOK-029 from the happy-path-only 'hard-floor verdict WITH ticket_action_type∈{create-review,comment-review} → marker OR error' (which could NOT detect the silent-discard case) to the fail-loud critical vectors: 'hard-floor verdict carrying a NON-review ticket_action_type∈{comment,create,assign,none} → review-marker (STEP 5 upgrade) XOR explicit error+deny — NEVER silent allow-without-marker.' New vectors cover all three STEP 5 branches — (a) ticket_id present → comment-review upgrade; (b) ticket_id null + jira_project_key present → create-review upgrade; (c) ticket_id null + project_key absent → error artifact + deny — plus the UNDER-LABEL-CORRECTED audit entry; the pre-existing correct-label happy-path vectors are RETAINED (§8.13 item 1). (2) [P5-001/P5-002] RE-SCOPED SM-32 into two separately-killable variants: SM-32a (remove STEP 5 under-label upgrade → silent emit-allow-without-marker) killed by VP-HOOK-029 under-label vectors; SM-32b (remove the STEP 3 'NOT hard_floor_applies()' over-label gate → non-hard-floor verdict with a review token gets the kill-switch/hard-floor-exempt marker) killed by VP-HOOK-026 over-label vectors. Mutant count 27 → 28 (SM-9..SM-35, SM-32=SM-32a+SM-32b). (3) [P5-002 MAJOR] EXTENDED VP-HOOK-026 with over-label legs: a non-hard-floor verdict (disposition=TP, LOW severity, standard asset) carrying a create-review/comment-review token produces NO marker (allow-without-marker), incl. under autonomy_enabled=false (no kill-switch bypass) — the STEP 3 exemption is now GATED on hook-computed hard_floor_applies(verdict)=TRUE. (4) Swept §3 review-surfacing discussion, §5 BC-10.01.001 counts, and §6 notes for the retired 'unconditional/ungated review-exemption' and 'silent allow on action==none under hard floor' semantics; aligned to the STEP 3 gate + STEP 5 fail-loud upgrade (architecture-delta v1.8 D-DEC-008 STEP 3/STEP 5). VP namespace UNCHANGED (VP-SKILL 001–072, VP-HOOK 024–029; SM 9–35) — re-scope, NOT new IDs. Kill-switch Option A (escalation markers execute under autonomy_enabled=false for GENUINE hard-floor verdicts, human-confirmed 2026-07-21) reflected in the gated exemption. Test-count estimate ~231 → ~238 (+7 BATS on BC-10.01.001: VP-HOOK-026 over-label gate +3, VP-HOOK-029 fail-loud under-label expansion +4)."
   - "1.7 (2026-07-21): finish residual version-ref sync."
   - "1.6 (2026-07-21): version-ref sync to frozen live BC versions (BC-3.01.001 v1.17, BC-3.03.001 v1.13, BC-4.02.001 v1.8, BC-4.05.001 v1.3, BC-5.01.001 v1.8, BC-6.01.001 v1.5, BC-10.01.001 v1.9). No VP/strategy/mutant/test-count changes; stale live-body BC cross-refs (VP table §2, §5 sizing table, §3/§6 prose citations, §7 Part D/E correction targets, closing snapshot) synced to frozen; historical/changelog/edit-time/first-landed/CONFIRMED-APPLIED and evolution-narrative annotations left intact."
   - "1.5 (2026-07-21): Adversarial pass 4 remediation (architecture-delta v1.6 §8.11 FORMAL-VERIFIER LIST pass 4 + D-DEC-008 JSON-first dispatch + D-DEC-012 create-review/comment-review + validate_enums() + autonomy_enabled operational field). Adds 2 VPs — VP-HOOK-029 (P1 fail-loud invariant: a hard-floor/Indeterminate/silent-sensor verdict MUST yield a create-review/comment-review marker OR an explicit error artifact, never silent discard — D-DEC-012, ADV-F2-P4-004) and VP-SKILL-072 (BC-10.01.001 Inv#13 first-run 24h lookback correctness — ADV-F2-P4-012/D-DEC-002) — and 5 mutants (SM-31 validate_enums-removed → wrong-case severity passes hard floor, ADV-F2-P4-006; SM-32 review-surfacing-hard-floor-bypass-removed → Indeterminate+create-review wrongly blocked, D-DEC-012/P4-004; SM-33 autonomy_enabled-clause-removed → regular marker wrongly emitted under kill switch, ADV-F2-P4-005; SM-34 dispatch-order-inverted → verdict JSON at canonical investigations/verdict-*.json path misrouted to 12-field markdown branch and wrongly denied, ADV-F2-P4-001; SM-35 control-char-strip-removed → forged MARKER_USED audit line via \\n in ticket_id/org_slug/op, ADV-F2-P4-010). Extends VP-HOOK-024 (create command_pattern injection-safety: anchored `--project`-first pattern, --summary injection + PROD/PRODUCTION prefix → DENY, P4-002 CRITICAL), VP-HOOK-025 (validate_enums() membership legs for severity/asset_type/disposition/sensor_health_status/ticket_action_type/confidence — wrong-case/non-member → fail-closed DENY BEFORE hard floor, P4-006), VP-HOOK-026 (create-review/comment-review hard-floor-EXEMPT + kill-switch-EXEMPT legs, and autonomy_enabled read-direct-from-verdict determinism legs, D-DEC-012/P4-004/P4-005), VP-HOOK-028 (canonical-path JSON-first dispatch regression: investigations/verdict-*.json → 15-field verdict path; investigation-*.md → 12-field path, P4-001). Namespace re-verified independently: VP-SKILL 001–072, VP-HOOK 024–029, SM 9–35 — ZERO collisions. Live-BC snapshot SYNCED to BC-3.03.001 v1.12, BC-3.01.001 v1.16, BC-10.01.001 v1.8, BC-4.02.001 v1.7, BC-6.01.001 v1.5. Mutant count 22 → 27; test-count estimate refreshed ~195 → ~231 (~155 BATS + ~76 parity). BC corrections routed to PO in §7 Part E."
@@ -101,6 +102,31 @@ verification_stack: "BATS behavioral / structural-presence / integration (jr-moc
 > v1.5 edit time (SYNCED): BC-3.03.001 v1.13, BC-3.01.001 v1.17, BC-10.01.001 v1.9, BC-4.02.001
 > v1.8, BC-6.01.001 v1.5.** Cross-doc/other-file version-ref reconciliation remains owned by the
 > dedicated version-coherence sweep.
+>
+> **v1.8 (adversarial pass-5 re-scope):** closes the architecture-delta **v1.8** §8.13
+> FORMAL-VERIFIER LIST (ADV-F2-P5-001 CRITICAL / P5-002 MAJOR). **No new VP or SM IDs** — this is
+> a re-scope of existing entries (VP-SKILL 001–072, VP-HOOK 024–029 unchanged). Root cause: the
+> deterministic disposition-guard hook trusted the LLM-supplied `ticket_action_type` without
+> cross-checking hook-computed `hard_floor_applies()` (D-DEC-012 O3 standing rule); P5-001
+> (under-label) and P5-002 (over-label) are duals. **(1) VP-HOOK-029 re-scoped** from the
+> happy-path-only "hard-floor + review token → marker OR error" (which could not detect the
+> silent-discard case) to the fail-loud vectors: a hard-floor verdict carrying a **NON-review**
+> `ticket_action_type ∈ {comment,create,assign,none}` MUST yield a review-marker (STEP 5 upgrade)
+> **XOR** an explicit error+deny — NEVER a silent allow-without-marker; covers all three STEP 5
+> branches (ticket_id present → comment-review; ticket_id null + project_key present → create-review;
+> neither → error+deny) + the UNDER-LABEL-CORRECTED audit entry; correct-label happy-path vectors
+> retained. **(2) SM-32 re-scoped** into **SM-32a** (remove STEP 5 upgrade → silent discard; killed
+> by VP-HOOK-029 under-label vectors) and **SM-32b** (remove the STEP 3 `NOT hard_floor_applies()`
+> gate → over-label kill-switch bypass; killed by VP-HOOK-026 over-label vectors) — mutant count
+> 27 → 28. **(3) VP-HOOK-026 extended** with over-label legs (non-hard-floor verdict + review token
+> → NO marker, incl. under `autonomy_enabled=false`); the STEP 3 review-exemption is now GATED on
+> `hard_floor_applies(verdict)=TRUE`. **(4)** §3 review-surfacing discussion, §5 counts, and §6
+> notes swept for the retired "unconditional/ungated review-exemption" and "silent allow on
+> action==none under hard floor" semantics (architecture-delta v1.8 D-DEC-008 STEP 3/STEP 5).
+> Kill-switch Option A confirmed 2026-07-21 (escalation markers execute under `autonomy_enabled=false`
+> for GENUINE hard-floor verdicts only). Live-BC snapshot UNCHANGED from v1.5 (frozen pass-5:
+> BC-3.03.001 v1.13, BC-3.01.001 v1.17, BC-10.01.001 v1.9). BC STEP 3/STEP 5 body updates are
+> product-owner-owned (architecture-delta §8.12); §7 Part F records the FV cross-references.
 
 ---
 
@@ -148,25 +174,31 @@ collisions confirmed independently:**
 | **VP-HOOK-028** *(NEW v1.3)* | BC-10.01.001 (Stage-7 verdict-path PC#8 — ADV-F2-P3-005); enforced by BC-3.03.001 (fast-path) + BC-3.01.001 (consume) | none (max prior = 027) | **FINALIZED** (verdict-path reachability) |
 | **VP-HOOK-027** *(NEW v1.2)* | BC-10.01.001 (Inv#14 — ADV-F2-P2-001/P2-014); enforced by BC-3.03.001 (emit) + BC-3.01.001 (consume) | none (max prior = 026) | **FINALIZED** (P1 cross-hook stage-order document-before-action) |
 | **VP-SKILL-072** *(NEW v1.5)* | BC-10.01.001 (Inv#13 first-run 24h lookback / D-DEC-002 — ADV-F2-P4-012) | none (next free = 072) | **FINALIZED** (first-run 24h lookback correctness; distinct from VP-SKILL-050 monotonicity) |
-| **VP-HOOK-029** *(NEW v1.5)* | BC-10.01.001 (D-DEC-012 fail-loud, Inv#10 review-surfacing — ADV-F2-P4-004); enforced by BC-3.03.001 (emit) + BC-3.01.001 (consume create-review/comment-review) | none (max prior = 028) | **FINALIZED strategy** (P1 fail-loud invariant; architect requests VP-INDEX status PROPOSED → F6-adjudicated) |
+| **VP-HOOK-029** *(NEW v1.5; RE-SCOPED v1.8)* | BC-10.01.001 (D-DEC-012 fail-loud, Inv#10 narrowed + STEP 5 under-label upgrade — ADV-F2-P5-001); enforced by BC-3.03.001 (STEP 5 emit / error artifact) + BC-3.01.001 (consume create-review/comment-review) | none (max prior = 028; re-scope, not new ID) | **FINALIZED strategy** (P0/P1 fail-loud UNDER-LABEL invariant, re-scoped v1.8; VP-INDEX status PROPOSED → F6-adjudicated) |
 | VP-HOOK-024 | BC-3.01.001 | none (max pre-F1 = 023) | FINALIZED (ticket-bound + create/assign scopes, schema v2.0, iterative-consume; **v1.5: create-pattern injection-safety**) |
 | VP-HOOK-025 | BC-10.01.001 (defines) + BC-3.03.001 (enforces) | none — shared reference, not a duplicate assignment | FINALIZED (15 fields; **v1.5: validate_enums() membership legs**) |
-| VP-HOOK-026 | BC-10.01.001 | none | FINALIZED (hard-floor keyed on severity/asset_type; **v1.5: create-review/comment-review + kill-switch exemptions, autonomy_enabled determinism**) |
+| VP-HOOK-026 | BC-10.01.001 | none | FINALIZED (hard-floor keyed on severity/asset_type; **v1.5: create-review/comment-review + kill-switch exemptions, autonomy_enabled determinism**; **v1.8: STEP 3 exemption GATED on hard_floor_applies() + over-label legs, SM-32b**) |
 | VP-HOOK-028 | BC-10.01.001 (Stage-7 PC#8) + BC-3.03.001 (dispatch) | none | FINALIZED (verdict-path reachability; **v1.5: JSON-first canonical-path dispatch**) |
 
 **Result: ZERO namespace collisions. No renumbering required.** Each VP-SKILL-050..072
 and VP-HOOK-024..029 appears in exactly one *owning* BC.
 
-**VP-HOOK-029 namespace justification (VP-HOOK vs VP-SKILL — pass 4).** Like the rest of the
-VP-HOOK marker family, the fail-loud invariant's observable outcome is produced hook-side:
-disposition-guard (D-DEC-012 emitter Step 3) MUST issue a `create-review`/`comment-review`
-restricted marker for a hard-floor / Indeterminate / silent-sensor verdict (exempt from the
-hard-floor no-marker rule and the `autonomy_enabled` kill switch), or write an explicit error
-artifact — never leave the marker store empty with no error. The "never silently discarded"
-guarantee is a hook-side emit obligation (BC-3.03.001) + consumer acceptance of the two review
-tokens (BC-3.01.001 v1.17 step 6); BC-10.01.001 Inv#10 (narrowed at v1.8 so hard floors set
-`create-review`/`comment-review`, not `none`) is the authoritative *definition*. Enforcement is
-100% hook-side → **VP-HOOK**, tagged **P1** per architecture-delta §8.11 item 6. **VP-SKILL-072
+**VP-HOOK-029 namespace justification (VP-HOOK vs VP-SKILL — pass 4; scope corrected pass-5).**
+Like the rest of the VP-HOOK marker family, the fail-loud invariant's observable outcome is
+produced hook-side: for a hard-floor / Indeterminate / silent-sensor verdict, disposition-guard
+MUST land in exactly one of two hook-side terminal states — (i) a `create-review`/`comment-review`
+restricted marker in the store, or (ii) an explicit error artifact in `audit.log` plus a deny —
+and NEVER leave the marker store empty with no error. **Pass-5 scope correction (ADV-F2-P5-001):**
+this obligation is now enforced deterministically across BOTH emitter paths, not just the
+correct-label one — the D-DEC-008 STEP 3 review path (verdict already carries a review token) AND
+the STEP 5 under-label upgrade (verdict carries a NON-review token but `hard_floor_applies()`=true,
+so the hook upgrades to create-review [ticket_id null] / comment-review [ticket_id present] or, if
+no `jira_project_key` is available to bind the create path, writes the error artifact and denies).
+The "never silently discarded" guarantee is a hook-side emit obligation (BC-3.03.001 STEP 3+STEP 5)
++ consumer acceptance of the two review tokens (BC-3.01.001 v1.17 step 6); BC-10.01.001 Inv#10
+(narrowed at v1.8 so hard floors set `create-review`/`comment-review`, not `none`, and STEP 5
+fail-loud-upgrades under-labeled hard-floor verdicts) is the authoritative *definition*.
+Enforcement is 100% hook-side → **VP-HOOK**, tagged **P1** per architecture-delta §8.11 item 6. **VP-SKILL-072
 ownership.** First-run 24h lookback (BC-10.01.001 Inv#13 / EC-001) is a monitoring-loop
 query-construction property — the loop, on an absent watermark file, MUST issue
 `WHERE _time >= now() - INTERVAL 24 HOURS` and MUST NOT scan full sensor history — so it belongs
@@ -240,7 +272,7 @@ integration (two sequential subprocess hook invocations sharing `CLAUDE_PLUGIN_D
 |-------|-----------------|----------|--------------|-----------|
 | VP-HOOK-024 | Marker-validation soundness (schema v2.0, **iterative-consume**): write-block-matched command WITH a valid, unexpired (`now() > expires_at_utc` absolute check; 120s TTL), single-use, correctly-scoped, **ticket-bound** (`command_pattern` anchored to `<ticket_id> ` for comment/assign; operation-scoped for create), non-path-traversal marker → allow; candidates **sorted by `issued_at_utc` ASC (oldest first); the first candidate whose atomic `mv → .used` rename SUCCEEDS → allow; if every rename fails (all consumed by a concurrent invocation) → deny (fail-closed exhaustion)**; **rename-fail on a lone candidate → continue/deny (fail-closed)**; audit line appended with **base64-encoded** command to `${CLAUDE_PLUGIN_DATA}/markers/audit.log`; replay of a consumed marker → deny. Covers comment/create/assign scoped allow-paths. Replaces the retired ">1-candidate → ambiguous deny" gate (architecture-delta §D-DEC-001 v1.3 / ADV-F2-P2-003). **v1.5 (ADV-F2-P4-002 CRITICAL): create `command_pattern` injection-safety — the create pattern is anchored `^jr (--output json )?issue create --project <key>( \|$)` with `--project` as the FIRST flag (no `.*` before it) and a trailing `( \|$)` boundary; an attacker-influenceable `--summary` value carrying a `--project ORG_A` substring does NOT match an ORG_A-scoped create marker; a `--project PROD` marker does NOT authorize `--project PRODUCTION` (prefix guard). v1.5 (ADV-F2-P4-010): audit line strips control chars (`tr -d '\000-\037'`) from `ticket_id`/`org_slug`/`op` before interpolation — a `\n` in `ticket_id` cannot forge a second MARKER_USED line.** | B-BEH + B-INT-XH | require-review.sh stdin envelope `{tool_input.command}`; `CLAUDE_PLUGIN_DATA=$(mktemp -d)`; assert `.used` rename + `markers/audit.log` `command_b64=` line; ticket-bound vector (SEC-123 marker → DENY SEC-456); create/assign scoped allow vectors; **concurrent same-scope: two valid markers → oldest consumed, ALLOW; all-renames-fail → exhausted DENY**; **v1.5 injection vectors: marker `command_pattern="^jr (--output json )?issue create --project ORG_A( \|$)"` + command `jr issue create --summary "review --project ORG_A" --project ORG_B` → DENY; `--project PROD` marker + `--project PRODUCTION` command → DENY; v1.5 audit: `ticket_id` containing `$'\n'` → single MARKER_USED line only (control chars stripped)** | BC-3.01.001 (v1.17) |
 | VP-HOOK-025 | ICD-203 completeness (**dual-path, artifact-class field-set branching — D-DEC-008-C**): disposition-guard branches the required field-set by artifact class — **investigation markdown = 12 ICD-203 fields** (heading-anchored `grep`; Severity/Asset Type/Ticket Action Type are NOT required and their presence must NOT trigger a wrong-class deny) vs **verdict JSON = 15 fields** (12 ICD-203 + **severity[13], asset_type[14], ticket_action_type[15]**) via `jq has()` key-presence + per-field type check; enforces tuning_signal null-vs-absent semantics; severity-based hard-floor legs; **field#2 confidence is enum-only (D-DEC-011): a float `confidence` value is DENIED, the enum values {high,medium,low} are ALLOWED** (ADV-F2-P3-008). **v1.5 (ADV-F2-P4-006 MAJOR): `validate_enums()` membership gate runs BEFORE the hard-floor check and fail-closed-DENIES any non-member / wrong-case value on ALL typed fields — `severity∈{LOW,MEDIUM,HIGH,CRITICAL}`, `asset_type∈{domain_controller,privileged_account,ot_safety_system,standard,unknown}`, `disposition∈{TP,FP,BTP,Indeterminate}`, `sensor_health_status∈{healthy,degraded,silent}`, `ticket_action_type∈{comment,create,assign,none,create-review,comment-review}`, `confidence∈{high,medium,low}`. A case-mangled `severity:"High"` is DENIED (NOT allowed-without-marker), closing the hard-floor bypass where key-presence passed but membership silently failed.** | B-BEH | disposition-guard.sh stdin `{tool_input.file_path, content}`; **investigation-markdown 12-field fixture (all 12 headings → allow; missing any of 12 → deny; a spurious Severity heading added → still allow, no wrong-class 15-field deny)**; **verdict-JSON 15-field fixture (missing any of 15 → deny)**; **confidence float→deny + confidence∈{high,medium,low}→allow legs**; **v1.5 enum-membership legs: `severity="High"`→DENY, `severity="CRITICAL"`→allow (other fields OK), `asset_type="Unknown"`→DENY, `disposition="indeterminate"`→DENY, `sensor_health_status="Degraded"`→DENY, `ticket_action_type="NONE"`→DENY (fail-closed, before hard floor)** | BC-3.03.001 (v1.13) PC#1/2/3 (JSON-first; 12 markdown / 15 JSON + validate_enums) / BC-10.01.001 (v1.9) Inv#9 |
-| VP-HOOK-026 | Indeterminate / hard-floor non-overridability: no autonomy configuration (`autonomy_enabled`, `require_review`, auto-scope) can cause a hard-floor category (Indeterminate / **verdict.severity∈{HIGH,CRITICAL}** / **verdict.asset_type∈CRITICAL_ASSET_TYPES** / **verdict.asset_type=='unknown'** / T1003·T1068·T1021·T1041 / degraded-silent sensor) to receive a marker; hard floor keys on **severity/asset_type NOT confidence** (ADV-F2-001); **the `unknown` asset_type is a conservative hard-floor member (ADV-F2-P3-001): a LOW-severity + benign-technique + `asset_type=unknown` verdict NEVER gets a REGULAR marker regardless of `autonomy_enabled`**; loop always routes to human. **v1.5 (D-DEC-012 / ADV-F2-P4-004): the `create-review`/`comment-review` review-surfacing marker types are EXEMPT from the hard-floor no-marker rule AND from the autonomy_enabled kill switch (escalation ≠ autonomous triage) — a hard-floor (e.g. HIGH-severity / Indeterminate / silent-sensor) verdict with `ticket_action_type=create-review` DOES get a restricted marker (`authorized_operations:["create-review"]`); the same under `autonomy_enabled=false` still emits the review marker. v1.5 (ADV-F2-P4-005): the kill switch is read DIRECTLY by disposition-guard from the verdict's `autonomy_enabled` operational field (not delegated to the loop LLM) — `autonomy_enabled≠true` (false OR absent → conservative false) suppresses ALL REGULAR markers (comment/create/assign) while leaving review-surfacing markers untouched.** | B-BEH + B-INT-XH | disposition-guard.sh with hard-floor verdict + `autonomy_enabled=true` injected via envelope; inject **verdict.severity=HIGH**, **verdict.asset_type=critical-asset** (domain_controller), and **verdict.asset_type=unknown with severity=LOW + benign technique** → assert marker-store dir stays EMPTY on every REGULAR leg; **v1.5 review-surfacing legs: Indeterminate + `create-review` → restricted marker emitted with `authorized_operations=["create-review"]` (hard-floor EXEMPT); silent-sensor + `comment-review` → restricted marker emitted; HIGH-severity + `create-review` → marker emitted; `autonomy_enabled=false` + `create-review` → marker STILL emitted (kill-switch EXEMPT); v1.5 kill-switch legs: `autonomy_enabled=false` + regular `create` → NO marker; `+ comment` → NO marker; `autonomy_enabled` ABSENT + regular create → treated false → NO marker** | BC-10.01.001 (v1.9 Inv#10/§3.9); BC-3.03.001 (v1.13 Inv#4) |
+| VP-HOOK-026 | Indeterminate / hard-floor non-overridability: no autonomy configuration (`autonomy_enabled`, `require_review`, auto-scope) can cause a hard-floor category (Indeterminate / **verdict.severity∈{HIGH,CRITICAL}** / **verdict.asset_type∈CRITICAL_ASSET_TYPES** / **verdict.asset_type=='unknown'** / T1003·T1068·T1021·T1041 / degraded-silent sensor) to receive a **REGULAR (comment/create/assign-scoped, autonomous-triage) marker**; **[UPDATED v1.8 — STEP 5 fail-loud upgrade, ADV-F2-P5-001]** a hard-floor category is surfaced ONLY via a `create-review`/`comment-review` REVIEW marker (STEP 3 correct-label OR the STEP 5 under-label upgrade — owned by **VP-HOOK-029**) or an error+deny; it is NEVER left silently empty and NEVER receives a regular comment/create/assign marker; hard floor keys on **severity/asset_type NOT confidence** (ADV-F2-001); **the `unknown` asset_type is a conservative hard-floor member (ADV-F2-P3-001): a LOW-severity + benign-technique + `asset_type=unknown` verdict NEVER gets a REGULAR marker regardless of `autonomy_enabled`**; loop always routes to human. **v1.5 (D-DEC-012 / ADV-F2-P4-004): the `create-review`/`comment-review` review-surfacing marker types are EXEMPT from the hard-floor no-marker rule AND from the autonomy_enabled kill switch (escalation ≠ autonomous triage) — a hard-floor (e.g. HIGH-severity / Indeterminate / silent-sensor) verdict with `ticket_action_type=create-review` DOES get a restricted marker (`authorized_operations:["create-review"]`); the same under `autonomy_enabled=false` still emits the review marker. **v1.8 (ADV-F2-P5-002 MAJOR — OVER-LABEL GATE): the STEP 3 review-marker exemption is GATED on the hook-computed predicate `hard_floor_applies(verdict)=TRUE` (`IF NOT hard_floor_applies(): emit allow WITHOUT marker; RETURN`). An LLM-supplied `create-review`/`comment-review` token on a verdict where `hard_floor_applies()` returns FALSE (e.g. disposition=TP, LOW severity, standard asset) does NOT receive the kill-switch / hard-floor exemption — it emits allow-without-marker (the document write proceeds; require-review denies the downstream `jr` action because no marker is in the store). This closes the P5-002 bypass where the LLM could manufacture a kill-switch bypass by over-labeling a regular verdict as a review action. O3 standing rule: the LLM-supplied `ticket_action_type` is cross-validated against `hard_floor_applies()` before the exemption fires.** v1.5 (ADV-F2-P4-005): the kill switch is read DIRECTLY by disposition-guard from the verdict's `autonomy_enabled` operational field (not delegated to the loop LLM) — `autonomy_enabled≠true` (false OR absent → conservative false) suppresses ALL REGULAR markers (comment/create/assign) while leaving GENUINELY-hard-floor review-surfacing markers untouched.** | B-BEH + B-INT-XH | disposition-guard.sh with hard-floor verdict + `autonomy_enabled=true` injected via envelope; inject **verdict.severity=HIGH**, **verdict.asset_type=critical-asset** (domain_controller), and **verdict.asset_type=unknown with severity=LOW + benign technique** → **[UPDATED v1.8]** assert NO regular (comment/create/assign-scoped) marker is written on any hard-floor leg — i.e. no marker with `authorized_operations ∈ {comment,create,assign}` (the disposition-guard STEP 5 under-label upgrade may instead place a `create-review`/`comment-review` REVIEW marker, or write an error+deny; that fail-loud outcome is owned by **VP-HOOK-029** — VP-HOOK-026 asserts the ABSENCE of the autonomous-triage marker, NOT an empty store); **v1.5 review-surfacing legs (hard-floor EXEMPT — hard_floor_applies()=TRUE): Indeterminate + `create-review` → restricted marker emitted with `authorized_operations=["create-review"]`; silent-sensor + `comment-review` → restricted marker emitted; HIGH-severity + `create-review` → marker emitted; `autonomy_enabled=false` + `create-review` → marker STILL emitted (kill-switch EXEMPT); v1.8 OVER-LABEL legs (hard_floor_applies()=FALSE — paired mutant SM-32b): non-hard-floor TP verdict (LOW severity, standard asset) + `create-review` token → NO marker (allow-without-marker; over-label rejected); non-hard-floor FP verdict + `comment-review` + `autonomy_enabled=false` → NO marker (no kill-switch bypass); LOW-severity standard asset + `create-review` → NO marker (verify hard_floor_applies()=false path); v1.5 kill-switch legs: `autonomy_enabled=false` + regular `create` → NO marker; `+ comment` → NO marker; `autonomy_enabled` ABSENT + regular create → treated false → NO marker** | BC-10.01.001 (v1.9 Inv#10/§3.9); BC-3.03.001 (v1.13 Inv#4, STEP 3 gate) |
 | **VP-HOOK-027** *(NEW v1.2, **P1**)* | **Stage-order document-before-action (ADV-F2-P2-001/P2-014):** a monitoring-loop `jr issue comment/create/assign` (Stage 8 TICKET ACTION) is **DENIED** by require-review unless a verdict-record Write for the SAME run/verdict (Stage 7 DOCUMENT) — which caused disposition-guard to emit a matching scoped marker — preceded it within the marker TTL (120s). Proves the D-DEC-008 ordering invariant is enforced end-to-end: Stage 7 DOCUMENT must precede Stage 8 TICKET ACTION, or the loop can never auto-action (the ADV-F2-P2-001 CRITICAL failure mode). | B-INT-XH | Positive: (1) disposition-guard.sh on a valid non-hard-floor verdict Write → assert marker emitted in `${CLAUDE_PLUGIN_DATA}/markers/`; (2) require-review.sh on the matching `jr` Bash → assert **allow** + marker consumed. Negative: require-review.sh on the same `jr` Bash with **NO preceding verdict Write** (empty marker dir) → assert **deny**. TTL-expiry leg: verdict Write, wait past 120s, jr Bash → deny. Same shared `CLAUDE_PLUGIN_DATA=$(mktemp -d)` env across the two subprocess hooks (ASM-009 condition). | BC-10.01.001 (v1.9 Inv#14, D-DEC-008); enforced by BC-3.03.001 (emit) + BC-3.01.001 (consume) |
 | VP-SKILL-050 | Watermark monotonicity: per org×sensor watermark write is always ≥ previous persisted value; loop never re-processes a consumed window on restart; future timestamp rejected. *(First-run 24h lookback is covered by the dedicated **VP-SKILL-072** as of v1.5 — this row proves post ≥ pre on an EXISTING watermark only.)* | B-INT | Inject pre-existing watermark file under `CLAUDE_PLUGIN_DATA/watermarks/<org>/<sensor>`; run loop stub; assert post ≥ pre | BC-10.01.001 (Inv#4, D-DEC-002) |
 | VP-SKILL-051 | Prism version gate: `prism --version` parsed and compared to `1.0.0-rc.1`; below → halt with version-gate error, no MCP write; at/above → proceed to dual MCP write | B-INT | prism-version-check.sh with mocked `prism --version`; assert halt vs proceed + no settings write on halt | BC-6.01.001 (v1.5) |
@@ -265,21 +297,23 @@ integration (two sequential subprocess hook invocations sharing `CLAUDE_PLUGIN_D
 | **VP-SKILL-070** *(NEW v1.3)* | **assess-priority PrismQL org_slug scoping (ADV-F2-P3-004 — BC-4.05.001 Inv#4):** every assess-priority PrismQL query (PC#5a 30-day baseline, PC#5b NVD/ThreatIntel enrichment, PC#5d asset-criticality lookup) always includes an explicit `org_slug` WHERE clause (D-DEC-005); unscoped queries rejected; org-a query returns zero org-b/c rows. | B-STR + B-INT | **static** Iron-Law content assertion on `assess-priority/SKILL.md` PrismQL blocks (PC#5a/5b/5d each carry `WHERE org_slug=`); prism-DTU multi-org fixture — org-a query returns zero org-b/c rows; **adversarial** unscoped-query → rejected/scoped | BC-4.05.001 (v1.3 Inv#4, PC#5a/5b/5d, D-DEC-005) |
 | **VP-SKILL-071** *(NEW v1.3)* | **assess-priority confidence float→enum consistency (ADV-F2-P3-008 — BC-4.05.001 PC#6 / D-DEC-011):** for every `confidence_score` float output, the paired `confidence` enum matches the D-DEC-011 canonical thresholds — `high` iff `confidence_score ≥ 0.75`, `medium` iff `0.40 ≤ confidence_score < 0.75`, `low` iff `confidence_score < 0.40`; an inconsistent pair (e.g. `confidence_score=0.85` with `confidence='low'`) is invalid; boundary values 0.75 and 0.40 map to the higher tier. This is the producer-side guarantee that the enum handed to verdict field #2 is well-formed before disposition-guard's enum type-assertion (VP-HOOK-025) sees it. | B-INT (boundary/property) | boundary fixtures at and around each threshold: `0.75→high`, `0.749→medium`, `0.40→medium`, `0.399→low`, `1.0→high`, `0.0→low`; assert emitted `confidence` enum matches; inconsistency fixture (`0.85`/`low`) → flagged invalid; enum is one of {high,medium,low} (never a float) | BC-4.05.001 (v1.3 PC#6, D-DEC-011) |
 | **VP-HOOK-028** *(NEW v1.3)* | **verdict-path reachability (ADV-F2-P3-005):** a monitoring-loop Stage-7 verdict Write to a path NOT containing the `verdict` substring causes disposition-guard to **fast-path-allow WITHOUT ICD-203 validation and WITHOUT marker issuance**; consequently the downstream Stage-8 `jr` write is **DENIED** by require-review (no marker to consume). Proves the load-bearing verdict-file-path naming convention (BC-10.01.001 Stage-7 PC#8) is enforced end-to-end: a mis-named verdict path is fail-closed (denies the action), never fail-open. **v1.5 (ADV-F2-P4-001 CRITICAL — JSON-first dispatch): the canonical verdict path `artifacts/investigations/verdict-<id>-<iso_ts>.json` contains BOTH the `investigation` and `verdict` substrings; dispatch MUST be JSON-first — a file ending in `.json` OR whose content parses as JSON (`jq empty`) routes to the verdict-class 15-field path REGARDLESS of any `investigation` substring; ONLY a `*investigation-*.md` file routes to the 12-field markdown path. Without this precedence the canonical verdict JSON is misrouted to the heading-grep branch, fails all `## `-heading assertions, is DENIED, emits no marker, and the entire autonomous pipeline is unreachable.** | B-INT-XH | Negative: disposition-guard.sh on a Write to `artifacts/findings/alert-001.json` (no `verdict` substring) → assert marker-store dir stays EMPTY; then require-review.sh on the matching `jr` Bash → assert **deny**. Positive control: same content written to `artifacts/investigations/verdict-alert-001.json` → marker emitted → jr **allow**. **v1.5 canonical-path dispatch legs: `artifacts/investigations/verdict-alert-001.json` (BOTH substrings) → JSON-first → 15-field verdict path → marker emitted (POSITIVE, not misrouted to markdown); a genuine `artifacts/investigations/investigation-001.md` → 12-field markdown path.** Shared `CLAUDE_PLUGIN_DATA=$(mktemp -d)` across the two subprocess hooks | BC-10.01.001 (v1.9 Stage-7 PC#8, D-DEC-008); enforced by BC-3.03.001 (v1.13 PC#1/2/3 JSON-first) + BC-3.01.001 (consume) |
-| **VP-HOOK-029** *(NEW v1.5, **P1**)* | **Fail-loud invariant (D-DEC-012 / ADV-F2-P4-004):** a hard-floor / Indeterminate / silent-sensor verdict MUST result in either a `create-review`/`comment-review` restricted review marker (which authorizes the downstream escalation `jr issue create/comment` for a `[REVIEW-REQUIRED]` / `[BLIND-SPOT]` ticket) OR an explicit error artifact — it may NEVER be silently discarded. There is NO path that yields "allow with no marker AND no review ticket AND no error" for a verdict that must surface to a human. This closes the D-DEC-008 regression where a hard-floor verdict got `ticket_action_type=none`, no marker, and the ticket was silently dropped in unattended cron (no human to click approve). | B-INT-XH | disposition-guard.sh on a `disposition=Indeterminate` + `ticket_action_type=create-review` verdict → assert a restricted `create-review` marker file exists in `${CLAUDE_PLUGIN_DATA}/markers/` (`authorized_operations=["create-review"]`); silent-sensor + `comment-review` → assert `comment-review` marker exists; **fail-loud assertion: for a hard-floor verdict, assert (a review marker exists) OR (an explicit error artifact was written) — assert NOT (empty marker dir AND no error)**; downstream require-review.sh on the matching `jr issue create`/`comment` → assert **allow** (review marker consumed). Shared `CLAUDE_PLUGIN_DATA=$(mktemp -d)` | BC-10.01.001 (v1.9 Inv#10 narrowed, D-DEC-012); enforced by BC-3.03.001 (emit review marker) + BC-3.01.001 (v1.17 consume create-review/comment-review) |
+| **VP-HOOK-029** *(NEW v1.5; **RE-SCOPED v1.8**, **P0/P1**)* | **Fail-loud UNDER-LABEL invariant (D-DEC-012 / ADV-F2-P5-001 CRITICAL — re-scoped from the pass-4 happy-path-only scope):** a hard-floor / Indeterminate / silent-sensor verdict that arrives carrying a **NON-review** `ticket_action_type ∈ {comment, create, assign, none}` MUST result in **exactly one** of {(a) a `create-review`/`comment-review` restricted marker in the store (the STEP 5 deterministic upgrade), (b) an explicit error artifact in `audit.log` AND a deny (the no-`jira_project_key` create path)} — and NEVER a silent allow-without-marker. The pass-4 scope ("hard-floor WITH a review token → marker OR error") tested only the correct-label happy path and structurally could NOT detect the P5-001 silent-discard case (`action=comment/none` falling through STEP 5 to `emit allow without marker; RETURN`); the re-scope injects hard-floor verdicts with NON-review tokens and asserts the review-marker XOR error+deny outcome. This closes the D-DEC-008 regression where a hard-floor verdict labeled `ticket_action_type=none` (or comment/create/assign) got no marker, no Jira surface, and no error → the `[REVIEW-REQUIRED]`/`[BLIND-SPOT]` finding was silently dropped in unattended cron (no human to click approve). Enforced deterministically at the hook (STEP 5), NOT delegated to the trusted-LLM SKILL.md layer. | B-BEH + B-INT-XH | disposition-guard.sh on hard-floor verdicts carrying NON-review tokens — **STEP 5 branch (b) ticket_id present → comment-review upgrade:** `disposition=Indeterminate` (or HIGH severity / silent sensor) + `ticket_action_type=comment` + `ticket_id="SEC-123"` → assert a `comment-review` marker (`authorized_operations=["comment-review"]`, `command_pattern` anchored to `SEC-123`) exists AND an `UNDER-LABEL-CORRECTED` audit line is written; **STEP 5 branch (a) ticket_id null + jira_project_key present → create-review upgrade:** HIGH-severity + `ticket_action_type=create` + `ticket_id=null` + `jira_project_key="ORG_A"` → assert a `create-review` marker (`authorized_operations=["create-review"]`) exists + `UNDER-LABEL-CORRECTED` audit; also `Indeterminate` + `ticket_action_type=none` + `ticket_id=null` + project_key present → create-review marker; **STEP 5 branch (c) ticket_id null + project_key absent → error+deny:** `Indeterminate` + `ticket_action_type=create` (or `none`) + `ticket_id=null` + `jira_project_key` absent/empty → assert a `FAIL-LOUD` error artifact in `audit.log` AND require-review/emitter **deny** (NO marker); **fail-loud invariant assertion (all branches): assert exactly one of {review marker exists, error-artifact+deny} — assert NOT (empty marker dir AND no error) and NOT (silent allow-without-marker)**; **RETAINED correct-label happy-path vectors:** `create-review` token on a genuinely-hard-floor verdict → review marker in store (existing path unbroken); downstream require-review.sh on the matching `jr issue create`/`comment` → assert **allow** (review marker consumed). Shared `CLAUDE_PLUGIN_DATA=$(mktemp -d)`. **Paired mutant: SM-32a (remove STEP 5 upgrade) — the under-label vectors above are its distinct kill vector.** | BC-10.01.001 (v1.9 Inv#10 narrowed + STEP 5 fail-loud, D-DEC-012); enforced by BC-3.03.001 (STEP 5 emit review marker / error artifact) + BC-3.01.001 (v1.17 consume create-review/comment-review) |
 | **VP-SKILL-072** *(NEW v1.5)* | **First-run 24h lookback correctness (ADV-F2-P4-012 — BC-10.01.001 Inv#13 / EC-001 / D-DEC-002):** when NO watermark file exists for an org×sensor pair (first invocation), the loop's Stage-1 query is bounded to `WHERE _time >= now() - INTERVAL 24 HOURS` (never a full-history scan), and after a successful run the watermark is persisted to the most-recent processed event `_time`. Distinct from VP-SKILL-050 (monotonicity on an EXISTING watermark). | B-INT | Run loop stub with an EMPTY `CLAUDE_PLUGIN_DATA/watermarks/` dir (no file for org×sensor); assert the emitted PrismQL carries the `now() - INTERVAL 24 HOURS` lower bound (and NOT an unbounded / full-history query); after run, assert a watermark file is persisted at the latest processed `_time`; control: pre-existing watermark → assert the 24h-lookback branch is NOT taken (query uses the watermark bound) | BC-10.01.001 (v1.9 Inv#13, EC-001, D-DEC-002) |
 
 **Totals:** 5 FINALIZED F1 VPs (024, 025, 026, 050, 051) + 12 FINALIZED proposed VPs (052–063)
 + 2 v1.1 VPs (064, 065) + 4 v1.2 VPs (VP-HOOK-027, VP-SKILL-066, 067, 068) + 4 v1.3 VPs
 (VP-SKILL-069, 070, 071, VP-HOOK-028) + **2 NEW v1.5 VPs (VP-HOOK-029, VP-SKILL-072)** = **29
 VPs** for the cycle. Strategy mix: **8 hook properties** (VP-HOOK-024/025/026/027/028/029 —
-CRITICAL/HIGH enforcement; 027/028/029 are cross-hook B-INT-XH; VP-HOOK-029 is P1 fail-loud),
+CRITICAL/HIGH enforcement; 027/028/029 are cross-hook B-INT-XH; VP-HOOK-029 is P0/P1 fail-loud, re-scoped v1.8 to the under-label vectors),
 **21 skill properties** (VP-SKILL-072 is a first-run integration test; VP-SKILL-069/070 are
 static+integration+adversarial org_slug scoping on the investigate-event and assess-priority
 PrismQL surfaces; VP-SKILL-071 is a boundary/property test at the D-DEC-011 confidence thresholds;
 VP-SKILL-066/067 are mixed integration+structural; VP-SKILL-068 is prism-DTU + jr-mock integration;
-VP-SKILL-064 is mixed structural+integration+adversarial). **VP-HOOK-029 is tagged P1;
-architecture-delta §8.11 item 6 requests it be registered PROPOSED in VP-INDEX.md and adjudicated
-in F6 — the strategy here is finalized, the VP-INDEX lifecycle status is PROPOSED.**
+VP-SKILL-064 is mixed structural+integration+adversarial). **VP-HOOK-029 was tagged P1 at pass-4;
+the v1.8 re-scope to the P5-001 CRITICAL under-label vectors raises its fix-priority to P0
+(architecture-delta §8.13 item 1). Architecture-delta §8.11 item 6 requests it be registered
+PROPOSED in VP-INDEX.md and adjudicated in F6 — the strategy here is finalized (under-label +
+retained happy-path), the VP-INDEX lifecycle status is PROPOSED.**
 
 ---
 
@@ -420,14 +454,30 @@ Mutant **SM-33** (autonomy_enabled-clause-removed → a regular marker is wrongl
 switch) is the paired kill target. **(B) review-surfacing exemptions (P4-004, D-DEC-012):** the
 `create-review`/`comment-review` ticket_action_types are EXEMPT from BOTH the hard-floor no-marker rule
 AND the kill switch (emitter Step 3 runs before Step 4), because creating a `[REVIEW-REQUIRED]` /
-`[BLIND-SPOT]` ticket is human ESCALATION, not autonomous triage. New legs: Indeterminate +
+`[BLIND-SPOT]` ticket is human ESCALATION, not autonomous triage. Legs: Indeterminate +
 `create-review` → restricted marker emitted (`authorized_operations=["create-review"]`, hard-floor
 EXEMPT); silent-sensor + `comment-review` → restricted marker emitted; HIGH-severity + `create-review`
 → marker emitted; `autonomy_enabled=false` + `create-review` → marker STILL emitted (kill-switch
-EXEMPT). Mutant **SM-32** (review-surfacing-hard-floor-bypass-removed → Indeterminate + create-review
-gets NO marker, over-strict) is the paired kill target; the legs assert a marker IS emitted, so the
-mutant dies. The unconditional-hard-floor legs (1)–(6) above are UNCHANGED for REGULAR
-(comment/create/assign) markers.
+EXEMPT). The legs assert a marker IS emitted, so the "remove the review exemption entirely →
+over-strict, review ticket dropped" direction is killed here.
+
+**[UPDATED v1.8 — the STEP 3 review-exemption is GATED on `hard_floor_applies()`; the review token is
+no longer trusted unconditionally (ADV-F2-P5-002 MAJOR); and the STEP 5 under-label upgrade is the
+fail-loud dual (ADV-F2-P5-001 CRITICAL).]** Pass-4 treated the `create-review`/`comment-review`
+exemption as UNCONDITIONAL on the LLM-supplied `ticket_action_type`, which let the LLM manufacture a
+kill-switch + hard-floor bypass by over-labeling a regular verdict as a review action (P5-002).
+The architect's D-DEC-008 STEP 3 fix (architecture-delta v1.8) gates the exemption on the
+hook-computed `hard_floor_applies(verdict)`: `IF NOT hard_floor_applies(): emit allow WITHOUT marker;
+RETURN`. **New v1.8 OVER-LABEL legs (VP-HOOK-026):** non-hard-floor TP verdict (LOW severity, standard
+asset) + `create-review` → NO marker; non-hard-floor FP + `comment-review` + `autonomy_enabled=false`
+→ NO marker (no kill-switch bypass); LOW-severity standard asset + `create-review` → NO marker. The
+paired kill target for the over-label legs is **SM-32b** (remove the STEP 3 `NOT hard_floor_applies()`
+gate → a non-hard-floor verdict with a review token gets the exempt marker; the over-label legs assert
+NO marker, so the mutant dies). The **under-label** dual (a hard-floor verdict carrying a NON-review
+token) is enforced at STEP 5 and proved by **VP-HOOK-029**; its paired mutant is **SM-32a** (remove the
+STEP 5 upgrade → silent discard). The unconditional-hard-floor legs (1)–(6) above are UNCHANGED for
+REGULAR (comment/create/assign) markers; the review-surfacing legs (hard_floor_applies()=TRUE → marker
+emitted) are UNCHANGED and remain valid under the gated STEP 3.
 
 **(d) tuning_signal null-vs-absent — jq check.** Three-way distinction, evaluated in order:
 `has("tuning_signal") == false` → **INVALID ALWAYS** (absent key is a schema violation → deny);
@@ -458,8 +508,11 @@ at architecture-delta §D-DEC-001 v1.3) and adds SM-26 (reopen-guard-removed), S
 ADV-F2-P3-003). **v1.5 adds SM-31 (validate_enums-removed, ADV-F2-P4-006), SM-32
 (review-surfacing-hard-floor-bypass-removed, D-DEC-012/ADV-F2-P4-004), SM-33
 (autonomy_enabled-clause-removed, ADV-F2-P4-005), SM-34 (dispatch-order-inverted, ADV-F2-P4-001),
-and SM-35 (control-char-strip-removed, ADV-F2-P4-010).** All 27 (SM-9..SM-35) must be KILLED by
-the F4/F6 suite before convergence.
+and SM-35 (control-char-strip-removed, ADV-F2-P4-010).** **v1.8 RE-SCOPES SM-32 into two
+separately-killable variants — SM-32a (step5-under-label-upgrade-removed, ADV-F2-P5-001 CRITICAL,
+killed by VP-HOOK-029) and SM-32b (step3-hard-floor-gate-removed, ADV-F2-P5-002 MAJOR, killed by
+VP-HOOK-026) — raising the count 27 → 28 (SM-9..SM-35, with SM-32 = SM-32a + SM-32b).** All 28 must
+be KILLED by the F4/F6 suite before convergence.
 
 | Mutant | Target construct | Mutation | Killed by |
 |--------|------------------|----------|-----------|
@@ -470,43 +523,47 @@ the F4/F6 suite before convergence.
 | SM-13 | require-review future-dated guard | delete `issued_at > now()` check (clock-manipulation marker accepted) | VP-HOOK-024 future-dated test (EC-017 variant) |
 | SM-14 | require-review path-safety guard | delete basename `..`/`/` check (path-traversal candidate processed) | VP-HOOK-024 path-traversal test (EC-021) |
 | SM-15 | require-review iterative-consume exhaustion guard *(retargeted v1.2 — the ">1 → ambiguous deny" gate was retired at architecture-delta §D-DEC-001 v1.3 / ADV-F2-P2-003)* | replace the post-loop `deny (fail-closed exhaustion)` with `allow` (fail-open when every candidate's rename fails) OR drop the `issued_at_utc` ASC sort so a newer/forged marker is consumed before the oldest | VP-HOOK-024 iterative-consume legs: all-renames-fail → exhausted-DENY, and concurrent-same-scope → oldest-consumed-first |
-| SM-16 | disposition-guard emitter hard-floor gate | remove hard-floor check before marker write (Indeterminate/HIGH gets marker) | VP-HOOK-026 hard-floor tests (marker dir empty) |
+| SM-16 | disposition-guard emitter STEP 5 hard-floor gate | remove the `IF hard_floor_applies():` guard entirely so a hard-floor verdict (Indeterminate/HIGH) with a regular action falls through to STEP 6 and gets a **REGULAR (comment/create/assign-scoped) autonomous-triage marker** (distinct from SM-32a, which removes the *upgrade logic* → silent allow) | VP-HOOK-026 hard-floor tests (assert NO regular-scoped marker; SM-16 issues a regular comment/create/assign marker for a hard-floor verdict and dies) |
 | SM-17 | disposition-guard 15-field `has()` list | drop one of the original 12 fields (e.g. `timeline_events`) from the presence list | VP-HOOK-025 per-field missing-field tests |
 | SM-18 | disposition-guard tuning_signal null/absent | replace `has("tuning_signal")` with `.tuning_signal != null` (absent≡null conflated) | VP-HOOK-025 tuning_signal absent-invalid + FP-null-invalid (EC-011) |
 | SM-19 | disposition-guard dual-path router | invert verdict-vs-markdown routing (JSON verdict sent to heading check → field bypass) | VP-HOOK-025 dual-path routing test (JSON verdict allow/deny) |
 | SM-20 | disposition-guard 15-field `has()` list (new fields) | **severity-field-drop** — drop `severity`/`asset_type`/`ticket_action_type` (fields 13/14/15) from the presence list | VP-HOOK-025 missing-severity / missing-asset_type / missing-ticket_action_type tests (EC-010) |
-| SM-21 | disposition-guard hard-floor key | replace `verdict.severity` with `verdict.confidence` as the severity proxy (**ADV-F2-001 latent bypass**: HIGH-severity + low-confidence escapes the floor) | VP-HOOK-026 leg (2): `severity=HIGH` + `confidence=low` → marker dir stays empty |
+| SM-21 | disposition-guard hard-floor key | replace `verdict.severity` with `verdict.confidence` as the severity proxy (**ADV-F2-001 latent bypass**: HIGH-severity + low-confidence escapes the floor) | VP-HOOK-026 leg (2): `severity=HIGH` + `confidence=low` → assert NO regular (comment/create/assign-scoped) marker (HIGH severity is hard-floor by severity; the STEP 5 upgrade may place a REVIEW marker instead) — the mutant keys on `confidence=low`, mis-classifies as non-hard-floor, issues a REGULAR marker, and dies |
 | SM-22 | disposition-guard emitter scope selection | **ticket_action_type-ignored** — ignore `verdict.ticket_action_type`, always emit a comment-scoped marker (a `create`/`assign` verdict gets a wrong-scope comment marker) | VP-HOOK-024 create-scoped + assign-scoped allow-path vectors (wrong-scope marker fails anchored `command_pattern` match) |
-| SM-23 | monitoring-loop known-FP Stage-2 fast-exit ordering | **hard-floor-check-after-auto-close** — move the hard-floor evaluation AFTER the known-FP auto-close (ADV-F2-005): a HIGH-severity / critical-asset / degraded-sensor alert that also matches a known-FP pattern gets auto-closed before the floor fires | VP-HOOK-026 + BC-10.01.001 EC-009 hard-floor-before-known-FP test (`ticket_action_type=none`; no auto-close) |
+| SM-23 | monitoring-loop known-FP Stage-2 fast-exit ordering | **hard-floor-check-after-auto-close** — move the hard-floor evaluation AFTER the known-FP auto-close (ADV-F2-005): a HIGH-severity / critical-asset / degraded-sensor alert that also matches a known-FP pattern gets auto-closed before the floor fires | VP-HOOK-026 + BC-10.01.001 EC-009 hard-floor-before-known-FP test (**no auto-close** — the hard floor fires first and the alert is routed for human review, i.e. `ticket_action_type=create-review`/`comment-review` per the v1.8 narrowed Inv#10, NEVER silently auto-closed) |
 | SM-24 | monitoring-loop PrismQL query construction | **org_slug-drop** — omit the `org_slug` scope constraint from the generated query (cross-tenant leak) | VP-SKILL-064 multi-org integration (org-a query returns zero org-b/c rows) + unscoped-query adversarial fixture |
 | SM-25 | monitoring-loop autonomy gate | **kill-switch-ignore** — ignore `autonomy_enabled=false` and execute `jr issue create/comment/assign` anyway | VP-SKILL-065 kill-switch integration (zero markers consumed, zero jr writes) |
 | SM-26 | update-jira never-auto-reopen guard | **reopen-guard-removed** (ADV-F2-P2-009a) — remove the Closed/Resolved guard so the update-jira Closed/Resolved branch emits `jr issue move` to reopen autonomously | VP-SKILL-066 (Resolved→propose-only-no-move EC-007; Closed→create-new+link-no-move EC-008) |
 | SM-27 | monitoring-loop grace-window Jira-first dedup | **dedup-check-removed → double-ticket** (ADV-F2-P2-009c) — skip the Stage-2 Jira-first dedup lookup so a grace-window re-fetched event with an existing open ticket creates a SECOND (duplicate) ticket | VP-SKILL-068 (in-grace event with existing open ticket → append-COMMENT, NOT create; mutant creates the duplicate and dies) |
 | SM-28 | monitoring-loop stage-order (document-before-action) | **stage-order-inverted** (ADV-F2-P2-001) — execute Stage 8 TICKET ACTION (`jr` Bash) BEFORE the Stage 7 DOCUMENT verdict Write, so no marker exists when require-review evaluates the jr call | VP-HOOK-027 negative leg (jr Bash with empty marker dir → DENY); positive leg proves correct order → ALLOW |
-| SM-29 | disposition-guard emitter hard-floor asset_type set | **unknown-asset-hard-floor-removed** (ADV-F2-P3-001) — drop `asset_type=='unknown'` from the hard-floor set so a LOW-severity + benign-technique + `asset_type=unknown` + `ticket_action_type=comment` verdict is issued a marker (defense-in-depth breach on the authorization boundary) | VP-HOOK-026 unknown-asset leg (marker-store dir must stay EMPTY for `asset_type=unknown`); mutant writes a marker and dies |
+| SM-29 | disposition-guard emitter hard-floor asset_type set | **unknown-asset-hard-floor-removed** (ADV-F2-P3-001) — drop `asset_type=='unknown'` from the hard-floor set so a LOW-severity + benign-technique + `asset_type=unknown` + `ticket_action_type=comment` verdict is issued a REGULAR comment marker (defense-in-depth breach on the authorization boundary) | VP-HOOK-026 unknown-asset leg (assert NO regular comment/create/assign-scoped marker for `asset_type=unknown` — a STEP 5 review-upgrade marker is acceptable, a regular autonomous-triage marker is not); the mutant issues a REGULAR comment marker and dies |
 | SM-30 | disposition-guard artifact-class field-set router | **artifact-class-over-strict** (ADV-F2-P3-003) — apply the 15-field set to the investigation-markdown class (demand Severity/Asset Type/Ticket Action Type headings) so a valid 12-field investigation markdown is wrongly DENIED (regresses the investigate-event DI-013 marker path) | VP-HOOK-025 investigation-12-field-accept test (12-heading investigation → allow) + Severity-heading-inserted-into-investigation → still allow (no wrong-class 15-field deny) |
 | SM-31 | disposition-guard `validate_enums()` membership gate | **validate_enums-removed** (ADV-F2-P4-006) — remove the pre-hard-floor enum-membership check so a case-mangled `severity="High"` (or `asset_type="Unknown"` / `disposition="indeterminate"` / `sensor_health_status="Degraded"` / `ticket_action_type="NONE"`) passes key-presence, silently fails the `∈{HIGH,CRITICAL}` membership test, escapes the hard floor, and is issued a marker | VP-HOOK-025 enum-membership legs (`severity="High"`→DENY, etc.); the mutant issues a marker for a case-mangled HIGH verdict and dies |
-| SM-32 | disposition-guard emitter review-surfacing (Step 3) hard-floor bypass | **review-surfacing-hard-floor-bypass-removed** (D-DEC-012 / ADV-F2-P4-004) — remove the `create-review`/`comment-review` exemption so a hard-floor (Indeterminate / HIGH / silent-sensor) verdict with `ticket_action_type=create-review` gets NO marker (over-strict) → the `[REVIEW-REQUIRED]`/`[BLIND-SPOT]` escalation ticket is silently dropped | VP-HOOK-026 review-surfacing legs (Indeterminate+create-review → marker IS emitted; silent+comment-review → marker IS emitted); VP-HOOK-029 fail-loud (marker OR error, never silent) — mutant yields empty marker dir and dies |
+| SM-32a | disposition-guard emitter STEP 5 under-label upgrade | **step5-under-label-upgrade-removed** (ADV-F2-P5-001 CRITICAL) — revert STEP 5 to the pre-fix "IF action=='none' OR hard_floor_applies(): emit allow without marker; RETURN" so a hard-floor / Indeterminate / silent-sensor verdict carrying a NON-review `ticket_action_type ∈ {comment,create,assign,none}` gets NO marker, NO Jira surface, and NO error → the finding is silently dropped (the P5-001 silent-discard) | **VP-HOOK-029 under-label vectors** (Indeterminate+comment+ticket_id present → comment-review marker; HIGH+create+ticket_id null+project_key present → create-review marker; Indeterminate+none+ticket_id null+project_key absent → error+deny; the fail-loud "review-marker XOR error+deny, never silent allow" assertion) — the mutant yields an empty marker dir + no error and dies |
+| SM-32b | disposition-guard emitter STEP 3 over-label gate | **step3-hard-floor-gate-removed** (ADV-F2-P5-002 MAJOR) — remove the `IF NOT hard_floor_applies(verdict): emit allow without marker; RETURN` guard at STEP 3 so a NON-hard-floor verdict (disposition=TP, LOW severity, standard asset) carrying an LLM-supplied `create-review`/`comment-review` token receives the kill-switch + hard-floor EXEMPT review marker → the LLM manufactures a kill-switch bypass by over-labeling a regular verdict | **VP-HOOK-026 over-label legs** (non-hard-floor TP + create-review → NO marker; non-hard-floor FP + comment-review + autonomy_enabled=false → NO marker; LOW-severity standard asset + create-review → NO marker) — the mutant issues a marker for a non-hard-floor verdict and dies |
 | SM-33 | disposition-guard emitter `autonomy_enabled` kill switch (Step 4) | **autonomy_enabled-clause-removed** (ADV-F2-P4-005) — remove the direct `verdict.autonomy_enabled != true` suppression clause so a REGULAR `create`/`comment` marker is wrongly emitted under the kill switch (`autonomy_enabled=false` or absent) | VP-HOOK-026 kill-switch legs (`autonomy_enabled=false`/absent + regular create/comment → NO marker); mutant emits a marker and dies |
 | SM-34 | disposition-guard artifact-class dispatch order | **dispatch-order-inverted** (ADV-F2-P4-001) — test the `investigation` path substring BEFORE the JSON-content check so the canonical `artifacts/investigations/verdict-*.json` (contains BOTH substrings) is misrouted to the 12-field markdown heading-grep branch, fails all `## `-heading assertions, is DENIED, and emits no marker (pipeline unreachable) | VP-HOOK-028 canonical-path leg (`.../verdict-alert-001.json` → JSON-first → 15-field path → marker emitted); mutant denies the verdict JSON and dies |
 | SM-35 | require-review audit-log field encoding | **control-char-strip-removed** (ADV-F2-P4-010) — drop the `tr -d '\000-\037'` sanitization on `ticket_id`/`org_slug`/`op` so a `\n` embedded in `ticket_id` (Jira-content-influenced) forges an additional MARKER_USED line in `audit.log`, corrupting the chain-of-custody record | VP-HOOK-024 v1.5 audit leg (`ticket_id` containing `$'\n'` → exactly one MARKER_USED line; a forged second line fails the assertion) |
 
-**New mutation vector count: 27 (SM-9 … SM-35).** SM-9..SM-16, SM-21..SM-22, and SM-29..SM-30 land
-on the require-review + disposition-guard marker surface — the CRITICAL authorization boundary
-(module-criticality: require-review C-12 CRITICAL ≥95%; monitoring-loop surfaces CRITICAL at
-per-artifact granularity). SM-12 is the explicit SEC-009-regression sentinel; SM-21 is the
-explicit ADV-F2-001 severity/confidence-conflation sentinel; SM-23 is the ADV-F2-005
-hard-floor-ordering sentinel; SM-28 is the ADV-F2-P2-001 document-before-action-ordering
-sentinel; **SM-29 is the ADV-F2-P3-001 unknown-asset hard-floor sentinel (the pass-3 CRITICAL) and
-SM-30 is the ADV-F2-P3-003 artifact-class field-set sentinel. SM-31 is the ADV-F2-P4-006
-enum-membership-bypass sentinel, SM-33 the ADV-F2-P4-005 kill-switch-determinism sentinel, SM-34
-the ADV-F2-P4-001 dispatch-collision sentinel (both pass-4 CRITICALs land here), SM-32 the D-DEC-012
-review-surfacing-fail-loud sentinel, and SM-35 the ADV-F2-P4-010 audit-forgery sentinel.** With
-SM-9..SM-16 + SM-21..SM-22 + SM-28 + SM-29..SM-30 + **SM-31..SM-35** KILLED, the marker/authorization
-path meets the **≥95% require-review** target (SM-31/32/33/34 land squarely on the disposition-guard
-emitter authorization boundary; SM-35 on the require-review audit surface); SM-17..SM-20 + SM-23..SM-27
-carry the disposition-guard JSON path, the update-jira never-reopen guard (SM-26), and the
-monitoring-loop enforcement + dedup surface (SM-27) to **≥90%**.
+**New mutation vector count: 28 (SM-9 … SM-35; SM-32 = SM-32a + SM-32b as of v1.8).** SM-9..SM-16,
+SM-21..SM-22, and SM-29..SM-30 land on the require-review + disposition-guard marker surface — the
+CRITICAL authorization boundary (module-criticality: require-review C-12 CRITICAL ≥95%;
+monitoring-loop surfaces CRITICAL at per-artifact granularity). SM-12 is the explicit
+SEC-009-regression sentinel; SM-21 is the explicit ADV-F2-001 severity/confidence-conflation
+sentinel; SM-23 is the ADV-F2-005 hard-floor-ordering sentinel; SM-28 is the ADV-F2-P2-001
+document-before-action-ordering sentinel; **SM-29 is the ADV-F2-P3-001 unknown-asset hard-floor
+sentinel (the pass-3 CRITICAL) and SM-30 is the ADV-F2-P3-003 artifact-class field-set sentinel.
+SM-31 is the ADV-F2-P4-006 enum-membership-bypass sentinel, SM-33 the ADV-F2-P4-005
+kill-switch-determinism sentinel, SM-34 the ADV-F2-P4-001 dispatch-collision sentinel (both pass-4
+CRITICALs land here); SM-32a is the ADV-F2-P5-001 CRITICAL under-label silent-discard sentinel
+(killed by VP-HOOK-029) and SM-32b the ADV-F2-P5-002 MAJOR over-label kill-switch-bypass sentinel
+(killed by VP-HOOK-026) — the pass-5 under/over-label duals of the single "hook trusted the
+LLM-supplied ticket_action_type" root cause; SM-35 the ADV-F2-P4-010 audit-forgery sentinel.** With
+SM-9..SM-16 + SM-21..SM-22 + SM-28 + SM-29..SM-30 + **SM-31, SM-32a, SM-32b, SM-33..SM-35** KILLED,
+the marker/authorization path meets the **≥95% require-review** target (SM-31/32a/32b/33/34 land
+squarely on the disposition-guard emitter authorization boundary; SM-35 on the require-review audit
+surface); SM-17..SM-20 + SM-23..SM-27 carry the disposition-guard JSON path, the update-jira
+never-reopen guard (SM-26), and the monitoring-loop enforcement + dedup surface (SM-27) to **≥90%**.
 
 ---
 
@@ -528,17 +585,21 @@ tracked separately and roughly mirror the hook/helper behavioral count.
 | BC-6.01.004 | VP-SKILL-054, 055 | 6 — AD-017 no-paste, SELECT 1 present+gated, prism_describe-verify, cred-decline + EC | ~3 | credential-set.sh parity |
 | BC-8.02.001 | VP-SKILL-056, 057 | 5 — 5-field completeness, naming/no-alias, >24h silence warning + EC | 0 | structural + prism-DTU |
 | BC-9.01.001 | VP-SKILL-058, 059 | 5 — describe-first, org_slug scoping, zero-findings message, no-tables skip + EC | 0 | structural |
-| BC-10.01.001 (v1.9) | VP-HOOK-026, VP-HOOK-027, VP-HOOK-028, **VP-HOOK-029**, VP-SKILL-050, **072**, 060, 061, 062, 063, **064**, **065**, **068** | 54 — hard-floor{Indeterminate, severity=HIGH, critical-asset, **unknown-asset+LOW+benign (1, VP-HOOK-026, ADV-F2-P3-001)**, T1003, degraded-sensor}=6, **v1.5 review-surfacing{Indeterminate+create-review→marker=1, silent+comment-review→marker=1, HIGH+create-review→marker=1, authorized_operations=['create-review']=1 (VP-HOOK-026, D-DEC-012, SM-32 kill)}=4**, **v1.5 kill-switch-determinism{autonomy=false+create→no-marker=1, +comment→no-marker=1, autonomy-absent→false→no-marker=1, autonomy=false+create-review→marker-still (exempt)=1 (VP-HOOK-026, P4-005, SM-33 kill)}=4**, **v1.5 fail-loud{hard-floor→review-marker-OR-error, never-silent=1, downstream jr create-review→allow=1 (VP-HOOK-029, D-DEC-012)}=2**, verdict-path-reachability{non-verdict-path→no-marker→jr-deny=1, verdict-path→marker→jr-allow control=1 (VP-HOOK-028)}=2, **v1.5 canonical-dispatch{investigations/verdict-*.json→15-field→marker (JSON-first)=1, investigation-*.md→12-field=1 (VP-HOOK-028, P4-001, SM-34 kill)}=2**, watermark{monotonic,future-reject}=2, **v1.5 first-run{no-watermark→24h-lookback-query=1, post-run-persist=1, existing-watermark→no-lookback control=1 (VP-SKILL-072, P4-012)}=3**, known-FP-before-enrich=2, **hard-floor-before-known-FP-autoclose (EC-009)=1**, BLIND-SPOT positive=2, never-reopen-closed=2, Tavily-degrade=2, `--bare`-absent wrapper assertion=1, allowlist-matches-SKILL=1, cross-hook ASM-009 integration=2, **org_slug{cross-tenant-org-a≠b/c=2, static query-construction check=1, unscoped-query adversarial=1}=4 (VP-SKILL-064)**, **kill-switch{zero-markers=1, zero-jr-writes=1, evidence+draft-still-allowed=1}=3 (VP-SKILL-065)**, **stage-order{document-before-action positive=1, jr-before-Write→deny=1, TTL-expiry→deny=1}=3 (VP-HOOK-027)**, **grace-window-dedup{in-grace+existing-open-ticket→comment=1, in-grace+no-ticket→create=1, _time-normalize+boundary=1, dedup-off→double-ticket mutant kill=1}=4 (VP-SKILL-068)** | ~18 | monitoring-loop CRITICAL; +15 over v1.3 for VP-HOOK-026 review-surfacing (4) + kill-switch determinism (4) + VP-HOOK-029 fail-loud (2) + VP-HOOK-028 canonical-dispatch (2) + VP-SKILL-072 first-run (3) |
+| BC-10.01.001 (v1.9) | VP-HOOK-026, VP-HOOK-027, VP-HOOK-028, **VP-HOOK-029**, VP-SKILL-050, **072**, 060, 061, 062, 063, **064**, **065**, **068** | 61 — hard-floor{Indeterminate, severity=HIGH, critical-asset, **unknown-asset+LOW+benign (1, VP-HOOK-026, ADV-F2-P3-001)**, T1003, degraded-sensor}=6, **v1.5 review-surfacing (hard_floor_applies()=TRUE positive controls){Indeterminate+create-review→marker=1, silent+comment-review→marker=1, HIGH+create-review→marker=1, authorized_operations=['create-review']=1 (VP-HOOK-026, D-DEC-012)}=4**, **v1.8 over-label gate (hard_floor_applies()=FALSE){non-hard-floor-TP+create-review→no-marker=1, non-hard-floor-FP+comment-review+autonomy=false→no-marker=1, LOW-standard+create-review→no-marker=1 (VP-HOOK-026, ADV-F2-P5-002, SM-32b kill)}=3**, **v1.5 kill-switch-determinism{autonomy=false+create→no-marker=1, +comment→no-marker=1, autonomy-absent→false→no-marker=1, autonomy=false+create-review→marker-still (exempt)=1 (VP-HOOK-026, P4-005, SM-33 kill)}=4**, **v1.8 fail-loud under-label{comment-review-upgrade (ticket_id present)=1, create-review-upgrade (ticket_id null + project_key)=1, error+deny (project_key absent)=1, UNDER-LABEL-CORRECTED-audit=1, downstream jr review→allow=1, retained correct-label happy-path=1 (VP-HOOK-029, ADV-F2-P5-001, SM-32a kill)}=6**, verdict-path-reachability{non-verdict-path→no-marker→jr-deny=1, verdict-path→marker→jr-allow control=1 (VP-HOOK-028)}=2, **v1.5 canonical-dispatch{investigations/verdict-*.json→15-field→marker (JSON-first)=1, investigation-*.md→12-field=1 (VP-HOOK-028, P4-001, SM-34 kill)}=2**, watermark{monotonic,future-reject}=2, **v1.5 first-run{no-watermark→24h-lookback-query=1, post-run-persist=1, existing-watermark→no-lookback control=1 (VP-SKILL-072, P4-012)}=3**, known-FP-before-enrich=2, **hard-floor-before-known-FP-autoclose (EC-009)=1**, BLIND-SPOT positive=2, never-reopen-closed=2, Tavily-degrade=2, `--bare`-absent wrapper assertion=1, allowlist-matches-SKILL=1, cross-hook ASM-009 integration=2, **org_slug{cross-tenant-org-a≠b/c=2, static query-construction check=1, unscoped-query adversarial=1}=4 (VP-SKILL-064)**, **kill-switch{zero-markers=1, zero-jr-writes=1, evidence+draft-still-allowed=1}=3 (VP-SKILL-065)**, **stage-order{document-before-action positive=1, jr-before-Write→deny=1, TTL-expiry→deny=1}=3 (VP-HOOK-027)**, **grace-window-dedup{in-grace+existing-open-ticket→comment=1, in-grace+no-ticket→create=1, _time-normalize+boundary=1, dedup-off→double-ticket mutant kill=1}=4 (VP-SKILL-068)** | ~20 | monitoring-loop CRITICAL; +22 over v1.3 for VP-HOOK-026 review-surfacing (4) + v1.8 over-label gate (3) + kill-switch determinism (4) + VP-HOOK-029 fail-loud under-label (6) + VP-HOOK-028 canonical-dispatch (2) + VP-SKILL-072 first-run (3) |
 
-**Estimated new BATS test cases: ~155** (hooks/skills/integration; was ~130) + **~76 parity (.ps1)**
-additions (was ~65) ≈ **~231 new test cases** for the cycle (was ~195). The ~+25 BATS delta over v1.3
-is: +3 BC-3.01.001 (create-pattern injection-safety P4-002 + audit control-char P4-010), +6 BC-3.03.001
-(validate_enums membership legs P4-006), +15 BC-10.01.001 (VP-HOOK-026 review-surfacing 4 + kill-switch
-determinism 4, VP-HOOK-029 fail-loud 2, VP-HOOK-028 canonical-dispatch 2, VP-SKILL-072 first-run 3),
-plus ~11 parity (the hook-side additions — the disposition-guard emitter and require-review changes —
-each need a `.ps1` sibling per CONV-004; the VP-SKILL-072 loop-stub integration adds little parity).
-All 5 new pass-4 mutants (SM-31..SM-35) land on the CRITICAL disposition-guard/require-review surface,
-so these are near-exhaustive input-partition BATS on the marker path. This is consistent with the
+**Estimated new BATS test cases: ~162** (hooks/skills/integration; was ~155 at v1.5) + **~76 parity (.ps1)**
+additions ≈ **~238 new test cases** for the cycle (was ~231). The v1.8 pass-5 re-scope adds **+7 BATS on
+BC-10.01.001**: the VP-HOOK-026 over-label gate (+3: non-hard-floor + review token → no marker, incl.
+autonomy=false) and the VP-HOOK-029 fail-loud under-label expansion (+4: three STEP 5 branches +
+UNDER-LABEL-CORRECTED audit, up from the pass-4 2-vector happy-path scope). The prior ~+25 BATS delta
+over v1.3 is: +3 BC-3.01.001 (create-pattern injection-safety P4-002 + audit control-char P4-010), +6
+BC-3.03.001 (validate_enums membership legs P4-006), +15 BC-10.01.001 (pass-4: VP-HOOK-026
+review-surfacing 4 + kill-switch determinism 4, VP-HOOK-029 fail-loud 2, VP-HOOK-028 canonical-dispatch
+2, VP-SKILL-072 first-run 3) — now +22 with the pass-5 +7. Plus ~11 parity (the hook-side additions —
+the disposition-guard emitter and require-review changes — each need a `.ps1` sibling per CONV-004; the
+VP-SKILL-072 loop-stub integration adds little parity). The pass-4 mutants (SM-31, SM-33..SM-35) plus the
+pass-5 re-scoped SM-32a/SM-32b all land on the CRITICAL disposition-guard/require-review surface, so
+these are near-exhaustive input-partition BATS on the marker path. This is consistent with the
 CRITICAL/HIGH rigor bar in module-criticality.md (near-exhaustive input-partition BATS on the marker
 path). F3 should size Wave-3 (marker mechanism), Wave-7 (monitoring-loop), the update-jira story, and
 the investigate-event / assess-priority stories to absorb the BC-3.01.001 + BC-3.03.001 +
@@ -612,10 +673,14 @@ disposition-guard emitter + require-review marker path).
   authorization boundary: BC-10.01.001 v1.9 Inv#10 policy already made `unknown` a conservative hard
   floor, but the disposition-guard emitter list (BC-3.03.001 Inv#4) and the `hard_floor_applies()`
   pseudocode omitted it, so a LOW-severity + benign + `asset_type=unknown` verdict with a SKILL-side
-  `ticket_action_type!=none` error would get a marker → auto-write. The BATS test injects exactly that
-  benign-but-unknown verdict with `autonomy_enabled=true` and asserts the marker-store dir stays empty.
-  Mutant SM-29 (unknown-asset-hard-floor-removed) is the paired kill target. This is a pure hook-side
-  guarantee (defense-in-depth independent of SKILL.md), which is why it stays on VP-HOOK-026.
+  `ticket_action_type!=none` label would get a REGULAR (autonomous-triage) marker → auto-write. The BATS
+  test injects exactly that benign-but-unknown verdict with `autonomy_enabled=true` and **[UPDATED v1.8]**
+  asserts NO regular (comment/create/assign-scoped) marker is written — a `create-review`/`comment-review`
+  REVIEW marker from the STEP 5 under-label upgrade is acceptable (its fail-loud completeness is owned by
+  VP-HOOK-029); what VP-HOOK-026 forbids is a regular autonomous-triage marker. Mutant SM-29
+  (unknown-asset-hard-floor-removed) is the paired kill target (it issues a regular comment marker and
+  dies). This is a pure hook-side guarantee (defense-in-depth independent of SKILL.md), which is why it
+  stays on VP-HOOK-026.
 - **VP-HOOK-025 12-vs-15 artifact-class split + confidence float→enum legs (NEW v1.3,
   ADV-F2-P3-003/P3-008)** close two VP-coverage seams the adversary flagged (ADV-F2-P3-013). The
   split makes the field-set an explicit per-class test axis: the investigation-markdown class checks
@@ -687,9 +752,20 @@ disposition-guard emitter + require-review marker path).
   operational field (P4-005) rather than trusting the loop LLM to set `ticket_action_type=none`, so
   `autonomy_enabled≠true` (false OR absent→conservative false) suppresses ALL REGULAR markers. The
   original unconditional-hard-floor legs (Indeterminate/HIGH/critical-asset/unknown/T1003/degraded) are
-  UNCHANGED for regular markers. Mutants SM-32 (review-surfacing-bypass-removed → over-strict, review
-  ticket dropped) and SM-33 (autonomy_enabled-clause-removed → regular marker under kill switch) are the
-  paired kill targets.
+  UNCHANGED for regular markers. Mutant SM-33 (autonomy_enabled-clause-removed → regular marker under
+  kill switch) is the paired kill target for the kill-switch legs.
+  **[EXTENDED v1.8 — over-label gate, ADV-F2-P5-002 MAJOR.]** Pass-4 treated the review-token exemption
+  as UNCONDITIONAL on the LLM-supplied `ticket_action_type`; the adversary (P5-002) showed this let the
+  LLM manufacture a kill-switch + hard-floor bypass by over-labeling a regular verdict as `create-review`.
+  The architect's D-DEC-008 STEP 3 fix GATES the exemption on the hook-computed `hard_floor_applies(verdict)`
+  (`IF NOT hard_floor_applies(): emit allow WITHOUT marker; RETURN`). New v1.8 over-label legs assert a
+  NON-hard-floor verdict (disposition=TP, LOW severity, standard asset) carrying a review token gets NO
+  marker — incl. under `autonomy_enabled=false` (no kill-switch bypass). The paired kill target is the
+  RE-SCOPED **SM-32b** (step3-hard-floor-gate-removed → a non-hard-floor verdict with a review token gets
+  the exempt marker; the over-label legs assert NO marker, so it dies). The review-surfacing positive
+  controls (hard_floor_applies()=TRUE → marker emitted) remain valid under the gated STEP 3. This is the
+  over-label dual of the VP-HOOK-029 under-label fail-loud invariant (SM-32a) — the two together close the
+  P5-001/P5-002 single root cause (the hook trusting the LLM token without cross-checking hard_floor_applies).
 - **VP-HOOK-028 JSON-first canonical-path dispatch (extended v1.5, ADV-F2-P4-001 CRITICAL).** The pass-3
   fix (mandate `verdict` in the Stage-7 path) collided with the canonical path
   `artifacts/investigations/verdict-<id>-<iso_ts>.json`, which contains BOTH `investigation` and `verdict`
@@ -700,17 +776,27 @@ disposition-guard emitter + require-review marker path).
   → 12-field; else fast-path) as an explicit VP-HOOK-028 regression leg: `.../verdict-alert-001.json` →
   15-field path → marker (positive, NOT misrouted); `.../investigation-001.md` → 12-field. Mutant SM-34
   (dispatch-order-inverted) is the paired kill target. BC-3.03.001 v1.13 PC#1/2/3 own the rewritten dispatch.
-- **VP-HOOK-029 fail-loud invariant (NEW v1.5, P1, D-DEC-012 / ADV-F2-P4-004).** This is the closure of
-  the mutual exclusion the adversary flagged: BC-10.01.001 v1.7 Inv#10 forced hard-floor verdicts to
-  `ticket_action_type=none` (no marker), while EC-006/EC-014 required the loop to create `[BLIND-SPOT]` /
-  `[REVIEW-REQUIRED]` tickets — so in unattended cron a hard-floor verdict was silently dropped (no marker →
-  require-review denies create → ticket lost, no human to approve). BC-10.01.001 v1.8 narrows Inv#10 so hard
-  floors set `create-review`/`comment-review`, and VP-HOOK-029 proves the fail-loud consequence end-to-end:
-  for a hard-floor / Indeterminate / silent-sensor verdict, assert a review marker exists OR an explicit
-  error artifact was written — assert NOT (empty marker dir AND no error). Reuses the ASM-009 cross-hook
-  harness (disposition-guard emit → require-review consume of the review token, BC-3.01.001 v1.17 step 6).
-  Tagged **P1**; architecture-delta §8.11 item 6 requests VP-INDEX status PROPOSED, adjudicated in F6.
-  No dedicated mutant beyond SM-32 (review-surfacing-bypass), which is the direct silent-discard kill target.
+- **VP-HOOK-029 fail-loud invariant (NEW v1.5; RE-SCOPED v1.8 to the UNDER-LABEL vectors, P0/P1,
+  D-DEC-012 / ADV-F2-P5-001 CRITICAL).** This is the closure of the mutual exclusion the adversary
+  flagged: BC-10.01.001 v1.7 Inv#10 forced hard-floor verdicts to `ticket_action_type=none` (no marker),
+  while EC-006/EC-014 required the loop to create `[BLIND-SPOT]` / `[REVIEW-REQUIRED]` tickets — so in
+  unattended cron a hard-floor verdict was silently dropped (no marker → require-review denies create →
+  ticket lost, no human to approve). **Pass-5 root cause (P5-001):** the pass-4 VP-HOOK-029 scope only
+  tested the correct-label happy path ("hard-floor WITH a review token → marker OR error") and structurally
+  could NOT detect the actual silent-discard case — a hard-floor verdict arriving with a NON-review token
+  (`comment`/`create`/`assign`/`none`) fell through the pre-fix STEP 5 (`IF action==none OR
+  hard_floor_applies(): emit allow without marker; RETURN`) with no marker, no Jira surface, no error. The
+  architect's D-DEC-008 STEP 5 fix deterministically UPGRADES an under-labeled hard-floor verdict
+  (create-review if ticket_id null + project_key present; comment-review if ticket_id present) and writes an
+  UNDER-LABEL-CORRECTED audit entry, or — if no project_key can bind the create path — writes a FAIL-LOUD
+  error artifact and denies. **Re-scoped VP-HOOK-029 injects hard-floor verdicts carrying NON-review tokens
+  and asserts EXACTLY ONE of {review-marker emitted, error-artifact+deny} across all three STEP 5 branches —
+  assert NOT (empty marker dir AND no error) and NOT (silent allow-without-marker)**; the pass-4 correct-label
+  happy-path vectors are RETAINED (§8.13 item 1). Reuses the ASM-009 cross-hook harness (disposition-guard
+  emit → require-review consume of the review token, BC-3.01.001 v1.17 step 6). Tagged **P0** for the fix
+  (was P1); architecture-delta §8.11 item 6 requests VP-INDEX status PROPOSED, adjudicated in F6. **Paired
+  mutant: the RE-SCOPED SM-32a (step5-under-label-upgrade-removed) — the under-label vectors are its distinct
+  kill vector, disjoint from SM-32b (over-label, killed by VP-HOOK-026).**
 - **VP-SKILL-072 first-run 24h lookback correctness (NEW v1.5, ADV-F2-P4-012 / BC-10.01.001 Inv#13 /
   EC-001).** Dedicated VP for the absent-watermark bound that VP-SKILL-050 (monotonicity on an existing
   watermark) only mentioned incidentally. A loop-stub run against an EMPTY watermark dir must emit a
@@ -867,29 +953,56 @@ These are the outstanding BC VP-anchor additions the PO must apply — I do NOT 
    for the pass-4 extensions (injection-safety, validate_enums, review-surfacing + kill-switch, JSON-first
    dispatch). VP-SKILL is now 001–072, VP-HOOK 024–029. No renumbering of any existing VP.
 
+**F. NEW corrections required by this v1.8 (pass-5 re-scope: VP-HOOK-029 + VP-HOOK-026 + SM-32a/32b).**
+The disposition-guard STEP 3 (over-label gate) and STEP 5 (under-label fail-loud upgrade) emitter BODY
+updates are owned by the product-owner per architecture-delta v1.8 §8.12 (BC-3.03.001 STEP 3+STEP 5;
+BC-10.01.001 Inv#10 ticket_action_type under-label semantics) — I do NOT edit the BCs. The FV-side
+cross-references the PO should reflect when applying those STEP 3/STEP 5 updates:
+1. **BC-3.03.001 v1.13 Inv#4 emitter — STEP 3 over-label gate + STEP 5 under-label upgrade.** (a) The
+   STEP 3 review-marker exemption gated on `hard_floor_applies(verdict)=TRUE` (over-labeled non-hard-floor
+   verdict with a review token → allow-without-marker) — cite **VP-HOOK-026** (over-label legs, SM-32b).
+   (b) The STEP 5 deterministic upgrade of an under-labeled hard-floor verdict to create-review/comment-review
+   (or error-artifact+deny when no `jira_project_key`) with an UNDER-LABEL-CORRECTED audit entry — cite
+   **VP-HOOK-029** (under-label fail-loud vectors, SM-32a).
+2. **BC-10.01.001 v1.9 Inv#10 — narrowed under-label semantics.** Inv#10 (hard floor → create-review/
+   comment-review, and STEP 5 fail-loud-upgrades under-labeled hard-floor verdicts, never silent `none`)
+   — confirm **VP-HOOK-029** remains its anchor (the fail-loud guarantee) and **VP-HOOK-026** the
+   over-label gate. No new VP; no renumbering.
+3. **VP-INDEX.md + verification-coverage-matrix.md:** re-scope the **VP-HOOK-029** entry from the pass-4
+   happy-path scope to the under-label fail-loud scope (fix-priority P0), and add the **VP-HOOK-026**
+   over-label legs. Record **SM-32** as split into **SM-32a** (under-label, VP-HOOK-029) and **SM-32b**
+   (over-label, VP-HOOK-026). VP namespace UNCHANGED (VP-SKILL 001–072, VP-HOOK 024–029).
+
 No corrections alter any invariant, EC, or postcondition semantics. All delta BCs are otherwise
 internally consistent with the finalized **29-VP** set (27 from v1.3 + **VP-HOOK-029** + **VP-SKILL-072**)
-and the SM-N catalog extension (SM-9..SM-35). Cross-doc/other-file version-ref reconciliation (prd-delta,
-VP-INDEX headers, inter-BC citations) is explicitly NOT chased here — the dedicated version-coherence
-sweep owns global reconciliation after this edit (ADV-F2-P3-007/P3-009).
+and the SM-N catalog (SM-9..SM-35, **28 mutants** with SM-32 = SM-32a + SM-32b as of v1.8). Cross-doc/
+other-file version-ref reconciliation (prd-delta, VP-INDEX headers, inter-BC citations) is explicitly NOT
+chased here — the dedicated version-coherence sweep owns global reconciliation after this edit
+(ADV-F2-P3-007/P3-009).
 
 ---
 
-*F2 Verification Delta v1.5 complete. **29 VPs** finalized (0 collisions, 0 renumbering) —
-27 from v1.3 + **VP-HOOK-029** (P1 fail-loud invariant: hard-floor/Indeterminate/silent-sensor verdict
-→ create-review/comment-review marker OR explicit error, NEVER silent discard, D-DEC-012 / ADV-F2-P4-004)
-+ **VP-SKILL-072** (first-run 24h lookback correctness, BC-10.01.001 Inv#13 / ADV-F2-P4-012). Pass-4
-extensions: **VP-HOOK-024** create `command_pattern` injection-safety (--summary injection + PROD/PRODUCTION
-prefix → DENY, P4-002 CRITICAL) + audit control-char sanitization (P4-010); **VP-HOOK-025** `validate_enums()`
-membership gate (wrong-case/non-member → fail-closed DENY before hard floor, P4-006); **VP-HOOK-026**
-create-review/comment-review hard-floor-EXEMPT + kill-switch-EXEMPT legs + `autonomy_enabled`
-read-direct-from-verdict determinism (D-DEC-012 / P4-004 / P4-005); **VP-HOOK-028** JSON-first canonical-path
-dispatch regression (investigations/verdict-*.json → 15-field verdict path, P4-001 CRITICAL). **27 SM-N
-mutants (SM-9..SM-35)** — +SM-31 (validate_enums-removed), +SM-32 (review-surfacing-hard-floor-bypass-removed),
-+SM-33 (autonomy_enabled-clause-removed), +SM-34 (dispatch-order-inverted — pass-4 CRITICAL sentinel),
-+SM-35 (control-char-strip-removed) — all on the CRITICAL disposition-guard/require-review authorization
-path (≥95%). **~155 new BATS + ~76 parity ≈ ~231** test cases estimated for F3 sizing (was ~195). Live-BC
-snapshot SYNCED (BC-3.03.001 v1.13, BC-3.01.001 v1.17, BC-10.01.001 v1.9, BC-4.02.001 v1.8, BC-6.01.001
-v1.5); verification-delta made internally self-consistent (VP table, mutant catalog, §5 counts, §6 notes,
-§7). Cross-doc/other-file version-ref reconciliation deferred to the dedicated version-coherence sweep
-(ADV-F2-P3-007/P3-009). BC corrections routed to product-owner in §7 Part E.*
+*F2 Verification Delta v1.8 complete. **29 VPs** (0 collisions, 0 renumbering — pass-5 is a RE-SCOPE,
+NOT new IDs): VP-SKILL 001–072, VP-HOOK 024–029. **Pass-5 re-scope (ADV-F2-P5-001 CRITICAL / P5-002
+MAJOR, architecture-delta v1.8 §8.13):** **VP-HOOK-029** re-scoped from the pass-4 happy-path-only scope
+to the fail-loud UNDER-LABEL vectors — a hard-floor / Indeterminate / silent-sensor verdict carrying a
+NON-review `ticket_action_type ∈ {comment,create,assign,none}` MUST yield a create-review/comment-review
+marker (STEP 5 upgrade) XOR an explicit error+deny, NEVER a silent allow-without-marker; covers all three
+STEP 5 branches (ticket_id present → comment-review; ticket_id null + project_key → create-review; neither
+→ error+deny) + UNDER-LABEL-CORRECTED audit; correct-label happy-path vectors retained (fix-priority P0).
+**VP-HOOK-026** extended with OVER-LABEL legs — the STEP 3 review-exemption is now GATED on hook-computed
+`hard_floor_applies(verdict)=TRUE`; a non-hard-floor verdict carrying a review token gets NO marker (incl.
+under autonomy_enabled=false → no kill-switch bypass). **SM-32 re-scoped into two separately-killable
+variants: SM-32a** (step5-under-label-upgrade-removed → silent discard; killed by **VP-HOOK-029**
+under-label vectors) and **SM-32b** (step3-hard-floor-gate-removed → over-label kill-switch bypass; killed
+by **VP-HOOK-026** over-label legs) — the under/over-label duals of the single P5 root cause (hook trusting
+the LLM `ticket_action_type` without cross-checking hard_floor_applies). Pass-4 carry-forward
+(VP-HOOK-024 injection-safety, VP-HOOK-025 validate_enums, VP-HOOK-028 JSON-first dispatch, VP-SKILL-072
+first-run lookback) unchanged. **28 SM-N mutants (SM-9..SM-35, SM-32 = SM-32a + SM-32b)** — all on the
+CRITICAL disposition-guard/require-review authorization path (≥95%). **~162 new BATS + ~76 parity ≈ ~238**
+test cases estimated for F3 sizing (was ~231; +7 BC-10.01.001: over-label +3, under-label fail-loud +4).
+Live-BC snapshot UNCHANGED from v1.5 (frozen pass-5: BC-3.03.001 v1.13, BC-3.01.001 v1.17, BC-10.01.001
+v1.9, BC-4.02.001 v1.8, BC-6.01.001 v1.5); verification-delta made internally self-consistent (VP table,
+mutant catalog, §3 discussion, §5 counts, §6 notes, §7). BC STEP 3/STEP 5 body updates are product-owner-
+owned (architecture-delta §8.12); FV cross-references routed to PO in §7 Part F. Cross-doc/other-file
+version-ref reconciliation deferred to the dedicated version-coherence sweep (ADV-F2-P3-007/P3-009).*

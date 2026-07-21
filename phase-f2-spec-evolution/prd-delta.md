@@ -1,7 +1,7 @@
 ---
 document_type: prd-delta
 producer: product-owner
-version: "1.8"
+version: "1.9"
 date: 2026-07-21
 cycle: v0.10.0-feature-prism-integration
 phase: f2
@@ -92,8 +92,15 @@ updated to enforce all 12 fields. This correction must be handled in the same
 burst as BC-3.03.001 MODIFIED (sub-burst 2), since disposition-guard is the
 enforcement surface.
 
-**Action required:** When sub-burst 2 modifies BC-3.03.001, the author must update
-VP-HOOK-025 to reference all 12 fields per BC-10.01.001 Invariant #9.
+**Action required (COMPLETED — artifact-class branching applied):** BC-3.03.001 v1.10/v1.11
+(pass 3 + VP finalization) updated VP-HOOK-025 to enforce the **12/15-field artifact-class split**:
+- Investigation markdown: 12 ICD-203 fields (heading-anchored grep)
+- Verdict JSON: all **15** fields (12 ICD-203 + `severity`, `asset_type`, `ticket_action_type`; jq has()-based key-presence + type assertions)
+
+The original "all 12 fields" target is retired; the authoritative field set per BC-10.01.001
+Invariant #9 is **15 fields for verdict JSON**. Investigation markdown retains 12. VP-HOOK-025
+per-class split documented in BC-3.03.001 PC#2/PC#3 and verification-delta.md v1.3 §2.
+(P5-004 fix — previously stale "12-field" reference contradicted §1 + Verdict Schema Summary.)
 
 ---
 
@@ -117,12 +124,17 @@ line, use @test-NAME refs only (no line numbers), and set `input-hash: "COMPUTE-
 
 ## 6. Open Questions for Formal-Verifier
 
-1. **VP-HOOK-025 field list discrepancy:** The F1 draft VP-HOOK-025 lists 8 ICD-203
-   fields; BC-10.01.001 Invariant #9 lists 12. Formal-verifier must confirm all 12
-   are enforceable at the disposition-guard hook layer and update VP-HOOK-025
-   accordingly. Specifically: are `timeline_events`, `agent_actions`, `human_actions`,
-   and `tuning_signal` checkable via the existing heading-anchored substring approach,
-   or does disposition-guard need a schema-validation approach for the verdict JSON?
+1. **VP-HOOK-025 field list discrepancy (RESOLVED — artifact-class branching):** The F1 draft
+   VP-HOOK-025 listed 8 ICD-203 fields; BC-10.01.001 Invariant #9 lists **15 fields (verdict JSON) /
+   12 fields (investigation markdown)**. Disposition-guard (BC-3.03.001 v1.7/v1.10/v1.11) now
+   enforces the full **12/15-field artifact-class split** — investigation markdown uses heading-
+   anchored grep for 12 ICD-203 fields; verdict JSON uses jq has()-based key-presence + per-field
+   type assertions for all 15 fields (12 ICD-203 + severity, asset_type, ticket_action_type;
+   architecture-delta v1.4 §D-DEC-008-C). The four previously missing fields (`timeline_events`,
+   `agent_actions`, `human_actions`, `tuning_signal`) are covered by the JSON key-presence path.
+   VP-HOOK-025 is FINALIZED per verification-delta.md v1.3 §2. Open question CLOSED.
+   (P5-004 fix — previously stated "all 12 are enforceable"; authoritative count is 12 investigation
+   markdown / 15 verdict JSON per artifact-class branching.)
 
 2. **VP-SKILL-050 proof method:** Watermark monotonicity requires reading both the
    previous watermark value and the new one within the same test invocation.
@@ -214,6 +226,7 @@ Dual-path enforcement (VP-HOOK-025): artifact-class branching — investigation 
 
 | Version | Date | Change |
 |---------|------|--------|
+| v1.9 | 2026-07-21 | Pass-5 adversarial remediation (P5-004) — stale "12-field" verdict-schema counts corrected. §4 "Action required" block annotated COMPLETED and updated to 12/15-field artifact-class split (investigation markdown 12 fields / verdict JSON 15 fields); the retired "all 12 fields" VP-HOOK-025 target replaced with finalized per-class split reference per BC-3.03.001 v1.10/v1.11 and verification-delta.md v1.3 §2. §6 Q1 annotated RESOLVED with same artifact-class clarification. No other stale 12-field references found in doc body (§5 historical "15→12 markdown correction" and §8 EC-010 "15 ICD-203 fields (both paths)" are each accurate in context; Verdict Schema Summary already correctly states 12-markdown/15-JSON split). |
 | v1.8 | 2026-07-21 | Pass-4 VP-anchor corrections + version-coherence sweep (verification-delta.md v1.5 §7 Part E). Job 1 — 3 BC VP-anchor corrections: BC-10.01.001 v1.8→v1.9 (VP-HOOK-029 PROPOSED/P1 anchor in Invariant #10 fail-loud; VP-SKILL-072 FINALIZED anchor in Invariant #13 first-run 24h lookback; Inv#15 VP-SKILL-066/062 coverage; Inv#9 VP-HOOK-026 autonomy_enabled cross-ref; VP-HOOK-028 extended to JSON-first dispatch; VP table + VP Anchors footer updated); BC-3.03.001 v1.12→v1.13 (VP-HOOK-028 citation PC#1; VP-HOOK-025 citation validate_enums() STEP 1; VP-HOOK-026/VP-HOOK-029 citations STEP 3 review-surfacing + STEP 4 autonomy_enabled; VP table updated); BC-3.01.001 v1.16→v1.17 (VP-HOOK-024 citations consumer steps (5) and (8); VP-HOOK-029 citation consumer step (6); VP table updated); BC-4.02.001 v1.7 confirmed (no Job-1 changes — cross-tenant already removed from PC#4, VP-SKILL-066 Inv#15 anchor confirmed). Job 2 — version-coherence sweep (IP-005): BC-4.02.001 v1.7→v1.8 (live-body cross-refs BC-3.03.001 v1.11→v1.13, BC-3.01.001 v1.15→v1.17; zero semantic change); BC-5.01.001 v1.7→v1.8 (same stale-ref fix; zero semantic change); BC-10.01.001 internal cross-refs updated (BC-3.03.001 v1.11→v1.13, BC-3.01.001 v1.16→v1.17). §1 table: BC-10.01.001 VP Refs updated to full finalized set VP-HOOK-024/025/026/027/028/029+VP-SKILL-050/060-065/068/072. §5 "New Version" column updated for all 5 modified BCs (BC-3.01.001 v1.17, BC-3.03.001 v1.13, BC-4.02.001 v1.8, BC-5.01.001 v1.8, BC-10.01.001 v1.9); change summaries appended. |
 | v1.7 | 2026-07-21 | Pass-4 adversarial remediation BC propagation (P4-009). §1 table: BC-10.01.001 EC count corrected 20→21 (EC-021 was authored in pass 2 but prd-delta count was not updated); description updated with D-DEC-012 create-review/comment-review and autonomy_enabled operational field. §1 totals: 50→51 edge cases. §3 edge case catalog: BC-10.01.001 20→21; notable ECs updated. §5 "New Version" column: BC-3.01.001 v1.15→v1.16 (D-DEC-012 create-review/comment-review accept in step 6; P4-010 control-char sanitization; P4-002 anchored create pattern); BC-3.03.001 v1.11→v1.12 (P4-001 JSON-first dispatch; P4-002 anchored pattern; P4-005 autonomy_enabled; P4-006 validate_enums(); D-DEC-012 emitter branches); BC-4.02.001 v1.6→v1.7 (P4-008 remove cross-tenant from hard-floor list; consistency-F1-F2 revision ordering and changelog completion); BC-10.01.001 v1.7→v1.8 (P4-003 inverted silence fix; P4-004/P4-007 Invariant #10 create-review/comment-review; P4-005 autonomy_enabled to non-ICD-203 metadata; D-DEC-012 EC-014/EC-006 update; EC-009 confidence+evidence_artifacts); BC-6.01.001 v1.4→v1.5 (consistency-F3 changelog correction). §8 grand totals: 50→51 sub-burst-1, 74→75 cycle total. Verdict Schema Summary: field #15 extended to include create-review/comment-review; non-ICD-203 operational metadata expanded with autonomy_enabled. |
 | v1.6 | 2026-07-20 | Phase F2 VP Finalization + Version-Coherence Sweep (verification-delta.md v1.3 §7 Part D). Job 1 — 4 BC VP-anchor corrections: BC-5.01.001 v1.6→v1.7 (VP-SKILL-069 PROPOSED→FINALIZED in Invariant #8 + VP table); BC-4.05.001 v1.2→v1.3 (VP-SKILL-070 PROPOSED→FINALIZED in Invariant #4; VP-SKILL-071 NEW+FINALIZED for confidence float→enum consistency at D-DEC-011 thresholds in PC#6); BC-10.01.001 v1.6→v1.7 (VP-HOOK-028 NEW+FINALIZED for verdict-path reachability in PC#8/Invariant #14 + VP table + VP Anchors footer; VP-HOOK-026 anchor names asset_type=unknown leg in Invariant #10; VP-HOOK-025 float-reject per-class split cited in Invariant #9 field #2); BC-3.03.001 v1.10→v1.11 (VP-HOOK-026 anchor names asset_type=unknown leg in Invariant #4 hard-floor block + VP-HOOK-026 row added to VP table; VP-HOOK-025 per-class split cited inline in PC#2 and PC#3). Job 2 — version-coherence sweep (P3-007/P3-009): BC-4.02.001 live-body cross-refs updated (BC-3.03.001 v1.8→v1.11, BC-3.01.001 v1.13→v1.15 in PC#1; BC-3.03.001 v1.6→v1.11 and BC-3.01.001 v1.11→v1.15 in PC#5, PC#4, confidence cite); BC-3.01.001 live-body cross-ref updated (BC-3.03.001 v1.10→v1.11 in Create-scope project-binding note). prd-delta.md: §1 BC-10.01.001 VP refs finalized (all PROPOSED→FINALIZED; VP-HOOK-027/028/VP-SKILL-068 added); §5 New Version column updated for all 5 modified BCs; Verdict Schema Summary: non-ICD-203 operational metadata note added (jira_project_key, confidence_score). |

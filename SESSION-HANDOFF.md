@@ -4,7 +4,7 @@ level: ops
 version: "2.1"
 status: current
 producer: state-manager
-timestamp: 2026-07-21T10:00:00Z
+timestamp: 2026-07-21T18:00:00Z
 project: secops-factory
 supersedes: "2.0 (2026-07-21T00:00:00Z)"
 ---
@@ -13,7 +13,7 @@ supersedes: "2.0 (2026-07-21T00:00:00Z)"
 
 ### RESUME IN ONE BREATH
 
-secops-factory prism-integration v0.10.0 feature cycle is mid-Phase-F2 (spec evolution). F1 approved+committed. The full F2 spec body (11 BCs + delta docs) is FROZEN and committed. Adversarial pass 5 is COMPLETE (1C/2M/1m/3obs — report persisted at phase-f2-spec-evolution/adversarial-spec-delta-review-pass5.md). Root cause: the deterministic disposition-guard hook trusts the LLM-supplied ticket_action_type completely and never cross-checks it against hard_floor_applies(), which it can compute — P5-001 (silent discard, CRITICAL) and P5-002 (kill-switch bypass, MAJOR) are the under/over-label duals of this single gap; P5-003 (MAJOR) is a stale §D-DEC-001 authoritative schema block. Clean streak remains 0/3. Consistency pass-5 audit was NOT on disk at wrap addendum. NEXT ACTION: REMEDIATE pass-5 findings — dispatch architect to fix the deterministic disposition-guard so it cross-checks LLM ticket_action_type against hard_floor_applies() (P5-001: in STEP 5 when hard_floor_applies() OR Indeterminate AND action not review-type, upgrade to review marker or write error artifact and deny; P5-002: gate STEP 3 review-exemption on hard_floor_applies(verdict) OR disposition==Indeterminate, reconcile kill-switch vs brief §3.9 draft-only language; P5-003: update §D-DEC-001 authoritative block to D-DEC-012 superset including create-review/comment-review tokens, Indeterminate verdict, ticket_action_type sub-field). Then PO propagate fixes to BC-3.03.001/BC-10.01.001. FV re-scope VP-HOOK-029 to inject hard-floor verdicts with NON-review ticket_action_type and assert (review-marker XOR error), making SM-32 killable. Minor: fix prd-delta §4/§6 "12-field" stale count to 12/15 split. Then adversarial pass 6. Decide whether to re-run consistency pass-5 before or after remediation.
+secops-factory prism-integration v0.10.0 feature cycle is mid-Phase-F2 (spec evolution). F1 approved+committed. The full F2 spec body (11 BCs + delta docs) is FROZEN and committed. Pass-5 remediation is COMPLETE and committed (P5-001/P5-002/P5-003 all resolved; kill-switch Option A confirmed by human 2026-07-21). Consistency audit pass-5 is COMPLETE (PASS-WITH-MINORS, 0 blocking). Clean streak remains 0/3. NEXT ACTION: adversarial pass 6 (fresh adversary context — do NOT reuse pass-5 adversary context). Current artifact versions: arch-delta v1.8, verif-delta v1.8, prd-delta v1.9, BC-3.03.001 v1.14, BC-10.01.001 v1.10, brief §3.9 amended. All other BCs unchanged from their F2-frozen versions. D-DEC-001..012 locked. D-007 (Option A kill-switch decision) committed.
 
 ---
 
@@ -26,19 +26,19 @@ secops-factory prism-integration v0.10.0 feature cycle is mid-Phase-F2 (spec evo
 
 ---
 
-## FROZEN F2 ARTIFACT VERSIONS (ground truth for resumed review/remediation)
+## FROZEN F2 ARTIFACT VERSIONS (post-pass-5-remediation ground truth)
 
 **BCs (phase-0-ingestion/behavioral-contracts/):**
 
 | BC ID | Version | Subject |
 |-------|---------|---------|
 | BC-3.01.001 | v1.17 | require-review — marker consumer |
-| BC-3.03.001 | v1.13 | disposition-guard — marker emitter |
+| BC-3.03.001 | v1.14 | disposition-guard — marker emitter (P5-001/002 remediated) |
 | BC-4.02.001 | v1.8 | update-jira |
 | BC-4.05.001 | v1.3 | assess-priority |
 | BC-5.01.001 | v1.8 | investigate-event |
 | BC-6.01.001 | v1.5 | activate |
-| BC-10.01.001 | v1.9 | monitoring-loop |
+| BC-10.01.001 | v1.10 | monitoring-loop (Inv#10, VP-SKILL-061 sensor-silence fixed) |
 | BC-6.01.003 | v1.1 | onboard-customer (NEW) |
 | BC-6.01.004 | v1.1 | onboard-sensor (NEW) |
 | BC-8.02.001 | v1.1 | sensor-metrics (NEW) |
@@ -48,13 +48,14 @@ secops-factory prism-integration v0.10.0 feature cycle is mid-Phase-F2 (spec evo
 
 | File | Version |
 |------|---------|
-| architecture-delta.md | v1.7 |
-| verification-delta.md | v1.7 |
-| prd-delta.md | v1.8 |
+| architecture-delta.md | v1.8 (P5-001/002/003 remediated; D-DEC-012 O3 rule; Option A) |
+| verification-delta.md | v1.8 (VP-HOOK-029 re-scoped; SM-32a/32b; §7 Part F; ~238 tests) |
+| prd-delta.md | v1.9 (§4/§6 12/15-field count fixed) |
 | dtu-assessment.md | DTU_REQUIRED: true — prism L3 via prism demo server, jr L2 mock |
 | asm-004-validation.md | PARTIAL → resolved-by-design (--strict-mcp-config --mcp-config prism.mcp.json) |
-| adversarial-spec-delta-review-pass1..4.md | all remediated |
-| spec-changelog.md | spec 1.0.0 → 1.1.0 MINOR |
+| adversarial-spec-delta-review-pass1..5.md | all remediated |
+| spec-changelog.md | spec 1.0.0 → 1.1.0 MINOR (+ F2 pass-5 remediation edits 2026-07-21) |
+| feature/prism-integration-handoff-brief.md | §3.9 amended — Option A kill-switch confirmed 2026-07-21 |
 
 **VP namespace:** VP-SKILL 001-072, VP-HOOK 024-029. Mutation vectors SM-9..SM-35. Decisions D-DEC-001..012.
 
@@ -62,31 +63,32 @@ secops-factory prism-integration v0.10.0 feature cycle is mid-Phase-F2 (spec evo
 
 ## KEY DESIGN STATE
 
-- **Marker mechanism (DI-013 resolution, D-005):** filesystem markers at `${CLAUDE_PLUGIN_DATA}/markers/`, canonical schema v2.0 (absolute `expires_at_utc` 120s TTL, `authorized_operations` tokens, iterative-consume oldest-first, `markers/audit.log` control-char-stripped). `command_pattern`: ticket-bound for comment/assign; anchored project-bound for create (`^jr (--output json )?issue create --project <key>( |$)`, NO unbounded `.*`). disposition-guard is the ONLY emitter; require-review the consumer. Document-before-action ordering (Stage 7 DOCUMENT emits marker → Stage 8 TICKET ACTION consumes). JSON-first disposition-guard dispatch (verdict JSON → 15-field path even at `investigations/verdict-*.json`). `validate_enums()` fail-closed. 15-field ICD-203 verdict schema + operational metadata (`jira_project_key`, `confidence_score`, `autonomy_enabled`). Hard floors deterministic on `verdict.severity`/`asset_type`/`attack_techniques`; `asset_type=unknown` is a hard floor. D-DEC-012: `create-review`/`comment-review` RESTRICTED markers surface BLIND-SPOT/Indeterminate to Jira, EXEMPT from hard-floor + kill-switch (fail-loud, VP-HOOK-029). Sensor-silence condition: `last_seen_ts < now()-24h`.
+- **Marker mechanism (DI-013 resolution, D-005):** filesystem markers at `${CLAUDE_PLUGIN_DATA}/markers/`, canonical schema v2.1 (absolute `expires_at_utc` 120s TTL, `authorized_operations` tokens, iterative-consume oldest-first, `markers/audit.log` control-char-stripped). `command_pattern`: ticket-bound for comment/assign; anchored project-bound for create (`^jr (--output json )?issue create --project <key>( |$)`, NO unbounded `.*`). disposition-guard is the ONLY emitter; require-review the consumer. Document-before-action ordering (Stage 7 DOCUMENT emits marker → Stage 8 TICKET ACTION consumes). JSON-first disposition-guard dispatch (verdict JSON → 15-field path even at `investigations/verdict-*.json`). `validate_enums()` fail-closed. 15-field ICD-203 verdict schema + operational metadata (`jira_project_key`, `confidence_score`, `autonomy_enabled`). Hard floors deterministic on `verdict.severity`/`asset_type`/`attack_techniques`; `asset_type=unknown` is a hard floor. D-DEC-012: `create-review`/`comment-review` RESTRICTED markers surface BLIND-SPOT/Indeterminate to Jira. **Option A (D-007, human-confirmed 2026-07-21):** create-review/comment-review markers remain live under `autonomy_enabled=false`, gated on hook-computed `hard_floor_applies() OR disposition==Indeterminate` (O3 standing rule — no LLM token alone bypasses the gate). Sensor-silence condition: `last_seen_ts age > 24 h` (VP-SKILL-061, fixed in BC-10.01.001 v1.10).
 
 ---
 
 ## PENDING / CARRIED
 
-- Pass-5 remediation IN PROGRESS: architect fix disposition-guard (P5-001/002/003), PO propagate to BCs, FV re-scope VP-HOOK-029 + SM-32, minor prd-delta §4/§6 count fix. Then adversarial pass 6.
-- F2 consistency audit pass-5 COMPLETE (PASS-WITH-MINORS, 0 blocking) — committed in wrap addendum 2. All prior-pass Critical/Major resolved; marker+verdict schemas uniform; VP namespace clean; sensor-silence direction correct. CONSISTENCY dimension is CLEAN. Only thing gating F2 gate is adversarial pass-5 1C/2M remediation (then pass 6, 7 to reach 3 clean passes).
-- **Pass-5 consistency minor punch-list (resolve before F2 state-backup):**
-  - F-003: VP-SKILL-061 in BC-10.01.001 describes sensor-silence as "last_seen_ts > 24h" — visually echoes pre-P4-003 wrong operator; fold fix (reword as "last_seen_ts age > 24 h") into pass-5 PO propagation burst together with BC-3.03.001/BC-10.01.001 updates.
-  - F-001: arch-delta §5.4 historical quote "as of v1.15 live" shows pre-fix audit path label — audit-trail only, section already RESOLVED; cosmetic label update (low priority, will not block F2 gate).
-  - F-002: 6 established BCs carry bare "COMPUTE-AT-COMMIT" input-hash vs 5 newer BCs' instrumented form — compute the 6 bare hashes at the F2 state-backup commit; does not block adversarial passes.
-- DI-013 now RESOLVED in-spec via marker mechanism (was deferred at Phase 0).
-- Human decisions this cycle: D-004 full-brief scope, D-005 marker mechanism, D-006 demo-unaware; `asset_type=unknown` floor [human-gate-confirm at F2 gate]; confidence enum thresholds 0.75/0.40 (D-DEC-011); P5-002 kill-switch-vs-brief-§3.9 reconciliation [human-gate-confirm if amending brief].
+- **IMMEDIATE NEXT:** Adversarial pass 6 (fresh adversary context required — do NOT continue from pass-5 adversary context). Clean streak 0/3.
+- Pass-5 remediation COMPLETE: P5-001/P5-002/P5-003 all resolved; D-007 (Option A kill-switch) confirmed by human; all 6 artifacts updated and committed.
+- F2 consistency audit pass-5 COMPLETE (PASS-WITH-MINORS, 0 blocking). CONSISTENCY dimension is CLEAN.
+- **Remaining consistency minor punch-list (resolve before F2 state-backup):**
+  - F-003: VP-SKILL-061 sensor-silence wording — RESOLVED in BC-10.01.001 v1.10 (this burst).
+  - F-001: arch-delta §5.4 historical quote cosmetic label — still open (low priority, will not block F2 gate).
+  - F-002: 6 established BCs carry bare "COMPUTE-AT-COMMIT" input-hash — compute at F2 state-backup; does not block adversarial passes.
+- DI-013 RESOLVED in-spec via marker mechanism.
+- Human decisions this cycle: D-004 full-brief scope, D-005 marker mechanism, D-006 demo-unaware, D-007 kill-switch Option A; `asset_type=unknown` floor [human-gate-confirm at F2 gate]; confidence enum thresholds 0.75/0.40 (D-DEC-011).
 - AFTER 3 clean passes: F2 state-backup (compute F-002 bare hashes here), then F2 human gate, then F3 story decomposition.
 - BCs carry COMPUTE-AT-COMMIT input-hash placeholders where inputs changed — compute at F2 state-backup (F-002).
 
-## DECISION / LESSONS DELTA (pass-5 addendum)
+## DECISION / LESSONS DELTA (pass-5 — CODIFIED)
 
-| Item | Detail |
-|------|--------|
-| Root-cause one-liner | Deterministic disposition-guard hook trusts LLM-supplied ticket_action_type without cross-checking hard_floor_applies(); every LLM-supplied routing field that grants or bypasses a security control must be cross-validated against a hook-computed invariant (O3 standing rule). |
-| P5-001 lesson | Fail-loud guarantees must be enforced at the deterministic (hook) layer, not rely on correct LLM behavior for the exact threat class the marker design defends against. |
-| P5-002 lesson | Kill-switch exemptions gated on LLM-supplied tokens (create-review/comment-review) without a deterministic precondition create a bypass for the autonomy_enabled=false circuit-breaker — always gate exemptions on a hook-computed invariant, not on the token alone. |
-| P5-003 lesson | A "single authoritative" schema block marked "fix the BC, not this document" that is stale w.r.t. later sections of the same document is actively dangerous — authoring discipline must keep the authoritative block in sync at every schema extension. |
+| Item | Detail | Status |
+|------|--------|--------|
+| Root-cause one-liner | Deterministic disposition-guard hook trusts LLM-supplied ticket_action_type without cross-checking hard_floor_applies(); every LLM-supplied routing field that grants or bypasses a security control must be cross-validated against a hook-computed invariant (O3 standing rule). | CODIFIED in D-DEC-012, cycles/lessons.md lesson 4 |
+| P5-001 lesson | Fail-loud guarantees must be enforced at the deterministic (hook) layer, not rely on correct LLM behavior for the exact threat class the marker design defends against. | CODIFIED in cycles/lessons.md lesson 1 |
+| P5-002 lesson | Kill-switch exemptions gated on LLM-supplied tokens (create-review/comment-review) without a deterministic precondition create a bypass for the autonomy_enabled=false circuit-breaker — always gate exemptions on a hook-computed invariant, not on the token alone. | CODIFIED in D-007 + cycles/lessons.md lesson 2 |
+| P5-003 lesson | A "single authoritative" schema block marked "fix the BC, not this document" that is stale w.r.t. later sections of the same document is actively dangerous — authoring discipline must keep the authoritative block in sync at every schema extension. | CODIFIED in cycles/lessons.md lesson 3 |
 
 ---
 

@@ -425,9 +425,22 @@ patterns with explicit operator sign-off.
 The loop **proposes** for these categories; a human **disposes**. The autonomy-policy
 `require_review` field adds further restrictions on top of the hard floors, never removes them.
 
-**Kill switch:** a per-loop `autonomy_enabled: bool` config flag halts all autonomous
-actions while preserving evidence collection and Jira drafting. Provides emergency circuit-breaker
-when automation produces unexpected output. [Q6 §"kill switch"]
+**Kill switch:** a per-loop `autonomy_enabled: bool` config flag. When `autonomy_enabled=false`,
+the monitoring-loop preserves evidence collection and Jira drafting. Human-escalation ticket
+actions — creating `[REVIEW-REQUIRED]` or `[BLIND-SPOT]` tickets — remain active under the kill
+switch, because these surface findings to a human rather than acting autonomously. The kill switch
+suppresses only autonomous triage decisions (regular comment, create, and assign markers); it does
+not suppress escalation. Provides emergency circuit-breaker when automation produces unexpected
+output. [Q6 §"kill switch"]
+
+> **§3.9 Amendment (P5-002 + human confirmation 2026-07-21):** The original wording
+> ("halts all autonomous actions") was ambiguous about whether human-escalation ticket actions
+> (create-review / comment-review) remain active under the kill switch. Human operator confirmed
+> **Option A** on 2026-07-21: create-review and comment-review markers ARE issued and consumed
+> under `autonomy_enabled=false` for genuine hard-floor verdicts (hard_floor_applies()=true per
+> architecture-delta §D-DEC-012 / ADV-F2-P5-002). Disposition-guard enforces this at the
+> deterministic hook layer. BC-3.03.001 v1.14 STEP 3 and BC-10.01.001 v1.10 Inv#10 carry the
+> corresponding BC updates.
 
 **Automation-boundary annotation per action:**
 - `auto` — loop executes without human approval (narrow FP/BTP scope only)

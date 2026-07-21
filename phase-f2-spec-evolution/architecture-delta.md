@@ -1,9 +1,11 @@
 ---
 document_type: architecture-delta
 producer: architect
-version: "1.7"
+version: "1.8"
 date: 2026-07-21
+input-hash: COMPUTE-AT-COMMIT
 changelog:
+  - "1.8 (2026-07-21): Adversarial pass-5 remediation (ADV-F2-P5-001..P5-003) + human-gate confirmation. A. D-DEC-001 authoritative schema block (P5-003 MAJOR): updated to true D-DEC-012 superset — authorized_operations now includes create-review/comment-review tokens; disposition.verdict now includes Indeterminate; disposition.ticket_action_type sub-field added; O3 schema-sync obligation codified. B. D-DEC-008 STEP 3 review-exemption (P5-002 MAJOR): gated on hook-computed hard_floor_applies(verdict); create-review/comment-review tokens no longer bypass kill switch or hard floor for non-hard-floor verdicts; over-labeled non-hard-floor verdicts emit allow-without-marker at STEP 3; O3 standing rule codified. C. D-DEC-008 STEP 5 fail-loud (P5-001 CRITICAL): silent emit-allow without marker on hard_floor_applies()=true is PROHIBITED; replaced with deterministic upgrade to create-review (ticket_id null) or comment-review (ticket_id present); missing project_key → explicit error artifact + deny; audit entry written on every upgrade. D. D-DEC-012 fail-loud invariant updated: hook now enforces it deterministically (not delegated to SKILL.md). E. O3 standing rule codified in D-DEC-012. F. §8.12 added: pass-5 PO propagation (BC-3.03.001 STEP 3+5 updates, BC-10.01.001 ticket_action_type under-label semantics) and FV propagation (VP-HOOK-029 re-scope, SM-32 re-scope). G. Kill-switch/brief-§3.9 conflict RESOLVED 2026-07-21: human operator confirmed Option A — create-review/comment-review markers execute under autonomy_enabled=false for genuine hard-floor verdicts; all §8.12 HOLD markers lifted; brief §3.9 amendment delegated to PO."
   - "1.7 (2026-07-21): Version-ref sync to frozen pass-4 BC versions (BC-3.01.001 v1.17, BC-3.03.001 v1.13, BC-4.02.001 v1.8, BC-5.01.001 v1.8, BC-6.01.001 v1.5, BC-10.01.001 v1.9). §8.6 current-live annotation updated. §8.10 pass-4 propagation items 1–11 marked COMPLETE."
   - "1.6 (2026-07-20): Adversarial pass 4 remediation (ADV-F2-P4-001..012). A. D-DEC-008 dispatch-precedence fix (P4-001 CRITICAL): JSON-first dispatch — file ending in .json or content parsing as JSON (jq empty) routes to verdict-class 15-field path REGARDLESS of 'investigation' substring in path; prevents canonical path artifacts/investigations/verdict-*.json being misrouted to markdown branch; BC-3.03.001 PC#1/2/3 must be rewritten (PO). B. D-DEC-008 anchored create pattern (P4-002 CRITICAL): removed `.*` before --project; pattern is now `^jr (--output json )?issue create --project <key>( |$)`; --project must be first flag after issue create (Iron Law); trailing ( |$) prevents PROD matching PRODUCTION; BC-3.03.001 must adopt pattern (PO). C. D-DEC-012 (new) review-ticket path (P4-004 MAJOR): ticket_action_type `create-review` and `comment-review` as restricted marker types for hard-floor verdict surfacing; exempt from hard-floor no-marker rule; also exempt from autonomy_enabled kill switch (escalation ≠ autonomous triage); fail-loud invariant: hard-floor verdicts never silently dropped. D. D-DEC-008 autonomy_enabled operational field (P4-005 MAJOR): add autonomy_enabled to verdict JSON as non-ICD-203 operational metadata field; disposition-guard reads directly from verdict file (not delegated to monitoring-loop LLM); default-false conservative. E. D-DEC-008 enum-membership validation (P4-006 MAJOR): fail-closed deny on non-member values for severity/asset_type/disposition/sensor_health_status/ticket_action_type/confidence before hard-floor check; BC-3.03.001 PC#3 must add enum-membership validation (PO). F. Various minors: audit-log control-char sanitization for ticket_id/org_slug/op (P4-010); watermark WRITE validation tightened to full RFC3339 UTC-Z (P4-O1); marker-store cleanup mechanism note (P4-O2); grace-window drop trade-off note (P4-O3); budget-exhaustion behavior NFR note (P4-011). G. §5.4 ADV-F2-P2-007 audit-path note marked RESOLVED (P4-009) — fix was applied at BC-3.01.001 v1.14."
   - "1.5 (2026-07-20): version-ref sync to frozen pass-3 BC versions"
@@ -98,12 +100,13 @@ allow.
   "issued_by": "disposition-guard",
   "ticket_id": "<jira-ticket-id-string | null>",
   "org_slug": "<org-slug-string>",
-  "authorized_operations": ["comment"] | ["create"] | ["assign"],
+  "authorized_operations": ["comment"] | ["create"] | ["assign"] | ["create-review"] | ["comment-review"],
   "command_pattern": "<anchored regex — see D-DEC-008 generation table>",
   "disposition": {
-    "verdict": "TP|FP|BTP",
+    "verdict": "TP|FP|BTP|Indeterminate",
     "severity": "LOW|MEDIUM|HIGH|CRITICAL",
-    "asset_type": "<asset_type_string>"
+    "asset_type": "<asset_type_string>",
+    "ticket_action_type": "<action_token — comment|create|assign|none|create-review|comment-review; for audit trail>"
   }
 }
 ```
@@ -119,6 +122,31 @@ allow.
 - `disposition.asset_type` ADDED: string from the verdict's asset classification — required for
   critical-asset hard-floor check.
 - `command_pattern` is ticket-bound for comment/assign; operation-scoped for create (see D-DEC-008).
+
+**Schema v2.1 additions (ADV-F2-P5-003 remediation — synchronizing with D-DEC-012 superset):**
+
+The v2.0 block above was not updated when D-DEC-012 extended the schema. v2.1 corrects that lag:
+
+- `authorized_operations` EXTENDED: `"create-review"` and `"comment-review"` token values added.
+  These restricted marker types were introduced at D-DEC-012 for hard-floor verdict surfacing and
+  were reflected in the emitter WRITE_MARKER block and the command_pattern generation table, but
+  inadvertently omitted from this authoritative §D-DEC-001 block. Implementers following this block
+  as source of truth would build a validator rejecting review tokens, reintroducing the P5-001
+  silent-discard path by construction.
+- `disposition.verdict` EXTENDED: `"Indeterminate"` value added. An Indeterminate verdict
+  triggers hard_floor_applies(); the marker's disposition sub-object must represent the full
+  verdict enum to preserve audit fidelity.
+- `disposition.ticket_action_type` ADDED: records the action token written by the emitter
+  WRITE_MARKER block (which already included `ticket_action_type: action` since D-DEC-012);
+  carried in the marker for audit trail purposes.
+
+**O3 Schema-Sync Obligation (standing rule, ADV-F2-P5-003):**
+This §D-DEC-001 authoritative block MUST be updated synchronously with every schema extension
+in D-DEC-008, D-DEC-012, or any future decision record that modifies the marker schema. The
+"fix the BC, not this document" directive governs divergence errors in downstream BCs; it does
+NOT authorize this block drifting behind its own sibling D-DEC sections. An implementer reading
+this block as the single source of truth must never encounter a schema that diverges from the
+emitter's WRITE_MARKER block in D-DEC-008.
 
 **TTL: 120 seconds — latency-budget rationale (ADV-F2-011 remediation):**
 
@@ -1020,34 +1048,67 @@ IF NOT enum_ok:
 # ── STEP 2: Extract ticket_action_type ───────────────────────────────────────
 action = verdict.ticket_action_type   # "comment"|"create"|"assign"|"none"|"create-review"|"comment-review"
 
-# ── STEP 3: Review-surfacing path (D-DEC-012) — exempt from hard floor + kill switch ──
+# ── STEP 3: Review-surfacing path (D-DEC-012) — gated on hook-computed hard_floor_applies() ──
 # create-review and comment-review markers authorize human ESCALATION, not autonomous TRIAGE.
 # Creating a [REVIEW-REQUIRED] or [BLIND-SPOT] ticket IS the human-surface mechanism — blocking
-# it would silence a finding. These paths are therefore exempt from:
-#   (a) hard_floor_applies() — hard floor blocks autonomous triage, not human escalation
-#   (b) autonomy_enabled kill switch — kill switch disables autonomous decisions, not escalation
+# it would silence a finding. These paths are EXEMPT from hard_floor_applies() and the
+# autonomy_enabled kill switch ONLY WHEN the verdict is genuinely hard-floor.
+#
+# ADV-F2-P5-002 FIX — OVER-LABEL GATE: Gate the review-marker exemption on the hook-computed
+# predicate hard_floor_applies(verdict). An LLM-supplied create-review/comment-review token on
+# a verdict where hard_floor_applies() returns FALSE does NOT receive kill-switch or hard-floor
+# exemption. The LLM cannot manufacture a kill-switch bypass by labeling a regular TP verdict
+# as create-review. Such over-labeled verdicts emit allow without marker — the verdict write
+# proceeds, but no jr action is authorized (require-review denies: no marker in store).
+#
+# O3 standing rule: every LLM-supplied routing field that grants or bypasses a security control
+# (here: ticket_action_type granting kill-switch exemption and hard-floor bypass) MUST be
+# cross-validated against a hook-computed invariant (here: hard_floor_applies()). This is the
+# shared root cause of P5-001 and P5-002 — the hook trusted the LLM token without verifying it.
+#
+# Kill-switch / brief §3.9 conflict — RESOLVED (ADV-F2-P5-002):
+# D-DEC-012 exempts create-review/comment-review from autonomy_enabled kill switch: review
+# markers are issued and consumed (executing jr issue create/comment) even when
+# autonomy_enabled=false. Brief §3.9 said the kill switch preserves "evidence collection
+# and Jira DRAFTING" — which could be read as excluding live jr execution.
+# Two options were identified:
+#   Option A: amend the brief's "Jira drafting" language to include human-escalation writes;
+#     review-ticket creation is not "autonomous triage" even when the kill switch is ON.
+#   Option B: restrict create-review/comment-review execution to autonomy_enabled=true; kill
+#     switch also halts escalation tickets (accept no-surface under kill switch).
+# RESOLUTION — 2026-07-21: Human operator CONFIRMED Option A. Option B rejected.
+# D-DEC-012 design is final: create-review/comment-review markers ARE issued and executed
+# under autonomy_enabled=false when hard_floor_applies()=true (genuine hard-floor only per
+# P5-002 gate). Brief §3.9 amendment delegated to product-owner (same burst).
+#
 # Iron Law: the monitoring-loop MUST only use create-review markers to create tickets with
 # [REVIEW-REQUIRED] or [BLIND-SPOT] labels. Require-review does not enforce label content —
 # that invariant lives in SKILL.md.
-IF action == "create-review":
-  project_key = verdict.jira_project_key
-  IF project_key is null OR project_key == "":
-    emit allow without marker      # cannot bind create-review without project key
+IF action in {"create-review", "comment-review"}:
+  IF NOT hard_floor_applies(verdict):
+    # Over-label: non-hard-floor verdict with review token. Do NOT exempt from kill switch.
+    # Emit allow for the document write; no review marker issued; jr action denied by require-review.
+    emit allow without marker
     RETURN
-  # ADV-F2-P4-002: --project MUST be first arg; trailing ( |$) prevents prefix-match
-  pattern = "^jr (--output json )?issue create --project " + project_key + "( |$)"
-  ops = ["create-review"]
-  ticket_id = null
-  GOTO WRITE_MARKER
-
-ELIF action == "comment-review":
-  ticket_id = verdict.ticket_id
-  IF ticket_id is null:
-    emit allow without marker      # cannot bind comment-review without ticket_id
-    RETURN
-  pattern = "^jr (--output json )?issue comment " + ticket_id + " "
-  ops = ["comment-review"]
-  GOTO WRITE_MARKER
+  # Genuinely hard-floor verdict: issue review marker exempt from hard floor + kill switch.
+  IF action == "create-review":
+    project_key = verdict.jira_project_key
+    IF project_key is null OR project_key == "":
+      emit allow without marker      # cannot bind create-review without project key
+      RETURN
+    # ADV-F2-P4-002: --project MUST be first arg; trailing ( |$) prevents prefix-match
+    pattern = "^jr (--output json )?issue create --project " + project_key + "( |$)"
+    ops = ["create-review"]
+    ticket_id = null
+    GOTO WRITE_MARKER
+  ELIF action == "comment-review":
+    ticket_id = verdict.ticket_id
+    IF ticket_id is null:
+      emit allow without marker      # cannot bind comment-review without ticket_id
+      RETURN
+    pattern = "^jr (--output json )?issue comment " + ticket_id + " "
+    ops = ["comment-review"]
+    GOTO WRITE_MARKER
 
 # ── STEP 4: autonomy_enabled kill switch (ADV-F2-P4-005) — deterministic enforcement ──
 # autonomy_enabled is a NON-ICD-203 operational metadata field in the verdict JSON (alongside
@@ -1059,9 +1120,53 @@ IF autonomy_enabled is NOT exactly true:
   emit allow without marker      # kill switch fires; evidence write proceeds; no Jira action
   RETURN
 
-# ── STEP 5: Hard-floor check (blocks regular markers only; review path already handled) ──
-IF action == "none" OR hard_floor_applies(verdict):
-  emit allow without marker      # hard floor or explicit none; ICD-203 document is valid
+# ── STEP 5: Hard-floor check — fail-loud on under-label (ADV-F2-P5-001) ─────────
+# At this point action is a regular type (comment/create/assign/none) because review
+# types were fully resolved at STEP 3.
+#
+# ADV-F2-P5-001 FIX — UNDER-LABEL FAIL-LOUD: If hard_floor_applies(verdict) is TRUE here,
+# the LLM supplied a non-review ticket_action_type for a genuinely hard-floor verdict.
+# Silent emit-allow without marker is PROHIBITED — it silently drops the finding with no
+# marker, no Jira surface, and no error artifact (BC-10.01.001 Inv#10; D-DEC-012 fail-loud
+# invariant). The hook MUST upgrade to the appropriate review action deterministically.
+#
+# O3 standing rule application: hard_floor_applies() is the hook-computed invariant that
+# cross-validates the LLM-supplied action. Mismatch → hook corrects, never silently discards.
+#
+# Upgrade logic:
+#   - If verdict.ticket_id is null → upgrade to create-review (new escalation ticket needed)
+#   - If verdict.ticket_id is present → upgrade to comment-review (append to existing ticket)
+#   - If project_key absent for create-review → emit explicit error artifact + deny
+#     (cannot surface without org binding; hard failure, not silent pass)
+IF hard_floor_applies(verdict):
+  ticket_id_val = verdict.ticket_id
+  project_key   = verdict.jira_project_key
+  IF ticket_id_val IS NULL OR ticket_id_val == "":
+    # No existing ticket → upgrade to create-review
+    IF project_key is null OR project_key == "":
+      WRITE audit error: "FAIL-LOUD P5-001: hard-floor verdict under-label — " +
+                         "action='" + action + "'; hard_floor_applies()=true; " +
+                         "jira_project_key absent — manual surfacing required"
+      emit deny("FAIL-LOUD: hard-floor verdict cannot be surfaced without jira_project_key; " +
+                "ticket_action_type='" + action + "' upgraded attempt failed")
+      RETURN
+    upgraded_action = "create-review"
+    pattern  = "^jr (--output json )?issue create --project " + project_key + "( |$)"
+    ops      = ["create-review"]
+    ticket_id = null
+  ELSE:
+    # Existing ticket → upgrade to comment-review
+    upgraded_action = "comment-review"
+    pattern   = "^jr (--output json )?issue comment " + ticket_id_val + " "
+    ops       = ["comment-review"]
+    ticket_id = ticket_id_val
+  WRITE audit entry: "UNDER-LABEL-CORRECTED: hard-floor verdict with action='" + action +
+                     "' upgraded to '" + upgraded_action + "' by disposition-guard hook"
+  GOTO WRITE_MARKER
+
+# action == "none" reaches here only when hard_floor_applies() is FALSE
+IF action == "none":
+  emit allow without marker      # explicit none; non-hard-floor; ICD-203 document is valid
   RETURN
 
 # ── STEP 6: Regular marker issuance (non-hard-floor, autonomy-enabled) ───────
@@ -1183,15 +1288,20 @@ The `autonomy_enabled` config flag ADDS restrictions (restricts auto-approve fur
 NEVER removes a hard floor. This is the invariant the BATS tests must verify:
 
 ```bats
-@test "disposition-guard hard floor: Indeterminate verdict with create action → no regular marker"
-@test "disposition-guard hard floor: HIGH severity alert → no regular marker regardless of autonomy_enabled"
-@test "disposition-guard hard floor: degraded sensor verdict → no regular marker regardless of autonomy_enabled"
+@test "disposition-guard hard floor: Indeterminate verdict with create action → UNDER-LABEL upgrade to create-review (P5-001)"
+@test "disposition-guard hard floor: HIGH severity + create action → UNDER-LABEL upgrade to create-review (P5-001)"
+@test "disposition-guard hard floor: degraded sensor + comment action → UNDER-LABEL upgrade to comment-review (P5-001)"
+@test "disposition-guard hard floor: Indeterminate + none action + ticket_id present → UNDER-LABEL upgrade to comment-review (P5-001)"
+@test "disposition-guard hard floor: Indeterminate + none action + ticket_id null + project_key absent → deny with error artifact (P5-001)"
 @test "disposition-guard review path: Indeterminate verdict with create-review action → restricted review marker emitted (no hard floor block)"
 @test "disposition-guard review path: silent sensor verdict with comment-review action → restricted review marker emitted"
-@test "disposition-guard kill switch: autonomy_enabled=false + create action → no marker emitted"
-@test "disposition-guard kill switch: autonomy_enabled=false + create-review action → review marker IS emitted (kill switch exemption)"
+@test "disposition-guard review path: non-hard-floor TP verdict with create-review action → emit allow WITHOUT marker (P5-002 over-label gate)"
+@test "disposition-guard review path: non-hard-floor BTP verdict with comment-review + autonomy_enabled=false → no kill-switch bypass; emit allow without marker (P5-002)"
+@test "disposition-guard kill switch: autonomy_enabled=false + create action (non-hard-floor) → no marker emitted"
+@test "disposition-guard kill switch: autonomy_enabled=false + Indeterminate + create-review → review marker IS emitted (kill switch exemption for genuine hard-floor)"
 @test "disposition-guard enum validation: severity='High' (wrong case) → deny, no marker"
 @test "disposition-guard enum validation: ticket_action_type='NONE' (wrong case) → deny, no marker"
+@test "disposition-guard audit: UNDER-LABEL-CORRECTED entry written to audit.log on upgrade (P5-001)"
 ```
 
 These tests simulate hard-floor inputs and assert the marker directory state (empty for blocked
@@ -1663,22 +1773,50 @@ Rationale: the kill switch halts "automation producing unexpected output" (brief
 Suppressing review tickets when the kill switch is ON would silently drop hard-floor findings,
 which is exactly the failure mode the kill switch is designed to prevent at the human level.
 
-**Fail-loud invariant:**
+**Fail-loud invariant (deterministically enforced at hook layer — ADV-F2-P5-001):**
 Hard-floor or Indeterminate verdicts MUST result in exactly one of:
 1. A `create-review` or `comment-review` marker being issued and consumed (ticket created/updated), OR
-2. An explicit, unmistakable fail-loud artifact in the loop output (non-zero exit, error annotation
-   in `agent_actions`, `[BUDGET-EXHAUSTED]` note if applicable)
+2. An explicit error artifact written to audit.log AND a deny emitted (if no project_key is
+   available to bind the review marker)
 
-NEVER: silent discard. A hard-floor verdict that produces no ticket and no error artifact is a
-bug in the monitoring-loop SKILL.md.
+NEVER: silent discard.
+
+Prior text read "A hard-floor verdict that produces no ticket and no error artifact is a bug in
+the monitoring-loop SKILL.md." This was incorrect — it delegated enforcement to the trusted-LLM
+layer, the exact surface P5-001 exploited. The disposition-guard hook (deterministic) now enforces
+this invariant directly via the STEP 5 under-label upgrade logic (ADV-F2-P5-001 fix):
+- If a hard-floor verdict arrives with a non-review ticket_action_type, STEP 5 upgrades it to
+  create-review or comment-review and writes a UNDER-LABEL-CORRECTED audit entry.
+- If upgrade is impossible (no project_key, no ticket_id for create path), the hook writes an
+  explicit error artifact and emits deny — auditable, never silent.
+The monitoring-loop SKILL.md Iron Law remains in force as defense-in-depth, but the hook is now
+the authoritative enforcement surface.
+
+#### O3 Standing Rule — LLM-Supplied Routing Fields Must Be Cross-Validated (ADV-F2-P5-002/obs)
+
+Every LLM-supplied routing field that grants or bypasses a security control MUST be
+cross-validated against a hook-computed invariant before the grant or bypass takes effect.
+
+| LLM-supplied field | Security control bypassed | Hook-computed cross-check |
+|--------------------|--------------------------|--------------------------|
+| `ticket_action_type ∈ {create-review, comment-review}` | hard_floor_applies() check + autonomy_enabled kill switch | `hard_floor_applies(verdict)` must return TRUE before the exemption fires (STEP 3) |
+| `ticket_action_type` (any value) | marker issuance path selection | enum-membership validation (STEP 1) before any routing |
+| `autonomy_enabled` | kill switch | read from verdict JSON by hook directly; not delegated to monitoring-loop LLM; default-false conservative (STEP 4) |
+
+P5-001 and P5-002 are the under-label and over-label duals of the single root cause: the hook
+trusted the LLM-supplied `ticket_action_type` token completely without verifying it against
+`hard_floor_applies()`. STEP 3's gate (P5-002) and STEP 5's upgrade (P5-001) together close
+both dual failure modes. Any future LLM-influenced routing field added to the emitter MUST
+satisfy this cross-check requirement before the feature is considered architecturally complete.
 
 #### Consequences
 
 1. BC-10.01.001 Inv#10 must be narrowed — current "hard floor → none" conflicts with EC-006/EC-014 (PO)
 2. BC-3.01.001 consumer algorithm step (6) must accept `create-review` and `comment-review` (PO)
 3. VP-HOOK-026 must add test cases for create-review + comment-review paths (FV)
-4. New BATS tests required (see emitter pseudocode BATS stubs above)
-5. SKILL.md Iron Law: review-tagged ticket content (REVIEW-REQUIRED/BLIND-SPOT label) is NOT
+4. VP-HOOK-029 must be re-scoped (FV) — see §8.12
+5. New BATS tests required (see emitter pseudocode BATS stubs above)
+6. SKILL.md Iron Law: review-tagged ticket content (REVIEW-REQUIRED/BLIND-SPOT label) is NOT
    enforced by require-review — it is an Iron Law on the monitoring-loop SKILL.md
 
 #### Alternatives Rejected
@@ -2858,4 +2996,140 @@ FV owns proof strategies, test implementation, and VP-INDEX.md updates.
 
 *Pass-4 PO PROPAGATION LIST (§8.10) and formal-verifier list (§8.11) complete. Architect
 does NOT edit BCs, verification-delta, prd-delta, or STATE.md. v1.6 is final for pass-4
+adversarial remediation.*
+
+---
+
+## 8.12 PO PROPAGATION LIST (pass 5 — ADV-F2-P5-001..P5-003)
+
+> **Owner:** Product-owner. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md.
+>
+> **Live BC version map (frozen pass-5 baseline): BC-3.01.001 v1.17, BC-3.03.001 v1.13,
+> BC-10.01.001 v1.9.**
+>
+> **Kill-switch gate RESOLVED 2026-07-21:** Human operator confirmed Option A — all §8.12
+> items are now unblocked. Item 2 (STEP 3 kill-switch semantics) may be finalized in BC-3.03.001.
+
+---
+
+### 8.12.1 BC-3.03.001 (disposition-guard) — Pass-5 Required Changes
+
+**Current version: v1.13. Target: v1.14.**
+
+1. **STEP 3 — Gate review-marker exemption on hard_floor_applies() (ADV-F2-P5-002 MAJOR).**
+   The create-review and comment-review emitter branches in Inv#4 STEP 3 must be gated on
+   `hard_floor_applies(verdict)`:
+
+   Current (defective):
+   ```
+   IF action == "create-review": → issue review marker [no precondition]
+   ELIF action == "comment-review": → issue review marker [no precondition]
+   ```
+   Corrected:
+   ```
+   IF action in {create-review, comment-review}:
+     IF NOT hard_floor_applies(verdict):
+       emit allow without marker; RETURN   # over-label: no exemption for non-hard-floor
+     IF action == "create-review": → issue review marker
+     ELIF action == "comment-review": → issue review marker
+   ```
+   Add inline comment: "Review-marker exemption requires hard_floor_applies(verdict)=TRUE.
+   O3 standing rule: LLM-supplied routing field (ticket_action_type) cross-validated against
+   hook-computed invariant (hard_floor_applies) before bypass granted."
+
+   **Kill-switch semantics — CONFIRMED 2026-07-21 (Option A):** D-DEC-012 is final.
+   create-review/comment-review markers are issued and consumed under autonomy_enabled=false
+   when the verdict is genuinely hard-floor (hard_floor_applies()=true per P5-002 gate).
+   Brief §3.9 amendment (clarify "Jira DRAFTING" to include human-escalation writes) is
+   delegated to product-owner in this same burst. PO may finalize this Inv#4 paragraph
+   without any PENDING qualifier.
+
+2. **STEP 5 — Fail-loud under-label correction (ADV-F2-P5-001 CRITICAL).**
+   Replace the current STEP 5 text:
+   > "IF action == 'none' OR hard_floor_applies(): emit allow without marker; RETURN"
+
+   With the upgrade logic:
+   > "IF hard_floor_applies(): upgrade to create-review or comment-review (based on ticket_id
+   > presence); write UNDER-LABEL-CORRECTED audit entry; GOTO WRITE_MARKER. If project_key
+   > absent for create path: write error artifact to audit.log + emit deny."
+   > "IF action == 'none' (and hard_floor_applies()=FALSE): emit allow without marker; RETURN"
+
+   Key invariants to document in Inv#4:
+   - Silent discard is PROHIBITED: a hard-floor verdict with a non-review ticket_action_type
+     does not silently pass; the hook deterministically upgrades or denies.
+   - Upgrade precedence: ticket_id present → comment-review; ticket_id null → create-review.
+   - Audit entry UNDER-LABEL-CORRECTED written on every upgrade (not just error path).
+
+3. **D-DEC-001 schema v2.1 sync (ADV-F2-P5-003 MAJOR).**
+   Update all schema snippets in Inv#4 and PC#3 that show the marker schema to reflect the
+   §D-DEC-001 v2.1 authoritative block additions:
+   - `authorized_operations` enum: add `"create-review"` and `"comment-review"` values
+   - `disposition.verdict` enum: add `"Indeterminate"` value
+   - `disposition.ticket_action_type` sub-field: add to disposition sub-object
+
+---
+
+### 8.12.2 BC-10.01.001 (monitoring-loop) — Pass-5 Required Changes
+
+**Current version: v1.9. Target: v1.10.**
+
+1. **Inv#10 — under-label semantics clarification (ADV-F2-P5-001 consequence).**
+   Add a note to Inv#10 (and EC-006/EC-014 guidance):
+   > "The monitoring-loop SHOULD set ticket_action_type to create-review or comment-review
+   > for hard-floor verdicts (per D-DEC-012 semantics). If the monitoring-loop sets a
+   > non-review action type on a hard-floor verdict (under-label), disposition-guard hook
+   > STEP 5 upgrades it deterministically and writes an UNDER-LABEL-CORRECTED audit entry.
+   > The SKILL.md Iron Law remains: set the correct review token in the first place.
+   > The hook upgrade is a safety net, not an invitation to rely on correction."
+   This clarifies that the deterministic enforcement is defense-in-depth, not a delegation.
+
+---
+
+## 8.13 FORMAL-VERIFIER LIST (pass 5 — ADV-F2-P5-001..P5-002)
+
+> **Owner:** Formal verifier. Architect does NOT write VPs.
+
+1. **VP-HOOK-029 re-scope (ADV-F2-P5-001 CRITICAL).**
+   Current VP-HOOK-029 scope: "hard-floor verdict WITH ticket_action_type ∈ {create-review,
+   comment-review} MUST produce a marker OR fail with explicit error." This scope CANNOT detect
+   the P5-001 silent-discard case (action=comment/none) — it only tests the happy review path.
+
+   **Re-scoped VP-HOOK-029:** "hard-floor verdict with ticket_action_type ∈ {comment, create,
+   assign, none} (non-review token) MUST result in either (a) a create-review or comment-review
+   marker in the marker store (upgrade path), OR (b) an explicit error artifact in audit.log
+   AND a deny emitted (missing project_key path) — NEVER a silent allow-without-marker."
+
+   New BATS test vectors required:
+   ```bats
+   @test "VP-HOOK-029: Indeterminate + ticket_action_type=create (under-label) → create-review marker in store"
+   @test "VP-HOOK-029: HIGH severity + ticket_action_type=comment (under-label) → comment-review marker in store"
+   @test "VP-HOOK-029: Indeterminate + ticket_action_type=none + ticket_id present → comment-review marker in store"
+   @test "VP-HOOK-029: Indeterminate + ticket_action_type=create + project_key absent → deny + FAIL-LOUD in audit.log"
+   @test "VP-HOOK-029: hard-floor verdict + ticket_action_type=create-review (correct label) → review marker in store (existing path unbroken)"
+   ```
+   Retain the existing "correct label → marker" test vectors — the re-scope adds the under-label
+   test vectors, not replaces the over-label happy-path coverage.
+
+   Paired mutant SM-32 re-scope: SM-32 was previously "remove review-marker hard-floor bypass."
+   Re-scope to also include: "remove STEP 5 upgrade logic (revert to silent emit-allow-without-
+   marker)" → assert that an under-labeled hard-floor verdict produces NO marker (mutant
+   detectable by the new BATS vectors above). Both SM-32 variants (remove STEP 3 gate AND
+   remove STEP 5 upgrade) must be separately killable.
+
+   Update VP-HOOK-029 description, test list, and SM-32 mutant definition in verification-delta.md
+   and VP-INDEX.md. Tag P0 (CRITICAL fix).
+
+2. **VP-HOOK-026 — over-label test vectors (ADV-F2-P5-002 MAJOR).**
+   Add BATS tests for the P5-002 over-label gate:
+   ```bats
+   @test "VP-HOOK-026: non-hard-floor TP verdict + create-review token → emit allow WITHOUT marker (over-label rejected)"
+   @test "VP-HOOK-026: non-hard-floor FP verdict + comment-review + autonomy_enabled=false → emit allow without marker (no kill-switch bypass)"
+   @test "VP-HOOK-026: LOW severity standard asset + create-review → no review marker (over-label; verify hard_floor_applies()=false path)"
+   ```
+   Paired mutant: remove the `NOT hard_floor_applies()` guard from STEP 3 → assert review marker
+   IS issued for a non-hard-floor verdict with create-review token (mutant dies when test
+   detects unexpected marker in store). Update VP-HOOK-026.
+
+*Pass-5 PO PROPAGATION LIST (§8.12) and formal-verifier list (§8.13) complete. Architect does
+NOT edit BCs, verification-delta, prd-delta, or STATE.md. v1.8 is final for pass-5
 adversarial remediation.*

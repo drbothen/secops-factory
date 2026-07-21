@@ -10,6 +10,19 @@ Superseded checkpoints rotated out of STATE.md.
 
 ---
 
+## Checkpoint 2 — Pass-5 remediation pending (2026-07-21)
+
+**Superseded by:** Pass-5 remediation COMPLETE checkpoint (2026-07-21)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-07-21 |
+| **Position** | WRAP addendum — pass 5 COMPLETE (1C/2M, report persisted). NEXT: remediate pass-5 root cause. Dispatch architect to fix deterministic disposition-guard to cross-check LLM ticket_action_type vs hard_floor_applies() (P5-001 fail-loud upgrade-or-error; P5-002 gate review-exemption on genuine hard-floor/Indeterminate + reconcile kill-switch vs brief §3.9; P5-003 fix §D-DEC-001 authoritative schema block). Then PO propagate to BC-3.03.001/BC-10.01.001. FV re-scope VP-HOOK-029 + SM-32. Minor prd-delta §4/§6 fix. Then adversarial pass 6. Clean streak remains 0/3. |
+| **Context** | F2 spec body committed: 11 BCs (BC-3.01.001 v1.17, BC-3.03.001 v1.13, BC-4.02.001 v1.8, BC-4.05.001 v1.3, BC-5.01.001 v1.8, BC-6.01.001 v1.5; NEW: BC-6.01.003/004/BC-8.02.001/BC-9.01.001 v1.1, BC-10.01.001 v1.9). Delta docs: architecture-delta v1.7, verification-delta v1.7, prd-delta v1.8, dtu-assessment (DTU_REQUIRED: true), asm-004-validation (resolved-by-design). spec-changelog 1.0.0→1.1.0. D-DEC-001..012 locked. Pass-5 root-cause: hook trusts LLM ticket_action_type; must cross-check vs hard_floor_applies() — P5-001/002 are the under/over-label duals; O3 codifies this as standing emitter-design rule. |
+| **Convergence counter** | 0/3 clean passes (pass 6 is next, after remediation) |
+
+---
+
 ## Checkpoint 1 — F1 gate-pending (2026-07-20)
 
 **Superseded by:** wrap mid-F2 checkpoint (2026-07-21)

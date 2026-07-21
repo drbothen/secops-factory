@@ -9,7 +9,25 @@ Track all spec version changes. Most recent version first.
 
 ---
 
-## [1.1.0] - 2026-07-20
+## [1.1.0] - 2026-07-20 (patch edits 2026-07-21 — not a version bump)
+
+### F2 Pass-5 Remediation Edits (2026-07-21) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle. Root findings: P5-001
+(silent discard on hard-floor mismatch), P5-002 (kill-switch bypass via LLM token without
+deterministic gate), P5-003 (stale §D-DEC-001 authoritative schema block). Kill-switch
+conflict with brief §3.9 resolved via human-confirmed Option A (2026-07-21).
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.7 | v1.8 | P5-001/002/003 + D-DEC-012 O3 rule + Option A kill-switch |
+| phase-f2-spec-evolution/verification-delta.md | v1.7 | v1.8 | VP-HOOK-029 re-scope + SM-32a/32b split + §7 Part F routing |
+| phase-f2-spec-evolution/prd-delta.md | v1.8 | v1.9 | §4/§6 12/15-field count correction |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.13 | v1.14 | P5-001/P5-002 STEP 3/5 gate propagation + schema v2.1 sync + EC-012 + TV-SYNC |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.9 | v1.10 | Inv#10 safety-net note + VP-SKILL-061 sensor-silence reword |
+| feature/prism-integration-handoff-brief.md | §3.9 (pre-Option A) | §3.9 amended | Kill-switch Option A confirmed by human 2026-07-21 |
+
+---
 
 ### Type: MINOR
 

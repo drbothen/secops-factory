@@ -76,3 +76,39 @@ are archived here when the 5-row limit is reached.
 **COMPUTE-AT-COMMIT placeholders:** New BCs carry input-hash COMPUTE-AT-COMMIT markers where inputs changed during adversarial remediation. Compute on next factory-artifacts backup after confirmed stable.
 
 **Factory-artifacts HEAD at wrap:** see `git -C .factory log -1 --format='%h %s'`
+
+### Burst 2 Archival — Rows displaced from STATE.md Current Phase Steps
+
+The following rows were archived from STATE.md when the pass-5 remediation row was added (5-row limit enforced):
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: spec body authored | architect / product-owner | DONE | 11 BCs (6 modified + 5 new) + 5 delta docs; spec 1.0.0→1.1.0 MINOR; D-DEC-001..012 locked; DTU required (prism demo server + jr mock) |
+| F2: adversarial pass 1-2 | adversary | DONE | pass1 2C/8M (marker TTL + anchor), pass2 1C/3M (ICD-203 12/15-field split) — all remediated |
+
+---
+
+## Burst 3: F2 Pass-5 Remediation COMPLETE (2026-07-21)
+
+**Steps added to STATE.md Current Phase Steps this burst:**
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-5 remediation | architect / product-owner / formal-verifier | DONE | arch-delta v1.8; BC-3.03.001 v1.14; BC-10.01.001 v1.10; verif-delta v1.8; prd-delta v1.9; brief §3.9 amended |
+
+**Narrative:**
+
+Pass-5 remediation addressed P5-001 (CRITICAL — silent discard when LLM ticket_action_type is non-review but hard_floor_applies()), P5-002 (MAJOR — kill-switch bypass: create-review/comment-review marker exemptions not gated on deterministic invariant), and P5-003 (MAJOR — stale §D-DEC-001 authoritative schema block). Kill-switch conflict with brief §3.9 resolved via human-confirmed Option A (2026-07-21).
+
+**Artifacts produced by this burst:**
+
+- `phase-f2-spec-evolution/architecture-delta.md` v1.7 → v1.8: STEP 5 fail-loud upgrade tree (P5-001); STEP 3 hard_floor_applies() gate for review-exemption (P5-002); §D-DEC-001 schema v2.1 superset sync including create-review/comment-review/Indeterminate/ticket_action_type (P5-003); O3 standing rule codified in D-DEC-012 ("every LLM-supplied routing field that grants/bypasses a security control must be cross-validated against a hook-computed invariant"); kill-switch/brief-§3.9 conflict RESOLVED via Option A.
+- `phase-0-ingestion/behavioral-contracts/BC-3.03.001.md` v1.13 → v1.14: STEP 3 gate + Option A kill-switch finalization; STEP 5 fail-loud upgrade + UNDER-LABEL-CORRECTED audit trail; schema v2.1 sync in all Inv#4/PC#3 snippets; EC-012 four-case table; canonical test-vector sync (TV-SYNC gated terminology row ~483; row ~488 split into pinned cases c/d).
+- `phase-0-ingestion/behavioral-contracts/BC-10.01.001.md` v1.9 → v1.10: Inv#10 safety-net-not-delegation note; F-003 VP-SKILL-061 sensor-silence reword ("last_seen_ts age > 24 h").
+- `phase-f2-spec-evolution/verification-delta.md` v1.7 → v1.8: VP-HOOK-029 re-scoped to under-label vectors (P0); SM-32 split into SM-32a/SM-32b separately-killable variants (mutant count 27→28); VP-HOOK-026 over-label vectors; stale STEP 3/STEP 5 semantics swept (VP-HOOK-026 core legs, SM-16/21/23/29); §7 Part F routing added; test estimate ~231→~238.
+- `phase-f2-spec-evolution/prd-delta.md` v1.8 → v1.9: stale "12-field" counts in §4/§6 corrected to the 12-investigation-markdown / 15-verdict-JSON split.
+- `feature/prism-integration-handoff-brief.md`: §3.9 kill-switch paragraph amended per Option A + amendment note citing P5-002 and human confirmation 2026-07-21.
+
+**Decision recorded:** D-007 (kill-switch Option A) — create-review/comment-review escalation markers stay live under `autonomy_enabled=false`, gated on hook-computed `hard_floor_applies()` OR Indeterminate disposition. Brief §3.9 amended accordingly.
+
+**Convergence counter:** 0/3 clean passes. Pass 6 is next (fresh adversary context required).

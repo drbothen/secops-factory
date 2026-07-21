@@ -4,7 +4,7 @@ level: ops
 version: "2.2"
 status: active
 producer: state-manager
-timestamp: 2026-07-21T00:00:00Z
+timestamp: 2026-07-21T01:00:00Z
 phase: F2
 pipeline: FEATURE-CYCLE
 inputs: []
@@ -12,8 +12,8 @@ input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "F2 spec evolution — adversarial convergence loop, pass 5 pending (0/3 clean)"
-awaiting: "adversarial-pass-5-rerun"
+current_step: "F2 adversarial convergence — pass 5 done (1C/2M), remediation pending"
+awaiting: "F2-pass5-remediation"
 current_cycle: v0.10.0-feature-prism-integration
 dtu_required: true
 dtu_assessment: "2026-07-20"
@@ -42,7 +42,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-21 |
 | **Current Phase** | F2: Spec Evolution (prism-integration cycle) |
-| **Current Step** | F2 spec body frozen + committed (wrap mid-F2); adversarial pass 5 pending re-run |
+| **Current Step** | F2 adversarial convergence — pass 5 done (1C/2M), remediation pending |
 
 ## Phase Progress
 
@@ -51,7 +51,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | pre-0: Pre-pipeline | PASSED | 2026-07-19 | 2026-07-19 | PASS | — |
 | 0: Codebase Ingestion + Remediation | COMPLETE | 2026-07-19 | 2026-07-20 | PASS | 12→11→7→8(1FP)→6→6→6→6(CRITICAL)→4→5→2→1→0; ADV-R1-4 CLEAN |
 | F1: Delta Analysis | PASSED | 2026-07-19 | 2026-07-20 | PASS | consistency: 7→0 |
-| F2: Spec Evolution | in-progress — adversarial convergence | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M (all remediated); pass5 pending |
+| F2: Spec Evolution | in-progress — remediation pending | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M (remediation pending) |
 | F3: Incremental Stories | not-started | | | | |
 | F4: Delta Implementation | not-started | | | | |
 | F5: Scoped Adversarial | not-started | | | | |
@@ -68,7 +68,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | F2: adversarial pass 1-2 | adversary | DONE | pass1 2C/8M (marker TTL + anchor), pass2 1C/3M (ICD-203 12/15-field split) — all remediated |
 | F2: adversarial pass 3-4 | adversary | DONE | pass3 1C/4M (asset_type=unknown floor), pass4 2C/4M (JSON-first dispatch CRITICAL + anchored create CRITICAL + D-DEC-012) — all remediated |
 | F2: version-coherence sweep | state-manager | DONE | spec-changelog.md authored; BC frozen versions confirmed; D-DEC-001..012 in architecture-delta |
-| F2: pass 5 + consistency dispatch | orchestrator | WRAP | dispatched pre-wrap; pass 5 result NOT captured; f2-consistency-validation-pass5.md not on disk; re-run on resume |
+| F2: adversarial pass 5 | adversary | DONE | 1C/2M/1m/3obs — root cause: disposition-guard trusts LLM ticket_action_type without cross-checking hard_floor_applies(); P5-001 (silent discard) + P5-002 (kill-switch bypass) are under/over-label duals; P5-003 stale §D-DEC-001 schema block; report persisted. Consistency pass-5 audit was NOT on disk at wrap addendum; may need re-run. |
 
 ## Decisions Log
 
@@ -123,9 +123,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-21 |
-| **Position** | WRAP mid-F2; F2 spec body frozen + committed this wrap; NEXT: re-run adversarial pass 5 (fresh context), read f2-consistency-validation-pass5.md from disk if present; continue loop to 3 clean passes, then F2 state-backup → F2 gate (human approval) |
-| **Context** | F2 spec body committed: 11 BCs (BC-3.01.001 v1.17, BC-3.03.001 v1.13, BC-4.02.001 v1.8, BC-4.05.001 v1.3, BC-5.01.001 v1.8, BC-6.01.001 v1.5; NEW: BC-6.01.003/004/BC-8.02.001/BC-9.01.001 v1.1, BC-10.01.001 v1.9). Delta docs: architecture-delta v1.7, verification-delta v1.7, prd-delta v1.8, dtu-assessment (DTU_REQUIRED: true), asm-004-validation (resolved-by-design). spec-changelog 1.0.0→1.1.0. D-DEC-001..012 locked. Adversarial passes 1-4 all remediated (0/3 clean). |
-| **Convergence counter** | 0/3 clean passes (pass 5 is next) |
+| **Position** | WRAP addendum — pass 5 COMPLETE (1C/2M, report persisted). NEXT: remediate pass-5 root cause. Dispatch architect to fix deterministic disposition-guard to cross-check LLM ticket_action_type vs hard_floor_applies() (P5-001 fail-loud upgrade-or-error; P5-002 gate review-exemption on genuine hard-floor/Indeterminate + reconcile kill-switch vs brief §3.9; P5-003 fix §D-DEC-001 authoritative schema block). Then PO propagate to BC-3.03.001/BC-10.01.001. FV re-scope VP-HOOK-029 + SM-32. Minor prd-delta §4/§6 fix. Then adversarial pass 6. Clean streak remains 0/3. Consistency pass-5 audit NOT on disk — may need re-run post-remediation. |
+| **Context** | F2 spec body committed: 11 BCs (BC-3.01.001 v1.17, BC-3.03.001 v1.13, BC-4.02.001 v1.8, BC-4.05.001 v1.3, BC-5.01.001 v1.8, BC-6.01.001 v1.5; NEW: BC-6.01.003/004/BC-8.02.001/BC-9.01.001 v1.1, BC-10.01.001 v1.9). Delta docs: architecture-delta v1.7, verification-delta v1.7, prd-delta v1.8, dtu-assessment (DTU_REQUIRED: true), asm-004-validation (resolved-by-design). spec-changelog 1.0.0→1.1.0. D-DEC-001..012 locked. Pass-5 root-cause: hook trusts LLM ticket_action_type; must cross-check vs hard_floor_applies() — P5-001/002 are the under/over-label duals; O3 codifies this as standing emitter-design rule. |
+| **Convergence counter** | 0/3 clean passes (pass 6 is next, after remediation) |
 
 ## Historical Content
 

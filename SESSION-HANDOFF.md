@@ -4,16 +4,16 @@ level: ops
 version: "2.0"
 status: current
 producer: state-manager
-timestamp: 2026-07-21T00:00:00Z
+timestamp: 2026-07-21T01:00:00Z
 project: secops-factory
-supersedes: "1.0 (2026-07-20T05:30:00Z)"
+supersedes: "2.0 (2026-07-21T00:00:00Z)"
 ---
 
 # SESSION-HANDOFF: secops-factory
 
 ### RESUME IN ONE BREATH
 
-secops-factory prism-integration v0.10.0 feature cycle is mid-Phase-F2 (spec evolution). F1 approved+committed. The full F2 spec body (11 BCs + delta docs) is FROZEN and committed as of this wrap. The scoped adversarial spec-convergence loop needs 3 consecutive clean passes; passes 1-4 each found real defects (all remediated) so the clean streak is 0/3. NEXT ACTION: re-run adversarial pass 5 fresh-context (its pre-wrap result was not captured) and read f2-consistency-validation-pass5.md from disk if present; continue the loop to 3 clean passes, then F2 state-backup → F2 gate (human approval).
+secops-factory prism-integration v0.10.0 feature cycle is mid-Phase-F2 (spec evolution). F1 approved+committed. The full F2 spec body (11 BCs + delta docs) is FROZEN and committed. Adversarial pass 5 is COMPLETE (1C/2M/1m/3obs — report persisted at phase-f2-spec-evolution/adversarial-spec-delta-review-pass5.md). Root cause: the deterministic disposition-guard hook trusts the LLM-supplied ticket_action_type completely and never cross-checks it against hard_floor_applies(), which it can compute — P5-001 (silent discard, CRITICAL) and P5-002 (kill-switch bypass, MAJOR) are the under/over-label duals of this single gap; P5-003 (MAJOR) is a stale §D-DEC-001 authoritative schema block. Clean streak remains 0/3. Consistency pass-5 audit was NOT on disk at wrap addendum. NEXT ACTION: REMEDIATE pass-5 findings — dispatch architect to fix the deterministic disposition-guard so it cross-checks LLM ticket_action_type against hard_floor_applies() (P5-001: in STEP 5 when hard_floor_applies() OR Indeterminate AND action not review-type, upgrade to review marker or write error artifact and deny; P5-002: gate STEP 3 review-exemption on hard_floor_applies(verdict) OR disposition==Indeterminate, reconcile kill-switch vs brief §3.9 draft-only language; P5-003: update §D-DEC-001 authoritative block to D-DEC-012 superset including create-review/comment-review tokens, Indeterminate verdict, ticket_action_type sub-field). Then PO propagate fixes to BC-3.03.001/BC-10.01.001. FV re-scope VP-HOOK-029 to inject hard-floor verdicts with NON-review ticket_action_type and assert (review-marker XOR error), making SM-32 killable. Minor: fix prd-delta §4/§6 "12-field" stale count to 12/15 split. Then adversarial pass 6. Decide whether to re-run consistency pass-5 before or after remediation.
 
 ---
 
@@ -68,11 +68,21 @@ secops-factory prism-integration v0.10.0 feature cycle is mid-Phase-F2 (spec evo
 
 ## PENDING / CARRIED
 
-- Pass 5 adversarial + F2 consistency audit were IN-FLIGHT at wrap; re-run pass 5, read consistency report from disk if written.
+- Pass-5 remediation IN PROGRESS: architect fix disposition-guard (P5-001/002/003), PO propagate to BCs, FV re-scope VP-HOOK-029 + SM-32, minor prd-delta §4/§6 count fix. Then adversarial pass 6.
+- F2 consistency audit pass-5 NOT on disk at wrap addendum — decide re-run timing (pre vs post pass-5 remediation).
 - DI-013 now RESOLVED in-spec via marker mechanism (was deferred at Phase 0).
-- Human decisions this cycle: D-004 full-brief scope, D-005 marker mechanism, D-006 demo-unaware; `asset_type=unknown` floor [human-gate-confirm at F2 gate]; confidence enum thresholds 0.75/0.40 (D-DEC-011).
+- Human decisions this cycle: D-004 full-brief scope, D-005 marker mechanism, D-006 demo-unaware; `asset_type=unknown` floor [human-gate-confirm at F2 gate]; confidence enum thresholds 0.75/0.40 (D-DEC-011); P5-002 kill-switch-vs-brief-§3.9 reconciliation [human-gate-confirm if amending brief].
 - AFTER 3 clean passes: F2 state-backup, then F2 human gate, then F3 story decomposition.
-- BCs carry COMPUTE-AT-COMMIT input-hash placeholders where inputs changed — compute at a later backup (noted as resume TODO, does not block wrap).
+- BCs carry COMPUTE-AT-COMMIT input-hash placeholders where inputs changed — compute at a later backup (noted as resume TODO, does not block).
+
+## DECISION / LESSONS DELTA (pass-5 addendum)
+
+| Item | Detail |
+|------|--------|
+| Root-cause one-liner | Deterministic disposition-guard hook trusts LLM-supplied ticket_action_type without cross-checking hard_floor_applies(); every LLM-supplied routing field that grants or bypasses a security control must be cross-validated against a hook-computed invariant (O3 standing rule). |
+| P5-001 lesson | Fail-loud guarantees must be enforced at the deterministic (hook) layer, not rely on correct LLM behavior for the exact threat class the marker design defends against. |
+| P5-002 lesson | Kill-switch exemptions gated on LLM-supplied tokens (create-review/comment-review) without a deterministic precondition create a bypass for the autonomy_enabled=false circuit-breaker — always gate exemptions on a hook-computed invariant, not on the token alone. |
+| P5-003 lesson | A "single authoritative" schema block marked "fix the BC, not this document" that is stale w.r.t. later sections of the same document is actively dangerous — authoring discipline must keep the authoritative block in sync at every schema extension. |
 
 ---
 

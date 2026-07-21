@@ -48,3 +48,31 @@ are archived here when the 5-row limit is reached.
 
 **Regression baseline:** main SHA d181ca2
 **Feature classification:** backend / feature / standard
+
+---
+
+## Burst 2: F2 Spec Evolution — Body Authored + Adversarial Passes 1-4 (2026-07-20 → 2026-07-21)
+
+**Steps rotated from STATE.md Current Phase Steps at wrap mid-F2:**
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F1 gate | human | DONE | F1 approved; factory-artifacts HEAD eb3ca2e; F2 commenced |
+| F2: spec body authored | architect / product-owner | DONE | 11 BCs (6 modified + 5 new) + 5 delta docs (architecture-delta v1.7, verification-delta v1.7, prd-delta v1.8, dtu-assessment, asm-004-validation); spec 1.0.0 → 1.1.0 MINOR; D-DEC-001..012 locked |
+| F2: adversarial passes 1-4 | adversary | DONE | 4 passes each found real defects — all remediated; 0/3 clean streak; pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M |
+| F2: version-coherence sweep | state-manager | DONE | spec-changelog.md authored; BC frozen versions confirmed |
+| F2: pass 5 + consistency dispatch | orchestrator | WRAP | dispatched pre-wrap; pass 5 result NOT captured (in-message only); f2-consistency-validation-pass5.md NOT written to disk; re-run on resume |
+
+**Narrative:**
+- Human approved F1 gate; F2 spec evolution commenced. architect + product-owner produced the full F2 spec body: 6 modified BCs (BC-3.01.001 v1.17, BC-3.03.001 v1.13, BC-4.02.001 v1.8, BC-4.05.001 v1.3, BC-5.01.001 v1.8, BC-6.01.001 v1.5) and 5 new BCs (BC-6.01.003/004/BC-8.02.001/BC-9.01.001 v1.1, BC-10.01.001 v1.9 monitoring-loop). Delta documents produced: architecture-delta v1.7, verification-delta v1.7, prd-delta v1.8, dtu-assessment.md (DTU_REQUIRED: true — prism L3 via prism's own demo server, jr L2 mock), asm-004-validation.md (PARTIAL → resolved-by-design via --strict-mcp-config --mcp-config prism.mcp.json). spec-changelog.md authored: spec 1.0.0 → 1.1.0 MINOR.
+- Adversarial spec-convergence loop ran 4 passes. Every pass found real defects (0/3 clean streak):
+  - Pass 1 (2C/8M): marker TTL semantics, command_pattern anchor gaps; all remediated.
+  - Pass 2 (1C/3M): ICD-203 12-field vs 15-field artifact-class split; all remediated.
+  - Pass 3 (1C/4M): asset_type=unknown missing from hard-floor; watermark monotonicity gap; all remediated.
+  - Pass 4 (2C/4M): JSON-first dispatch ordering (D-DEC-008 CRITICAL); anchored create pattern (D-DEC-008 CRITICAL); D-DEC-012 review-ticket path; autonomy_enabled operational field; enum-membership validation; all remediated.
+- D-DEC-001..012 all locked in architecture-delta. DI-013 RESOLVED in-spec via marker mechanism. DTU confirmed required (prism DTU demo server needed). Version-coherence sweep complete; BC versions frozen.
+- At wrap: adversarial pass 5 and F2 consistency audit (f2-consistency-validation-pass5.md) were dispatched but NOT captured (pass 5 result was in-message only; consistency report not written to disk). Re-run required on resume.
+
+**COMPUTE-AT-COMMIT placeholders:** New BCs carry input-hash COMPUTE-AT-COMMIT markers where inputs changed during adversarial remediation. Compute on next factory-artifacts backup after confirmed stable.
+
+**Factory-artifacts HEAD at wrap:** see `git -C .factory log -1 --format='%h %s'`

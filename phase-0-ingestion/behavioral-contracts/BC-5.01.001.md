@@ -1,13 +1,13 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.8"
 status: draft
-producer: architect
-timestamp: 2026-07-19T00:00:00
-phase: 0d
-inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/skills/investigate-event/SKILL.md, plugins/secops-factory/tests/skills.bats]
-input-hash: "cb466c7"
+producer: product-owner
+timestamp: 2026-07-20T00:00:00
+phase: f2
+inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/skills/investigate-event/SKILL.md, plugins/secops-factory/tests/skills.bats, phase-f2-spec-evolution/architecture-delta.md]
+input-hash: "COMPUTE-AT-COMMIT"
 traces_to: phase-0-ingestion/recovered-architecture.md
 origin: recovered
 extracted_from: plugins/secops-factory/skills/investigate-event/SKILL.md
@@ -15,7 +15,7 @@ subsystem: event-investigation-pipeline
 capability: CAP-EVENT-01
 lifecycle_status: active
 introduced: v0.6.0
-modified: ["v1.1-ADV-0-501-2026-07-19", "v1.2-ADV-0-601-2026-07-19", "v1.3-ADV-0-702-ADV-0-706-2026-07-19", "v1.4-ADV-0-901-2026-07-19"]
+modified: ["v1.1-ADV-0-501-2026-07-19", "v1.2-ADV-0-601-2026-07-19", "v1.3-ADV-0-702-ADV-0-706-2026-07-19", "v1.4-ADV-0-901-2026-07-19", "v1.5-PRISM-EVIDENCE-2026-07-20", "v1.6-ADV-F2-P3-004-2026-07-20", "v1.7-FV-VP-069-FINALIZED-JOB2-XREF-2026-07-20", "v1.8-version-coherence-sweep-2026-07-21"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -24,14 +24,18 @@ removed: null
 removal_reason: null
 ---
 
-# Behavioral Contract BC-5.01.001: investigate-event Skill — 7-Stage Event Investigation Workflow
+# Behavioral Contract BC-5.01.001: investigate-event Skill — 7-Stage Event Investigation Workflow with Prism Evidence Collection
 
 > **Revision history:**
+> - v1.8 (2026-07-21): Version-coherence sweep only — zero semantic change. Updated live-body version cross-references to frozen cycle versions: BC-3.03.001 v1.11 → v1.13 (Invariant #7/PC#7 confidence); BC-3.01.001 v1.15 → v1.17 (Invariant #7/PC#7 confidence). Per IP-005 version-coherence discipline (verification-delta.md v1.5 §7 Part E / Job 2).
+> - v1.7 (2026-07-20): FV-VP-069-FINALIZED / Job-2-xref: [Job 1] VP-SKILL-069 PROPOSED → FINALIZED (Invariant #8 + VP table row; verification-delta.md v1.3 §7 Part D confirms scope as static Iron-Law WHERE-clause assertion on Stage-3 OCSF + temporal-adjacency PrismQL blocks + prism-DTU multi-org org-a-returns-zero-org-b/c fixture + unscoped-query adversarial leg). [Job 2] Version-coherence sweep: Invariant #7 live cross-refs updated BC-3.03.001 v1.6 → v1.11 and BC-3.01.001 v1.11 → v1.15 (pass-3 final versions; P3-007/P3-009).
+> - v1.6 (2026-07-20): ADV-F2-P3-004: [P3-004 MAJOR] Added explicit Invariant #8 for org_slug scoping — every investigate-event PrismQL query MUST include an explicit `org_slug` WHERE clause for the current org context (D-DEC-005). Added VP-SKILL-069 cross-reference as PROPOSED (formal-verifier finalizes scope and BATS fixture). Confirmed Invariant #7 "12-field ICD-203 validation" is correct for the investigation markdown path (no count change). Added VP-SKILL-069 row to Verification Properties table.
 > - v1.0 (2026-07-19): Initial extraction from `investigate-event/SKILL.md` at v0.9.0 HEAD (Step 0d).
 > - v1.1 (2026-07-19): ADV-0-501: Annotated EC-006 to clarify the in-progress-save assumption — standard workflow generates from a complete template at Stage 7; EC-006 applies when analyst manually edits investigation file post-generation.
 > - v1.2 (2026-07-19): ADV-0-601: Added Invariant #7 documenting that Stage 7's `jr issue comment` step hits require-review.sh unconditional deny and requires human permission-approval (no marker-based override). Added DI-013 reference.
 > - v1.3 (2026-07-19): ADV-0-702: Corrected PC#3 — ≥2 alternative hypotheses is an LLM-soft procedural rule, not a structural hook enforcement; disposition-guard enforces only heading presence (subject to DI-004). Aligned with Invariant #5 and BC-3.03.001 Invariant #2. ADV-0-706: Standardized write-block citation in Invariant #7 to `88-94 (deny at :93)`.
 > - v1.4 (2026-07-19): ADV-0-901: Replaced brittle require-review.sh line-number citation in Invariant #7 with construct-name reference (line numbers churned across PR#13/#14/#15; post-PR#15 lines 88-110 are the allowlist, not the write-block).
+> - v1.5 (2026-07-20): PRISM-EVIDENCE: **UPDATED** — Added prism evidence collection stages to the investigation workflow: (a) raw OCSF event lookup via PrismQL at Stage 3, (b) temporal-adjacency query (±5min window), (c) ThreatIntel/NVD UDF enrichment at Stage 4, (d) optional Tavily web context (D-DEC-009 recommended tier). Structured evidence bundle with source attribution + fetch_time (§3.8 chain-of-custody). Added Precondition #5 (prism MCP optional). Updated Invariant #7 (DI-013 RESOLVED via D-DEC-001 marker mechanism). EC-008..EC-010 added. Iron Law, local-save-first ordering, and all 6 preserved invariants unchanged.
 
 ## Preconditions
 
@@ -39,6 +43,7 @@ removal_reason: null
 2. `jr` CLI is installed and authenticated. Confidence: verified by code analysis (Prerequisites section).
 3. The Perplexity/WebSearch research path is determined ONCE at the start of the investigation (before Stage 3) and applied consistently throughout all stages. Confidence: verified by code analysis (Research Tool Selection section: "This decision is made ONCE at the start").
 4. The skill announces itself verbatim before any other action. Confidence: verified by code analysis and BATS test `skills.bats:42-45`.
+5. **[NEW v1.5]** Prism MCP availability is checked via `prism_describe` before Stage 3. If prism is available, prism evidence collection is applied (postcondition #7 stages). If prism is unavailable (connection error, timeout), all prism evidence collection stages are skipped and the investigation proceeds with the existing Perplexity/WebSearch path (EC-008). Prism availability is announced to the user alongside the Perplexity availability check.
 
 ## Postconditions
 
@@ -49,15 +54,62 @@ removal_reason: null
 5. If alert platform type is ambiguous after Stage 1 auto-detection, the analyst is prompted to select ICS/IDS/SIEM before proceeding. Confidence: verified by code analysis (Stage 1).
 6. Low-confidence dispositions automatically trigger an escalation recommendation. Confidence: verified by code analysis (Stage 6).
 
+7. **[NEW v1.5] Prism evidence collection stages (when prism available):**
+
+   When prism MCP is available (Precondition #5), the following evidence collection steps are added to the investigation workflow:
+
+   - **Stage 3 addition — Raw OCSF event lookup:** Query prism for the raw OCSF-normalized event matching the alert:
+     ```sql
+     SELECT * FROM events
+     WHERE org_slug='<org_slug>'
+       AND event_id='<event_id>'
+     ```
+     If found, include the OCSF event record in the evidence bundle with `source: "prism"` and `fetch_time: "<ISO 8601 UTC>"`. D-DEC-005: `org_slug` constraint required in all PrismQL queries.
+
+   - **Stage 3 addition — Temporal-adjacency query:** Query adjacent events within a ±5-minute window around the alert timestamp:
+     ```sql
+     SELECT * FROM events
+     WHERE org_slug='<org_slug>'
+       AND asset_id='<asset_id>'
+       AND timestamp BETWEEN '<alert_time - 5min>' AND '<alert_time + 5min>'
+     ORDER BY timestamp
+     ```
+     Adjacent events are included in the evidence bundle as `source: "prism/temporal-adjacency"` and labeled "contextual."
+
+   - **Stage 4 addition — ThreatIntel UDF enrichment:** When a threat actor or malware family is identified in Stage 3, call `SELECT enrich_threatintel('<indicator>') AS ti_data` (if `enrich_threatintel` UDF is listed by `prism_describe`). Include TI results in evidence bundle with `source: "prism/threatintel-udf"` and `fetch_time`.
+
+   - **Stage 4 addition — NVD UDF enrichment:** When a CVE identifier is present, call `SELECT enrich_nvd('<cve_id>') AS nvd_data`. Include NVD CVSS/KEV data in evidence bundle with `source: "prism/nvd-udf"` and `fetch_time`.
+
+   - **Stage 4 addition — Optional Tavily web context (D-DEC-009):** At the recommended tier, query Tavily for web context on the key indicator (IP/domain/CVE). Tavily is OPTIONAL — if unavailable or returns error, the investigation continues without it (graceful degradation, EC-009). Do NOT abort solely because Tavily is unavailable.
+
+   **Evidence bundle format (§3.8 chain-of-custody):** All prism and external evidence is collected into a structured evidence bundle:
+   ```
+   evidence_artifacts:
+     - source: "prism" | "prism/temporal-adjacency" | "prism/threatintel-udf" | "prism/nvd-udf" | "tavily" | "perplexity"
+       fetch_time: "<ISO 8601 UTC>"
+       data: <evidence object>
+       query: "<query used to retrieve evidence>"
+   ```
+   The evidence bundle is included in the investigation document and satisfies the `evidence_artifacts` field of the ICD-203 §3.8 schema.
+
 ## Invariants
 
-1. Each event requires independent investigation — prior incidents of similar type cannot substitute for independent evidence collection. Confidence: verified by code analysis (Red Flag: "This looks like the same alert we saw last week, it's an FP" → "Each event needs independent investigation.").
-2. Historical context (30/60/90-day patterns) must be checked — recency bias (treating the event as new without checking history) is prohibited. Confidence: verified by code analysis (Red Flag: "I'll skip historical context, this is clearly new").
-3. Internal source IPs are not treated as automatically safe — lateral movement possibility must be assessed. Confidence: verified by code analysis (Red Flag).
-4. The `enrichment-completeness` hook enforces required investigation document sections (Executive Summary, Alert Details, Disposition, Next Actions). Confidence: verified by hook BC-3.02.001.
-5. The `disposition-guard` hook enforces that Alternatives Considered is present when a Disposition section exists. Confidence: verified by hook BC-3.03.001.
-6. The Perplexity availability check happens once before Stage 3 and the result is announced to the user. Confidence: verified by code analysis (Research Tool Selection section).
-7. Stage 7 includes a `jr issue comment` call to post the investigation summary to the JIRA ticket. The `require-review` hook (C-12, the require-review write-block evaluated before the allowlist; denies jr issue comment/edit/move/assign/create and their --output json forms) denies `jr issue comment` unconditionally — the command is in the write-block substring list with no marker-based override path. The comment posting step proceeds only via human permission-approval of the blocked call (Claude Code permission dialog). There is no way for a skill command to include text that bypasses this deny. Resolution options are tracked as **DI-013, PENDING HUMAN DECISION at the Phase 0 gate.**
+1. **[Preserved v1.0]** Each event requires independent investigation — prior incidents of similar type cannot substitute for independent evidence collection. Confidence: verified by code analysis (Red Flag: "This looks like the same alert we saw last week, it's an FP" → "Each event needs independent investigation.").
+2. **[Preserved v1.0]** Historical context (30/60/90-day patterns) must be checked — recency bias (treating the event as new without checking history) is prohibited. Confidence: verified by code analysis (Red Flag: "I'll skip historical context, this is clearly new").
+3. **[Preserved v1.0]** Internal source IPs are not treated as automatically safe — lateral movement possibility must be assessed. Confidence: verified by code analysis (Red Flag).
+4. **[Preserved v1.0]** The `enrichment-completeness` hook enforces required investigation document sections (Executive Summary, Alert Details, Disposition, Next Actions). Confidence: verified by hook BC-3.02.001.
+5. **[Preserved v1.0]** The `disposition-guard` hook enforces that Alternatives Considered is present when a Disposition section exists. Confidence: verified by hook BC-3.03.001.
+6. **[Preserved v1.0]** The Perplexity availability check happens once before Stage 3 and the result is announced to the user. Confidence: verified by code analysis (Research Tool Selection section).
+
+7. **[UPDATED v1.5]** Stage 7 includes a `jr issue comment` call to post the investigation summary to the JIRA ticket. **DI-013 RESOLVED (D-DEC-001):** The `jr issue comment` command is now **marker-gated** via the disposition-guard EMITTER role (BC-3.03.001 v1.13): after the investigation document passes ICD-203 12-field validation AND no hard-floor condition is met, disposition-guard writes a marker to `${CLAUDE_PLUGIN_DATA}/markers/`. Require-review (BC-3.01.001 v1.17) validates and consumes this marker to allow `jr issue comment`. For hard-floor dispositions (Indeterminate, HIGH/CRIT severity, critical assets, T1003/T1068/T1021/T1041, degraded/silent sensor), no marker is issued and the comment proceeds only via human permission-approval (Claude Code permission dialog).
+
+   > **Previous (v1.4):** "Stage 7 includes a `jr issue comment` call to post the investigation summary to the JIRA ticket. The `require-review` hook (C-12, the require-review write-block evaluated before the allowlist; denies jr issue comment/edit/move/assign/create and their --output json forms) denies `jr issue comment` unconditionally — the command is in the write-block substring list with no marker-based override path. The comment posting step proceeds only via human permission-approval of the blocked call (Claude Code permission dialog). There is no way for a skill command to include text that bypasses this deny. Resolution options are tracked as **DI-013, PENDING HUMAN DECISION at the Phase 0 gate.**"
+
+   Confidence: D-DEC-001 binding decision (architecture-delta.md v1.1); BC-3.01.001 v1.17 PC#2 (marker-validation allow path); BC-3.03.001 v1.13 Invariant #4 (EMITTER role).
+
+8. **[NEW v1.6] org_slug scoping on ALL PrismQL queries (D-DEC-005).** Every PrismQL query issued by the investigate-event skill MUST include an explicit `org_slug` scope constraint for the current org context (see PC#7 Stage-3 queries, which already include `WHERE org_slug='<org_slug>'`). The skill must never construct a PrismQL query without this constraint. This is a defense-in-depth obligation complementing BC-10.01.001 Invariant #1 (monitoring-loop) and BC-4.05.001 Invariant #4 (assess-priority). If `org_slug` is not available from execution context, all prism evidence collection stages (PC#7) are skipped entirely and the investigation proceeds with the Perplexity/WebSearch path (EC-008). Confidence: D-DEC-005 binding decision (architecture-delta.md v1.1).
+
+   **Verification property (ADV-F2-P3-004, FINALIZED):** VP-SKILL-069 — investigate-event PrismQL queries always include org_slug WHERE clause; strategy: static Iron-Law WHERE-clause assertion on Stage-3 OCSF + temporal-adjacency PrismQL blocks + prism-DTU multi-org org-a-returns-zero-org-b/c fixture + unscoped-query adversarial leg. FINALIZED per verification-delta.md v1.3 §7 Part D.
 
 ## Edge Cases
 
@@ -70,15 +122,20 @@ removal_reason: null
 | EC-005 | Low-confidence disposition reached | Automatically recommend escalation in Stage 6 output |
 | EC-006 | Analyst saves investigation file without "Alternatives Considered" after manually adding a "Disposition" section | `disposition-guard` hook blocks. Standard Stage 7 workflow generates from event-investigation-tmpl.yaml (a complete template with all section headings already present); EC-006 applies when analyst edits the investigation file post-generation to add or modify Disposition content before completing the Alternatives Considered section. |
 | EC-007 | Alert is an ICS/SCADA alert | Apply ICS-specific considerations (Purdue zones, safety systems, OT protocol context) |
+| EC-008 | Prism MCP unavailable at Precondition #5 check | Skip all prism evidence collection stages (PC#7 additions); announce "Prism unavailable — investigation proceeds with Perplexity/WebSearch only"; continue existing 7-stage workflow unchanged. Do not abort. |
+| EC-009 | Tavily unavailable during Stage 4 optional web context step | Skip Tavily step; do not abort; include note in evidence bundle "Tavily not available — web context omitted". Investigation continues. (D-DEC-009: Tavily is recommended, not required.) |
+| EC-010 | Raw OCSF event lookup returns no result (event_id not found in prism) | Include note in evidence bundle "Event not found in prism — possible ingestion delay or sensor gap"; continue Stage 3 with Perplexity/WebSearch as primary source. |
 
 ## Canonical Test Vectors
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| Ticket `ALERT-001`, Claroty ICS alert, clear TP with evidence | 7 stages complete; TP disposition with evidence chain; saved locally first; JIRA updated; review-approval unlocked | happy-path |
+| Ticket `ALERT-001`, Claroty ICS alert, clear TP with evidence, prism available with matching OCSF event | 7 stages complete; prism OCSF event in evidence bundle; TP disposition with evidence chain; saved locally first; marker-gated `jr issue comment` proceeds; JIRA updated | happy-path |
 | Ticket with Snort/IDS alert, FP due to scanner misconfiguration | FP disposition with alternatives (TP malicious, BTP authorized scan); Alternatives Considered section present | happy-path |
 | Ticket with no log data available | Flag as incomplete; do not disposition; recommend log retrieval | error |
 | Internal source IP alert | Lateral movement assessed in Stage 5; disposition includes this consideration | edge-case |
+| Prism unavailable | Investigation proceeds with Perplexity/WebSearch only; evidence bundle omits prism sources; announcement made (EC-008) | edge-case |
+| Tavily unavailable | Stage 4 web context skipped; investigation continues; evidence bundle notes omission (EC-009) | edge-case |
 
 ## Verification Properties
 
@@ -87,6 +144,7 @@ removal_reason: null
 | VP-SKILL-018 | Iron Law text present verbatim | integration / BATS (`skills.bats:17-19`) |
 | VP-SKILL-019 | Perplexity fallback path present in skill | integration / BATS (`skills.bats:169-171`) |
 | VP-SKILL-020 | Template and data references use CLAUDE_PLUGIN_ROOT prefix | integration / BATS (`skills.bats:93-105`) |
+| VP-SKILL-069 | org_slug scoping: every investigate-event PrismQL query includes an explicit org_slug WHERE clause; unscoped queries rejected; org-a query returns zero org-b/c rows in DTU multi-org fixture (Invariant #8). FINALIZED per verification-delta.md v1.3 §7 Part D. Strategy: static Iron-Law WHERE-clause assertion on Stage-3 OCSF + temporal-adjacency PrismQL blocks + prism-DTU multi-org fixture + unscoped-query adversarial leg. | integration / BATS (`@test "investigate-event PrismQL query always includes org_slug WHERE clause"`, `@test "investigate-event rejects unscoped PrismQL query"`, `@test "investigate-event org-a Stage-3 query returns zero org-b/c rows in multi-org DTU fixture"`) |
 
 ## Traceability
 
@@ -94,7 +152,7 @@ removal_reason: null
 |-------|-------|
 | L2 Capability | CAP-EVENT-01 |
 | L2 Domain Invariants | NO DISPOSITION WITHOUT EVIDENCE CHAIN FIRST |
-| Architecture Module | C-2 (skill-procedures), C-5 (investigation-workflow-playbook) |
+| Architecture Module | C-2 (skill-procedures), C-5 (investigation-workflow-playbook), C-25 (prism-mcp consumer) |
 | Stories | TBD (filled by story-writer) |
 
 ---
@@ -106,26 +164,31 @@ removal_reason: null
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/secops-factory/skills/investigate-event/SKILL.md` (120 lines) |
-| **Confidence** | high — 7 stages with inputs/outputs documented; ICS/IDS/SIEM detection keywords explicit; Perplexity fallback logic documented at skill level; BATS validates Iron Law and Red Flags |
-| **Extraction Date** | 2026-07-19 |
+| **Confidence** | high for existing behavior (v1.4 paths); D-DEC-001/D-DEC-005/D-DEC-009 binding decisions for prism evidence additions (v1.5 — not yet in source code) |
+| **Extraction Date** | 2026-07-20 |
 
 #### Evidence Types Used
 
 - **documentation**: 7-stage workflow; alert platform detection keywords; research path decision protocol
 - **guard clause**: Iron Law (line 13); Red Flags table (lines 25-34)
 - **documentation**: Stage 7 step order ("Save locally FIRST") as documented chain-of-custody requirement
-- **inferred**: ICS-specific considerations (Purdue model, safety systems) referenced in Stage 5 but not explicitly enumerated
+- **inferred**: ICS-specific considerations (Purdue model, safety systems) referenced in Stage 5
+- **D-DEC-001**: marker-gated comment path (DI-013 RESOLVED — Invariant #7 updated)
+- **D-DEC-005**: org_slug scoping for all PrismQL queries
+- **D-DEC-009**: Tavily recommended tier; graceful degradation on unavailability
 
 #### Purity Classification
 
 | Property | Assessment |
 |----------|-----------|
-| **I/O operations** | reads Jira (jr CLI), reads threat intelligence (Perplexity/WebSearch), reads analyst-provided log excerpts, writes investigation document (filesystem), writes Jira (comment + custom fields) |
+| **I/O operations** | reads Jira (jr CLI), reads threat intelligence (Perplexity/WebSearch), reads prism MCP (new v1.5), reads analyst-provided log excerpts, writes investigation document (filesystem), writes Jira (comment + custom fields) |
 | **Global state access** | none |
-| **Deterministic** | no — depends on Jira ticket content, threat intelligence queries, analyst log data |
+| **Deterministic** | no — depends on Jira ticket content, threat intelligence queries, prism state, analyst log data |
 | **Thread safety** | not applicable |
 | **Overall classification** | effectful shell |
 
 #### Refactoring Notes
 
-The disposition logic (evidence → TP/FP/BTP classification) is the core analytical function. While LLM-executed, the framework is a structured decision tree that could be specified as a formal property: given a complete evidence set and alternatives considered, the disposition must be one of {TP, FP, BTP}. The MITRE ATT&CK mapping in Stage 5 is also a constrained function (vulnerability type → tactic/technique mapping) suitable for property testing.
+The disposition logic (evidence → TP/FP/BTP classification) is the core analytical function. The prism evidence collection stages (PC#7) are effectful and should be wrapped in a single evidence-collection function stubbable for testing. The Tavily optional step (D-DEC-009) must be designed with explicit try/skip semantics — any error in the Tavily call must not propagate to the investigation result.
+
+**DI-013 RESOLVED (v1.5):** The comment path is now marker-gated via D-DEC-001. The remaining concern is hard-floor cases (Indeterminate, HIGH/CRIT) where no marker is issued and human approval is still required — this is correct behavior per §3.9 hard floors and preserves the security property.

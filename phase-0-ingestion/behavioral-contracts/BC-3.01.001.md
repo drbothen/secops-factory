@@ -1,15 +1,13 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.10"
+version: "1.17"
 status: draft
-producer: architect
-timestamp: 2026-07-19T00:00:00
-phase: 0d
-inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/require-review.sh, plugins/secops-factory/tests/hooks.bats]
-input-hash: "a6857bc"
-  1f01e0a7d67947c28e78931f8c4818e454f6a884afa5f7768bda0a3603e40e28  plugins/secops-factory/hooks/require-review.sh
-  bd8199a77b13f2ad1a884362862984c6f331799796f8d09576bcda0dffa403f1  plugins/secops-factory/hooks/require-review.ps1
+producer: product-owner
+timestamp: 2026-07-20T00:00:00
+phase: f2
+inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/hooks/require-review.sh, plugins/secops-factory/tests/hooks.bats, phase-f2-spec-evolution/architecture-delta.md]
+input-hash: "COMPUTE-AT-COMMIT"
 traces_to: phase-0-ingestion/recovered-architecture.md
 origin: recovered
 extracted_from: plugins/secops-factory/hooks/require-review.sh
@@ -17,7 +15,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-01
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19", "v0.9.x-ADV0-001-ADV0-007-2026-07-19", "v1.4-ADV-0-405-ADV-0-507-2026-07-19", "v1.5-ADV-0-504-2026-07-19", "v1.6-ADV-0-706-obs-PC2-2026-07-19", "v1.7-ADV-0-801-PR15-2026-07-19", "v1.8-ADV-0-A01-ADV-0-A02-ADV-0-A04-2026-07-19", "v1.9-ADV-0-B01-2026-07-19", "v1.10-RESYNC-PR17-2026-07-19"]
+modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19", "v0.9.x-ADV0-001-ADV0-007-2026-07-19", "v1.4-ADV-0-405-ADV-0-507-2026-07-19", "v1.5-ADV-0-504-2026-07-19", "v1.6-ADV-0-706-obs-PC2-2026-07-19", "v1.7-ADV-0-801-PR15-2026-07-19", "v1.8-ADV-0-A01-ADV-0-A02-ADV-0-A04-2026-07-19", "v1.9-ADV-0-B01-2026-07-19", "v1.10-RESYNC-PR17-2026-07-19", "v1.11-D-DEC-001-D-DEC-008-2026-07-20", "v1.12-FV-PROPOSED-DROP-2026-07-20", "v1.13-ADV-F2-013-014-017-018-2026-07-20", "v1.14-ADV-F2-P2-003-007-012-2026-07-20", "v1.15-ADV-F2-P3-002-011-2026-07-20", "v1.16-D-DEC-012-P4-010-P4-002-2026-07-21", "v1.17-FV-VP-HOOK-024-029-ANCHORS-2026-07-21"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -29,6 +27,9 @@ removal_reason: null
 # Behavioral Contract BC-3.01.001: require-review Hook — Jira Field-Modification Gate
 
 > **Revision history:**
+> - v1.17 (2026-07-21): VP-anchor additions only — zero semantic change. (a) Consumer step (5) anchored `command_pattern` match: added VP-HOOK-024 citation for the create injection-safety guarantee (`--project` first, trailing `( |$)` boundary — `--summary` injection + PROD/PRODUCTION prefix → DENY; ADV-F2-P4-002). (b) Consumer step (8) audit control-char sanitization: added VP-HOOK-024 citation for the audit-forgery leg (control chars stripped from `ticket_id`/`org_slug`/`authorized_operations[0]` before interpolation; ADV-F2-P4-010). (c) Consumer step (6) create-review/comment-review token acceptance: added VP-HOOK-029 citation (P1 PROPOSED — fail-loud escalation consumer path; review token acceptance is the consumer leg of the fail-loud invariant). Added VP-HOOK-029 row to Verification Properties table. Verification-delta.md v1.5 §7 Part E.
+> - v1.16 (2026-07-21): [D-DEC-012] Consumer algorithm step (6) extended to accept `create-review` and `comment-review` as valid `authorized_operations` tokens: `jr issue create ...` commands accept markers with `["create"]` OR `["create-review"]`; `jr issue comment ...` commands accept markers with `["comment"]` OR `["comment-review"]`. Both review-marker types are consumed via the same iterative-consume atomic-rename path; no other logic changes to the consumer algorithm. [ADV-F2-P4-010] Consumer step (8) audit-log construction extended to strip control characters (0x00–0x1f via `tr -d '\000-\037'`) from `ticket_id`, `org_slug`, and `authorized_operations[0]` before interpolation into the audit line — extends the existing base64 command encoding (ADV-F2-013) to all attacker-influenceable fields. [ADV-F2-P4-002] Create-scope project-binding note updated: the create `command_pattern` is now `^jr (--output json )?issue create --project <jira_project_key>( |$)` (no `.*` before `--project`; trailing `( |$)` prevents ORG_A matching ORG_A_EXTRA); consumer step (5) anchored match enforces that a create marker for `--project ORG_A` cannot authorize `--project ORG_A_EXTRA`.
+> - v1.15 (2026-07-20): ADV-F2-P3-002/ADV-F2-P3-011: (1) [P3-002] Added create-scope project-binding note to PC#2 hard-floor guarantee section: a create marker whose command_pattern encodes `--project ORG-A` cannot authorize a `jr issue create --project ORG-B` call — the anchored match at consumer step (5) enforces this; no additional org_slug lookup needed. (2) [P3-011] Removed "cross-tenant scope" from the hard-floor guarantee category list in PC#2 — per D-DEC-005, plugin obligation is org_slug scoping only; cross-tenant indicator detection is not implementable at the plugin layer (coordinated with BC-3.03.001 v1.10 removal of the PENDING-DEFINITION cross-tenant hard-floor leg).
 > - v1.0 (2026-07-19): Initial extraction from `require-review.sh` at v0.9.0 HEAD (Step 0d).
 > - v1.1 (2026-07-19): Revised to reflect PR #13 (commit f450d9f) behavior changes — SEC-001 (`jr issue comment` moved from allow to deny) and SEC-002 (unknown jr subcommands changed from fail-open to fail-closed). Previous postconditions #4 and #5 and invariant #3 were stale.
 > - v1.2 (2026-07-19): Revised to reflect PR #14 (commit 0ec794a) — expanded read-only allowlist with two families: plain forms (`jr issue changelog`, `jr assets search/view`, `jr --version`) and `--output json` forms for the metrics suite. EC-010 flips from Deny to Allow. New Invariant #4 documents the `--output json` global-flag placement nuance (root cause of DI-010 regression). BATS count updated to 138 tests.
@@ -40,6 +41,10 @@ removal_reason: null
 > - v1.10 (2026-07-19): RESYNC-PR17: DI-005 `assign`/`create` deny now **BATS-verified** — PR #17 added `@test "require-review blocks jr issue assign without review (DI-005)"` (hooks.bats:426) and `@test "require-review blocks jr issue create without review (DI-005)"` (hooks.bats:433). PC#2 confidence note updated. Source Evidence test count updated 150→165 (hooks 44→59). Last Verified Against updated to d181ca2.
 > - v1.9 (2026-07-19): ADV-0-B01: Converted all live hooks.bats line-range citations to @test-NAME references with current line numbers (PR #15 expanded require-review block to lines 9-177; downstream tests shifted +88 lines). Source Evidence range updated 9-93 → 9-177 (26 tests). Stale VP-HOOK-003/020/021/022 range refs replaced with exact @test names. PC#3 stale test name "allows jr issue view" corrected to "allows jr read-only commands" (test was renamed when PR #14 expanded the allowlist). PC#2 line :88 corrected to :89 (move test shifted one line within the block). hooks.bats references now use @test names for churn resilience.
 > - v1.8 (2026-07-19): ADV-0-A01: Replaced all live require-review.sh line-number citations with construct-name references (fast-path guard / write-block if-block / read-only allowlist / fail-closed catch-all / jq-availability guard / emit_allow / emit_deny) — makes the "anchor-churn retired" capstone claim true and prevents future PR-induced staleness. ADV-0-A02: Source Evidence test count updated to 150 @tests (hooks 44, skills 81, integration 11, parity 14); PR #15 +12 row added to Change Log. ADV-0-A04: VP-HOOK-023 added (--output json write-block family as provable property); canonical deny vector row added to test vectors table.
+> - v1.14 (2026-07-20): ADV-F2-P2-003/ADV-F2-P2-007/ADV-F2-P2-012: (1) Consumer algorithm multiplicity fix (ADV-F2-P2-003 MAJOR): replaced "rename-fail → deny immediately" with iterative-consume — candidates collected and sorted by issued_at_utc ASC; first successful atomic rename = allow; if rename fails CONTINUE to next candidate; all exhausted → deny. Fixes multi-org loop producing ≥2 create markers before jr runs (all were denied under the prior single-candidate fail-fast). Anti-forgery preserved: each marker single-use via atomic rename; forged markers still cannot be created. (2) Audit log path alignment (ADV-F2-P2-007 MEDIUM): `${CLAUDE_PLUGIN_DATA}/audit.log` → `${CLAUDE_PLUGIN_DATA}/markers/audit.log` in Invariant #2 and PC#2 step (8) — aligns with D-DEC-001 canonical pseudocode and C-29 description. (3) Invariant numbering order corrected (ADV-F2-P2-012): invariants were listed 1,2,3,5,4; corrected to 1,2,3,4,5 by moving Invariant #4 (`--output json` global flag) to appear before Invariant #5 (write-block evaluated before allowlist).
+> - v1.13 (2026-07-20): ADV-F2-013/ADV-F2-014/ADV-F2-017/ADV-F2-018 + marker schema v2.0 consumer: (1) Removed dead-code `used != false` check at algorithm step (3) — `.marker.json.used` files are excluded from `*.marker.json` glob; the atomic rename IS the single-use enforcement mechanism; EC-019 Expected Behavior updated (ADV-F2-018). (2) Added explicit deny if atomic mv-rename fails: "if rename fails → emit_deny('Marker invalidation failed — fail-closed')" (ADV-F2-014 TOCTOU safety). (3) Audit trail base64-encodes command field: `command_b64=$(printf '%s' "${command}" | base64 | tr -d '\n')` prevents newline injection into audit.log chain-of-custody (ADV-F2-013). (4) Consumer validates `now() > expires_at_utc` (absolute, schema v2.0) instead of `(now - issued_at) > 30s` arithmetic — no read-side clock-skew arithmetic (D-DEC-001 v2.0). (5) EC-022 aligned to D-DEC-008 ticket-bound generation table with `(--output json )?` optional group and trailing-space guard. (6) Create-scoped and assign-scoped allow-path test vectors added (VP-HOOK-024 completeness). (7) Revision-history ordering corrected: v1.11 now precedes v1.12 (ADV-F2-017 fix).
+> - v1.12 (2026-07-20): FV-PROPOSED-DROP: VP-HOOK-024 is now FINALIZED per verification-delta §1 — dropped `(PROPOSED)` qualifier from VP table row and Postcondition #2 confidence line.
+> - v1.11 (2026-07-20): D-DEC-001/D-DEC-008: **UPDATED** — Added marker-validation conditional-allow branch inside the write-block path. Former "unconditional deny for write-block-matched commands" becomes "deny UNLESS a valid unexpired single-use scoped marker is found in `${CLAUDE_PLUGIN_DATA}/markers/`". Write-block-first ordering (Invariant #5) is preserved — the marker branch is INSIDE the write-block evaluation path, not a bypass of it. Hard-floor categories (Indeterminate/HIGH/CRIT severity, critical assets, T1003/T1068/T1021/T1041 techniques) never receive markers (enforced at emitter — disposition-guard D-DEC-008), so require-review denies them unconditionally. Invariant #2 updated to permit marker-store filesystem access for write-block-matched commands only. EC-017..EC-022 added. VP-HOOK-024 added.
 
 ## Preconditions
 
@@ -50,7 +55,131 @@ removal_reason: null
 ## Postconditions
 
 1. If `tool_input.command` does not contain the substring `jr `, the hook emits `permissionDecision: allow` and exits 0. Confidence: verified by code analysis (fast-path guard in require-review.sh) and BATS test `@test "require-review allows non-jr commands"` (hooks.bats:9).
-2. If `tool_input.command` contains any write-block pattern, the hook emits `permissionDecision: deny` with a reason string containing "review approval". **This check is evaluated BEFORE the allowlist (Invariant #5)** — a command matching both a write-block pattern and an allowlist pattern is denied. Two families of write patterns are blocked (10 entries total): **Plain forms:** `jr issue comment ` (trailing-space guard against `jr issue comments` collision), `jr issue edit`, `jr issue move`, `jr issue assign`, `jr issue create`. **`--output json` forms (added PR #15/ADV-0-801):** `--output json issue comment ` (trailing-space guard), `--output json issue edit`, `--output json issue move`, `--output json issue assign`, `--output json issue create`. Confidence: verified by code analysis (write-block if-block in require-review.sh) and BATS tests `@test "require-review blocks jr issue comment without review (SEC-001)"` (hooks.bats:69), `@test "require-review blocks jr issue edit without review"` (hooks.bats:82), `@test "require-review blocks jr issue move without review"` (hooks.bats:89), `@test "require-review blocks jr issue assign without review (DI-005)"` (hooks.bats:426), `@test "require-review blocks jr issue create without review (DI-005)"` (hooks.bats:433). Note: `comment`, `edit`, `move`, `assign`, and `create` deny verified by both code analysis and BATS (PR #17 added assign/create BATS coverage); all `--output json` write forms verified by code analysis only.
+
+2. **[UPDATED v1.11]** If `tool_input.command` contains any write-block pattern, the hook enters the **marker-validation branch** (D-DEC-001/D-DEC-008). **This check is evaluated BEFORE the allowlist (Invariant #5).**
+
+   Two families of write patterns are blocked (10 entries total): **Plain forms:** `jr issue comment ` (trailing-space guard against `jr issue comments` collision), `jr issue edit`, `jr issue move`, `jr issue assign`, `jr issue create`. **`--output json` forms (added PR #15/ADV-0-801):** `--output json issue comment ` (trailing-space guard), `--output json issue edit`, `--output json issue move`, `--output json issue assign`, `--output json issue create`.
+
+   **Marker-validation algorithm (D-DEC-001 v2.0 — [UPDATED v1.14] iterative-consume):**
+
+   The hook scans `${CLAUDE_PLUGIN_DATA}/markers/*.marker.json` for valid unexpired single-use
+   scoped markers using the following algorithm (fail-closed: any error → deny):
+
+   ```
+   marker_dir = ${CLAUDE_PLUGIN_DATA}/markers/
+   if marker_dir does not exist or contains no *.marker.json files:
+     emit deny (reason: "review approval")
+     exit 0
+
+   # Phase 1: collect all valid candidates
+   candidates = []
+   for each file F in marker_dir/*.marker.json:
+     (1) path-safety check: if basename(F) contains ".." or "/" → skip (EC-021 path-traversal guard)
+     (2) parse JSON via jq: if parse fails → skip (EC-020 malformed JSON)
+     # NOTE: "used != false" check REMOVED (ADV-F2-018): .marker.json.used files are excluded
+     # from the *.marker.json glob — they never appear as candidates. The atomic rename IS
+     # the single-use enforcement mechanism. Dead-code removed at v1.13.
+     (3) if issued_at_utc > now() (future-dated) → skip (adversarial signal; expire the file)
+     (4) TTL check: if now() > expires_at_utc → skip (EC-017 expired)
+         # Schema v2.0: consumer compares expires_at_utc directly — no issued_at + ttl_seconds arithmetic
+     (5) anchored command_pattern match: apply regex command_pattern (anchored at ^) against command;
+         if no match → skip (EC-022 wrong ticket-id or EC-018 wrong operation pattern)
+         # VP-HOOK-024 cross-reference (v1.17): the create command_pattern injection-safety
+         # guarantee is enforced here. For create markers: pattern is anchored
+         # `^jr (--output json )?issue create --project <key>( |$)` — `--project` is the
+         # FIRST fixed argument (no `.*` before it); trailing `( |$)` prevents prefix-match
+         # (ORG_A marker does NOT authorize ORG_A_EXTRA command; PROD marker does NOT authorize
+         # PRODUCTION). An attacker-influenceable `--summary` value cannot satisfy the project-key
+         # binding via prefix-match injection. (ADV-F2-P4-002 CRITICAL; verification-delta.md
+         # v1.5 §2 / §7 Part E item 3a).
+     (6) authorized_operations scope check: (D-DEC-012) accept the following pairings:
+         - `jr issue create ...` command → accept marker with authorized_operations `["create"]` OR `["create-review"]`
+         - `jr issue comment ...` command → accept marker with authorized_operations `["comment"]` OR `["comment-review"]`
+         - `jr issue assign ...` command → accept marker with authorized_operations `["assign"]` only
+         If the command does not match any accepted authorized_operations value → skip (EC-018 wrong-scope marker)
+         Note: `create-review` and `comment-review` are RESTRICTED markers for [REVIEW-REQUIRED]/[BLIND-SPOT] ticket operations;
+         they are consumed via the same iterative-consume atomic-rename path as regular markers.
+         # VP-HOOK-029 cross-reference (v1.17, P1 PROPOSED): step (6)'s acceptance of
+         # create-review/comment-review tokens is the CONSUMER leg of the fail-loud invariant.
+         # VP-HOOK-029 asserts that for a hard-floor/Indeterminate/silent-sensor verdict, a
+         # review marker (create-review or comment-review) is present for this consumer to
+         # find and consume — proving the end-to-end fail-loud guarantee: disposition-guard
+         # emitted the review marker (BC-3.03.001 Step 3), and require-review accepted it here,
+         # allowing the [REVIEW-REQUIRED]/[BLIND-SPOT] jr create/comment to execute.
+         # (verification-delta.md v1.5 §7 Part E item 3c).
+     # VALID CANDIDATE — add to list
+     candidates.append({file: F, issued_at_utc: json.issued_at_utc, json: json})
+
+   if len(candidates) == 0:
+     emit deny (reason: "review approval")
+     exit 0
+
+   # Phase 2: iterative-consume (ADV-F2-P2-003 fix — replaces prior "rename-fail → deny" single-attempt)
+   # Sort by issued_at_utc ascending (oldest first — ensures FIFO consumption order)
+   # Anti-forgery preserved: each marker is single-use via atomic rename; the iteration
+   # only matters for legitimate concurrent same-scope markers (e.g., two TP create verdicts
+   # produced in a multi-org loop before jr runs) — forged markers still cannot be created.
+   sort candidates by issued_at_utc ascending
+   for each candidate in candidates:
+     (7) atomic mv-rename: rename candidate.file → marker.json.used
+         (POSIX single atomic rename; prevents replay — EC-019 prevention)
+         # ADV-F2-P2-003: if rename fails, a concurrent consumer already consumed this marker
+         #                 → CONTINUE to next candidate (do NOT deny immediately)
+         if rename fails → CONTINUE   # try next candidate
+     # Rename succeeded — this marker is ours
+     (8) append audit entry to ${CLAUDE_PLUGIN_DATA}/markers/audit.log:
+         command_b64=$(printf '%s' "${command}" | base64 | tr -d '\n')
+         # ADV-F2-013: base64-encode command to prevent newline injection into audit chain-of-custody
+         # On macOS/BSD: base64 -b 0; on GNU: base64 -w 0; tr -d '\n' normalizes both
+         # ADV-F2-P4-010: strip control characters (0x00-0x1f) from ALL attacker-influenceable fields
+         # ticket_id comes from verdict (Jira API content — LLM-influenced, may contain \n)
+         # org_slug comes from verdict (operator-configured; sanitize for defense-in-depth)
+         # op comes from authorized_operations[0] (bounded enum; sanitize for defense-in-depth)
+         safe_ticket=$(printf '%s' "${candidate.json.ticket_id}" | tr -d '\000-\037')
+         safe_op=$(printf '%s' "${candidate.json.authorized_operations[0]}" | tr -d '\000-\037')
+         safe_org=$(printf '%s' "${candidate.json.org_slug}" | tr -d '\000-\037')
+         # ADV-F2-P2-007: canonical path is ${CLAUDE_PLUGIN_DATA}/markers/audit.log (= ${marker_dir}/audit.log)
+         audit_line = "${ISO_NOW} MARKER_USED marker_id=${candidate.json.marker_id} op=${safe_op} ticket=${safe_ticket} org=${safe_org} command_b64=${command_b64}"
+         # VP-HOOK-024 cross-reference (v1.17): control-char sanitization of ticket_id/org_slug/op
+         # is the audit-forgery leg of VP-HOOK-024 (ADV-F2-P4-010). A `\n` in ticket_id cannot
+         # forge a second MARKER_USED line because safe_ticket strips 0x00-0x1f before
+         # interpolation. Combined with the base64-encoded command_b64 field (ADV-F2-013),
+         # the audit log is injection-proof. (verification-delta.md v1.5 §2 / §7 Part E item 3b).
+     (9) emit allow; exit 0
+
+   # All candidates exhausted without a successful rename (concurrent consumers took each one)
+   emit deny ("No marker could be consumed — deny (fail-closed)")
+   exit 0
+   ```
+
+   > **Previous (v1.13) Phase 2 — single-attempt with immediate deny-on-fail:**
+   > ```
+   > # (no sort; single-candidate attempt)
+   > --- VALID MARKER FOUND ---
+   > (7) atomic mv-rename...
+   >     If rename fails for any reason → emit_deny("Marker invalidation failed — fail-closed"); exit 0
+   > ```
+   > (ADV-F2-P2-003 fix: "rename-fail → deny immediately" replaced with "rename-fail → CONTINUE
+   > to next candidate." A multi-org loop producing ≥2 create markers before jr runs caused all
+   > creates to fail under the prior design. Anti-forgery property preserved — single-use atomic
+   > rename; iteration only affects legitimate concurrent same-scope markers.)
+   >
+   > **Previous (v1.12) algorithm step (3):** "if used != false → skip (EC-019 replayed/consumed marker)". This check was dead code because the glob `*.marker.json` never matches `.marker.json.used` files (the rename changes the extension). Removed at v1.13 (ADV-F2-018). EC-019 threat remains valid — the MECHANISM is the rename, not the `used` field check.
+   >
+   > **Previous (v1.12) TTL step (5):** "if (now − issued_at) > 30 seconds → skip (EC-017 expired)". Updated to v2.0 absolute `expires_at_utc` check; TTL raised from 30s to 120s.
+   >
+   > **Previous (v1.12) step (9) audit:** `command='${command}'` (unescaped, vulnerable to newline injection). Changed to `command_b64=${command_b64}` at v1.13 (ADV-F2-013).
+
+   **Hard-floor guarantee (D-DEC-008):** Hard-floor categories (Indeterminate verdict, severity HIGH/CRIT, critical-asset classification including `unknown` [ADV-F2-P3-001], MITRE techniques T1003/T1068/T1021/T1041, degraded/silent sensor) never receive a marker from disposition-guard. Therefore require-review will always exhaust the marker scan with no valid match and will emit deny for those commands unconditionally. The hard-floor property is enforced at the emitter (disposition-guard D-DEC-008), not here — require-review simply finds no valid marker.
+
+   > **Previous (v1.14):** Hard-floor categories listed included "cross-tenant scope." Removed in v1.15 (ADV-F2-P3-011): per D-DEC-005, plugin obligation is org_slug scoping only; cross-tenant indicator detection is not implementable at the plugin layer (coordinated with BC-3.03.001 v1.10 removal).
+
+   **Create-scope project-binding note (v1.15 — ADV-F2-P3-002; updated v1.16 — ADV-F2-P4-002):** Create markers carry the Jira project key in their `command_pattern` (`^jr (--output json )?issue create --project <jira_project_key>( |$)`). The `.*` before `--project` has been REMOVED per ADV-F2-P4-002: `--project` is now the FIRST fixed argument after `issue create`, and the trailing `( |$)` boundary prevents prefix-match collisions (e.g., `--project ORG_A` does NOT match `--project ORG_A_EXTRA`). The anchored match at consumer algorithm step (5) enforces this binding — a create marker for `--project ORG-A` cannot authorize `jr issue create --project ORG-B` or `jr issue create --project ORG-A_EXTRA`. No additional consumer-side org_slug lookup is needed; the project-key binding is embedded in the command_pattern by the emitter (BC-3.03.001 Invariant #4).
+
+   > **Previous (v1.10):** "If `tool_input.command` contains any write-block pattern, the hook emits `permissionDecision: deny` with a reason string containing 'review approval'. **This check is evaluated BEFORE the allowlist (Invariant #5)** — a command matching both a write-block pattern and an allowlist pattern is denied." (Unconditional deny — no marker-validation branch existed.)
+
+   Confidence: D-DEC-001 binding decision (architecture-delta.md v1.1 §D-DEC-001). BATS tests for the deny path: `@test "require-review blocks jr issue comment without review (SEC-001)"` (hooks.bats:69), `@test "require-review blocks jr issue edit without review"` (hooks.bats:82), `@test "require-review blocks jr issue move without review"` (hooks.bats:89), `@test "require-review blocks jr issue assign without review (DI-005)"` (hooks.bats:426), `@test "require-review blocks jr issue create without review (DI-005)"` (hooks.bats:433). BATS tests for the marker-allow path: VP-HOOK-024.
+
 3. If `tool_input.command` — after passing the write-block check (postcondition #2) — contains any entry from the explicit read-only allowlist, the hook emits `permissionDecision: allow` and exits 0. The allowlist is evaluated AFTER the write-block. The allowlist has two families: Confidence: verified by code analysis (read-only allowlist in require-review.sh) and BATS tests `@test "require-review allows jr read-only commands"` (hooks.bats:15).
 
    **Plain forms (family a):**
@@ -84,11 +213,20 @@ removal_reason: null
 ## Invariants
 
 1. The JSON output envelope structure is always `{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow"|"deny","permissionDecisionReason":"..."}}`. Confidence: verified by code analysis (emit_allow / emit_deny function bodies in require-review.sh).
-2. The hook never makes network calls, never spawns subprocesses beyond `jq`, and never reads the filesystem — all decisions are made from the single stdin JSON envelope. Execution is bounded at < 100ms. Confidence: verified by code analysis (full file).
+
+2. **[UPDATED v1.14]** The hook never makes network calls and never spawns subprocesses beyond `jq`. For non-write-block commands, no filesystem access occurs — all decisions are made from the single stdin JSON envelope. For write-block-matched commands ONLY, the hook additionally reads `${CLAUDE_PLUGIN_DATA}/markers/*.marker.json` (glob scan via shell expansion), performs one atomic POSIX `mv` rename per candidate attempt to consume the matched marker (if valid — iterative until first success), and appends one line to `${CLAUDE_PLUGIN_DATA}/markers/audit.log`. No subprocesses beyond `jq`, `mv`, `cat` (audit append), and shell glob expansion. Execution is bounded at < 100ms for non-write-block commands; < 200ms for write-block commands (marker scan included).
+
+   > **Previous (v1.13):** "appends one line to `${CLAUDE_PLUGIN_DATA}/audit.log`." (ADV-F2-P2-007: canonical path is `${CLAUDE_PLUGIN_DATA}/markers/audit.log` per D-DEC-001 pseudocode and C-29 description; must be inside the markers/ subdirectory.)
+
+   > **Previous (v1.10):** "The hook never makes network calls, never spawns subprocesses beyond `jq`, and never reads the filesystem — all decisions are made from the single stdin JSON envelope. Execution is bounded at < 100ms." (No marker-store filesystem access existed.)
+
+   Confidence: D-DEC-001 binding decision; architecture-delta.md v1.1 §D-DEC-001.
+
 3. The hook is fail-closed for all `jr` subcommands: any `jr` command that is not on the write-block list and not on the read-only allowlist results in deny, not allow. Non-`jr` commands remain on a fast-path allow. This replaced the previous fail-open behavior as of PR #13 (SEC-002). Confidence: verified by code analysis (fail-closed catch-all in require-review.sh).
-5. **Write-block is evaluated BEFORE the allowlist (ADV-0-801, PR #15).** A command that matches both a write-block pattern and an allowlist pattern is DENIED — the write-block check wins unconditionally. This ordering was fixed in PR #15 to close a critical bypass: before the fix, `jr issue edit KEY --summary "see jr board"` matched the `jr board` allowlist token and was incorrectly emitted allow. The fix ensures the write-block if-block is evaluated before the read-only allowlist. Confidence: verified by code analysis (write-block if-block ordering rationale comment in require-review.sh). See EC-016.
 
 4. **`--output json` global flag placement creates a non-obvious substring matching boundary.** The command `jr --output json issue view KEY` does NOT contain the substring `jr issue view` because the global flag `--output json` sits between `jr` and `issue`. Therefore, the allowlist must carry both plain forms (e.g., `jr issue view`) and `--output json` forms (e.g., `--output json issue view`) as separate entries. A plain-form entry does not cover the `--output json` form of the same subcommand. This was the root cause of the DI-010 regression: the metrics suite issues `jr --output json issue changelog KEY`, but the v1.1 allowlist only had the plain form. Both families were added explicitly in PR #14. This invariant is documented in the `--output json` boundary doc comment in require-review.sh.
+
+5. **Write-block is evaluated BEFORE the allowlist (ADV-0-801, PR #15).** A command that matches both a write-block pattern and an allowlist pattern is DENIED — the write-block check wins unconditionally. This ordering was fixed in PR #15 to close a critical bypass. The marker-validation branch (v1.11) is INSIDE the write-block evaluation path; it is not a post-allowlist bypass. Confidence: verified by code analysis (write-block if-block ordering rationale comment in require-review.sh). See EC-016.
 
 ## Edge Cases
 
@@ -96,20 +234,26 @@ removal_reason: null
 |----|-------------|-------------------|
 | EC-001 | `jq` not installed | Exit code 1, stderr message "jq is required but not found", no JSON output |
 | EC-002 | Empty stdin / malformed JSON | `jq -r '.tool_input.command // empty'` returns empty string; command is not `jr `; emit allow |
-| EC-003 | `jr issue comment SEC-123 "enrichment complete"` | Deny with reason containing "review approval" (SEC-001 — comment is a write to the authoritative Jira record) |
-| EC-004 | `jr issue edit` with any arguments | Deny with reason containing "review approval" |
-| EC-005 | `jr issue move SEC-123 Enriched` | Deny — `jr issue move` is in the write blocklist |
-| EC-006 | `jr auth login` | Allow — `jr auth` is in the plain read-only allowlist |
+| EC-003 | `jr issue comment SEC-123 "enrichment complete"` (no marker present) | Write-block matched; marker scan finds no valid marker; deny with reason containing "review approval" |
+| EC-004 | `jr issue edit` with any arguments (no marker present) | Deny with reason containing "review approval" |
+| EC-005 | `jr issue move SEC-123 Enriched` (no marker) | Deny — `jr issue move` is in the write blocklist |
+| EC-006 | `jr auth login` | Allow — `jr auth` is in the plain read-only allowlist (not write-block-matched, never enters marker branch) |
 | EC-007 | `ls -la` (non-jr command) | Allow — fast path: no `jr ` substring |
-| EC-008 | `jr issue assign SEC-123 @user` | Deny — `jr issue assign` is in the write blocklist |
+| EC-008 | `jr issue assign SEC-123 @user` (no marker) | Deny — `jr issue assign` is in the write blocklist |
 | EC-009 | `jr issue duplicate SEC-123` (unrecognized subcommand) | Deny with reason "Unrecognized jr subcommand. Add to the read-only allowlist..." (SEC-002 — fail-closed) |
 | EC-010 | `jr issue changelog SEC-123` | Allow — explicitly added to the plain read-only allowlist in PR #14 (DI-010 fix; was Deny in v1.1) |
 | EC-011 | `jr --output json issue changelog SEC-123` (metrics suite form) | Allow — `--output json issue changelog` is in the `--output json` family allowlist (PR #14) |
 | EC-012 | `jr --output json issue view SEC-123` (metrics suite form) | Allow — `--output json issue view` is in the allowlist. Note: `jr issue view` (plain) does NOT match this form due to Invariant #4 |
 | EC-013 | `jr --output json assets search objectType=Client` (CMDB query) | Allow — `--output json assets search` is in the allowlist (PR #14) |
 | EC-014 | `jr --version` | Allow — explicitly in the allowlist (PR #14) |
-| EC-015 | `jr --output json issue comment SEC-123 "msg"` | Deny via write-block if-block (PR #15 — `--output json issue comment ` with trailing space guard is now an explicit write-block entry). **Behavior change from v1.2-v1.6:** previously denied by fail-closed catch-all because `jr issue comment` is NOT a substring of this command (Invariant #4). Now denied earlier and more explicitly by the `--output json` write-block family. |
-| EC-016 | `jr issue edit KEY --summary "see jr board"` (write command with embedded allowlist token) | Deny via write-block if-block (PR #15 fix for ADV-0-801): `jr issue edit` matched in the write-block if-block BEFORE the allowlist is evaluated. **Old behavior (bypass — FIXED):** the command contained the allowlist substring `jr board`, which was matched first (old ordering: allowlist before write-block), incorrectly emitting allow. New ordering ensures write-block wins unconditionally (Invariant #5). |
+| EC-015 | `jr --output json issue comment SEC-123 "msg"` | Deny via write-block if-block (PR #15 — `--output json issue comment ` with trailing space guard is an explicit write-block entry). |
+| EC-016 | `jr issue edit KEY --summary "see jr board"` (write command with embedded allowlist token) | Deny via write-block if-block (PR #15 fix for ADV-0-801): `jr issue edit` matched in the write-block if-block BEFORE the allowlist is evaluated (Invariant #5). |
+| EC-017 | `jr issue comment SEC-123 "msg"` with a marker present but `expires_at_utc` is in the past (marker expired; schema v2.0 TTL=120s) | Write-block matched; marker scan finds one candidate; TTL check `now() > expires_at_utc` fails; loop exhausted; deny with "review approval". Note: v1.12 described this as "age 45s > 30s" (v1.0 schema); updated to v2.0 absolute expiry check. |
+| EC-018 | `jr issue comment SEC-456 "msg"` with a marker scoped to `authorized_operations: ["jr issue assign SEC-123"]` | Write-block matched; marker found; authorized_operations scope check fails (comment not in scope); deny. |
+| EC-019 | `jr issue comment SEC-123 "msg"` after the marker has already been consumed (renamed to `.marker.json.used`) | The `.used`-renamed file is excluded from the `*.marker.json` glob — it never appears as a candidate. No valid marker found; deny. Note: the dead-code `used != false` check at the former step (3) has been removed (ADV-F2-018 — v1.13). The atomic rename IS the single-use enforcement mechanism. |
+| EC-020 | `jr issue comment SEC-123 "msg"` with a marker file that is truncated/invalid JSON | Write-block matched; jq parse of candidate fails; skip (fail-closed); no valid marker found; deny. |
+| EC-021 | Marker file with basename `../../evil.marker.json` in marker-store glob (path-traversal attempt) | Path-safety check: basename contains `..`; skip candidate (fail-closed); deny. |
+| EC-022 | `jr issue comment SEC-456 "msg"` with a valid marker whose `command_pattern` is `^jr (--output json )?issue comment SEC-123 ` (different ticket-id; trailing space prevents SEC-1234 prefix match) | Write-block matched; anchored command_pattern `^jr (--output json )?issue comment SEC-123 ` does not match `jr issue comment SEC-456 "msg"`; skip; deny. This mechanically enforces ticket-bound scope: a marker scoped to SEC-123 cannot authorize any action on SEC-456 (D-DEC-008 ticket-bound generation table). |
 
 ## Canonical Test Vectors
 
@@ -120,24 +264,31 @@ removal_reason: null
 | `jr sprint list` | `permissionDecision: allow` | happy-path |
 | `jr issue changelog SEC-123` | `permissionDecision: allow` | happy-path (was deny in v1.1) |
 | `jr --output json issue view SEC-123` | `permissionDecision: allow` | happy-path (metrics suite / Invariant #4) |
-| `jr issue comment SEC-123 "enrichment complete"` | `permissionDecision: deny`, reason contains "review approval" | error |
+| `jr issue comment SEC-123 "enrichment complete"` (no marker) | `permissionDecision: deny`, reason contains "review approval" | error |
+| `jr issue comment SEC-123 "enrichment complete"` (valid marker present with matching command_pattern + authorized_operations) | `permissionDecision: allow`; marker consumed (renamed .used); audit log entry appended | happy-path (D-DEC-001 marker-gated allow) |
 | `jr issue edit SEC-123 --priority Critical` | `permissionDecision: deny`, reason contains "review approval" | error |
 | `jr issue move SEC-123 Enriched` | `permissionDecision: deny` | error |
 | `jr issue duplicate SEC-123` | `permissionDecision: deny`, reason contains "allowlist" | edge-case (SEC-002 fail-closed) |
-| `jr issue edit KEY --summary "see jr board"` | `permissionDecision: deny`, reason contains "review approval" (write-block wins before allowlist token "jr board" reached — ADV-0-801 bypass, now fixed) | edge-case (EC-016) |
-| `jr --output json issue edit KEY --priority Critical` | `permissionDecision: deny`, reason contains "review approval" (write-block if-block matches `--output json issue edit` — defense-in-depth for `--output json` write forms, ADV-0-801 PR #15) | edge-case (VP-HOOK-023) |
+| `jr issue edit KEY --summary "see jr board"` | `permissionDecision: deny`, reason contains "review approval" (write-block wins before allowlist — ADV-0-801 bypass, now fixed) | edge-case (EC-016) |
+| `jr --output json issue edit KEY --priority Critical` | `permissionDecision: deny`, reason contains "review approval" (--output json write-block family — ADV-0-801 PR #15) | edge-case (VP-HOOK-023) |
+| `jr issue comment SEC-123 "msg"` with expired marker (`expires_at_utc` in the past) | `permissionDecision: deny`, reason "review approval" (EC-017) | edge-case |
+| `jr issue comment SEC-456 "msg"` with marker whose `command_pattern` is `^jr (--output json )?issue comment SEC-123 ` | `permissionDecision: deny` (anchored command_pattern mismatch — EC-022; ticket-bound enforcement) | edge-case |
+| `jr issue create --project SEC --summary "FP: Rule R-001 benign activity"` with a valid create-scoped marker (`authorized_operations: ["create"]`, `command_pattern: "^jr (--output json )?issue create "`, `ticket_id: null`) | `permissionDecision: allow`; marker consumed (renamed .used); audit log entry appended (VP-HOOK-024 create-path) | happy-path (create-scoped marker) |
+| `jr issue assign SEC-456 @responder` with a valid assign-scoped marker (`authorized_operations: ["assign"]`, `command_pattern: "^jr (--output json )?issue assign SEC-456 "`) | `permissionDecision: allow`; marker consumed; audit log appended (VP-HOOK-024 assign-path) | happy-path (assign-scoped marker) |
 
 ## Verification Properties
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-HOOK-001 | For all inputs where command contains `jr issue comment`, `jr issue edit`, `jr issue move`, `jr issue assign`, or `jr issue create`, output always contains `"permissionDecision":"deny"` | integration / BATS |
+| VP-HOOK-001 | For all inputs where command contains `jr issue comment`, `jr issue edit`, `jr issue move`, `jr issue assign`, or `jr issue create`, output always contains `"permissionDecision":"deny"` WHEN no valid marker exists | integration / BATS |
 | VP-HOOK-002 | Hook exit code is always 0 when jq is present (both allow and deny paths) | integration / BATS |
 | VP-HOOK-003 | Any unrecognized `jr` subcommand receives deny (fail-closed invariant, SEC-002) | integration / BATS (`@test "require-review blocks unknown mutation-shaped jr subcommand (SEC-002)"` hooks.bats:76) |
 | VP-HOOK-020 | `jr issue changelog` plain form receives allow (DI-010 resolution) | integration / BATS (`@test "require-review allows jr issue changelog plain form"` hooks.bats:21) |
 | VP-HOOK-021 | `jr --output json issue changelog` receives allow (metrics suite form, DI-010) | integration / BATS (`@test "require-review allows jr issue changelog json form (metrics suite)"` hooks.bats:27) |
 | VP-HOOK-022 | `jr --output json issue view` receives allow — validates that the `--output json` family is covered separately from plain forms (Invariant #4) | integration / BATS (`@test "require-review allows jr --output json issue view (metrics suite)"` hooks.bats:33) |
-| VP-HOOK-023 | A command containing `--output json issue comment/edit/move/assign/create` receives deny (write-block if-block — defense-in-depth for `--output json` write forms, per Invariant #4 and ADV-0-801 PR #15 fix) | integration / BATS |
+| VP-HOOK-023 | A command containing `--output json issue comment/edit/move/assign/create` receives deny (write-block if-block — defense-in-depth for `--output json` write forms) | integration / BATS |
+| VP-HOOK-024 | A write-block-matched command WITH a valid unexpired scoped marker receives allow; the marker file is renamed to `.used` (atomic single-use); an audit log entry is appended; a second attempt with the same (now consumed) marker receives deny (replay prevention — EC-019). **v1.5 extensions (verification-delta.md v1.5 §2):** (a) create `command_pattern` injection-safety — anchored `^jr (--output json )?issue create --project <key>( \|$)`; `--summary` injection + PROD/PRODUCTION prefix → DENY (ADV-F2-P4-002 CRITICAL; consumer step 5). (b) audit-forgery prevention — control chars (0x00-0x1f) stripped from `ticket_id`/`org_slug`/`authorized_operations[0]` before interpolation; `\n` in `ticket_id` cannot forge a second MARKER_USED line (ADV-F2-P4-010; consumer step 8). | integration / BATS (`@test "require-review allows write with valid marker and consumes it"`, `@test "require-review denies replay of consumed marker"`, `@test "require-review create marker: --summary injection attempt → DENY"`, `@test "require-review create marker: PROD prefix does not match PRODUCTION"`, `@test "require-review audit: ticket_id with control char produces single MARKER_USED line"`) |
+| VP-HOOK-029 | **P1, PROPOSED (F6-adjudicated per architect §8.11 item 6)** Consumer leg of the fail-loud invariant (D-DEC-012, ADV-F2-P4-004): step (6) acceptance of `create-review`/`comment-review` authorized_operations tokens proves require-review CAN consume a review marker emitted by disposition-guard for a hard-floor verdict — closing the end-to-end guarantee that no hard-floor finding is silently discarded. Paired with VP-HOOK-029 emit tests in BC-3.03.001 (Step 3 emitter) and BC-10.01.001 (Invariant #10). Consumed via the same iterative-consume atomic-rename path as regular markers. Paired mutant SM-32 (review-surfacing-hard-floor-bypass-removed) is the kill target. FINALIZED strategy per verification-delta.md v1.5 §7 Part E. | integration / B-INT-XH (`@test "require-review accepts create-review token for jr issue create [REVIEW-REQUIRED]"`, `@test "require-review accepts comment-review token for jr issue comment [BLIND-SPOT]"`, `@test "require-review denies jr issue create with no review token (fail-loud negative)"`) |
 
 ## Traceability
 
@@ -145,7 +296,7 @@ removal_reason: null
 |-------|-------|
 | L2 Capability | CAP-ENFORCEMENT-01 |
 | L2 Domain Invariants | Iron Law: NO JIRA UPDATE WITHOUT REVIEW APPROVAL FIRST |
-| Architecture Module | C-12 (require-review-hook) |
+| Architecture Module | C-12 (require-review-hook), C-29 (marker-store consumer) |
 | Stories | TBD (filled by story-writer) |
 
 ---
@@ -157,7 +308,7 @@ removal_reason: null
 | Property | Value |
 |----------|-------|
 | **Path** | `plugins/secops-factory/hooks/require-review.sh` (115 lines, post-PR #15) + `.ps1` sibling |
-| **Confidence** | high — explicit allow/deny logic fully visible in source; BATS tests at `tests/hooks.bats:9-177` (26 require-review tests, including the 12 PR-15 bypass/--output json/regression tests, and the 2 PR-17 DI-005 assign/create tests at :426/:433) exercise all documented paths; 165 @tests total (hooks 59, skills 81, integration 11, parity 14); PR #15 added 12 new tests (bypass scenarios and regressions); PR #17 added 15 new tests across all 6 hooks (including 2 require-review assign/create tests) |
+| **Confidence** | high — explicit allow/deny logic fully visible in source; BATS tests at `tests/hooks.bats:9-177` (26 require-review tests, including the 12 PR-15 bypass/--output json/regression tests, and the 2 PR-17 DI-005 assign/create tests at :426/:433) exercise all documented paths; 165 @tests total (hooks 59, skills 81, integration 11, parity 14); marker-validation branch (v1.11) specified by D-DEC-001 binding decision; BATS coverage for marker paths assigned VP-HOOK-024 (finalized per verification-delta §1) |
 | **Extraction Date** | 2026-07-19 |
 | **Last Verified Against** | commit d181ca2 (HEAD post PR #17) |
 
@@ -170,71 +321,63 @@ removal_reason: null
 | `jr issue comment` routing | SEC-001 | Allow — comment was explicitly whitelisted | Deny — moved into the write-operations block; reason contains "review approval" |
 | Unknown jr subcommand routing | SEC-002 | Allow — fail-open | Deny — fail-closed; reason instructs operator to add to read-only allowlist if safe |
 
-**Rationale (from PR #13 source comments):** `jr issue comment` posts to the authoritative Jira record and is therefore a write operation that must pass the same review gate as field edits. Unknown subcommands are denied rather than allowed to prevent future `jr` releases from adding write subcommands that bypass the gate silently.
-
 **PR #14 (commit 0ec794a, 2026-07-19) — read-only allowlist expansion (v1.1 → v1.2):**
 
 | Change | Driver | Old Behavior (v1.1) | New Behavior (v1.2) |
 |--------|--------|---------------------|---------------------|
-| `jr issue changelog` plain form | DI-010: metrics pipeline blocked | Deny (not on allowlist) | Allow (added to plain-form list, line 65) |
-| `jr assets search`, `jr assets view` plain forms | CMDB queries for metrics | Deny | Allow (lines 66-67) |
-| `jr --version` | Health-check / diagnostics | Deny | Allow (line 73) |
-| `--output json issue view/list/comments/changelog/assets` | DI-010: metrics suite uses global `--output json` flag | Deny (plain forms don't match) | Allow (separate family, lines 74-78) |
-| `--output json assets search/view` | CMDB queries via metrics suite | Deny | Allow (lines 79-80) |
-
-**DI-010 root cause (documented in the `--output json` boundary doc comment in require-review.sh):** `jr issue view KEY` is NOT a substring of `jr --output json issue view KEY` because the global flag `--output json` sits between `jr` and `issue`. Separate allowlist entries are required for each family. See Invariant #4.
+| `jr issue changelog` plain form | DI-010: metrics pipeline blocked | Deny (not on allowlist) | Allow (added to plain-form list) |
+| `jr assets search`, `jr assets view` plain forms | CMDB queries for metrics | Deny | Allow |
+| `jr --version` | Health-check / diagnostics | Deny | Allow |
+| `--output json issue view/list/comments/changelog/assets` | DI-010: metrics suite uses global `--output json` flag | Deny (plain forms don't match) | Allow (separate family) |
+| `--output json assets search/view` | CMDB queries via metrics suite | Deny | Allow |
 
 **PR #15 (commit d304fa5, 2026-07-19) — CRITICAL evaluation-order fix (ADV-0-801) and `--output json` write-block addition (v1.6 → v1.7):**
 
 | Change | Driver | Old Behavior (v1.2-v1.6) | New Behavior (v1.7) |
 |--------|--------|--------------------------|---------------------|
-| Write-block evaluated before allowlist | ADV-0-801 (CRITICAL bypass) | allowlist evaluated first (lines 60-82), write-block at lines 88-94 — a command containing both a write-block token AND an allowlist token was incorrectly ALLOWED | write-block evaluated first (lines 67-78), allowlist at lines 88-110 — write-block wins unconditionally |
-| `--output json` write forms added to write-block | ADV-0-801 defense-in-depth | `jr --output json issue edit/comment/move/assign/create` hit fail-closed only | `--output json issue comment/edit/move/assign/create` added as explicit write-block entries (lines 72-76) |
-
-**ADV-0-801 bypass example (now fixed):** `jr issue edit KEY --summary "see jr board"` — this command contains the substring `jr board` (a valid allowlist entry). Under the old ordering (allowlist first), the `jr board` check matched at line ~97 (old), emitting allow BEFORE the write-block check at line ~88. Under the new ordering (write-block first), `jr issue edit` is matched at line 68, emitting deny before the allowlist is ever evaluated.
-
-**BATS test changes (PR #14):** Lines 21-67 in `hooks.bats` are eight new allow tests covering changelog plain/json forms, `--output json` issue view/list/comments, assets search/view (CMDB), and `jr --version`. Total test count: 130 → 138.
-
-**BATS test changes (PR #15):** 12 new tests covering `--output json` write-block family (bypass scenarios) and regression coverage for the ADV-0-801 allowlist-precedence fix. Total test count: 138 → 150.
+| Write-block evaluated before allowlist | ADV-0-801 (CRITICAL bypass) | allowlist evaluated first — a command containing both a write-block token AND an allowlist token was incorrectly ALLOWED | write-block evaluated first — write-block wins unconditionally |
+| `--output json` write forms added to write-block | ADV-0-801 defense-in-depth | `jr --output json issue edit/comment/move/assign/create` hit fail-closed only | `--output json issue comment/edit/move/assign/create` added as explicit write-block entries |
 
 **PR #17 (commit d181ca2, 2026-07-19) — DI-005 assign/create BATS coverage (v1.9 → v1.10):**
 
 | Change | Driver | Old Coverage | New Coverage |
 |--------|--------|-------------|--------------|
-| `jr issue assign` deny BATS test | DI-005: no dedicated BATS verify | Code analysis only (write-block if-block) | `@test "require-review blocks jr issue assign without review (DI-005)"` (hooks.bats:426) |
-| `jr issue create` deny BATS test | DI-005: no dedicated BATS verify | Code analysis only (write-block if-block) | `@test "require-review blocks jr issue create without review (DI-005)"` (hooks.bats:433) |
+| `jr issue assign` deny BATS test | DI-005: no dedicated BATS verify | Code analysis only | `@test "require-review blocks jr issue assign without review (DI-005)"` (hooks.bats:426) |
+| `jr issue create` deny BATS test | DI-005: no dedicated BATS verify | Code analysis only | `@test "require-review blocks jr issue create without review (DI-005)"` (hooks.bats:433) |
 
-**BATS test changes (PR #17):** 2 new require-review tests for assign/create + 13 tests for other hooks. Total test count: 150 → 165 (hooks 44→59).
+**v1.11 (2026-07-20) — Marker-validation conditional-allow branch (D-DEC-001/D-DEC-008):**
+
+| Change | Driver | Old Behavior (v1.10) | New Behavior (v1.11) |
+|--------|--------|---------------------|---------------------|
+| Write-block-matched deny path | D-DEC-001 marker mechanism | Unconditional deny for all write-block-matched commands | Deny UNLESS valid unexpired scoped marker found; marker consumed atomically before allow; audit log appended |
+| Hard-floor guarantee | D-DEC-008 (enforced at emitter) | Not applicable (all write-block → deny) | Hard-floor categories never receive a marker from disposition-guard; require-review finds no valid marker → unconditional deny |
+| Filesystem access | D-DEC-001 | None (pure stdin→stdout) | Reads marker-store for write-block commands only; one atomic mv-rename; one audit log append |
 
 #### Evidence Types Used
 
 - **guard clause**: fast-path allow for non-`jr ` commands (fast-path guard in require-review.sh)
-- **guard clause**: write-block evaluated FIRST — 10-entry write-block if-block (5 plain + 5 `--output json`) → `emit_deny` with "review approval" (write-block if-block in require-review.sh)
+- **guard clause**: write-block evaluated FIRST — 10-entry write-block if-block (5 plain + 5 `--output json`) → `validate_marker()` → emit_allow (if valid marker) or `emit_deny` with "review approval" (if no valid marker or any error)
+- **guard clause**: marker-validation path — collect candidates (path-safety, parse, future-date, TTL, command_pattern, authorized_operations), sort by issued_at_utc ASC, iterative-consume (atomic mv-rename per candidate; rename-fail → continue to next), audit log append to `${CLAUDE_PLUGIN_DATA}/markers/audit.log` — all fail-closed
 - **guard clause**: allowlist evaluated SECOND — 21-entry explicit read-only allowlist (14 plain + 7 `--output json`), all `emit_allow` (read-only allowlist in require-review.sh)
 - **guard clause**: fail-closed catch-all `emit_deny` for unrecognized subcommands (fail-closed catch-all in require-review.sh)
 - **type constraint**: JSON envelope structure enforced by `jq -nc` output template
 - **assertion**: `command -v jq` check — exits 1 if dependency missing (jq-availability guard in require-review.sh)
-- **documentation**: write-block if-block ordering rationale comment explicitly documents write-block-first ordering, ADV-0-801 bypass, and `--output json` write-block family; `--output json` boundary doc comment documents the `--output json` substring non-matching invariant for the allowlist
-- **inferred**: PowerShell `.ps1` sibling is behaviorally identical (enforced by `parity.bats`; PS1 updated in PR #15 to match new ordering and `--output json` write-block entries)
+- **documentation**: D-DEC-001 marker JSON schema; D-DEC-008 hard-floor pseudocode; architecture-delta.md v1.1
 
 #### Purity Classification
 
 | Property | Assessment |
 |----------|-----------|
-| **I/O operations** | reads stdin once; writes stdout (JSON envelope) |
-| **Global state access** | none |
-| **Deterministic** | yes — same input always produces same JSON output |
-| **Thread safety** | not applicable (single-process hook invoked per tool event) |
-| **Overall classification** | pure core (deterministic stdin→stdout transformer, no side effects) |
+| **I/O operations** | reads stdin once; writes stdout (JSON envelope); FOR WRITE-BLOCK COMMANDS ONLY: reads marker-store directory glob, performs one atomic mv-rename, appends one audit log line |
+| **Global state access** | marker-store directory `${CLAUDE_PLUGIN_DATA}/markers/` (read + atomic mv for write-block-matched commands only) |
+| **Deterministic** | yes for non-write-block commands (same input always produces same output); for write-block commands: deterministic given marker-store state |
+| **Thread safety** | atomic POSIX mv-rename for marker consumption provides single-use guarantee (no TOCTOU race) |
+| **Overall classification** | pure core for non-write-block commands; effectful shell (marker-store read + mv + audit log append) for write-block-matched commands |
 
 #### Refactoring Notes
 
-The hook is pure: it reads stdin, applies pattern matching to a string field, and emits a deterministic JSON response. Suitable for formal property verification of the allow/deny routing logic. No refactoring needed for formal verification.
+The hook is pure for non-write-block commands. The marker-validation branch introduces filesystem side-effects but these are bounded to write-block-matched commands only.
 
-The `--output json` global-flag design means the allowlist cannot be expressed as a simple set of subcommand names — it must carry separate entries for plain forms and each global-flag variant. If the `jr` CLI adds more global flags in the future (e.g., `--format yaml`), corresponding allowlist families would need to be added. This is a known extensibility constraint, not a defect.
+The `--output json` global-flag design means the allowlist cannot be expressed as a simple set of subcommand names — it must carry separate entries for plain forms and each global-flag variant.
 
-**Security extensibility note (ADV-0-007, updated ADV-0-801):** `jr --output json issue comment` is now denied by the write-block if-block (PR #15 — `--output json issue comment ` entry added to the write-block). Prior to PR #15, it was denied only by the fail-closed catch-all — because `jr issue comment` is NOT a substring of `jr --output json issue comment` (Invariant #4 — the global flag breaks the substring). The defense-in-depth recommendation from ADV-0-007 (add `--output json` write forms to the write-block list) is now **RESOLVED**: PR #15 added all five `--output json` write forms (`--output json issue comment/edit/move/assign/create`) as explicit write-block entries in the write-block if-block. The fail-closed catch-all remains as a last-resort backstop.
-
-**Resolved (v1.1 drift item):** `jr issue changelog` was identified in v1.1 as a correctness gap blocking the metrics pipeline under fail-closed behavior. PR #14 (commit 0ec794a) added both `jr issue changelog` (plain) and `--output json issue changelog` (json form) to the allowlist, resolving DI-010. The v1.2 revision reflects this resolution.
-
-**Resolved (ADV-0-801 critical bypass):** PR #15 (commit d304fa5) fixed the allowlist-before-write-block evaluation order. The old order allowed a write command containing an embedded allowlist substring (e.g., `jr issue edit KEY --summary "see jr board"` matched `jr board`) to bypass the write gate. The new order evaluates the write-block first, making bypass impossible regardless of argument content.
+**Security extensibility note:** The marker-validation conditional-allow branch is the only exception to the unconditional write-block deny. The hard-floor guarantee (D-DEC-008) ensures that high-stakes dispositions (Indeterminate, HIGH/CRIT, critical assets, credential-exfil techniques) never receive markers, making the allow path unreachable for those commands even when the marker mechanism is active.

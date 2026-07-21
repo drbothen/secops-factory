@@ -1,21 +1,24 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "2.1"
+version: "2.2"
 status: active
 producer: state-manager
-timestamp: 2026-07-20T05:45:00Z
-phase: F1
+timestamp: 2026-07-21T00:00:00Z
+phase: F2
 pipeline: FEATURE-CYCLE
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "F1 gate: awaiting human approval"
-awaiting: "human-approval-f1"
+current_step: "F2 spec evolution — adversarial convergence loop, pass 5 pending (0/3 clean)"
+awaiting: "adversarial-pass-5-rerun"
 current_cycle: v0.10.0-feature-prism-integration
-dtu_required: false
+dtu_required: true
+dtu_assessment: "2026-07-20"
+dtu_clones_built: pending
+dtu_services: [prism-demo-server, jr-mock]
 ---
 
 <!--
@@ -37,9 +40,9 @@ dtu_required: false
 | **Target Workspace** | /Users/jmagady/Dev/secops-factory |
 | **Engine** | /Users/jmagady/Dev/dark-factory (vsdd-factory plugin) |
 | **Started** | 2026-07-19 |
-| **Last Updated** | 2026-07-20 |
-| **Current Phase** | F1: Delta Analysis (prism-integration cycle) |
-| **Current Step** | F1 artifacts complete + consistency-validated; human gate pending |
+| **Last Updated** | 2026-07-21 |
+| **Current Phase** | F2: Spec Evolution (prism-integration cycle) |
+| **Current Step** | F2 spec body frozen + committed (wrap mid-F2); adversarial pass 5 pending re-run |
 
 ## Phase Progress
 
@@ -47,8 +50,8 @@ dtu_required: false
 |-------|--------|---------|-----------|------|---------------------|
 | pre-0: Pre-pipeline | PASSED | 2026-07-19 | 2026-07-19 | PASS | — |
 | 0: Codebase Ingestion + Remediation | COMPLETE | 2026-07-19 | 2026-07-20 | PASS | 12→11→7→8(1FP)→6→6→6→6(CRITICAL)→4→5→2→1→0; ADV-R1-4 CLEAN |
-| F1: Delta Analysis | gate-pending | 2026-07-19 | 2026-07-20 | awaiting-human | consistency: 7→0 |
-| F2: Spec Evolution | not-started | | | | |
+| F1: Delta Analysis | PASSED | 2026-07-19 | 2026-07-20 | PASS | consistency: 7→0 |
+| F2: Spec Evolution | in-progress — adversarial convergence | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M (all remediated); pass5 pending |
 | F3: Incremental Stories | not-started | | | | |
 | F4: Delta Implementation | not-started | | | | |
 | F5: Scoped Adversarial | not-started | | | | |
@@ -61,11 +64,11 @@ dtu_required: false
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| environment-check | dx-engineer | DONE | ENVIRONMENT_CHECK: PASS — 165/165 BATS green (14 parity skips by design), jr 0.5.0 installed+authenticated, prism absent (expected), all MCP blockers resolved |
-| F1: impact-boundary | architect | DONE | impact-boundary.md — 14 NEW / 13 MODIFIED / 12 DEPENDENT; 8 ASMs, 8 Rs; 9 F2 decisions queued (D-DEC-001..009) |
-| F1: artifact-mapping | business-analyst | DONE | artifact-mapping.md v1.1 — 6 BCs MODIFIED, 5 NEW BC slots; ~57 direct + ~17 dependent regression-zone tests; HS-035..044 new subjects; 5 new VP subjects |
-| F1: delta-analysis synthesis | architect | DONE | delta-analysis.md v1.1 + affected-files.txt — feature_type: backend, intent: feature, scope: standard; REC-001..006 resolved |
-| F1: consistency audit | consistency-validator | DONE | f1-consistency-validation.md — PASS-WITH-MINORS (7 findings → 0, all remediated same-burst) |
+| F2: spec body authored | architect / product-owner | DONE | 11 BCs (6 modified + 5 new) + 5 delta docs; spec 1.0.0→1.1.0 MINOR; D-DEC-001..012 locked; DTU required (prism demo server + jr mock) |
+| F2: adversarial pass 1-2 | adversary | DONE | pass1 2C/8M (marker TTL + anchor), pass2 1C/3M (ICD-203 12/15-field split) — all remediated |
+| F2: adversarial pass 3-4 | adversary | DONE | pass3 1C/4M (asset_type=unknown floor), pass4 2C/4M (JSON-first dispatch CRITICAL + anchored create CRITICAL + D-DEC-012) — all remediated |
+| F2: version-coherence sweep | state-manager | DONE | spec-changelog.md authored; BC frozen versions confirmed; D-DEC-001..012 in architecture-delta |
+| F2: pass 5 + consistency dispatch | orchestrator | WRAP | dispatched pre-wrap; pass 5 result NOT captured; f2-consistency-validation-pass5.md not on disk; re-run on resume |
 
 ## Decisions Log
 
@@ -119,10 +122,10 @@ dtu_required: false
 
 | Field | Value |
 |-------|-------|
-| **Date** | 2026-07-20 |
-| **Position** | F1 COMPLETE pending human gate approval; on approval → F2 spec evolution (9 D-DEC decisions queued + marker mechanism design) |
-| **Context** | F1 artifacts: impact-boundary.md, artifact-mapping.md v1.1, delta-analysis.md v1.1, affected-files.txt, f1-consistency-validation.md — all in `.factory/phase-f1-delta-analysis/`. Feature classification: backend / feature / standard. Regression baseline: main SHA d181ca2. BC slots: 6 MODIFIED + 5 NEW (BC-6.01.003/004, BC-8.02.001, BC-9.01.001, BC-10.01.001). HS-035..044 new subjects. VP-HOOK-024/025/026, VP-SKILL-050/051 new subjects. DI-013 marker mechanism (D-005) queued for F2. |
-| **Convergence counter** | n/a (F2 not yet started) |
+| **Date** | 2026-07-21 |
+| **Position** | WRAP mid-F2; F2 spec body frozen + committed this wrap; NEXT: re-run adversarial pass 5 (fresh context), read f2-consistency-validation-pass5.md from disk if present; continue loop to 3 clean passes, then F2 state-backup → F2 gate (human approval) |
+| **Context** | F2 spec body committed: 11 BCs (BC-3.01.001 v1.17, BC-3.03.001 v1.13, BC-4.02.001 v1.8, BC-4.05.001 v1.3, BC-5.01.001 v1.8, BC-6.01.001 v1.5; NEW: BC-6.01.003/004/BC-8.02.001/BC-9.01.001 v1.1, BC-10.01.001 v1.9). Delta docs: architecture-delta v1.7, verification-delta v1.7, prd-delta v1.8, dtu-assessment (DTU_REQUIRED: true), asm-004-validation (resolved-by-design). spec-changelog 1.0.0→1.1.0. D-DEC-001..012 locked. Adversarial passes 1-4 all remediated (0/3 clean). |
+| **Convergence counter** | 0/3 clean passes (pass 5 is next) |
 
 ## Historical Content
 

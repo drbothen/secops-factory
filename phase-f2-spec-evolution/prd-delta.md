@@ -1,0 +1,224 @@
+---
+document_type: prd-delta
+producer: product-owner
+version: "1.8"
+date: 2026-07-21
+cycle: v0.10.0-feature-prism-integration
+phase: f2
+status: draft
+inputs:
+  - .factory/feature/prism-integration-handoff-brief.md
+  - .factory/phase-f2-spec-evolution/architecture-delta.md
+  - .factory/phase-f1-delta-analysis/artifact-mapping.md
+  - .factory/phase-0-ingestion/behavioral-contracts/BC-6.01.003.md
+  - .factory/phase-0-ingestion/behavioral-contracts/BC-6.01.004.md
+  - .factory/phase-0-ingestion/behavioral-contracts/BC-8.02.001.md
+  - .factory/phase-0-ingestion/behavioral-contracts/BC-9.01.001.md
+  - .factory/phase-0-ingestion/behavioral-contracts/BC-10.01.001.md
+---
+
+# PRD Delta — v0.10.0-feature-prism-integration (Phase F2)
+
+> **Scope:** Records all new behavioral contracts, new NFRs, new Edge Case Catalog
+> additions, and the pending BC modification intents for sub-burst 2. This document
+> is a F2 delta; it does NOT modify the existing PRD. State-manager integrates it
+> at F7 convergence.
+
+---
+
+## 1. New Behavioral Contracts (Sub-Burst 1/2 — Authored)
+
+Five new BC files written to `.factory/phase-0-ingestion/behavioral-contracts/`.
+
+| BC ID | Subject | Criticality (from architecture-delta) | Invariant Count | EC Count | VP Refs (assigned + proposed) |
+|-------|---------|---------------------------------------|-----------------|----------|-------------------------------|
+| BC-6.01.003 | onboard-customer skill — org slug/UUID-v7 provisioning, prism.toml [[orgs]] append, customers/<org_slug>/ dir creation, credential provisioning instructions (AD-017) | HIGH (C-2 skill; C-27/C-28 consumers) | 5 | 8 | VP-SKILL-052 (PROPOSED), VP-SKILL-053 (PROPOSED) |
+| BC-6.01.004 | onboard-sensor skill — sensor overlay TOML write, AD-017 piped-stdin credential walkthrough, prism_describe verification (not re-read), SELECT 1 connectivity check, --config-dir isolation | HIGH (C-28 onboard-sensor-helpers; AD-017 critical invariant) | 6 | 8 | VP-SKILL-054 (PROPOSED), VP-SKILL-055 (PROPOSED) |
+| BC-8.02.001 | sensor-metrics skill — per org×sensor last-seen/row-counts/error-rate via prism_sensor_health; D-DEC-006 naming (sensor-metrics, not metrics) | MEDIUM (C-25 prism-mcp consumer; distinct namespace) | 4 | 6 | VP-SKILL-056 (PROPOSED), VP-SKILL-057 (PROPOSED) |
+| BC-9.01.001 | scan-threats skill — predefined PrismQL hunting queries across all orgs; prism_describe-first table enumeration; findings grouped by severity; org_slug scoping invariant | MEDIUM (C-2 skill; C-25 consumer; D-DEC-005) | 5 | 8 | VP-SKILL-058 (PROPOSED), VP-SKILL-059 (PROPOSED) |
+| BC-10.01.001 | monitoring-loop — 8-stage per-alert pipeline (validate→known-FP/dedup→categorize→enrich→score→dispose→ticket-action→document); four-disposition enum; Indeterminate hard floor; §3.4 Jira rules; §3.5 SLA surface; §3.7 sensor-silence=positive-signal; §3.8 12-field ICD-203 schema; §3.9 hard floors + autonomy_enabled; watermark monotonicity; D-DEC-001..010; D-DEC-012 create-review/comment-review restricted markers for hard-floor/Indeterminate verdicts; autonomy_enabled operational metadata field (non-ICD-203; default false; kill switch exempt for create-review/comment-review) | CRITICAL (C-2 skill at CRITICAL tier; C-29 marker-store; C-30 watermark-store; require-review + disposition-guard both invoked) | 16 | 21 | VP-HOOK-024 (FINALIZED), VP-HOOK-025 (FINALIZED), VP-HOOK-026 (FINALIZED), VP-HOOK-027 (FINALIZED), VP-HOOK-028 (FINALIZED), VP-HOOK-029 (P1 PROPOSED), VP-SKILL-050 (FINALIZED), VP-SKILL-060 (FINALIZED), VP-SKILL-061 (FINALIZED), VP-SKILL-062 (FINALIZED), VP-SKILL-063 (FINALIZED), VP-SKILL-064 (FINALIZED), VP-SKILL-065 (FINALIZED), VP-SKILL-068 (FINALIZED), VP-SKILL-072 (FINALIZED) |
+
+**Totals (sub-burst 1):** 5 new BCs, 36 invariants, 51 edge cases, 4 assigned VPs, 12 proposed VPs.
+
+---
+
+## 2. New NFRs
+
+Three NFR candidates identified from the brief and architecture-delta. These feed
+the prd-supplements/nfr-catalog.md update.
+
+| NFR ID | Category | Requirement | Numerical Target | Validation Method | Risk Source |
+|--------|----------|-------------|-----------------|-------------------|-------------|
+| NFR-PERF-003 | Performance — loop budget | Monitoring-loop total processing time per org (all stages 0–8) must complete within the scheduled window | ≤ 15 minutes per org for CRIT/HIGH-classified sensors; ≤ 60 minutes for MED/LOW sensors (brief §3.10 scheduling guidance) | Cron wrapper `--output-format json` exit time; alert if loop runs > 80% of scheduled interval | Brief §3.10 (scheduling cadence implies a per-org budget) |
+| NFR-PERF-004 | Performance — enrichment budget ordering | Known-FP pattern store lookup (Stage 2) must terminate and free the enrichment budget before Stage 4 API calls are issued | ≤ 2 minutes per alert for known-FP/dedup check (brief §3.2 "< 2 min budget") | BATS timing assertions on Stage 2 stub; integration test with large known-FP store | Brief §3.2 "Match against known-FP / accepted-risk pattern store (per-tenant, < 2 min budget)" |
+| NFR-SEC-001 | Security — marker TTL | Review-approval markers in the marker-store (C-29, D-DEC-001) must expire within a bounded window | **120-second TTL** via absolute `expires_at_utc` (D-DEC-001 v2.0 schema; updated from 30s — latency-budget rationale: 99th-percentile tail ~90s; 1.3× safety factor); future-dated markers treated as adversarial and immediately expired | BATS: `@test "monitoring-loop hard floor: expired marker does not authorize operation"`; audit.log inspection | architecture-delta.md v1.2 §D-DEC-001 threat analysis |
+
+---
+
+## 3. New Edge Case Catalog Summary
+
+Edge cases are embedded in each BC file under EC-NNN numbering (fresh per BC).
+Summary cross-reference table:
+
+| BC ID | EC Count | Notable Edge Cases |
+|-------|----------|-------------------|
+| BC-6.01.003 | 8 | EC-003 (org_slug duplicate gate), EC-008 (credential-in-chat decline) |
+| BC-6.01.004 | 8 | EC-004 (prism_describe not showing sensor after credential set), EC-005 (SELECT 1 failure = no success message), EC-006 (credential paste in chat = decline) |
+| BC-8.02.001 | 6 | EC-004 (last_seen > 24h flagged as SENSOR SILENCE warning), EC-006 (E-CRED-008 per sensor) |
+| BC-9.01.001 | 8 | EC-001 (no tables for org = skip), EC-003 (zero findings = explicit "not found" message) |
+| BC-10.01.001 | 21 | EC-006 (sensor-silence = BLIND-SPOT positive finding; create-review/comment-review ticket action), EC-009 (known-FP fast-exit: confidence="high" default, evidence_artifacts from Stage 1 INGEST), EC-014 (Indeterminate = [REVIEW-REQUIRED]; create-review/comment-review restricted marker, EXEMPT from autonomy_enabled kill switch), EC-015/016 (HIGH/T1003 = hard floor; create-review/comment-review), EC-018/019 (Tavily/Perplexity unavailable = degrade not abort), EC-021 (LOW+unknown+benign = hard floor [human-gate-confirm]) |
+
+**Total new edge cases across sub-burst 1:** 50.
+
+---
+
+## 4. VP Correction Required — VP-HOOK-025
+
+**CRITICAL:** The F1 artifact-mapping.md VP-HOOK-025 description listed only 8 of
+the 12 mandatory ICD-203 schema fields:
+
+> VP-HOOK-025 (F1 draft): "disposition, confidence, sensor_health_status,
+> evidence_artifacts, hypotheses_considered, alternatives_rejected,
+> uncertainty_explicit, attack_techniques"
+
+The brief §3.8 schema has 12 fields. The missing 4 are:
+- `timeline_events` (field #5 — explicitly noted as a F1 audit item)
+- `agent_actions` (field #10)
+- `human_actions` (field #11)
+- `tuning_signal` (field #12)
+
+BC-10.01.001 Invariant #9 is the authoritative field list. VP-HOOK-025 must be
+updated to enforce all 12 fields. This correction must be handled in the same
+burst as BC-3.03.001 MODIFIED (sub-burst 2), since disposition-guard is the
+enforcement surface.
+
+**Action required:** When sub-burst 2 modifies BC-3.03.001, the author must update
+VP-HOOK-025 to reference all 12 fields per BC-10.01.001 Invariant #9.
+
+---
+
+## 5. Completed Modifications — Sub-Burst 2
+
+Six existing BCs modified in sub-burst 2/2. All modifications use inline previous-version
+preservation ("> **Previous (vN.N):**" blockquotes), bump frontmatter version with changelog
+line, use @test-NAME refs only (no line numbers), and set `input-hash: "COMPUTE-AT-COMMIT"`.
+
+| BC ID | Old Version | New Version | One-Line Change Summary |
+|-------|-------------|-------------|------------------------|
+| BC-3.01.001 | v1.12 | v1.17 | ADV-F2-013/014/017/018 (pass 1→v1.13): removed dead-code `used != false` check (rename IS the single-use mechanism); explicit rename-fail → deny (TOCTOU safety); command_b64 audit encoding (newline-injection prevention); consumer validates `expires_at_utc` (v2.0 schema, 120s TTL); EC-022 aligned to ticket-bound generation table; create/assign allow-path test vectors added; revision-history ordering corrected (v1.11 before v1.12). ADV-F2-P2-003/007/012 (pass 2→v1.14): iterative-consume algorithm (collect valid candidates, sort by issued_at_utc ASC, first successful rename=allow, rename-fail→CONTINUE not DENY); audit log path corrected to `${CLAUDE_PLUGIN_DATA}/markers/audit.log`; invariant numbering 1,2,3,5,4→1,2,3,4,5 (--output json flag ordering). ADV-F2-P3-002/011 (pass 3→v1.15): [P3-002] create-scope project-binding note added (create marker encoding --project ORG-A cannot authorize --project ORG-B; enforced at consumer step 5); [P3-011] removed "cross-tenant scope" from hard-floor guarantee category list (cross-tenant correlation is prism-side per D-DEC-005; org_slug scoping is the plugin mechanism). Pass 4→v1.16 (D-DEC-012/P4-010/P4-002): [D-DEC-012] consumer step (6) accepts create-review and comment-review as valid authorized_operations for jr issue create and comment respectively; same iterative-consume atomic-rename path; [P4-010] audit log control-char sanitization — `tr -d '\000-\037'` on ticket_id, org_slug, authorized_operations[0] before audit line interpolation; [P4-002] create-scope project-binding note updated — anchored pattern `^jr (--output json )?issue create --project <key>( |$)` (removes unbounded `.*`; prevents ORG-A authorizing ORG-A_EXTRA). Pass-4 VP anchors→v1.17 (verification-delta.md v1.5 §7 Part E): consumer step (5) anchored create-pattern cites VP-HOOK-024 (injection-safety guarantee, ADV-F2-P4-002); consumer step (8) audit control-char sanitization cites VP-HOOK-024 (audit-forgery prevention, ADV-F2-P4-010); consumer step (6) create-review/comment-review acceptance cites VP-HOOK-029 (consumer leg of fail-loud invariant, D-DEC-012); Verification Properties table VP-HOOK-024 row extended, VP-HOOK-029 row added (P1 PROPOSED). |
+| BC-3.03.001 | v1.7 | v1.13 | ADV-F2-001/003/004/016 (pass 1→v1.8): canonical marker schema v2.0 (removed ttl_seconds/used, added expires_at_utc=issued_at_utc+120s, disposition.severity, disposition.asset_type); hard-floor re-keyed to verdict.severity NOT confidence (orthogonal axes); create/assign/none emitter branches added; cross-tenant-indicator schema defined; verdict field count 12→15; VP-HOOK-025 updated to 15 fields. ADV-F2-P2-001 (pass 2→v1.9): disposition-guard fires on Stage 7 DOCUMENT (Write event) BEFORE Stage 8 TICKET ACTION (jr Bash); create-marker nonce not needed (iterative-consume in BC-3.01.001 v1.14 handles concurrent same-scope markers on consumer side). ADV-F2-P3-001/002/003/011 (pass 3→v1.10): [P3-001] added separate asset_type=="unknown" hard-floor check (NOT folded into CRITICAL_ASSET_TYPES set); [P3-002] create command_pattern now encodes --project <jira_project_key> for org binding; null jira_project_key → no marker (human gate); [P3-003] PC#2 investigation-markdown path corrected 15→12 mandatory field headings (artifact-class branching: investigation markdown = 12 ICD-203 fields, verdict JSON = 15); VP-HOOK-025 updated for artifact-class branching; [P3-011] removed PENDING-DEFINITION cross-tenant-indicator hard-floor leg and schema subsection. FV-VP-026-025-ANCHORS (v1.11): Invariant #4 VP-HOOK-026 verification property note explicitly names asset_type=unknown conservative hard-floor leg (separate from CRITICAL_ASSET_TYPES set; SM-29 kill target; verification-delta.md v1.3 §7 Part D); VP-HOOK-025 per-class split cited inline in PC#2 (investigation-markdown 12-field path) and PC#3 (verdict-JSON 15-field path); VP-HOOK-026 row added to Verification Properties table. Pass 4→v1.12 (P4-001/P4-002/P4-005/P4-006/D-DEC-012): [P4-001 CRITICAL] JSON-first dispatch — PC#1 rewritten: ends .json OR parses as JSON → verdict-class 15-field path; resolves "investigations" path collision where `verdict-*.json` was routed to investigation-markdown path by substring match; [P4-002 CRITICAL] anchored create pattern `^jr (--output json )?issue create --project <key>( |$)` — removes unbounded `.*`; prevents prefix injection; [P4-005 MAJOR] autonomy_enabled operational field added to emitter pseudocode (non-ICD-203; default false; absent/non-boolean→false; kills regular markers; EXEMPT for create-review/comment-review); [P4-006 MAJOR] validate_enums() step added (STEP 1 in emitter) — fail-closed DENY on non-member values for severity, asset_type, disposition, sensor_health_status, ticket_action_type, confidence before hard-floor check; case-sensitive (severity:"High"→deny); [D-DEC-012] create-review and comment-review emitter branches added (STEP 3 in emitter; EXEMPT from hard floor + kill switch; fail-loud — hard-floor verdicts always emit restricted review marker); marker schema v2.0 authorized_operations extended to include create-review and comment-review; generation table and canonical test vectors extended. Pass-4 VP anchors→v1.13 (verification-delta.md v1.5 §7 Part E): PC#1 JSON-first dispatch cites VP-HOOK-028 (ADV-F2-P4-001 CRITICAL); validate_enums() STEP 1 cites VP-HOOK-025 (enum-membership gate, ADV-F2-P4-006); STEP 3 review-surfacing emitter branch cites VP-HOOK-026 (hard-floor-EXEMPT + kill-switch-EXEMPT) and VP-HOOK-029 (fail-loud emit surface, D-DEC-012); STEP 4 autonomy_enabled kill switch cites VP-HOOK-026 (determinism — read directly from verdict, ADV-F2-P4-005); Verification Properties table updated with all four VP citations. |
+| BC-4.02.001 | v1.4 | v1.8 | ADV-F2-007 (v1.5): removed stale "conversation context or JIRA comments" wording from PC#1 and EC-001; replaced with explicit `${CLAUDE_PLUGIN_DATA}/markers/` filesystem reference (out-of-band, prevents SEC-001 injection surface reintroduction). FV-VP-ANCHOR-066-067 (v1.6): added VP-SKILL-066 to Invariant #4 (never-auto-reopen-closed — no code path from Closed/Resolved emits jr issue move reopen); added VP-SKILL-067 to Invariant #5 (SLA surface-never-assume — append/link/propose-reopen emit explicit SLA-impact statement); VP Anchors row added to Traceability (verification-delta.md v1.2 §7 Part C). Pass 4→v1.7 (P4-008/consistency-F1-F2): [P4-008/consistency-F1] removed `cross-tenant` from PC#4 hard-floor list (cross-tenant correlation is prism-side per D-DEC-005; only disposition-guard-enforced conditions belong on the hard-floor list); [consistency-F2] revision-history ordering corrected (v1.5 was listed before v1.4 — wrong; reordered to chronological v1.1→v1.2→v1.3→v1.4→v1.5→v1.6); v1.6 changelog entry completed (added version cross-ref sweep details). Version-coherence sweep→v1.8 (IP-005): live-body cross-refs in PC#1, PC#4, PC#5, and confidence line updated BC-3.03.001 v1.11→v1.13 and BC-3.01.001 v1.15→v1.17; zero semantic change. |
+| BC-10.01.001 | v1.1 | v1.9 | ADV-F2-001/005/008 (pass 1→v1.2): verdict schema 12→15 mandatory fields (add severity/asset_type/ticket_action_type at fields 13-15); Invariant #10 re-keyed to verdict.severity/asset_type NOT alert.*; EC-009 known-FP fast-exit evaluates hard floors BEFORE auto-close; VP-SKILL-064 PROPOSED added. ADV-F2-P2-001/002 (pass 2→v1.3→v1.4): Stage 7/8 swap — Stage 7=DOCUMENT (verdict Write + disposition-guard fires + marker emitted), Stage 8=TICKET ACTION (jr Bash + marker consumed); PC#3 disposition-guard fires on Write not Bash; EC-015/016 re-keyed from alert.* to verdict.* (field 13 severity, attack_techniques); EC-009 fast-exit revised (Stage 3 MUST run; Stages 4–5 skipped; attack_techniques on hard-floor list; fields 13/14 sourced from Stage 1 INGEST). ADV-F2-P2-006/010: EC-021 NEW (severity=LOW+asset_type=unknown+benign technique=hard floor [human-gate-confirm]); Invariant #10 unknown added to CRITICAL_ASSET_TYPES per ORCHESTRATOR POLICY DECISION; VP-SKILL-064 FINALIZED; VP-SKILL-065 FINALIZED. ADV-F2-P3-005/008/002/013 (pass 3→v1.6): [P3-005] PC#8 added — verdict file path MUST contain "verdict" substring for disposition-guard to fire; canonical path artifacts/investigations/verdict-<alert_id>-<iso_ts>.json; Invariant #14 Stage-7 description updated; [P3-008] Invariant #9 field #2 confidence clarified as ENUM-ONLY per D-DEC-011 (high ≥0.75, medium ≥0.40 & <0.75, low <0.40); confidence_score float is NON-ICD-203 separate operational metadata field; [P3-002] jira_project_key added as NON-ICD-203 operational metadata (Iron Law: every jr issue create MUST pass --project); [P3-013] ICD-203 verdict schema confirmed UNCHANGED at 15 fields. FV-VP-028-026-025-ANCHORS (v1.7): VP-HOOK-028 NEW (verdict-path reachability; FINALIZED per verification-delta.md v1.3 §7 Part D); VP-HOOK-026 anchor names asset_type=unknown leg in Invariant #10 (SM-29 kill target); VP-HOOK-025 float-reject per-class split cited in Invariant #9 field #2; VP-HOOK-028 row added to Verification Properties table and VP Anchors footer. Pass 4→v1.8 (P4-003/P4-004/P4-005/P4-007/D-DEC-012): [P4-003 MAJOR] fixed INVERTED silence condition in Invariant #5 and EC-006 (`last_seen_ts > now()-INTERVAL 24h` → `last_seen_ts < now()-INTERVAL 24h`; `<` fires when sensor silent >24h — canonical test vector EC-006 36h-stale verified internally consistent); [P4-004/P4-007 MAJOR] Invariant #10 narrowed — hard-floor verdicts set `ticket_action_type` to `create-review` (no open review ticket) or `comment-review` (dedup); NOT `"none"`; fail-loud invariant: hard-floor verdicts NEVER silently discarded; `"none"` reserved ONLY for autonomy_enabled=false+non-hard-floor or surfacing already complete; EC-014 updated (Indeterminate now emits restricted review marker via D-DEC-012; previous "blocks marker issuance" was wrong); EC-006 updated with create-review/comment-review; Invariant #9 field #15 extended to include create-review/comment-review values and Previous block; Invariant #10 Previous block added; [P4-005/D-DEC-012] autonomy_enabled added to non-ICD-203 operational metadata in Invariant #9 (boolean; default false; absent/non-boolean→false; kills regular markers; EXEMPT for create-review/comment-review); [P4-007 minor] EC-009 known-FP fast-exit: confidence defaults to `"high"` (knowledge-base match IS high-confidence); evidence_artifacts populated from Stage 1 INGEST raw sensor event record (same as fields 13/14 on fast-exit path). Pass-4 VP anchors + version-coherence sweep→v1.9 (verification-delta.md v1.5 §7 Part E): VP-HOOK-029 anchor added to Invariant #10 fail-loud (PROPOSED/P1, F6-adjudicated, D-DEC-012, SM-32 kill target); VP-SKILL-072 anchor added to Invariant #13 first-run 24h lookback (FINALIZED — absent-watermark bound for monitoring-loop, distinct from VP-SKILL-050 monotonicity); Invariant #15 VP-SKILL-066/062 coverage note added (VP-not-orphaned confirmation); Invariant #9 autonomy_enabled field adds VP-HOOK-026 cross-ref (disposition-guard deterministic kill-switch leg); Invariant #14 VP-HOOK-028 extended v1.9 for JSON-first canonical-path dispatch (ADV-F2-P4-001); Verification Properties table VP-HOOK-028 row updated, VP-SKILL-072 and VP-HOOK-029 rows added; VP Anchors footer updated. Internal version-coherence: PC#3/Invariant #9 BC-3.03.001 v1.11→v1.13; VP-HOOK-029 citation BC-3.01.001 v1.16→v1.17. |
+| BC-4.05.001 | v1.0 | v1.3 | Added prism-grounded scoring layer: 30-day baseline query, enrich_nvd() UDF, rule-fidelity recalibration, per-tenant asset criticality weights, Bayesian TP/FP/BTP framework; new output format CRIT/HIGH/MED/LOW with confidence/disposition fields; degradation path to 6-factor when prism unavailable; Invariant #4 org_slug scoping; EC-009..012 added. ADV-F2-P3-008/004 (pass 3→v1.2): [P3-008] PC#6 updated to emit BOTH confidence_score (float 0.0–1.0) AND confidence (enum high|medium|low) per D-DEC-011 thresholds; monitoring-loop uses confidence enum for verdict field #2; Previous(v1.1) block preserves prior float-only format; [P3-004] Invariant #4 org_slug scoping cross-reference to VP-SKILL-070 PROPOSED added; VP-SKILL-070 row added to Verification Properties table. FV-VP-070-071-FINALIZED (v1.3): VP-SKILL-070 PROPOSED→FINALIZED (Invariant #4 org_slug scoping; PC#5a/5b/5d anchors; verification-delta.md v1.3 §7 Part D); VP-SKILL-071 NEW + FINALIZED (PC#6 confidence float→enum consistency at D-DEC-011 thresholds 0.75/0.40; boundary values map to higher tier; Invariant #4 float-reject guard; SM-30 kill target). |
+| BC-5.01.001 | v1.4 | v1.8 | Added prism evidence collection (Stage 3: OCSF event lookup + temporal-adjacency; Stage 4: ThreatIntel/NVD UDFs + optional Tavily D-DEC-009); structured evidence bundle §3.8 chain-of-custody format; DI-013 RESOLVED in Invariant #7 (marker-gated via D-DEC-001); EC-008..010 added. ADV-F2-P3-004 (pass 3→v1.6): explicit Invariant #8 added (org_slug scoping on ALL PrismQL queries per D-DEC-005; every investigate-event PrismQL MUST include org_slug WHERE clause); VP-SKILL-069 PROPOSED cross-reference added; VP-SKILL-069 row added to Verification Properties table; confirmed Invariant #7 12-field ICD-203 investigation validation count is CORRECT. FV-VP-069-FINALIZED (v1.7): VP-SKILL-069 PROPOSED→FINALIZED (Invariant #8 org_slug scoping on ALL investigate-event PrismQL queries; strategy: static Iron-Law WHERE-clause assertion + BATS fixture; verification-delta.md v1.3 §7 Part D). Job-2 xref: Invariant #7 PC#7 live-body cross-refs updated to BC-3.03.001 v1.11 and BC-3.01.001 v1.15. Version-coherence sweep→v1.8 (IP-005): Invariant #7 live-body cross-refs updated BC-3.03.001 v1.11→v1.13 and BC-3.01.001 v1.15→v1.17; zero semantic change. |
+| BC-6.01.001 | v1.0 | v1.5 | Pass 1→v1.2: Added prism binary install/verify + version gate (VP-SKILL-051); DUAL MCP config write D-DEC-003 (settings.json mcpServers.prism + prism.mcp.json); RUST_LOG=off Invariant #5 (framing corruption prevention); jr auth check BLOCKING gate; AD-017 credential setup instructions; Invariant #2 updated narrow exception; no demo-project references D-006; EC-008..012 added. ADV-F2-P2-008/012/013 (pass 2→v1.3): download URL corrected drbothen/prism (not prism-io/prism); MCP subcommand `start` with --config-dir flag (not ["mcp"]); PRISM_CONFIG_DIR env removed from both settings.json and prism.mcp.json blocks; RUST_LOG=off retained; sensor base-URL reconciliation note added (per-sensor <sensor_id>.sensor.toml manages URLs, not MCP env block); revision-history ordering corrected (v1.1 precedes v1.2). ADV-F2-P3-010 (pass 3→v1.4): GROUND TRUTH correction — `jr auth check` → `jr auth status` globally (jr 0.5.0 subcommand is `jr auth status`; `jr auth check` does not exist); affects PC#10 title+body, EC-010, test vectors table, purity classification. consistency-F3→v1.5: changelog correction — v1.4 entry had identical left/right sides in the subcommand rename notation (`jr auth status` → `jr auth status`); corrected LEFT side to `jr auth check` to accurately record the rename applied at v1.4. |
+
+---
+
+## 6. Open Questions for Formal-Verifier
+
+1. **VP-HOOK-025 field list discrepancy:** The F1 draft VP-HOOK-025 lists 8 ICD-203
+   fields; BC-10.01.001 Invariant #9 lists 12. Formal-verifier must confirm all 12
+   are enforceable at the disposition-guard hook layer and update VP-HOOK-025
+   accordingly. Specifically: are `timeline_events`, `agent_actions`, `human_actions`,
+   and `tuning_signal` checkable via the existing heading-anchored substring approach,
+   or does disposition-guard need a schema-validation approach for the verdict JSON?
+
+2. **VP-SKILL-050 proof method:** Watermark monotonicity requires reading both the
+   previous watermark value and the new one within the same test invocation.
+   Confirm that the BATS test fixture can inject a pre-existing watermark file and
+   assert the post-run watermark is >= the injected value.
+
+3. **VP-HOOK-026 BATS fixture design:** The hard floor tests require simulating
+   `autonomy_enabled=true` + Indeterminate/HIGH severity verdict. Confirm the test
+   fixture can inject these conditions via the verdict file path without requiring
+   a live prism connection.
+
+4. **--allowedTools glob support (ASM-004 partial):** D-DEC-010 uses
+   `mcp__prism__*` glob syntax. ASM-004 probe confirmed glob syntax for MCP tools
+   in `--allowedTools`, but the prism-specific glob was not tested. Formal-verifier
+   must confirm in the Wave 7 story acceptance criteria.
+
+5. **ASM-009 cross-hook filesystem access:** disposition-guard writes to
+   `${CLAUDE_PLUGIN_DATA}/markers/`; require-review reads from it. These are two
+   separate subprocess invocations within a Claude session. ASM-009 is UNVALIDATED.
+   Formal-verifier must design a BATS test that verifies cross-hook marker file
+   visibility before Wave 3 story merge.
+
+6. **timeline_events enforcement surface:** BC-10.01.001 Invariant #9 flags
+   timeline_events as mandatory. The current disposition-guard checks headings in
+   markdown investigation files. For monitoring-loop verdict files (JSON/YAML
+   schema), the enforcement mechanism may need to be different (JSON key presence
+   check vs heading regex). Formal-verifier must determine the correct enforcement
+   approach and document it in BC-3.03.001 MODIFIED.
+
+---
+
+## 7. Requirements Coverage Verification
+
+All brief §2.3, §2.4 (metrics/scan-threats), and §3 (monitoring-loop) requirements
+are covered by the 5 new BCs (sub-burst 1) and the 6 pending modifications
+(sub-burst 2). The one unmapped brief requirement from F1 §8.9 (Tavily in
+secops-protocol.md as a data KB entry) remains unmapped — it is a data artifact
+not a behavioral contract, captured as a VP note in BC-10.01.001 Traceability
+(architecture module: data/secops-protocol.md update required).
+
+**Brief §3.6 cross-tenant correlation:** Scope verdict remains plugin-side
+constraint only per D-DEC-005 (prism-side architecture). Plugin obligation = 
+org_slug scoping invariant in BC-10.01.001 Invariant #1 only. No new BC required
+for §3.6 beyond what is encoded in BC-10.01.001.
+
+---
+
+## 8. New Edge Cases from Sub-Burst 2
+
+Edge cases added to existing BCs in sub-burst 2. All continue EC numbering from the
+last existing EC in each file.
+
+| BC ID | New ECs | Notable Edge Cases |
+|-------|---------|-------------------|
+| BC-3.01.001 | EC-017..EC-022 (6 new) | EC-017 expired marker (120s expires_at_utc TTL), EC-018 wrong-scope marker (authorized_operations mismatch), EC-019 replayed/consumed marker (atomic rename already succeeded — file no longer present), EC-020 malformed JSON marker (parse failure), EC-021 path-traversal attempt in marker basename, EC-022 marker present but command_pattern anchored to different ticket-id |
+| BC-3.03.001 | EC-010..EC-012 (3 new) | EC-010 verdict missing any of 15 ICD-203 fields (both markdown and JSON paths), EC-011 FP verdict with tuning_signal=null (must be non-null object for FP/BTP), EC-012 Indeterminate verdict passes ICD-203 but hard floor blocks marker issuance |
+| BC-4.02.001 | EC-007..EC-009 (3 new) | EC-007 Resolved ticket found → propose-only (never execute move), EC-008 Closed ticket found → create-new (never reopen), EC-009 append-comment with no valid marker (hard-floor disposition) → human approval required with SLA surface statement |
+| BC-4.05.001 | EC-009..EC-012 (4 new) | EC-009 prism unavailable → 6-factor fallback + uncertainty_explicit, EC-010 enrich_nvd() returns no data → use caller CVSS, EC-011 zero 30-day hits (new signal) → no recalibration, EC-012 asset not found in prism → fall back to user-supplied ACR |
+| BC-5.01.001 | EC-008..EC-010 (3 new) | EC-008 prism unavailable → skip all prism stages + announce, EC-009 Tavily unavailable → graceful skip (D-DEC-009 recommended not required), EC-010 event_id not found in prism → note in evidence bundle + continue |
+| BC-6.01.001 | EC-008..EC-012 (5 new) | EC-008 prism not found + no network → activate without MCP write + warn, EC-009 prism version below 1.0.0-rc.1 → halt with version-gate error, EC-010 jr auth check fails → halt with setup instructions, EC-011 ~/.claude/settings.json malformed → stop MCP write (do not overwrite), EC-012 idempotent re-run with existing mcpServers.prism → merge no-op + confirm |
+
+**Totals (sub-burst 2):** 6 modified BCs, 24 new edge cases.
+
+**Grand total for v0.10.0-feature-prism-integration cycle:**
+- 5 new BCs (sub-burst 1): 51 edge cases
+- 6 modified BCs (sub-burst 2): 24 new edge cases
+- Cycle total: 11 BC files touched, 75 edge cases (51 new + 24 added-to-existing)
+
+---
+
+## Verdict Schema Summary
+
+**v0.10.0-feature-prism-integration cycle — verdict field count:** 12 ICD-203 baseline → **15 mandatory fields** after adversarial pass 1 remediation.
+
+| Field # | Field Name | Added In | Purpose |
+|---------|-----------|----------|---------|
+| 1–12 | (ICD-203 baseline fields) | v1.0 brief §3.8 | Existing schema |
+| 13 | `severity` | v1.2 (ADV-F2-001) | Alert severity: LOW\|MEDIUM\|HIGH\|CRITICAL — enables disposition-guard hard-floor check without confidence-as-proxy |
+| 14 | `asset_type` | v1.2 (ADV-F2-001) | Asset classification: domain_controller\|privileged_account\|ot_safety_system\|standard\|unknown — enables critical-asset hard-floor |
+| 15 | `ticket_action_type` | v1.2 (ADV-F2-004); extended v1.8 (D-DEC-012) | comment\|create\|assign\|create-review\|comment-review\|none — tells disposition-guard which Jira action to authorize; "create-review"/"comment-review" for hard-floor/Indeterminate verdicts (D-DEC-012 restricted marker; EXEMPT from autonomy_enabled kill switch); "none" ONLY for autonomy_enabled=false+non-hard-floor or surfacing already complete |
+
+Dual-path enforcement (VP-HOOK-025): artifact-class branching — investigation markdown: 12 ICD-203 fields checked via heading-anchored markdown grep; verdict JSON files: all 15 fields checked via jq has()-based key-presence. (P3-003 correction: investigation markdown uses 12 fields, NOT 15.)
+
+**Non-ICD-203 operational metadata fields (P3-002/P3-008/P4-005/D-DEC-012 — NOT part of the 15-field ICD-203 schema):** `jira_project_key` (string — Jira project key for org binding; encoded in create-marker command_pattern; null triggers human gate; D-DEC-001/P3-002), `confidence_score` (float 0.0–1.0 — raw Bayesian output from assess-priority; converted to `confidence` enum via D-DEC-011 thresholds before verdict field #2; P3-008), and `autonomy_enabled` (boolean — operational gate read by disposition-guard emitter to suppress regular markers; absent/non-boolean treated as false; default false; DOES NOT suppress create-review/comment-review restricted markers; P4-005/D-DEC-012). These three fields appear in verdict JSON alongside the 15 ICD-203 fields but are NOT validated by VP-HOOK-025 key-presence checks and NOT enforced by disposition-guard field-validation.
+
+---
+
+## Document Changelog
+
+| Version | Date | Change |
+|---------|------|--------|
+| v1.8 | 2026-07-21 | Pass-4 VP-anchor corrections + version-coherence sweep (verification-delta.md v1.5 §7 Part E). Job 1 — 3 BC VP-anchor corrections: BC-10.01.001 v1.8→v1.9 (VP-HOOK-029 PROPOSED/P1 anchor in Invariant #10 fail-loud; VP-SKILL-072 FINALIZED anchor in Invariant #13 first-run 24h lookback; Inv#15 VP-SKILL-066/062 coverage; Inv#9 VP-HOOK-026 autonomy_enabled cross-ref; VP-HOOK-028 extended to JSON-first dispatch; VP table + VP Anchors footer updated); BC-3.03.001 v1.12→v1.13 (VP-HOOK-028 citation PC#1; VP-HOOK-025 citation validate_enums() STEP 1; VP-HOOK-026/VP-HOOK-029 citations STEP 3 review-surfacing + STEP 4 autonomy_enabled; VP table updated); BC-3.01.001 v1.16→v1.17 (VP-HOOK-024 citations consumer steps (5) and (8); VP-HOOK-029 citation consumer step (6); VP table updated); BC-4.02.001 v1.7 confirmed (no Job-1 changes — cross-tenant already removed from PC#4, VP-SKILL-066 Inv#15 anchor confirmed). Job 2 — version-coherence sweep (IP-005): BC-4.02.001 v1.7→v1.8 (live-body cross-refs BC-3.03.001 v1.11→v1.13, BC-3.01.001 v1.15→v1.17; zero semantic change); BC-5.01.001 v1.7→v1.8 (same stale-ref fix; zero semantic change); BC-10.01.001 internal cross-refs updated (BC-3.03.001 v1.11→v1.13, BC-3.01.001 v1.16→v1.17). §1 table: BC-10.01.001 VP Refs updated to full finalized set VP-HOOK-024/025/026/027/028/029+VP-SKILL-050/060-065/068/072. §5 "New Version" column updated for all 5 modified BCs (BC-3.01.001 v1.17, BC-3.03.001 v1.13, BC-4.02.001 v1.8, BC-5.01.001 v1.8, BC-10.01.001 v1.9); change summaries appended. |
+| v1.7 | 2026-07-21 | Pass-4 adversarial remediation BC propagation (P4-009). §1 table: BC-10.01.001 EC count corrected 20→21 (EC-021 was authored in pass 2 but prd-delta count was not updated); description updated with D-DEC-012 create-review/comment-review and autonomy_enabled operational field. §1 totals: 50→51 edge cases. §3 edge case catalog: BC-10.01.001 20→21; notable ECs updated. §5 "New Version" column: BC-3.01.001 v1.15→v1.16 (D-DEC-012 create-review/comment-review accept in step 6; P4-010 control-char sanitization; P4-002 anchored create pattern); BC-3.03.001 v1.11→v1.12 (P4-001 JSON-first dispatch; P4-002 anchored pattern; P4-005 autonomy_enabled; P4-006 validate_enums(); D-DEC-012 emitter branches); BC-4.02.001 v1.6→v1.7 (P4-008 remove cross-tenant from hard-floor list; consistency-F1-F2 revision ordering and changelog completion); BC-10.01.001 v1.7→v1.8 (P4-003 inverted silence fix; P4-004/P4-007 Invariant #10 create-review/comment-review; P4-005 autonomy_enabled to non-ICD-203 metadata; D-DEC-012 EC-014/EC-006 update; EC-009 confidence+evidence_artifacts); BC-6.01.001 v1.4→v1.5 (consistency-F3 changelog correction). §8 grand totals: 50→51 sub-burst-1, 74→75 cycle total. Verdict Schema Summary: field #15 extended to include create-review/comment-review; non-ICD-203 operational metadata expanded with autonomy_enabled. |
+| v1.6 | 2026-07-20 | Phase F2 VP Finalization + Version-Coherence Sweep (verification-delta.md v1.3 §7 Part D). Job 1 — 4 BC VP-anchor corrections: BC-5.01.001 v1.6→v1.7 (VP-SKILL-069 PROPOSED→FINALIZED in Invariant #8 + VP table); BC-4.05.001 v1.2→v1.3 (VP-SKILL-070 PROPOSED→FINALIZED in Invariant #4; VP-SKILL-071 NEW+FINALIZED for confidence float→enum consistency at D-DEC-011 thresholds in PC#6); BC-10.01.001 v1.6→v1.7 (VP-HOOK-028 NEW+FINALIZED for verdict-path reachability in PC#8/Invariant #14 + VP table + VP Anchors footer; VP-HOOK-026 anchor names asset_type=unknown leg in Invariant #10; VP-HOOK-025 float-reject per-class split cited in Invariant #9 field #2); BC-3.03.001 v1.10→v1.11 (VP-HOOK-026 anchor names asset_type=unknown leg in Invariant #4 hard-floor block + VP-HOOK-026 row added to VP table; VP-HOOK-025 per-class split cited inline in PC#2 and PC#3). Job 2 — version-coherence sweep (P3-007/P3-009): BC-4.02.001 live-body cross-refs updated (BC-3.03.001 v1.8→v1.11, BC-3.01.001 v1.13→v1.15 in PC#1; BC-3.03.001 v1.6→v1.11 and BC-3.01.001 v1.11→v1.15 in PC#5, PC#4, confidence cite); BC-3.01.001 live-body cross-ref updated (BC-3.03.001 v1.10→v1.11 in Create-scope project-binding note). prd-delta.md: §1 BC-10.01.001 VP refs finalized (all PROPOSED→FINALIZED; VP-HOOK-027/028/VP-SKILL-068 added); §5 New Version column updated for all 5 modified BCs; Verdict Schema Summary: non-ICD-203 operational metadata note added (jira_project_key, confidence_score). |
+| v1.5 | 2026-07-20 | Adversarial pass 3 BC propagation: §5 table live-version update — BC-3.03.001 v1.9→v1.10 (P3-001: unknown asset_type hard-floor; P3-002: create command_pattern jira_project_key org-binding; P3-003: investigation-markdown field count corrected 15→12 — artifact-class branching; P3-011: PENDING-DEFINITION cross-tenant-indicator leg removed); BC-3.01.001 v1.14→v1.15 (P3-002: create-scope project-binding note; P3-011: cross-tenant scope removed from hard-floor guarantee); BC-10.01.001 v1.4→v1.6 (P3-005: PC#8 verdict-file-path naming convention — MUST contain "verdict" substring; P3-008: confidence field #2 ENUM-ONLY per D-DEC-011; confidence_score float is NON-ICD-203 operational field; P3-002: jira_project_key as NON-ICD-203 operational field with Iron Law; P3-013: ICD-203 15-field schema confirmed UNCHANGED); BC-4.05.001 v1.1→v1.2 (P3-008: PC#6 emits BOTH confidence_score float AND confidence enum per D-DEC-011; P3-004: VP-SKILL-070 PROPOSED for org_slug scoping); BC-5.01.001 v1.5→v1.6 (P3-004: Invariant #8 org_slug scoping on ALL PrismQL queries; VP-SKILL-069 PROPOSED); BC-6.01.001 v1.3→v1.4 (P3-010: jr auth check → jr auth status ground truth correction). Verdict Schema Summary Dual-path enforcement updated for artifact-class branching (12 investigation / 15 verdict). ADV-F2-P3-NNNs closed: 001, 002, 003, 004, 005, 008, 010, 011, 013. |
+| v1.4 | 2026-07-20 | Adversarial pass 2 BC propagation: §1 BC-10.01.001 VP-refs updated with VP-SKILL-064 FINALIZED + VP-SKILL-065 FINALIZED. §5 table live-version update — BC-3.01.001 v1.13→v1.14 (iterative-consume, audit log path, invariant reorder); BC-3.03.001 v1.8→v1.9 (disposition-guard fires on Stage 7 DOCUMENT Write, not Stage 8 jr Bash); BC-10.01.001 v1.2→v1.4 (Stage 7/8 swap, PC#3 Write-event guard, EC-015/016 re-keyed to verdict.*, EC-021 asset_type=unknown hard floor [human-gate-confirm], VP-SKILL-064/065 FINALIZED); BC-6.01.001 v1.2→v1.3 (drbothen/prism URL, MCP start+--config-dir args, PRISM_CONFIG_DIR removed, sensor base-URL reconciliation note). §8 stale language: EC-017 TTL 30s→120s expires_at_utc; EC-019 used==true→rename mechanism language; BC-3.03.001 EC-010 12→15 ICD-203 fields. ADV-F2-P2-NNNs closed: 001, 002, 003, 006, 007, 008, 010, 012, 013. |
+| v1.3 | 2026-07-20 | Adversarial pass 1 BC propagation: §5 updated with v1.8/v1.13/v1.5/v1.2 final versions for BC-3.03.001/BC-3.01.001/BC-4.02.001/BC-10.01.001. NFR-SEC-001 TTL corrected 30s→120s (schema v2.0). Verdict-field-count change 12→15 documented in new schema summary section. |
+| v1.2 | 2026-07-20 | Spec steward sync: corrected §5 "New Version" column for BC-3.01.001 (v1.11 → v1.12), BC-3.03.001 (v1.6 → v1.7), and BC-6.01.001 (v1.1 → v1.2) to match actual BC frontmatter after PO patch bumps post-authoring. No content changes. |
+| v1.1 | 2026-07-20 | Phase F2 initial authoring — 5 new BCs, 6 pending modifications, 3 NFRs, 50 edge cases, VP-HOOK-025 correction. |

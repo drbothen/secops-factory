@@ -1,17 +1,103 @@
 ---
 document_type: session-handoff
 level: ops
-version: "1.0"
+version: "2.0"
 status: current
 producer: state-manager
-timestamp: 2026-07-20T05:30:00Z
+timestamp: 2026-07-21T00:00:00Z
 project: secops-factory
-supersedes: ""
+supersedes: "1.0 (2026-07-20T05:30:00Z)"
 ---
 
 # SESSION-HANDOFF: secops-factory
 
 ### RESUME IN ONE BREATH
+
+secops-factory prism-integration v0.10.0 feature cycle is mid-Phase-F2 (spec evolution). F1 approved+committed. The full F2 spec body (11 BCs + delta docs) is FROZEN and committed as of this wrap. The scoped adversarial spec-convergence loop needs 3 consecutive clean passes; passes 1-4 each found real defects (all remediated) so the clean streak is 0/3. NEXT ACTION: re-run adversarial pass 5 fresh-context (its pre-wrap result was not captured) and read f2-consistency-validation-pass5.md from disk if present; continue the loop to 3 clean passes, then F2 state-backup → F2 gate (human approval).
+
+---
+
+## HEADS
+
+| Ref | SHA | Remote | Notes |
+|-----|-----|--------|-------|
+| main | d181ca2 | origin/main (in sync) | only untracked .claude/ local tooling |
+| factory-artifacts | see `git -C .factory log -1 --format='%h %s'` | origin/factory-artifacts (PUSHED) | this wrap commit |
+
+---
+
+## FROZEN F2 ARTIFACT VERSIONS (ground truth for resumed review/remediation)
+
+**BCs (phase-0-ingestion/behavioral-contracts/):**
+
+| BC ID | Version | Subject |
+|-------|---------|---------|
+| BC-3.01.001 | v1.17 | require-review — marker consumer |
+| BC-3.03.001 | v1.13 | disposition-guard — marker emitter |
+| BC-4.02.001 | v1.8 | update-jira |
+| BC-4.05.001 | v1.3 | assess-priority |
+| BC-5.01.001 | v1.8 | investigate-event |
+| BC-6.01.001 | v1.5 | activate |
+| BC-10.01.001 | v1.9 | monitoring-loop |
+| BC-6.01.003 | v1.1 | onboard-customer (NEW) |
+| BC-6.01.004 | v1.1 | onboard-sensor (NEW) |
+| BC-8.02.001 | v1.1 | sensor-metrics (NEW) |
+| BC-9.01.001 | v1.1 | scan-threats (NEW) |
+
+**Delta docs (phase-f2-spec-evolution/):**
+
+| File | Version |
+|------|---------|
+| architecture-delta.md | v1.7 |
+| verification-delta.md | v1.7 |
+| prd-delta.md | v1.8 |
+| dtu-assessment.md | DTU_REQUIRED: true — prism L3 via prism demo server, jr L2 mock |
+| asm-004-validation.md | PARTIAL → resolved-by-design (--strict-mcp-config --mcp-config prism.mcp.json) |
+| adversarial-spec-delta-review-pass1..4.md | all remediated |
+| spec-changelog.md | spec 1.0.0 → 1.1.0 MINOR |
+
+**VP namespace:** VP-SKILL 001-072, VP-HOOK 024-029. Mutation vectors SM-9..SM-35. Decisions D-DEC-001..012.
+
+---
+
+## KEY DESIGN STATE
+
+- **Marker mechanism (DI-013 resolution, D-005):** filesystem markers at `${CLAUDE_PLUGIN_DATA}/markers/`, canonical schema v2.0 (absolute `expires_at_utc` 120s TTL, `authorized_operations` tokens, iterative-consume oldest-first, `markers/audit.log` control-char-stripped). `command_pattern`: ticket-bound for comment/assign; anchored project-bound for create (`^jr (--output json )?issue create --project <key>( |$)`, NO unbounded `.*`). disposition-guard is the ONLY emitter; require-review the consumer. Document-before-action ordering (Stage 7 DOCUMENT emits marker → Stage 8 TICKET ACTION consumes). JSON-first disposition-guard dispatch (verdict JSON → 15-field path even at `investigations/verdict-*.json`). `validate_enums()` fail-closed. 15-field ICD-203 verdict schema + operational metadata (`jira_project_key`, `confidence_score`, `autonomy_enabled`). Hard floors deterministic on `verdict.severity`/`asset_type`/`attack_techniques`; `asset_type=unknown` is a hard floor. D-DEC-012: `create-review`/`comment-review` RESTRICTED markers surface BLIND-SPOT/Indeterminate to Jira, EXEMPT from hard-floor + kill-switch (fail-loud, VP-HOOK-029). Sensor-silence condition: `last_seen_ts < now()-24h`.
+
+---
+
+## PENDING / CARRIED
+
+- Pass 5 adversarial + F2 consistency audit were IN-FLIGHT at wrap; re-run pass 5, read consistency report from disk if written.
+- DI-013 now RESOLVED in-spec via marker mechanism (was deferred at Phase 0).
+- Human decisions this cycle: D-004 full-brief scope, D-005 marker mechanism, D-006 demo-unaware; `asset_type=unknown` floor [human-gate-confirm at F2 gate]; confidence enum thresholds 0.75/0.40 (D-DEC-011).
+- AFTER 3 clean passes: F2 state-backup, then F2 human gate, then F3 story decomposition.
+- BCs carry COMPUTE-AT-COMMIT input-hash placeholders where inputs changed — compute at a later backup (noted as resume TODO, does not block wrap).
+
+---
+
+## DECISION DELTA (this session)
+
+D-DEC-001..012 recorded in architecture-delta.md. D-004/005/006 in STATE decisions log.
+
+---
+
+## WORKTREE INVENTORY
+
+| Worktree | Branch | Path | Status |
+|----------|--------|------|--------|
+| main | main | `/Users/jmagady/Dev/secops-factory` | active, clean |
+| .factory | factory-artifacts | `/Users/jmagady/Dev/secops-factory/.factory` | active, committed this wrap |
+
+---
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SUPERSEDED SNAPSHOT (v1.0 — 2026-07-20T05:30:00Z)         -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+---
+
+## [SUPERSEDED] Prior RESUME IN ONE BREATH (v1.0 — 2026-07-20)
 
 secops-factory is fully VSDD-onboarded and PARKED at phase-0-complete,
 awaiting a feature-request. Nothing is in flight; everything is pushed
@@ -34,7 +120,7 @@ Worktrees: 2 active — `main` at `/Users/jmagady/Dev/secops-factory`, `.factory
 
 ---
 
-## STATUS
+## [SUPERSEDED] STATUS
 
 Phase 0 ingestion COMPLETE + fully remediated.
 
@@ -55,7 +141,7 @@ Notable: the adversarial loop discovered a **live shipped CRITICAL auth-gate byp
 
 ---
 
-## PENDING (user-approved / carried)
+## [SUPERSEDED] PENDING (user-approved / carried)
 
 **DI-013** — Comment-gate workflow friction: `jr issue comment` is unconditionally denied by the require-review hook. Consumer skills (investigate-event, orchestration) cannot complete their comment steps without human permission-override.
 
@@ -68,7 +154,7 @@ No other open drift items. No blocking issues.
 
 ---
 
-## ENGINE FEEDBACK (not secops-factory work)
+## [SUPERSEDED] ENGINE FEEDBACK (not secops-factory work)
 
 8 improvement proposals targeting the **vsdd-factory ENGINE** at `/Users/jmagady/Dev/dark-factory`. These are proposals for the engine maintainer — NOT secops-factory work items. Codified per S-7.02 cycle-closing requirement.
 
@@ -87,7 +173,7 @@ No other open drift items. No blocking issues.
 
 ---
 
-## DECISION DELTA (this session)
+## [SUPERSEDED] DECISION DELTA (this session)
 
 | Decision | Rationale |
 |----------|-----------|
@@ -101,7 +187,7 @@ No other open drift items. No blocking issues.
 
 ---
 
-## WORKTREE INVENTORY
+## [SUPERSEDED] WORKTREE INVENTORY
 
 | Worktree | Branch | Path | Status |
 |----------|--------|------|--------|
@@ -112,7 +198,7 @@ No stale or removable worktrees.
 
 ---
 
-## RESUMPTION GUIDE
+## [SUPERSEDED] RESUMPTION GUIDE
 
 **If resuming to handle a feature request:**
 1. Orchestrator reads STATE.md → detects `phase: 0-complete`, `pipeline: phase-0-COMPLETE`

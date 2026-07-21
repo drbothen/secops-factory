@@ -1,0 +1,895 @@
+---
+document_type: verification-delta
+producer: formal-verifier
+version: "1.7"
+date: 2026-07-21
+cycle: v0.10.0-feature-prism-integration
+phase: f2
+status: draft
+changelog:
+  - "1.7 (2026-07-21): finish residual version-ref sync."
+  - "1.6 (2026-07-21): version-ref sync to frozen live BC versions (BC-3.01.001 v1.17, BC-3.03.001 v1.13, BC-4.02.001 v1.8, BC-4.05.001 v1.3, BC-5.01.001 v1.8, BC-6.01.001 v1.5, BC-10.01.001 v1.9). No VP/strategy/mutant/test-count changes; stale live-body BC cross-refs (VP table §2, §5 sizing table, §3/§6 prose citations, §7 Part D/E correction targets, closing snapshot) synced to frozen; historical/changelog/edit-time/first-landed/CONFIRMED-APPLIED and evolution-narrative annotations left intact."
+  - "1.5 (2026-07-21): Adversarial pass 4 remediation (architecture-delta v1.6 §8.11 FORMAL-VERIFIER LIST pass 4 + D-DEC-008 JSON-first dispatch + D-DEC-012 create-review/comment-review + validate_enums() + autonomy_enabled operational field). Adds 2 VPs — VP-HOOK-029 (P1 fail-loud invariant: a hard-floor/Indeterminate/silent-sensor verdict MUST yield a create-review/comment-review marker OR an explicit error artifact, never silent discard — D-DEC-012, ADV-F2-P4-004) and VP-SKILL-072 (BC-10.01.001 Inv#13 first-run 24h lookback correctness — ADV-F2-P4-012/D-DEC-002) — and 5 mutants (SM-31 validate_enums-removed → wrong-case severity passes hard floor, ADV-F2-P4-006; SM-32 review-surfacing-hard-floor-bypass-removed → Indeterminate+create-review wrongly blocked, D-DEC-012/P4-004; SM-33 autonomy_enabled-clause-removed → regular marker wrongly emitted under kill switch, ADV-F2-P4-005; SM-34 dispatch-order-inverted → verdict JSON at canonical investigations/verdict-*.json path misrouted to 12-field markdown branch and wrongly denied, ADV-F2-P4-001; SM-35 control-char-strip-removed → forged MARKER_USED audit line via \\n in ticket_id/org_slug/op, ADV-F2-P4-010). Extends VP-HOOK-024 (create command_pattern injection-safety: anchored `--project`-first pattern, --summary injection + PROD/PRODUCTION prefix → DENY, P4-002 CRITICAL), VP-HOOK-025 (validate_enums() membership legs for severity/asset_type/disposition/sensor_health_status/ticket_action_type/confidence — wrong-case/non-member → fail-closed DENY BEFORE hard floor, P4-006), VP-HOOK-026 (create-review/comment-review hard-floor-EXEMPT + kill-switch-EXEMPT legs, and autonomy_enabled read-direct-from-verdict determinism legs, D-DEC-012/P4-004/P4-005), VP-HOOK-028 (canonical-path JSON-first dispatch regression: investigations/verdict-*.json → 15-field verdict path; investigation-*.md → 12-field path, P4-001). Namespace re-verified independently: VP-SKILL 001–072, VP-HOOK 024–029, SM 9–35 — ZERO collisions. Live-BC snapshot SYNCED to BC-3.03.001 v1.12, BC-3.01.001 v1.16, BC-10.01.001 v1.8, BC-4.02.001 v1.7, BC-6.01.001 v1.5. Mutant count 22 → 27; test-count estimate refreshed ~195 → ~231 (~155 BATS + ~76 parity). BC corrections routed to PO in §7 Part E."
+  - "1.4 (2026-07-20): version-ref sync to frozen pass-3 BC versions."
+  - "1.3 (2026-07-20): Adversarial pass 3 remediation (architecture-delta v1.4 §8.9 FORMAL-VERIFIER LIST pass 3 + D-DEC-011 + D-DEC-008-C artifact-class branching). (1) [ADV-F2-P3-001 CRITICAL] VP-HOOK-026: added the asset_type=unknown hard-floor leg — a LOW-severity / benign-technique verdict with asset_type=unknown NEVER gets a marker regardless of autonomy_enabled; paired mutant SM-29 (unknown-asset-hard-floor-removed → asserts marker IS wrongly written, must be killed). (2) [ADV-F2-P3-004 MAJOR] FINALIZED VP-SKILL-069 (investigate-event PrismQL org_slug scoping — BC-5.01.001 v1.6 Inv#8, Stage-3 OCSF + temporal-adjacency queries always carry org_slug WHERE clause) and VP-SKILL-070 (assess-priority PrismQL org_slug scoping — BC-4.05.001 v1.2 Inv#4, PC#5a/5b/5d) — both already PROPOSED-referenced in their owning BCs; strategy = static Iron-Law content assertion + prism-DTU multi-org fixture (org-a query returns zero org-b/c rows). Added to VP table + coverage matrix. (3) [ADV-F2-P3-003/P3-013] VP-HOOK-025 per-class split: BATS counts now reflect the 12-field investigation-markdown path vs the 15-field verdict-JSON path (D-DEC-008-C artifact-class branching); paired mutant SM-30 (artifact-class-over-strict → apply the 15-field set to investigation markdown so a valid 12-field investigation is wrongly DENIED; a Severity heading inserted into investigation markdown must NOT trigger a wrong-class deny). (4) [ADV-F2-P3-005/P3-013] ADDED VP-HOOK-028 (verdict-path reachability — a Stage-7 Write to a non-'verdict' path → disposition-guard fast-path-allows, no marker → Stage-8 jr DENIED). Added to VP table + matrix. (5) [ADV-F2-P3-008/P3-013] VP-HOOK-025: added confidence float→enum legs (disposition-guard DENIES field#2 confidence float, ALLOWS enum values); FINALIZED VP-SKILL-071 (assess-priority confidence float→enum consistency — boundary test at D-DEC-011 thresholds 0.75 and 0.40). Added to VP table + matrix. (6) mutant catalog SM-9..SM-30 (22 mutants — +SM-29, +SM-30); test-count estimate refreshed ~165 → ~195. (7) Live-BC snapshot header synced to LIVE (BC-3.03.001 v1.10, BC-3.01.001 v1.15, BC-5.01.001 v1.6, BC-10.01.001 v1.6, BC-4.05.001 v1.2, BC-6.01.001 v1.4, BC-4.02.001 v1.6); VP-table/§ anchors re-synced for internal self-consistency; §7 Part D pass-3 BC corrections added."
+  - "1.2 (2026-07-20): Adversarial pass 2 remediation (architecture-delta v1.3 §8.7 FORMAL-VERIFIER LIST). (1) ADV-F2-P2-001/P2-014: added VP-HOOK-027 (P1, cross-hook integration) — STAGE-ORDER DOCUMENT-BEFORE-ACTION: a monitoring-loop jr comment/create/assign is DENIED unless a verdict-record Write (disposition-guard emits marker) for the same run preceded it within the marker TTL (Stage 7 DOCUMENT before Stage 8 TICKET ACTION); + paired mutant SM-28 (stage-order-inverted). (2) ADV-F2-P2-009a: added VP-SKILL-066 (BC-4.02.001 Inv#4 never-auto-reopen on the UPDATE-JIRA path — VP-SKILL-062 covered only the monitoring-loop path) + paired mutant SM-26 (reopen-guard-removed). (3) ADV-F2-P2-009b: added VP-SKILL-067 (BC-4.02.001 Inv#5 SLA surface-never-assume — append/link/propose-reopen emit an explicit SLA-impact statement). (4) ADV-F2-P2-009c: added VP-SKILL-068 (D-DEC-002 watermark grace-window + Jira-first dedup — late/out-of-order event re-fetched inside GRACE with an existing open ticket → COMMENT not new ticket; VP-SKILL-050 remains monotonicity-only) + paired mutant SM-27 (dedup-check-removed→double-ticket). (5) ADV-F2-P2-005: version-refs synced to LIVE (BC-10.01.001 v1.4, BC-3.01.001 v1.14, BC-3.03.001 v1.9, BC-4.02.001 v1.5, BC-6.01.001 v1.3); §7 Part B VP-SKILL-064/065 re-marked FINALIZED (stale 'pending/still-owed' framing removed). (6) VP-HOOK-024 consumer vectors re-aligned to ITERATIVE-CONSUME (sort by issued_at_utc ASC; first successful atomic rename → allow; all renames fail/exhausted → deny) replacing the retired '>1 → ambiguous deny'; SM-15 retargeted from multiplicity-guard to iterative-consume exhaustion fail-open; audit path aligned to ${CLAUDE_PLUGIN_DATA}/markers/audit.log. (7) mutant catalog SM-9..SM-28 (20 mutants); test-count estimate refreshed ~139 → ~165."
+  - "1.1 (2026-07-20): Adversarial pass 1 remediation — verification-delta re-aligned to architecture-delta v1.2 canonical marker schema v2.0 (expires_at_utc absolute, 120s TTL, base64 audit, rename-fail→deny, ticket-bound command_pattern) and 15-field verdict schema. (A) ADV-F2-008: FINALIZED VP-SKILL-064 (monitoring-loop org_slug scoping — sole plugin-side cross-tenant isolation guarantee, D-DEC-005). (B) ADV-F2-019 [process-gap]: added VP-SKILL-065 (autonomy_enabled kill switch — zero markers + zero jr writes when false). (C) ADV-F2-001/004: VP-HOOK-025 field completeness 12→15 (severity[13], asset_type[14], ticket_action_type[15]); VP-HOOK-026 hard-floor legs corrected to inject verdict.severity=HIGH + verdict.asset_type=critical-asset (keyed on severity NOT confidence). (D) ADV-F2-002: VP-HOOK-024 ticket-bound command_pattern + create/assign scoped allow-path vectors + rename-fail→deny. (E) ADV-F2-015: all stale BC version refs updated to LIVE (BC-3.01.001 v1.13, BC-3.03.001 v1.8, BC-4.02.001 v1.5, BC-10.01.001 v1.2). (F) SM-N catalog extended to SM-9..SM-25 (added severity-field-drop, ticket_action_type-ignored→wrong-scope, hard-floor-keyed-on-confidence, hard-floor-after-auto-close ADV-F2-005, org_slug-drop, kill-switch-ignore). (G) test-count estimate refreshed ~119 → ~139."
+  - "1.0 (2026-07-20): Initial F2 verification-delta — 17 VPs, 4 PO questions answered, SM-9..SM-19, ~119 test-count estimate."
+inputs:
+  - .factory/phase-f2-spec-evolution/architecture-delta.md
+  - .factory/phase-f2-spec-evolution/prd-delta.md
+  - .factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass1.md
+  - .factory/phase-0-ingestion/verification-gap-analysis.md
+  - .factory/specs/module-criticality.md
+  - .factory/phase-0-ingestion/behavioral-contracts/BC-3.01.001.md
+  - .factory/phase-0-ingestion/behavioral-contracts/BC-3.03.001.md
+  - .factory/phase-0-ingestion/behavioral-contracts/BC-4.02.001.md
+  - .factory/phase-0-ingestion/behavioral-contracts/BC-4.05.001.md
+  - .factory/phase-0-ingestion/behavioral-contracts/BC-5.01.001.md
+  - .factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass3.md
+  - .factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass4.md
+  - .factory/phase-0-ingestion/behavioral-contracts/BC-6.01.001.md
+  - .factory/phase-0-ingestion/behavioral-contracts/BC-6.01.003.md
+  - .factory/phase-0-ingestion/behavioral-contracts/BC-6.01.004.md
+  - .factory/phase-0-ingestion/behavioral-contracts/BC-8.02.001.md
+  - .factory/phase-0-ingestion/behavioral-contracts/BC-9.01.001.md
+  - .factory/phase-0-ingestion/behavioral-contracts/BC-10.01.001.md
+  - plugins/secops-factory/tests/hooks.bats
+  - plugins/secops-factory/tests/integration.bats
+verification_stack: "BATS behavioral / structural-presence / integration (jr-mock + prism-DTU) + manual SM-N mutant catalog + adversarial fixtures. NO Kani/proptest/cargo-fuzz (declarative bash/markdown plugin)."
+---
+
+# Verification Delta — v0.10.0-feature-prism-integration (Phase F2)
+
+> **Scope:** Finalizes all VP assignments for the prism-integration cycle, resolves the
+> product-owner's 4 open technical questions as VP design decisions, extends the SM-N
+> mutant catalog for the marker-validation and disposition-guard-JSON paths, and estimates
+> the per-BC BATS test-count delta for F3 story sizing. Does NOT modify any BC, index, or
+> STATE.md. BC reference corrections that require the product-owner's action are listed in §7.
+>
+> **v1.1 (adversarial pass 1 remediation):** re-aligned to architecture-delta **v1.2**
+> canonical marker schema **v2.0** (`expires_at_utc` absolute, 120s TTL, base64-encoded audit
+> command field, rename-fail→deny, ticket-bound `command_pattern`) and the **15-field** verdict
+> schema (12 ICD-203 + severity[13] + asset_type[14] + ticket_action_type[15]). Finalizes
+> **VP-SKILL-064** (ADV-F2-008 org_slug scoping) and adds **VP-SKILL-065** (ADV-F2-019 kill
+> switch). Corrects VP-HOOK-024/025/026. All BC version references updated to LIVE. SM-N catalog
+> extended to SM-9..SM-25. Live-BC snapshot at v1.1 edit time: BC-3.01.001 **v1.13**, BC-3.03.001
+> **v1.8**, BC-4.02.001 **v1.5**, BC-10.01.001 **v1.2**.
+>
+> **v1.2 (adversarial pass 2 remediation):** closes the architecture-delta **v1.3** §8.7
+> FORMAL-VERIFIER LIST. Adds **4 VPs** — **VP-HOOK-027** (P1 cross-hook: STAGE-ORDER
+> DOCUMENT-BEFORE-ACTION, ADV-F2-P2-001/P2-014), **VP-SKILL-066** (BC-4.02.001 Inv#4
+> never-auto-reopen on the update-jira path, ADV-F2-P2-009a), **VP-SKILL-067** (BC-4.02.001 Inv#5
+> SLA surface-never-assume, ADV-F2-P2-009b), **VP-SKILL-068** (D-DEC-002 grace-window + Jira-first
+> dedup, ADV-F2-P2-009c) — and **3 mutants** (SM-26 reopen-guard-removed, SM-27
+> dedup-check-removed→double-ticket, SM-28 stage-order-inverted). Re-aligns VP-HOOK-024 to the
+> **iterative-consume** consumer (architecture-delta §D-DEC-001 v1.3: sort by issued_at_utc ASC,
+> first successful atomic rename → allow, exhausted → deny) — retiring the ">1 → ambiguous deny"
+> gate — and to the canonical audit path `${CLAUDE_PLUGIN_DATA}/markers/audit.log`. **Live-BC
+> snapshot at v1.2 edit time (SYNCED, ADV-F2-P2-005): BC-10.01.001 v1.4, BC-3.01.001 v1.14,
+> BC-3.03.001 v1.9, BC-4.02.001 v1.5, BC-6.01.001 v1.3.**
+>
+> **v1.3 (adversarial pass 3 remediation):** closes the architecture-delta **v1.4** §8.9
+> FORMAL-VERIFIER LIST (pass 3), the D-DEC-011 confidence float→enum contract, and the
+> D-DEC-008-C artifact-class field-set branching. Adds **4 VPs** — **VP-SKILL-069**
+> (investigate-event PrismQL org_slug scoping, ADV-F2-P3-004), **VP-SKILL-070** (assess-priority
+> PrismQL org_slug scoping, ADV-F2-P3-004), **VP-SKILL-071** (assess-priority confidence float→enum
+> consistency at D-DEC-011 thresholds 0.75/0.40, ADV-F2-P3-008), **VP-HOOK-028** (verdict-path
+> reachability, ADV-F2-P3-005) — and **2 mutants** (SM-29 unknown-asset-hard-floor-removed,
+> SM-30 artifact-class-over-strict). Extends **VP-HOOK-026** with the `asset_type=unknown` hard-floor
+> leg (ADV-F2-P3-001 CRITICAL) and **VP-HOOK-025** with the 12-vs-15 per-class field split
+> (ADV-F2-P3-003) + confidence float→enum legs (ADV-F2-P3-008). **Live-BC snapshot at v1.3 edit
+> time (SYNCED): BC-3.03.001 v1.11, BC-3.01.001 v1.15, BC-5.01.001 v1.7, BC-10.01.001 v1.7,
+> BC-4.05.001 v1.3, BC-6.01.001 v1.4, BC-4.02.001 v1.6.** Cross-doc/other-file version-ref
+> reconciliation is owned by the dedicated version-coherence sweep that runs after this edit.
+>
+> **v1.5 (adversarial pass 4 remediation):** closes the architecture-delta **v1.6** §8.11
+> FORMAL-VERIFIER LIST (pass 4), the **D-DEC-008 JSON-first dispatch** precedence fix, the
+> **D-DEC-012** review-ticket surfacing path (`create-review`/`comment-review`), the D-DEC-008
+> `validate_enums()` membership gate, and the `autonomy_enabled` operational-field determinism fix.
+> Adds **2 VPs** — **VP-HOOK-029** (**P1** fail-loud invariant: a hard-floor / Indeterminate /
+> silent-sensor verdict MUST yield a `create-review`/`comment-review` marker OR an explicit error
+> artifact — NEVER silent discard, ADV-F2-P4-004) and **VP-SKILL-072** (BC-10.01.001 Inv#13
+> first-run 24h lookback correctness, ADV-F2-P4-012 / D-DEC-002) — and **5 mutants** (SM-31
+> validate_enums-removed, SM-32 review-surfacing-hard-floor-bypass-removed, SM-33
+> autonomy_enabled-clause-removed, SM-34 dispatch-order-inverted, SM-35 control-char-strip-removed).
+> Extends **VP-HOOK-024** (create `command_pattern` injection-safety, ADV-F2-P4-002 CRITICAL),
+> **VP-HOOK-025** (`validate_enums()` membership legs, ADV-F2-P4-006), **VP-HOOK-026**
+> (create-review/comment-review hard-floor-EXEMPT + kill-switch-EXEMPT legs + `autonomy_enabled`
+> read-direct-from-verdict determinism, D-DEC-012 / ADV-F2-P4-004 / P4-005), and **VP-HOOK-028**
+> (canonical-path JSON-first dispatch regression, ADV-F2-P4-001 CRITICAL). **Live-BC snapshot at
+> v1.5 edit time (SYNCED): BC-3.03.001 v1.13, BC-3.01.001 v1.17, BC-10.01.001 v1.9, BC-4.02.001
+> v1.8, BC-6.01.001 v1.5.** Cross-doc/other-file version-ref reconciliation remains owned by the
+> dedicated version-coherence sweep.
+
+---
+
+## 1. Namespace Adjudication (independent re-verification)
+
+The F1 audit reported occupancy `VP-SKILL 001–049`, `VP-HOOK ≤023`. I re-verified independently
+by globbing every BC in `.factory/phase-0-ingestion/behavioral-contracts/` and mapping each
+new VP ID to its owning file. **v1.1 added VP-SKILL-064 (ADV-F2-008) and VP-SKILL-065
+(ADV-F2-019). v1.2 added VP-SKILL-066/067/068 + VP-HOOK-027 + SM-26/27/28. v1.3 (this edit)
+re-verified occupancy independently against the LIVE BCs by `grep -rhoE 'VP-(SKILL|HOOK)-[0-9]{3}'`
+across every BC — max in-BC `VP-SKILL` = 070 (BC-5.01.001 references VP-SKILL-069 PROPOSED;
+BC-4.05.001 references VP-SKILL-070 PROPOSED), max `VP-HOOK` = 027, `SM` catalog max = 28. v1.3
+FINALIZES the two already-PROPOSED ids (VP-SKILL-069 in BC-5.01.001, VP-SKILL-070 in BC-4.05.001 —
+exactly as the BCs cite them) and appends VP-SKILL-071 (next free 071, confirmed absent repo-wide
+outside architecture-delta) + VP-HOOK-028 (next free 028, confirmed absent repo-wide) + SM-29/30.
+VP-SKILL is now occupied 001–071, VP-HOOK 024–028, SM 9–30; ZERO collisions confirmed
+independently.**
+
+**v1.5 (this edit) re-verified occupancy independently against the LIVE pass-4 BCs by
+`grep -rhoE 'VP-(SKILL|HOOK)-[0-9]{3}'` across every BC — max in-BC `VP-SKILL` = 071, max
+`VP-HOOK` = 028, `SM` catalog max = 30. `VP-SKILL-072`, `VP-HOOK-029`, and `SM-31..SM-35` are
+confirmed absent from every BC (VP-HOOK-029 appears ONLY as a `(proposed)` forward-reference in
+architecture-delta.md v1.6 §8.11 item 6 — no owning BC yet). v1.5 appends the next-free ids
+**VP-HOOK-029** (P1 fail-loud, D-DEC-012) + **VP-SKILL-072** (first-run 24h lookback, BC-10.01.001
+Inv#13) + **SM-31..SM-35**. VP-SKILL is now occupied 001–072, VP-HOOK 024–029, SM 9–35; ZERO
+collisions confirmed independently:**
+
+| VP ID | Owning BC(s) | Pre-existing collision? | Verdict |
+|-------|--------------|-------------------------|---------|
+| VP-SKILL-050 | BC-10.01.001 | none (max pre-F1 = 049) | FINALIZED |
+| VP-SKILL-051 | BC-6.01.001 | none | FINALIZED |
+| VP-SKILL-052 / 053 | BC-6.01.003 | none | ACCEPTED |
+| VP-SKILL-054 / 055 | BC-6.01.004 | none | ACCEPTED |
+| VP-SKILL-056 / 057 | BC-8.02.001 | none | ACCEPTED |
+| VP-SKILL-058 / 059 | BC-9.01.001 | none | ACCEPTED |
+| VP-SKILL-060 / 061 / 062 / 063 | BC-10.01.001 | none | ACCEPTED |
+| **VP-SKILL-064** *(NEW v1.1)* | BC-10.01.001 (Inv#1 — PROPOSED, ADV-F2-008) | none (max prior = 063) | **FINALIZED** (org_slug scoping) |
+| **VP-SKILL-065** *(NEW v1.1)* | BC-10.01.001 (Inv#11 — process-gap, ADV-F2-019) | none (next free = 065) | **FINALIZED** (autonomy_enabled kill switch) |
+| **VP-SKILL-066** *(NEW v1.2)* | BC-4.02.001 (Inv#4 — ADV-F2-P2-009a) | none (max prior = 065) | **FINALIZED** (never-auto-reopen on the update-jira path) |
+| **VP-SKILL-067** *(NEW v1.2)* | BC-4.02.001 (Inv#5 — ADV-F2-P2-009b) | none | **FINALIZED** (SLA surface-never-assume) |
+| **VP-SKILL-068** *(NEW v1.2)* | BC-10.01.001 (Inv#8 dedup / D-DEC-002 — ADV-F2-P2-009c) | none (next free = 068) | **FINALIZED** (grace-window + Jira-first dedup) |
+| **VP-SKILL-069** *(NEW v1.3)* | BC-5.01.001 (Inv#8 — ADV-F2-P3-004); already PROPOSED-referenced in BC-5.01.001 v1.8 | none (BC cites this exact id) | **FINALIZED** (investigate-event PrismQL org_slug scoping) |
+| **VP-SKILL-070** *(NEW v1.3)* | BC-4.05.001 (Inv#4 — ADV-F2-P3-004); already PROPOSED-referenced in BC-4.05.001 v1.3 | none (BC cites this exact id) | **FINALIZED** (assess-priority PrismQL org_slug scoping) |
+| **VP-SKILL-071** *(NEW v1.3)* | BC-4.05.001 (PC#6 / D-DEC-011 — ADV-F2-P3-008) | none (next free = 071) | **FINALIZED** (assess-priority confidence float→enum consistency) |
+| **VP-HOOK-028** *(NEW v1.3)* | BC-10.01.001 (Stage-7 verdict-path PC#8 — ADV-F2-P3-005); enforced by BC-3.03.001 (fast-path) + BC-3.01.001 (consume) | none (max prior = 027) | **FINALIZED** (verdict-path reachability) |
+| **VP-HOOK-027** *(NEW v1.2)* | BC-10.01.001 (Inv#14 — ADV-F2-P2-001/P2-014); enforced by BC-3.03.001 (emit) + BC-3.01.001 (consume) | none (max prior = 026) | **FINALIZED** (P1 cross-hook stage-order document-before-action) |
+| **VP-SKILL-072** *(NEW v1.5)* | BC-10.01.001 (Inv#13 first-run 24h lookback / D-DEC-002 — ADV-F2-P4-012) | none (next free = 072) | **FINALIZED** (first-run 24h lookback correctness; distinct from VP-SKILL-050 monotonicity) |
+| **VP-HOOK-029** *(NEW v1.5)* | BC-10.01.001 (D-DEC-012 fail-loud, Inv#10 review-surfacing — ADV-F2-P4-004); enforced by BC-3.03.001 (emit) + BC-3.01.001 (consume create-review/comment-review) | none (max prior = 028) | **FINALIZED strategy** (P1 fail-loud invariant; architect requests VP-INDEX status PROPOSED → F6-adjudicated) |
+| VP-HOOK-024 | BC-3.01.001 | none (max pre-F1 = 023) | FINALIZED (ticket-bound + create/assign scopes, schema v2.0, iterative-consume; **v1.5: create-pattern injection-safety**) |
+| VP-HOOK-025 | BC-10.01.001 (defines) + BC-3.03.001 (enforces) | none — shared reference, not a duplicate assignment | FINALIZED (15 fields; **v1.5: validate_enums() membership legs**) |
+| VP-HOOK-026 | BC-10.01.001 | none | FINALIZED (hard-floor keyed on severity/asset_type; **v1.5: create-review/comment-review + kill-switch exemptions, autonomy_enabled determinism**) |
+| VP-HOOK-028 | BC-10.01.001 (Stage-7 PC#8) + BC-3.03.001 (dispatch) | none | FINALIZED (verdict-path reachability; **v1.5: JSON-first canonical-path dispatch**) |
+
+**Result: ZERO namespace collisions. No renumbering required.** Each VP-SKILL-050..072
+and VP-HOOK-024..029 appears in exactly one *owning* BC.
+
+**VP-HOOK-029 namespace justification (VP-HOOK vs VP-SKILL — pass 4).** Like the rest of the
+VP-HOOK marker family, the fail-loud invariant's observable outcome is produced hook-side:
+disposition-guard (D-DEC-012 emitter Step 3) MUST issue a `create-review`/`comment-review`
+restricted marker for a hard-floor / Indeterminate / silent-sensor verdict (exempt from the
+hard-floor no-marker rule and the `autonomy_enabled` kill switch), or write an explicit error
+artifact — never leave the marker store empty with no error. The "never silently discarded"
+guarantee is a hook-side emit obligation (BC-3.03.001) + consumer acceptance of the two review
+tokens (BC-3.01.001 v1.17 step 6); BC-10.01.001 Inv#10 (narrowed at v1.8 so hard floors set
+`create-review`/`comment-review`, not `none`) is the authoritative *definition*. Enforcement is
+100% hook-side → **VP-HOOK**, tagged **P1** per architecture-delta §8.11 item 6. **VP-SKILL-072
+ownership.** First-run 24h lookback (BC-10.01.001 Inv#13 / EC-001) is a monitoring-loop
+query-construction property — the loop, on an absent watermark file, MUST issue
+`WHERE _time >= now() - INTERVAL 24 HOURS` and MUST NOT scan full sensor history — so it belongs
+in **VP-SKILL**. It is distinct from VP-SKILL-050 (watermark *monotonicity* + future-timestamp
+rejection): VP-SKILL-050's incidental "first-run = 24h lookback" mention is subsumed and now
+carries an explicit cross-reference to the dedicated VP-SKILL-072 (no double-allocation — 050
+proves post ≥ pre on an *existing* watermark; 072 proves the *absent-watermark* lookback bound
+and post-run persistence).
+
+**VP-SKILL-069/070/071 ownership (pass 3).** VP-SKILL-069 owns to **BC-5.01.001** (investigate-event
+Invariant #8 — Stage-3 OCSF lookup + temporal-adjacency PrismQL always carry an `org_slug` WHERE
+clause) and VP-SKILL-070 owns to **BC-4.05.001** (assess-priority Invariant #4 — PC#5a/5b/5d PrismQL
+paths always carry `org_slug`). These are the two PrismQL surfaces the adversary flagged (ADV-F2-P3-004)
+as uncovered by VP-SKILL-064 (monitoring-loop-only) and VP-SKILL-059 (scan-threats-only); each BC
+already lists its VP as PROPOSED with a matching BATS test-name pair, so finalization is a scope
+confirmation, not a new assignment. VP-SKILL-071 owns to **BC-4.05.001** (PC#6 / D-DEC-011 — the
+`confidence_score` float → `confidence` enum mapping fidelity at the 0.75/0.40 thresholds); it is
+orthogonal to VP-SKILL-070 (query scoping) — no overlap. **VP-HOOK-028 namespace justification
+(VP-HOOK vs VP-SKILL).** Like VP-HOOK-025/027, the verdict-path-reachability property's ALLOW/DENY
+verdict is produced entirely hook-side: disposition-guard fast-path-allows a Write whose path lacks
+the `verdict` substring (emitting NO marker), and require-review then DENIES the downstream Stage-8
+`jr` Bash (no marker to consume). The monitoring-loop SKILL merely chooses the write path; the
+enforcement surface is 100% hook-side, so the property belongs in **VP-HOOK**. BC-10.01.001 Stage-7
+PC#8 (verdict-path naming convention) is the authoritative *definition*; BC-3.03.001 (fast-path) +
+BC-3.01.001 (consume) are the *enforcement* surfaces.
+
+**VP-HOOK-027 namespace justification (VP-HOOK vs VP-SKILL — pick and justify per task item 1).**
+The stage-order document-before-action property is realized *entirely by the two PreToolUse
+hooks*: disposition-guard (the emitter — must fire on the Stage 7 verdict Write and drop a
+marker) and require-review (the consumer — DENIES the Stage 8 `jr` Bash call when no preceding
+marker exists). The ALLOW/DENY verdict under test is produced by the hooks, not by any
+skill-internal branch; the monitoring-loop SKILL merely orders the two tool calls. Because the
+enforcement surface is 100% hook-side (identical to the VP-HOOK-024/025/026 marker family), the
+property belongs in the **VP-HOOK** namespace, not VP-SKILL. This mirrors the VP-HOOK-025
+define/enforce pattern: BC-10.01.001 Invariant #14 is the authoritative *definition* of the
+ordering; BC-3.03.001 (emit) + BC-3.01.001 (consume) are the *enforcement* surfaces. It is
+tagged **P1** per architecture-delta §8.7 item 1.
+
+**VP-SKILL-066/067 own to BC-4.02.001** (update-jira, distinct from the monitoring-loop path
+that VP-SKILL-062 covers): Invariant #4 (never-auto-reopen) and Invariant #5 (SLA surface) are
+update-jira-skill invariants with no prior VP anchor (BC-4.02.001's VP table currently lists only
+VP-SKILL-006/007/008 — see §7). **VP-SKILL-068 owns to BC-10.01.001** at the dedup/grace-window
+invariant (Inv#8 / D-DEC-002) — orthogonal to VP-SKILL-050 (watermark monotonicity only), no
+overlap. **VP-SKILL-064 and VP-SKILL-065 both
+own to BC-10.01.001** (Invariant #1 and Invariant #11 respectively) — distinct invariants,
+distinct properties, no overlap with the existing 050/060–063 monitoring-loop VPs. VP-HOOK-025
+legitimately appears in two BCs because BC-10.01.001 Invariant #9 is the authoritative
+field-list definition and BC-3.03.001 (disposition-guard) is the enforcement surface — this is
+a define/enforce pair, not a double-allocation. The pre-F1 BCs (BC-3.02/3.04/3.05/3.06,
+BC-4.01/4.03/4.04/4.06, BC-6.01.002, BC-7.01.001, BC-8.01.001) top out at VP-SKILL-049 /
+VP-HOOK-023 with no overlap into the 050+/024+ ranges.
+
+**Adjudication of the 12 proposed VPs (052–063): ALL FINALIZED.** They are well-formed, each
+maps to a stated invariant in its owning BC, and each has a testable BATS strategy. No scope
+overlap, no duplication of an existing VP's property. The `(PROPOSED)` qualifier has been
+dropped by the product-owner in the BCs (first landed BC-10.01.001 v1.2 §Revision, BC-3.03.001
+v1.8, BC-3.01.001 v1.13; current LIVE versions BC-10.01.001 v1.9, BC-3.03.001 v1.13, BC-3.01.001
+v1.17); confirmed applied — see §7.
+
+---
+
+## 2. Finalized VP Table
+
+Strategy legend: **B-BEH** = BATS behavioral (hook exercised via stdin JSON envelope, assert
+`permissionDecision` / marker-store side effect); **B-STR** = BATS structural-presence (assert
+SKILL.md/dir/command text or filesystem shape); **B-INT** = BATS integration (jr-mock and/or
+prism-DTU-demo-server backed, `--config-dir <tmpdir>` isolated); **B-INT-XH** = cross-hook
+integration (two sequential subprocess hook invocations sharing `CLAUDE_PLUGIN_DATA`).
+
+| VP ID | Name / Property | Strategy | Test surface | BC anchor |
+|-------|-----------------|----------|--------------|-----------|
+| VP-HOOK-024 | Marker-validation soundness (schema v2.0, **iterative-consume**): write-block-matched command WITH a valid, unexpired (`now() > expires_at_utc` absolute check; 120s TTL), single-use, correctly-scoped, **ticket-bound** (`command_pattern` anchored to `<ticket_id> ` for comment/assign; operation-scoped for create), non-path-traversal marker → allow; candidates **sorted by `issued_at_utc` ASC (oldest first); the first candidate whose atomic `mv → .used` rename SUCCEEDS → allow; if every rename fails (all consumed by a concurrent invocation) → deny (fail-closed exhaustion)**; **rename-fail on a lone candidate → continue/deny (fail-closed)**; audit line appended with **base64-encoded** command to `${CLAUDE_PLUGIN_DATA}/markers/audit.log`; replay of a consumed marker → deny. Covers comment/create/assign scoped allow-paths. Replaces the retired ">1-candidate → ambiguous deny" gate (architecture-delta §D-DEC-001 v1.3 / ADV-F2-P2-003). **v1.5 (ADV-F2-P4-002 CRITICAL): create `command_pattern` injection-safety — the create pattern is anchored `^jr (--output json )?issue create --project <key>( \|$)` with `--project` as the FIRST flag (no `.*` before it) and a trailing `( \|$)` boundary; an attacker-influenceable `--summary` value carrying a `--project ORG_A` substring does NOT match an ORG_A-scoped create marker; a `--project PROD` marker does NOT authorize `--project PRODUCTION` (prefix guard). v1.5 (ADV-F2-P4-010): audit line strips control chars (`tr -d '\000-\037'`) from `ticket_id`/`org_slug`/`op` before interpolation — a `\n` in `ticket_id` cannot forge a second MARKER_USED line.** | B-BEH + B-INT-XH | require-review.sh stdin envelope `{tool_input.command}`; `CLAUDE_PLUGIN_DATA=$(mktemp -d)`; assert `.used` rename + `markers/audit.log` `command_b64=` line; ticket-bound vector (SEC-123 marker → DENY SEC-456); create/assign scoped allow vectors; **concurrent same-scope: two valid markers → oldest consumed, ALLOW; all-renames-fail → exhausted DENY**; **v1.5 injection vectors: marker `command_pattern="^jr (--output json )?issue create --project ORG_A( \|$)"` + command `jr issue create --summary "review --project ORG_A" --project ORG_B` → DENY; `--project PROD` marker + `--project PRODUCTION` command → DENY; v1.5 audit: `ticket_id` containing `$'\n'` → single MARKER_USED line only (control chars stripped)** | BC-3.01.001 (v1.17) |
+| VP-HOOK-025 | ICD-203 completeness (**dual-path, artifact-class field-set branching — D-DEC-008-C**): disposition-guard branches the required field-set by artifact class — **investigation markdown = 12 ICD-203 fields** (heading-anchored `grep`; Severity/Asset Type/Ticket Action Type are NOT required and their presence must NOT trigger a wrong-class deny) vs **verdict JSON = 15 fields** (12 ICD-203 + **severity[13], asset_type[14], ticket_action_type[15]**) via `jq has()` key-presence + per-field type check; enforces tuning_signal null-vs-absent semantics; severity-based hard-floor legs; **field#2 confidence is enum-only (D-DEC-011): a float `confidence` value is DENIED, the enum values {high,medium,low} are ALLOWED** (ADV-F2-P3-008). **v1.5 (ADV-F2-P4-006 MAJOR): `validate_enums()` membership gate runs BEFORE the hard-floor check and fail-closed-DENIES any non-member / wrong-case value on ALL typed fields — `severity∈{LOW,MEDIUM,HIGH,CRITICAL}`, `asset_type∈{domain_controller,privileged_account,ot_safety_system,standard,unknown}`, `disposition∈{TP,FP,BTP,Indeterminate}`, `sensor_health_status∈{healthy,degraded,silent}`, `ticket_action_type∈{comment,create,assign,none,create-review,comment-review}`, `confidence∈{high,medium,low}`. A case-mangled `severity:"High"` is DENIED (NOT allowed-without-marker), closing the hard-floor bypass where key-presence passed but membership silently failed.** | B-BEH | disposition-guard.sh stdin `{tool_input.file_path, content}`; **investigation-markdown 12-field fixture (all 12 headings → allow; missing any of 12 → deny; a spurious Severity heading added → still allow, no wrong-class 15-field deny)**; **verdict-JSON 15-field fixture (missing any of 15 → deny)**; **confidence float→deny + confidence∈{high,medium,low}→allow legs**; **v1.5 enum-membership legs: `severity="High"`→DENY, `severity="CRITICAL"`→allow (other fields OK), `asset_type="Unknown"`→DENY, `disposition="indeterminate"`→DENY, `sensor_health_status="Degraded"`→DENY, `ticket_action_type="NONE"`→DENY (fail-closed, before hard floor)** | BC-3.03.001 (v1.13) PC#1/2/3 (JSON-first; 12 markdown / 15 JSON + validate_enums) / BC-10.01.001 (v1.9) Inv#9 |
+| VP-HOOK-026 | Indeterminate / hard-floor non-overridability: no autonomy configuration (`autonomy_enabled`, `require_review`, auto-scope) can cause a hard-floor category (Indeterminate / **verdict.severity∈{HIGH,CRITICAL}** / **verdict.asset_type∈CRITICAL_ASSET_TYPES** / **verdict.asset_type=='unknown'** / T1003·T1068·T1021·T1041 / degraded-silent sensor) to receive a marker; hard floor keys on **severity/asset_type NOT confidence** (ADV-F2-001); **the `unknown` asset_type is a conservative hard-floor member (ADV-F2-P3-001): a LOW-severity + benign-technique + `asset_type=unknown` verdict NEVER gets a REGULAR marker regardless of `autonomy_enabled`**; loop always routes to human. **v1.5 (D-DEC-012 / ADV-F2-P4-004): the `create-review`/`comment-review` review-surfacing marker types are EXEMPT from the hard-floor no-marker rule AND from the autonomy_enabled kill switch (escalation ≠ autonomous triage) — a hard-floor (e.g. HIGH-severity / Indeterminate / silent-sensor) verdict with `ticket_action_type=create-review` DOES get a restricted marker (`authorized_operations:["create-review"]`); the same under `autonomy_enabled=false` still emits the review marker. v1.5 (ADV-F2-P4-005): the kill switch is read DIRECTLY by disposition-guard from the verdict's `autonomy_enabled` operational field (not delegated to the loop LLM) — `autonomy_enabled≠true` (false OR absent → conservative false) suppresses ALL REGULAR markers (comment/create/assign) while leaving review-surfacing markers untouched.** | B-BEH + B-INT-XH | disposition-guard.sh with hard-floor verdict + `autonomy_enabled=true` injected via envelope; inject **verdict.severity=HIGH**, **verdict.asset_type=critical-asset** (domain_controller), and **verdict.asset_type=unknown with severity=LOW + benign technique** → assert marker-store dir stays EMPTY on every REGULAR leg; **v1.5 review-surfacing legs: Indeterminate + `create-review` → restricted marker emitted with `authorized_operations=["create-review"]` (hard-floor EXEMPT); silent-sensor + `comment-review` → restricted marker emitted; HIGH-severity + `create-review` → marker emitted; `autonomy_enabled=false` + `create-review` → marker STILL emitted (kill-switch EXEMPT); v1.5 kill-switch legs: `autonomy_enabled=false` + regular `create` → NO marker; `+ comment` → NO marker; `autonomy_enabled` ABSENT + regular create → treated false → NO marker** | BC-10.01.001 (v1.9 Inv#10/§3.9); BC-3.03.001 (v1.13 Inv#4) |
+| **VP-HOOK-027** *(NEW v1.2, **P1**)* | **Stage-order document-before-action (ADV-F2-P2-001/P2-014):** a monitoring-loop `jr issue comment/create/assign` (Stage 8 TICKET ACTION) is **DENIED** by require-review unless a verdict-record Write for the SAME run/verdict (Stage 7 DOCUMENT) — which caused disposition-guard to emit a matching scoped marker — preceded it within the marker TTL (120s). Proves the D-DEC-008 ordering invariant is enforced end-to-end: Stage 7 DOCUMENT must precede Stage 8 TICKET ACTION, or the loop can never auto-action (the ADV-F2-P2-001 CRITICAL failure mode). | B-INT-XH | Positive: (1) disposition-guard.sh on a valid non-hard-floor verdict Write → assert marker emitted in `${CLAUDE_PLUGIN_DATA}/markers/`; (2) require-review.sh on the matching `jr` Bash → assert **allow** + marker consumed. Negative: require-review.sh on the same `jr` Bash with **NO preceding verdict Write** (empty marker dir) → assert **deny**. TTL-expiry leg: verdict Write, wait past 120s, jr Bash → deny. Same shared `CLAUDE_PLUGIN_DATA=$(mktemp -d)` env across the two subprocess hooks (ASM-009 condition). | BC-10.01.001 (v1.9 Inv#14, D-DEC-008); enforced by BC-3.03.001 (emit) + BC-3.01.001 (consume) |
+| VP-SKILL-050 | Watermark monotonicity: per org×sensor watermark write is always ≥ previous persisted value; loop never re-processes a consumed window on restart; future timestamp rejected. *(First-run 24h lookback is covered by the dedicated **VP-SKILL-072** as of v1.5 — this row proves post ≥ pre on an EXISTING watermark only.)* | B-INT | Inject pre-existing watermark file under `CLAUDE_PLUGIN_DATA/watermarks/<org>/<sensor>`; run loop stub; assert post ≥ pre | BC-10.01.001 (Inv#4, D-DEC-002) |
+| VP-SKILL-051 | Prism version gate: `prism --version` parsed and compared to `1.0.0-rc.1`; below → halt with version-gate error, no MCP write; at/above → proceed to dual MCP write | B-INT | prism-version-check.sh with mocked `prism --version`; assert halt vs proceed + no settings write on halt | BC-6.01.001 (v1.5) |
+| VP-SKILL-052 | onboard-customer UUID-v7 format validation; malformed UUID rejected with re-prompt | B-STR + B-INT | onboard-customer helper / SKILL.md; feed invalid UUID | BC-6.01.003 |
+| VP-SKILL-053 | onboard-customer idempotent directory creation; re-run does not modify/delete existing `customers/<org_slug>/` | B-INT | mktemp spec dir; run twice; assert dir unchanged | BC-6.01.003 |
+| VP-SKILL-054 | onboard-sensor AD-017 compliance: SKILL.md never requests credential paste in chat; only piped-stdin `echo \| prism credential set` documented | B-STR | grep SKILL.md for forbidden paste pattern; assert absent | BC-6.01.004 |
+| VP-SKILL-055 | onboard-sensor SELECT 1 verification mandatory; success message gated AFTER the SELECT 1 step | B-STR | SKILL.md ordering assertion | BC-6.01.004 |
+| VP-SKILL-056 | sensor-metrics per-org×sensor output completeness: each prism_sensor_health row yields org_slug, sensor_id, last_seen_ts, row_count, error_rate | B-INT | prism-DTU-demo-server rows; assert 5 fields per pair | BC-8.02.001 |
+| VP-SKILL-057 | sensor-metrics naming compliance (D-DEC-006): dir `skills/sensor-metrics/`, cmd `commands/sensor-metrics.md`; no bare `metrics` alias | B-STR | filesystem presence + negative-presence | BC-8.02.001 |
+| VP-SKILL-058 | scan-threats prism_describe-first invariant: SKILL.md documents table enumeration before any hunting query, per org | B-STR | SKILL.md step-ordering assertion | BC-9.01.001 |
+| VP-SKILL-059 | scan-threats org_slug scoping: Iron Law / Red Flag documents that all PrismQL queries carry org_slug scope; cross-tenant query is a Red Flag | B-STR | SKILL.md content assertion | BC-9.01.001 |
+| VP-SKILL-060 | Known-FP precedes enrichment: Stage 2 known-FP match → FP disposition with NO Stage 4 enrichment API call | B-INT | jr-mock + enrichment-call spy; assert zero Stage-4 calls | BC-10.01.001 |
+| VP-SKILL-061 | Sensor silence is a positive finding: `last_seen_ts > 24h AND row_count == 0` → BLIND-SPOT finding; never empty output / never "nothing to report" | B-INT | prism-DTU silent-sensor fixture; assert BLIND-SPOT emitted | BC-10.01.001 |
+| VP-SKILL-062 | Never-auto-reopen-closed: a Closed ticket for the same root cause never receives `jr issue reopen`; a NEW linked ticket is created | B-INT | jr-mock returning Closed ticket; assert create-new + link, no reopen verb | BC-10.01.001 |
+| VP-SKILL-063 | Tavily degradation path: Tavily unavailable → set uncertainty_explicit, proceed Perplexity-only, do NOT abort, do NOT force Indeterminate | B-INT | Tavily-absent stub; assert loop continues, disposition not forced Indeterminate | BC-10.01.001 |
+| **VP-SKILL-064** *(NEW v1.1)* | **monitoring-loop org_slug scoping (ADV-F2-008 — sole plugin-side cross-tenant isolation guarantee, D-DEC-005):** every loop-issued PrismQL query carries an `org_slug` constraint matching the current FOR-EACH org context; a query issued in org-a context NEVER returns org-b/c rows; the loop's query construction always injects `org_slug`; an unscoped query attempt is rejected/scoped by the loop | B-INT + B-STR | prism-DTU multi-org fixtures (org-a/b/c, `--config-dir <tmpdir>`): assert an org-a query returns zero org-b/c rows; **static/structural** grep that query construction always emits `org_slug`; **adversarial fixture** — attempt an unscoped query → must be rejected/scoped | BC-10.01.001 (v1.9 Inv#1, D-DEC-005) |
+| **VP-SKILL-065** *(NEW v1.1)* | **autonomy_enabled kill switch (ADV-F2-019, Inv#11):** `autonomy_enabled=false` ⇒ ZERO markers consumed AND ZERO jr write operations (`jr issue create/comment/assign`) executed, while evidence collection + verdict construction + Jira drafting still proceed (propose-only) | B-INT | BATS integration with `autonomy_enabled=false` injected: assert `CLAUDE_PLUGIN_DATA/markers/` has no consumed (`.used`) markers AND no `jr create/comment/assign` fires (jr-mock spy count == 0); assert draft written to verdict file with `annotation=propose-only` | BC-10.01.001 (v1.9 Inv#11, EC-020) |
+| **VP-SKILL-066** *(NEW v1.2)* | **update-jira never-auto-reopen (ADV-F2-P2-009a — BC-4.02.001 Inv#4):** on the update-jira path, NO code path from the Closed (PC#7d) or Resolved (PC#7c) branch results in a `jr issue move` that transitions a ticket out of Closed/Resolved; Resolved → propose-only + halt; Closed → create-new + link. Holds regardless of `autonomy_enabled`. (VP-SKILL-062 covers only the monitoring-loop path — this is the distinct update-jira surface.) | B-INT + B-STR | jr-mock returning a Resolved ticket → assert propose-reopen message + halt + zero `jr issue move` reopen verbs (EC-007); jr-mock returning a Closed ticket → assert create-new + `jr issue link`, zero reopen (EC-008); **static** grep of `update-jira/SKILL.md` (+ any helper): no autonomous `jr issue move` out of Resolved/Closed | BC-4.02.001 (v1.8 Inv#4, §3.4 PC#7c/PC#7d) |
+| **VP-SKILL-067** *(NEW v1.2)* | **SLA surface-never-assume (ADV-F2-P2-009b — BC-4.02.001 Inv#5):** append-comment (PC#7a), link-related (PC#7b), and propose-reopen (PC#7c) actions each emit an explicit SLA-impact statement before executing/proposing; when SLA data is not retrievable from `jr issue view` the statement reads "SLA: unknown — do not assume compliant"; the skill NEVER silently assumes SLA compliance | B-INT + B-STR | jr-mock ticket WITH an SLA deadline → assert output contains "SLA impact:" with the deadline; jr-mock ticket WITHOUT retrievable SLA → assert "SLA: unknown — do not assume compliant"; assert an append/link/propose path never omits the statement; **static** grep of `update-jira/SKILL.md` for the SLA-statement format | BC-4.02.001 (v1.8 Inv#5, §3.5) |
+| **VP-SKILL-068** *(NEW v1.2)* | **grace-window + Jira-first dedup (ADV-F2-P2-009c — D-DEC-002 / BC-10.01.001 Inv#8):** a late/out-of-order OCSF event re-fetched inside the watermark grace window (`WATERMARK_GRACE_SECONDS`, default 300s) that already has an existing OPEN Jira ticket results in an append-COMMENT on that ticket (Jira-first dedup), NOT a new ticket; an in-grace event with NO existing ticket takes the normal create path. (VP-SKILL-050 remains watermark-monotonicity only.) | B-INT | prism-DTU seeds an event whose normalized `_time` falls in `[watermark − GRACE, watermark]`; jr-mock returns an existing open ticket for that event → assert `jr issue comment` (append) fired and `jr issue create` NOT fired; boundary leg: same event, jr-mock returns zero open tickets → assert create path; RFC3339 UTC-Z `_time` normalization applied before comparison | BC-10.01.001 (v1.9 Inv#8, D-DEC-002) |
+| **VP-SKILL-069** *(NEW v1.3)* | **investigate-event PrismQL org_slug scoping (ADV-F2-P3-004 — BC-5.01.001 Inv#8):** every investigate-event PrismQL query — the Stage-3 raw OCSF event lookup and the ±5-minute temporal-adjacency query (BC-5.01.001 §3.8 PC#7 Stage 3) — always includes an explicit `org_slug='<org_slug>'` WHERE clause for the current org context (D-DEC-005); an unscoped query is rejected; a query issued in org-a context returns zero org-b/c rows. Distinct from VP-SKILL-064 (monitoring-loop-only) and VP-SKILL-059 (scan-threats-only). | B-STR + B-INT | **static** Iron-Law content assertion on `investigate-event/SKILL.md` (every PrismQL block carries `WHERE org_slug=`); prism-DTU multi-org fixture (org-a/b/c, `--config-dir <tmpdir>`) — org-a Stage-3 + temporal-adjacency queries return zero org-b/c rows; **adversarial** unscoped-query fixture → rejected/scoped | BC-5.01.001 (v1.8 Inv#8, PC#7 Stage 3, D-DEC-005) |
+| **VP-SKILL-070** *(NEW v1.3)* | **assess-priority PrismQL org_slug scoping (ADV-F2-P3-004 — BC-4.05.001 Inv#4):** every assess-priority PrismQL query (PC#5a 30-day baseline, PC#5b NVD/ThreatIntel enrichment, PC#5d asset-criticality lookup) always includes an explicit `org_slug` WHERE clause (D-DEC-005); unscoped queries rejected; org-a query returns zero org-b/c rows. | B-STR + B-INT | **static** Iron-Law content assertion on `assess-priority/SKILL.md` PrismQL blocks (PC#5a/5b/5d each carry `WHERE org_slug=`); prism-DTU multi-org fixture — org-a query returns zero org-b/c rows; **adversarial** unscoped-query → rejected/scoped | BC-4.05.001 (v1.3 Inv#4, PC#5a/5b/5d, D-DEC-005) |
+| **VP-SKILL-071** *(NEW v1.3)* | **assess-priority confidence float→enum consistency (ADV-F2-P3-008 — BC-4.05.001 PC#6 / D-DEC-011):** for every `confidence_score` float output, the paired `confidence` enum matches the D-DEC-011 canonical thresholds — `high` iff `confidence_score ≥ 0.75`, `medium` iff `0.40 ≤ confidence_score < 0.75`, `low` iff `confidence_score < 0.40`; an inconsistent pair (e.g. `confidence_score=0.85` with `confidence='low'`) is invalid; boundary values 0.75 and 0.40 map to the higher tier. This is the producer-side guarantee that the enum handed to verdict field #2 is well-formed before disposition-guard's enum type-assertion (VP-HOOK-025) sees it. | B-INT (boundary/property) | boundary fixtures at and around each threshold: `0.75→high`, `0.749→medium`, `0.40→medium`, `0.399→low`, `1.0→high`, `0.0→low`; assert emitted `confidence` enum matches; inconsistency fixture (`0.85`/`low`) → flagged invalid; enum is one of {high,medium,low} (never a float) | BC-4.05.001 (v1.3 PC#6, D-DEC-011) |
+| **VP-HOOK-028** *(NEW v1.3)* | **verdict-path reachability (ADV-F2-P3-005):** a monitoring-loop Stage-7 verdict Write to a path NOT containing the `verdict` substring causes disposition-guard to **fast-path-allow WITHOUT ICD-203 validation and WITHOUT marker issuance**; consequently the downstream Stage-8 `jr` write is **DENIED** by require-review (no marker to consume). Proves the load-bearing verdict-file-path naming convention (BC-10.01.001 Stage-7 PC#8) is enforced end-to-end: a mis-named verdict path is fail-closed (denies the action), never fail-open. **v1.5 (ADV-F2-P4-001 CRITICAL — JSON-first dispatch): the canonical verdict path `artifacts/investigations/verdict-<id>-<iso_ts>.json` contains BOTH the `investigation` and `verdict` substrings; dispatch MUST be JSON-first — a file ending in `.json` OR whose content parses as JSON (`jq empty`) routes to the verdict-class 15-field path REGARDLESS of any `investigation` substring; ONLY a `*investigation-*.md` file routes to the 12-field markdown path. Without this precedence the canonical verdict JSON is misrouted to the heading-grep branch, fails all `## `-heading assertions, is DENIED, emits no marker, and the entire autonomous pipeline is unreachable.** | B-INT-XH | Negative: disposition-guard.sh on a Write to `artifacts/findings/alert-001.json` (no `verdict` substring) → assert marker-store dir stays EMPTY; then require-review.sh on the matching `jr` Bash → assert **deny**. Positive control: same content written to `artifacts/investigations/verdict-alert-001.json` → marker emitted → jr **allow**. **v1.5 canonical-path dispatch legs: `artifacts/investigations/verdict-alert-001.json` (BOTH substrings) → JSON-first → 15-field verdict path → marker emitted (POSITIVE, not misrouted to markdown); a genuine `artifacts/investigations/investigation-001.md` → 12-field markdown path.** Shared `CLAUDE_PLUGIN_DATA=$(mktemp -d)` across the two subprocess hooks | BC-10.01.001 (v1.9 Stage-7 PC#8, D-DEC-008); enforced by BC-3.03.001 (v1.13 PC#1/2/3 JSON-first) + BC-3.01.001 (consume) |
+| **VP-HOOK-029** *(NEW v1.5, **P1**)* | **Fail-loud invariant (D-DEC-012 / ADV-F2-P4-004):** a hard-floor / Indeterminate / silent-sensor verdict MUST result in either a `create-review`/`comment-review` restricted review marker (which authorizes the downstream escalation `jr issue create/comment` for a `[REVIEW-REQUIRED]` / `[BLIND-SPOT]` ticket) OR an explicit error artifact — it may NEVER be silently discarded. There is NO path that yields "allow with no marker AND no review ticket AND no error" for a verdict that must surface to a human. This closes the D-DEC-008 regression where a hard-floor verdict got `ticket_action_type=none`, no marker, and the ticket was silently dropped in unattended cron (no human to click approve). | B-INT-XH | disposition-guard.sh on a `disposition=Indeterminate` + `ticket_action_type=create-review` verdict → assert a restricted `create-review` marker file exists in `${CLAUDE_PLUGIN_DATA}/markers/` (`authorized_operations=["create-review"]`); silent-sensor + `comment-review` → assert `comment-review` marker exists; **fail-loud assertion: for a hard-floor verdict, assert (a review marker exists) OR (an explicit error artifact was written) — assert NOT (empty marker dir AND no error)**; downstream require-review.sh on the matching `jr issue create`/`comment` → assert **allow** (review marker consumed). Shared `CLAUDE_PLUGIN_DATA=$(mktemp -d)` | BC-10.01.001 (v1.9 Inv#10 narrowed, D-DEC-012); enforced by BC-3.03.001 (emit review marker) + BC-3.01.001 (v1.17 consume create-review/comment-review) |
+| **VP-SKILL-072** *(NEW v1.5)* | **First-run 24h lookback correctness (ADV-F2-P4-012 — BC-10.01.001 Inv#13 / EC-001 / D-DEC-002):** when NO watermark file exists for an org×sensor pair (first invocation), the loop's Stage-1 query is bounded to `WHERE _time >= now() - INTERVAL 24 HOURS` (never a full-history scan), and after a successful run the watermark is persisted to the most-recent processed event `_time`. Distinct from VP-SKILL-050 (monotonicity on an EXISTING watermark). | B-INT | Run loop stub with an EMPTY `CLAUDE_PLUGIN_DATA/watermarks/` dir (no file for org×sensor); assert the emitted PrismQL carries the `now() - INTERVAL 24 HOURS` lower bound (and NOT an unbounded / full-history query); after run, assert a watermark file is persisted at the latest processed `_time`; control: pre-existing watermark → assert the 24h-lookback branch is NOT taken (query uses the watermark bound) | BC-10.01.001 (v1.9 Inv#13, EC-001, D-DEC-002) |
+
+**Totals:** 5 FINALIZED F1 VPs (024, 025, 026, 050, 051) + 12 FINALIZED proposed VPs (052–063)
++ 2 v1.1 VPs (064, 065) + 4 v1.2 VPs (VP-HOOK-027, VP-SKILL-066, 067, 068) + 4 v1.3 VPs
+(VP-SKILL-069, 070, 071, VP-HOOK-028) + **2 NEW v1.5 VPs (VP-HOOK-029, VP-SKILL-072)** = **29
+VPs** for the cycle. Strategy mix: **8 hook properties** (VP-HOOK-024/025/026/027/028/029 —
+CRITICAL/HIGH enforcement; 027/028/029 are cross-hook B-INT-XH; VP-HOOK-029 is P1 fail-loud),
+**21 skill properties** (VP-SKILL-072 is a first-run integration test; VP-SKILL-069/070 are
+static+integration+adversarial org_slug scoping on the investigate-event and assess-priority
+PrismQL surfaces; VP-SKILL-071 is a boundary/property test at the D-DEC-011 confidence thresholds;
+VP-SKILL-066/067 are mixed integration+structural; VP-SKILL-068 is prism-DTU + jr-mock integration;
+VP-SKILL-064 is mixed structural+integration+adversarial). **VP-HOOK-029 is tagged P1;
+architecture-delta §8.11 item 6 requests it be registered PROPOSED in VP-INDEX.md and adjudicated
+in F6 — the strategy here is finalized, the VP-INDEX lifecycle status is PROPOSED.**
+
+---
+
+## 3. Answers to the Product-Owner's 4 Open Technical Questions (encoded as VP design decisions)
+
+**(a) VP-HOOK-025 mechanism — disposition-guard dual-path [UPDATED v1.3 — artifact-class field-set
+branching, D-DEC-008-C].** The hook branches on artifact class, and **the required field-set differs
+per class** (the pass-3 correction — ADV-F2-P3-003; BC-3.03.001 v1.13 PC#2 corrected from the 15-field
+erratum to 12; BC-5.01.001 v1.8 Inv#7's 12-field citation was already correct): (i) if
+`tool_input.file_path` matches the investigation-markdown pattern (`*investigation-*.md`) →
+heading-anchored check (`grep -qiE "^#{1,6}[[:space:]]+<field>"`) for the **12 ICD-203 field headings
+ONLY** (Disposition, Confidence, Sensor Health Status, Evidence Artifacts, Timeline Events,
+Hypotheses Considered, Alternatives Rejected, Uncertainty Explicit, Attack Techniques, Agent Actions,
+Human Actions, Tuning Signal). Severity / Asset Type / Ticket Action Type are **NOT required** for the
+investigation-markdown class (Ticket Action Type is meaningless for a human investigation), and their
+presence in an investigation file must **NOT** trigger a wrong-class 15-field deny (SM-30 is the paired
+over-strict mutant). (ii) if the file is a verdict file (verdict path/extension OR `tool_input.content`
+parses as JSON via `jq empty`) → JSON key-presence + type check for **ALL 15 fields**. Key-presence
+uses `jq -e 'has("<field>")'` (NOT `!= null`, so a present-null key is distinguishable from an absent
+one — fail-closed deny if any of the 15 `has()` returns false).
+**ADV-F2-001/004 fix: fields 13–15 added — `severity` (field 13), `asset_type` (field 14),
+`ticket_action_type` (field 15).** Per-field type assertions (the original 12):
+`disposition` string∈{TP,FP,BTP,Indeterminate}; **`confidence` is ENUM-ONLY (D-DEC-011): `type=="string" and (.=="high" or .=="medium" or .=="low")` — a float value (e.g. `0.85`) FAILS this assertion and is DENIED (ADV-F2-P3-008); the producer-side float→enum mapping is guaranteed by VP-SKILL-071 on the assess-priority side, disposition-guard is the enforcement backstop);**
+`sensor_health_status` string∈{healthy,degraded,silent}; `evidence_artifacts`/`timeline_events`/`hypotheses_considered`/`alternatives_rejected`/`attack_techniques`/`agent_actions`/`human_actions`
+each `type=="array"`; `uncertainty_explicit` `type=="string" or .==null`; `tuning_signal`
+`type=="object" or .==null` (with disposition-conditional rule per (d)). **New (fields 13–15):**
+`severity` string∈{LOW,MEDIUM,HIGH,CRITICAL} (read by the hard-floor check — NOT `confidence`,
+which is an orthogonal axis; ADV-F2-001); `asset_type` string∈{domain_controller,privileged_account,ot_safety_system,standard,unknown}
+(critical-asset hard-floor input); `ticket_action_type` string∈{comment,create,assign,none}
+(selects the emitter scope branch per D-DEC-008; **v1.5: enum extended to
+{comment,create,assign,none,create-review,comment-review}** — `create-review`/`comment-review`
+are the D-DEC-012 review-surfacing tokens; `none` ⇒ no marker written). Malformed JSON →
+fail-closed deny (mirrors BC-3.01.001 EC-020 marker handling). This is implementable in bash
+with `jq` only — no new dependency. Enforced per BC-3.03.001 v1.13 PC#1/2/3 (dual-path) and
+BC-10.01.001 v1.9 Invariant #9 (15-field list + `autonomy_enabled` operational field).
+
+**[UPDATED v1.5 — JSON-first dispatch precedence (ADV-F2-P4-001 CRITICAL).]** The class-dispatch
+order is now **JSON-first, and this precedence is load-bearing**: the canonical verdict path
+`artifacts/investigations/verdict-<id>-<iso_ts>.json` contains BOTH the `investigation` (directory)
+and `verdict` (filename) substrings, so a plain "check `investigation` substring first" router would
+misroute the canonical verdict JSON to the 12-field heading-grep branch, fail every `## `-heading
+assertion, DENY the write, emit no marker, and render the entire autonomous pipeline unreachable.
+The corrected dispatch is exactly the order this doc already specified in (a)(ii): **(1)** if
+`tool_input.content` parses as JSON via `jq empty` OR `file_path` ends in `.json` → **verdict-class
+15-field + `validate_enums()` path** (REGARDLESS of any `investigation` substring in the path);
+**(2)** elif `file_path` matches `*investigation-*.md` → investigation-class 12-field markdown path;
+**(3)** else → fast-path allow (no ICD-203 validation). BC-3.03.001 v1.13 PC#1/2/3 are rewritten to
+this order (PC#1 = JSON check; PC#2 = investigation `.md`; PC#3 = fast-path). Mutant **SM-34**
+(dispatch-order-inverted — check the `investigation` substring before the JSON test) is the paired
+kill target; VP-HOOK-028's canonical-path leg asserts `.../verdict-alert-001.json` → 15-field path
+→ marker (positive) and `.../investigation-001.md` → 12-field path.
+
+**[UPDATED v1.5 — `validate_enums()` membership gate (ADV-F2-P4-006 MAJOR).]** BC-3.03.001 v1.11
+PC#3 described the verdict-JSON check as key-presence only (`jq has()`), but `hard_floor_applies()`
+keys on exact-string membership. A case-mangled `severity:"High"` therefore passed key-presence yet
+silently failed the `"High" ∈ {"HIGH","CRITICAL"}` test → NO hard floor → a marker was issued for
+an actually-HIGH-severity alert. v1.5 adds an explicit `validate_enums(verdict)` step (D-DEC-008
+emitter pseudocode) that runs **BEFORE** the hard-floor check and **fail-closed DENIES** any
+non-member value on ALL typed fields: `severity ∈ {LOW,MEDIUM,HIGH,CRITICAL}`,
+`asset_type ∈ {domain_controller,privileged_account,ot_safety_system,standard,unknown}`,
+`disposition ∈ {TP,FP,BTP,Indeterminate}`, `sensor_health_status ∈ {healthy,degraded,silent}`,
+`ticket_action_type ∈ {comment,create,assign,none,create-review,comment-review}`,
+`confidence ∈ {high,medium,low}`. Fail-closed DENY (not allow-without-marker) is the correct
+posture — allowing a field-mangled verdict to write to the investigation store without an ICD-203
+guarantee is the failure mode P4-006 flagged. Mutant **SM-31** (validate_enums-removed → wrong-case
+`severity` passes the hard floor and wrongly gets a marker) is the paired kill target.
+
+**(b) ASM-009 cross-hook marker visibility + atomic consume-on-use — BATS integration test.**
+Add to `integration.bats` a `setup()` that does `export CLAUDE_PLUGIN_DATA="$(mktemp -d)"`
+(teardown `rm -rf`). Test sequence (three SEPARATE subprocess hook invocations, same exported
+env = exactly the ASM-009 condition — DG writes, RR reads, distinct processes):
+(1) invoke `disposition-guard.sh` with a verdict passing all **15** fields + non-hard-floor
+disposition (FP / confidence=high / severity=LOW / asset_type=standard / healthy sensor /
+ticket_action_type=comment) → assert a `<uuid>.marker.json` (schema v2.0: `issued_at_utc`,
+`expires_at_utc` = +120s, ticket-bound `command_pattern`) now exists in
+`$CLAUDE_PLUGIN_DATA/markers/`;
+(2) invoke `require-review.sh` with `jr issue comment SEC-123 "..."` → assert `allow` AND the
+marker file is now renamed to `*.marker.json.used` (cross-hook visibility + consume-on-use) AND
+an `audit.log` line with a `command_b64=` (base64) field is appended;
+(3) invoke `require-review.sh` a SECOND time with the same command → assert `deny`
+(fail-closed on the consumed marker — proves single-use atomicity via POSIX rename; and note the
+v2.0 rename-fail→deny leg is a distinct fixture). This is VP-HOOK-024's replay leg realized as an
+integration test and is the empirical validator ASM-009 demands before Wave 3 merge.
+
+**[UPDATED v1.2 — iterative-consume + document-before-action (ADV-F2-P2-001/P2-003).]** The
+consumer is now **iterative-consume**, not ">1 → ambiguous deny" (architecture-delta §D-DEC-001
+v1.3): candidates are sorted `issued_at_utc` ASC and the loop consumes the oldest whose atomic
+`mv → .used` rename succeeds; if all renames fail it denies (fail-closed exhaustion). Two added
+integration legs: (i) **concurrent same-scope** — write TWO valid same-scope markers via two
+disposition-guard invocations, then one require-review call → assert `allow` with the *oldest*
+marker consumed and the newer one still present (legitimate multi-alert loop run no longer
+mutually invalidates — the ADV-F2-P2-003 fix); (ii) **exhaustion** — pre-rename both candidates
+to `.used` out-of-band, then require-review → assert `deny`. Separately, **VP-HOOK-027**
+(document-before-action) uses this same harness but flips the *ordering*: the negative leg invokes
+require-review on the `jr` Bash call with an EMPTY marker dir (Stage 8 before Stage 7) → assert
+`deny`; the positive leg runs disposition-guard-Write (Stage 7) → require-review-Bash (Stage 8) →
+assert `allow`. VP-HOOK-027 is the process-gap guard the adversary flagged (P2-014) that would
+have caught the P2-001 inverted-stage CRITICAL.
+
+**(c) VP-HOOK-026 fixture mechanism — env-var + stdin-envelope injection (config-file injection
+REJECTED).** Established pattern in `tests/hooks.bats`: every hook is driven purely by the
+stdin JSON envelope (`{tool_input.command}` / `{tool_input.file_path, content}`) with
+`PLUGIN_ROOT` from `BATS_TEST_DIRNAME`; there is NO existing config-file read pattern in any
+hook, and BC-3.01.001 Invariant #2 constrains the hook to decide "from the stdin JSON envelope
+only" (plus, for require-review, the marker store). Filesystem roots are supplied via env-var
+(`CLAUDE_PLUGIN_DATA`, matching the architecture-delta §Testing-Architecture `mktemp -d` +
+`export` mandate). Therefore VP-HOOK-026 injects: `CLAUDE_PLUGIN_DATA=$(mktemp -d)` for the
+marker-store, and the hard-floor verdict + `autonomy_enabled: true` inside `tool_input.content`.
+Because disposition-guard's hard floor is an UNCONDITIONAL branch that never consults autonomy
+state, the proof is: feed `autonomy_enabled=true` alongside each hard-floor category in turn and
+assert `$CLAUDE_PLUGIN_DATA/markers/` remains empty after the hook returns.
+**ADV-F2-001 leg correction (v1.1):** the earlier draft's legs injected non-existent fields; the
+hard-floor keys on the LIVE 15-field schema, so the corrected legs inject:
+(1) `disposition=Indeterminate`; (2) **`verdict.severity=HIGH`** (field 13 — NOT `confidence`;
+severity and confidence are orthogonal axes, so this leg pairs `severity=HIGH` with
+`confidence=low` to prove the hard floor still fires); (3) **`verdict.asset_type=critical-asset`**
+(field 14, e.g. `domain_controller`); (4) `attack_techniques` contains `T1003`;
+(5) `sensor_health_status=degraded`; **(6) NEW v1.3 (ADV-F2-P3-001 CRITICAL) — `verdict.asset_type=unknown`
+paired with `severity=LOW` + a benign (non-hard-floor) technique + `ticket_action_type=comment`:
+the `unknown` asset_type is a conservative hard-floor member (BC-3.03.001 v1.13 Inv#4 / BC-10.01.001
+v1.9 Inv#10), so even a fully-benign verdict with an unclassified asset must NOT receive a marker.**
+Each leg asserts **NO marker is issued** (marker dir empty) regardless of `autonomy_enabled=true`.
+The unknown-asset leg is the defense-in-depth guarantee the adversary flagged as false: the hook must
+block the marker independently of SKILL.md behavior. Mutant SM-29 (unknown-asset-hard-floor-removed) is
+the paired kill target. Config-file injection is rejected — it would introduce an input surface no hook
+reads and diverge from the harness.
+
+**[UPDATED v1.5 — `autonomy_enabled` is a verdict field read directly by the hook + review-surfacing
+exemptions (ADV-F2-P4-004/P4-005, D-DEC-012).]** Two v1.5 corrections change the VP-HOOK-026 leg set,
+both keeping the env-var + stdin-envelope harness (config-file injection still REJECTED): **(A)
+kill-switch determinism (P4-005):** `autonomy_enabled` is now a NON-ICD-203 operational metadata field
+IN the verdict JSON (alongside `jira_project_key`/`confidence_score`), and disposition-guard reads it
+DIRECTLY (D-DEC-008 emitter Step 4) rather than trusting the loop LLM to have set
+`ticket_action_type=none`. `autonomy_enabled != true` (false OR **absent → conservative false**)
+suppresses ALL REGULAR markers. New legs: `autonomy_enabled=false` + regular `create` → NO marker;
+`+ comment` → NO marker; `autonomy_enabled` ABSENT + regular `create` → treated false → NO marker.
+Mutant **SM-33** (autonomy_enabled-clause-removed → a regular marker is wrongly emitted under the kill
+switch) is the paired kill target. **(B) review-surfacing exemptions (P4-004, D-DEC-012):** the
+`create-review`/`comment-review` ticket_action_types are EXEMPT from BOTH the hard-floor no-marker rule
+AND the kill switch (emitter Step 3 runs before Step 4), because creating a `[REVIEW-REQUIRED]` /
+`[BLIND-SPOT]` ticket is human ESCALATION, not autonomous triage. New legs: Indeterminate +
+`create-review` → restricted marker emitted (`authorized_operations=["create-review"]`, hard-floor
+EXEMPT); silent-sensor + `comment-review` → restricted marker emitted; HIGH-severity + `create-review`
+→ marker emitted; `autonomy_enabled=false` + `create-review` → marker STILL emitted (kill-switch
+EXEMPT). Mutant **SM-32** (review-surfacing-hard-floor-bypass-removed → Indeterminate + create-review
+gets NO marker, over-strict) is the paired kill target; the legs assert a marker IS emitted, so the
+mutant dies. The unconditional-hard-floor legs (1)–(6) above are UNCHANGED for REGULAR
+(comment/create/assign) markers.
+
+**(d) tuning_signal null-vs-absent — jq check.** Three-way distinction, evaluated in order:
+`has("tuning_signal") == false` → **INVALID ALWAYS** (absent key is a schema violation → deny);
+`.tuning_signal == null` (key present, null) → **REQUIRED/valid for disposition∈{TP,Indeterminate}**,
+INVALID for {FP,BTP}; non-null → must be an object with `rule_id`,`asset`,`reason`, **REQUIRED
+for {FP,BTP}** (and acceptable for TP/Indeterminate). Encoding:
+`jq -e 'has("tuning_signal")'` (else deny); then
+`disp=$(jq -r .disposition)`; if `FP|BTP`:
+`jq -e '.tuning_signal!=null and (.tuning_signal|type=="object") and (.tuning_signal|has("rule_id") and has("asset") and has("reason"))'` (else deny);
+if `TP|Indeterminate`: `jq -e '.tuning_signal==null or (.tuning_signal|type=="object")'`
+(else deny). Note the deliberate use of `has()` for presence and `== null` for the value —
+conflating the two is mutant SM-18 (§4).
+
+---
+
+## 4. SM-N Mutant Catalog Extension
+
+Existing catalog runs SM-1..SM-8b (verification-gap-analysis.md §Surviving Mutants). New
+high-value mutants for the marker-validation path (require-review, **CRITICAL — target ≥95%**)
+and the disposition-guard JSON path + monitoring-loop (**HIGH — target ≥90%**; the
+monitoring-loop-verdict enforcement it guards is on the CRITICAL Jira-write path). **v1.1 added
+SM-20..SM-25 for the 15-field schema, the ticket-scoped emitter, the ADV-F2-001 severity/confidence
+fix, the ADV-F2-005 hard-floor-ordering fix, and the two new VPs (org_slug, kill switch). v1.2
+retargets SM-15 to the iterative-consume path (the ">1 ambiguous deny" mutation target was retired
+at architecture-delta §D-DEC-001 v1.3) and adds SM-26 (reopen-guard-removed), SM-27
+(dedup-check-removed→double-ticket), SM-28 (stage-order-inverted). v1.3 adds SM-29
+(unknown-asset-hard-floor-removed, ADV-F2-P3-001) and SM-30 (artifact-class-over-strict,
+ADV-F2-P3-003). **v1.5 adds SM-31 (validate_enums-removed, ADV-F2-P4-006), SM-32
+(review-surfacing-hard-floor-bypass-removed, D-DEC-012/ADV-F2-P4-004), SM-33
+(autonomy_enabled-clause-removed, ADV-F2-P4-005), SM-34 (dispatch-order-inverted, ADV-F2-P4-001),
+and SM-35 (control-char-strip-removed, ADV-F2-P4-010).** All 27 (SM-9..SM-35) must be KILLED by
+the F4/F6 suite before convergence.
+
+| Mutant | Target construct | Mutation | Killed by |
+|--------|------------------|----------|-----------|
+| SM-9 | require-review marker TTL compare | invert `(now − issued_at) > 30` → `< 30` (expired accepted / fresh rejected) | VP-HOOK-024 expired-marker test (EC-017) |
+| SM-10 | require-review authorized_operations / command_pattern scope check | delete the scope/anchored-pattern gate (comment marker authorizes create) | VP-HOOK-024 wrong-scope (EC-018) + wrong-ticket (EC-022) |
+| SM-11 | require-review atomic invalidation (`mv → .used`) | skip the rename (marker not consumed) → replay possible | VP-HOOK-024 replay-deny (EC-019) + ASM-009 §3(b) step 3 |
+| SM-12 | require-review command_pattern matcher | degrade anchored `^`-regex to substring / `grep -F` (**SEC-009 class**) | VP-HOOK-024 anchored-match + bypass-class vector (EC-022) |
+| SM-13 | require-review future-dated guard | delete `issued_at > now()` check (clock-manipulation marker accepted) | VP-HOOK-024 future-dated test (EC-017 variant) |
+| SM-14 | require-review path-safety guard | delete basename `..`/`/` check (path-traversal candidate processed) | VP-HOOK-024 path-traversal test (EC-021) |
+| SM-15 | require-review iterative-consume exhaustion guard *(retargeted v1.2 — the ">1 → ambiguous deny" gate was retired at architecture-delta §D-DEC-001 v1.3 / ADV-F2-P2-003)* | replace the post-loop `deny (fail-closed exhaustion)` with `allow` (fail-open when every candidate's rename fails) OR drop the `issued_at_utc` ASC sort so a newer/forged marker is consumed before the oldest | VP-HOOK-024 iterative-consume legs: all-renames-fail → exhausted-DENY, and concurrent-same-scope → oldest-consumed-first |
+| SM-16 | disposition-guard emitter hard-floor gate | remove hard-floor check before marker write (Indeterminate/HIGH gets marker) | VP-HOOK-026 hard-floor tests (marker dir empty) |
+| SM-17 | disposition-guard 15-field `has()` list | drop one of the original 12 fields (e.g. `timeline_events`) from the presence list | VP-HOOK-025 per-field missing-field tests |
+| SM-18 | disposition-guard tuning_signal null/absent | replace `has("tuning_signal")` with `.tuning_signal != null` (absent≡null conflated) | VP-HOOK-025 tuning_signal absent-invalid + FP-null-invalid (EC-011) |
+| SM-19 | disposition-guard dual-path router | invert verdict-vs-markdown routing (JSON verdict sent to heading check → field bypass) | VP-HOOK-025 dual-path routing test (JSON verdict allow/deny) |
+| SM-20 | disposition-guard 15-field `has()` list (new fields) | **severity-field-drop** — drop `severity`/`asset_type`/`ticket_action_type` (fields 13/14/15) from the presence list | VP-HOOK-025 missing-severity / missing-asset_type / missing-ticket_action_type tests (EC-010) |
+| SM-21 | disposition-guard hard-floor key | replace `verdict.severity` with `verdict.confidence` as the severity proxy (**ADV-F2-001 latent bypass**: HIGH-severity + low-confidence escapes the floor) | VP-HOOK-026 leg (2): `severity=HIGH` + `confidence=low` → marker dir stays empty |
+| SM-22 | disposition-guard emitter scope selection | **ticket_action_type-ignored** — ignore `verdict.ticket_action_type`, always emit a comment-scoped marker (a `create`/`assign` verdict gets a wrong-scope comment marker) | VP-HOOK-024 create-scoped + assign-scoped allow-path vectors (wrong-scope marker fails anchored `command_pattern` match) |
+| SM-23 | monitoring-loop known-FP Stage-2 fast-exit ordering | **hard-floor-check-after-auto-close** — move the hard-floor evaluation AFTER the known-FP auto-close (ADV-F2-005): a HIGH-severity / critical-asset / degraded-sensor alert that also matches a known-FP pattern gets auto-closed before the floor fires | VP-HOOK-026 + BC-10.01.001 EC-009 hard-floor-before-known-FP test (`ticket_action_type=none`; no auto-close) |
+| SM-24 | monitoring-loop PrismQL query construction | **org_slug-drop** — omit the `org_slug` scope constraint from the generated query (cross-tenant leak) | VP-SKILL-064 multi-org integration (org-a query returns zero org-b/c rows) + unscoped-query adversarial fixture |
+| SM-25 | monitoring-loop autonomy gate | **kill-switch-ignore** — ignore `autonomy_enabled=false` and execute `jr issue create/comment/assign` anyway | VP-SKILL-065 kill-switch integration (zero markers consumed, zero jr writes) |
+| SM-26 | update-jira never-auto-reopen guard | **reopen-guard-removed** (ADV-F2-P2-009a) — remove the Closed/Resolved guard so the update-jira Closed/Resolved branch emits `jr issue move` to reopen autonomously | VP-SKILL-066 (Resolved→propose-only-no-move EC-007; Closed→create-new+link-no-move EC-008) |
+| SM-27 | monitoring-loop grace-window Jira-first dedup | **dedup-check-removed → double-ticket** (ADV-F2-P2-009c) — skip the Stage-2 Jira-first dedup lookup so a grace-window re-fetched event with an existing open ticket creates a SECOND (duplicate) ticket | VP-SKILL-068 (in-grace event with existing open ticket → append-COMMENT, NOT create; mutant creates the duplicate and dies) |
+| SM-28 | monitoring-loop stage-order (document-before-action) | **stage-order-inverted** (ADV-F2-P2-001) — execute Stage 8 TICKET ACTION (`jr` Bash) BEFORE the Stage 7 DOCUMENT verdict Write, so no marker exists when require-review evaluates the jr call | VP-HOOK-027 negative leg (jr Bash with empty marker dir → DENY); positive leg proves correct order → ALLOW |
+| SM-29 | disposition-guard emitter hard-floor asset_type set | **unknown-asset-hard-floor-removed** (ADV-F2-P3-001) — drop `asset_type=='unknown'` from the hard-floor set so a LOW-severity + benign-technique + `asset_type=unknown` + `ticket_action_type=comment` verdict is issued a marker (defense-in-depth breach on the authorization boundary) | VP-HOOK-026 unknown-asset leg (marker-store dir must stay EMPTY for `asset_type=unknown`); mutant writes a marker and dies |
+| SM-30 | disposition-guard artifact-class field-set router | **artifact-class-over-strict** (ADV-F2-P3-003) — apply the 15-field set to the investigation-markdown class (demand Severity/Asset Type/Ticket Action Type headings) so a valid 12-field investigation markdown is wrongly DENIED (regresses the investigate-event DI-013 marker path) | VP-HOOK-025 investigation-12-field-accept test (12-heading investigation → allow) + Severity-heading-inserted-into-investigation → still allow (no wrong-class 15-field deny) |
+| SM-31 | disposition-guard `validate_enums()` membership gate | **validate_enums-removed** (ADV-F2-P4-006) — remove the pre-hard-floor enum-membership check so a case-mangled `severity="High"` (or `asset_type="Unknown"` / `disposition="indeterminate"` / `sensor_health_status="Degraded"` / `ticket_action_type="NONE"`) passes key-presence, silently fails the `∈{HIGH,CRITICAL}` membership test, escapes the hard floor, and is issued a marker | VP-HOOK-025 enum-membership legs (`severity="High"`→DENY, etc.); the mutant issues a marker for a case-mangled HIGH verdict and dies |
+| SM-32 | disposition-guard emitter review-surfacing (Step 3) hard-floor bypass | **review-surfacing-hard-floor-bypass-removed** (D-DEC-012 / ADV-F2-P4-004) — remove the `create-review`/`comment-review` exemption so a hard-floor (Indeterminate / HIGH / silent-sensor) verdict with `ticket_action_type=create-review` gets NO marker (over-strict) → the `[REVIEW-REQUIRED]`/`[BLIND-SPOT]` escalation ticket is silently dropped | VP-HOOK-026 review-surfacing legs (Indeterminate+create-review → marker IS emitted; silent+comment-review → marker IS emitted); VP-HOOK-029 fail-loud (marker OR error, never silent) — mutant yields empty marker dir and dies |
+| SM-33 | disposition-guard emitter `autonomy_enabled` kill switch (Step 4) | **autonomy_enabled-clause-removed** (ADV-F2-P4-005) — remove the direct `verdict.autonomy_enabled != true` suppression clause so a REGULAR `create`/`comment` marker is wrongly emitted under the kill switch (`autonomy_enabled=false` or absent) | VP-HOOK-026 kill-switch legs (`autonomy_enabled=false`/absent + regular create/comment → NO marker); mutant emits a marker and dies |
+| SM-34 | disposition-guard artifact-class dispatch order | **dispatch-order-inverted** (ADV-F2-P4-001) — test the `investigation` path substring BEFORE the JSON-content check so the canonical `artifacts/investigations/verdict-*.json` (contains BOTH substrings) is misrouted to the 12-field markdown heading-grep branch, fails all `## `-heading assertions, is DENIED, and emits no marker (pipeline unreachable) | VP-HOOK-028 canonical-path leg (`.../verdict-alert-001.json` → JSON-first → 15-field path → marker emitted); mutant denies the verdict JSON and dies |
+| SM-35 | require-review audit-log field encoding | **control-char-strip-removed** (ADV-F2-P4-010) — drop the `tr -d '\000-\037'` sanitization on `ticket_id`/`org_slug`/`op` so a `\n` embedded in `ticket_id` (Jira-content-influenced) forges an additional MARKER_USED line in `audit.log`, corrupting the chain-of-custody record | VP-HOOK-024 v1.5 audit leg (`ticket_id` containing `$'\n'` → exactly one MARKER_USED line; a forged second line fails the assertion) |
+
+**New mutation vector count: 27 (SM-9 … SM-35).** SM-9..SM-16, SM-21..SM-22, and SM-29..SM-30 land
+on the require-review + disposition-guard marker surface — the CRITICAL authorization boundary
+(module-criticality: require-review C-12 CRITICAL ≥95%; monitoring-loop surfaces CRITICAL at
+per-artifact granularity). SM-12 is the explicit SEC-009-regression sentinel; SM-21 is the
+explicit ADV-F2-001 severity/confidence-conflation sentinel; SM-23 is the ADV-F2-005
+hard-floor-ordering sentinel; SM-28 is the ADV-F2-P2-001 document-before-action-ordering
+sentinel; **SM-29 is the ADV-F2-P3-001 unknown-asset hard-floor sentinel (the pass-3 CRITICAL) and
+SM-30 is the ADV-F2-P3-003 artifact-class field-set sentinel. SM-31 is the ADV-F2-P4-006
+enum-membership-bypass sentinel, SM-33 the ADV-F2-P4-005 kill-switch-determinism sentinel, SM-34
+the ADV-F2-P4-001 dispatch-collision sentinel (both pass-4 CRITICALs land here), SM-32 the D-DEC-012
+review-surfacing-fail-loud sentinel, and SM-35 the ADV-F2-P4-010 audit-forgery sentinel.** With
+SM-9..SM-16 + SM-21..SM-22 + SM-28 + SM-29..SM-30 + **SM-31..SM-35** KILLED, the marker/authorization
+path meets the **≥95% require-review** target (SM-31/32/33/34 land squarely on the disposition-guard
+emitter authorization boundary; SM-35 on the require-review audit surface); SM-17..SM-20 + SM-23..SM-27
+carry the disposition-guard JSON path, the update-jira never-reopen guard (SM-26), and the
+monitoring-loop enforcement + dedup surface (SM-27) to **≥90%**.
+
+---
+
+## 5. Test-Count Delta per BC (F3 story-sizing input)
+
+Estimates are new **BATS test cases** (hooks.bats / skills.bats / integration.bats). Each new
+`.sh`-backed behavior also requires a `.ps1` parity test (CONV-004); parity additions are
+tracked separately and roughly mirror the hook/helper behavioral count.
+
+| BC | VPs | New BATS (behavioral/structural/integration) | Parity (.ps1) add | Notes |
+|----|-----|----------------------------------------------|--------------------|-------|
+| BC-3.01.001 (v1.17) | VP-HOOK-024 | 18 — valid-comment-allow, **create-scoped-allow**, **assign-scoped-allow**, replay-deny, expired(EC-017, `expires_at_utc` past), future-dated, wrong-scope(EC-018), consumed(EC-019), malformed(EC-020), path-traversal(EC-021), wrong-ticket(EC-022, SEC-123 marker→DENY SEC-456), **rename-fail→deny**, missing-marker-dir fail-closed, **iterative-consume: concurrent-same-scope→oldest-consumed-allow**, **iterative-consume: all-renames-fail→exhausted-deny**, **v1.5 create-injection: --summary-injected-`--project`→DENY (P4-002)**, **v1.5 prefix: `--project PROD` marker + `--project PRODUCTION`→DENY (P4-002)**, **v1.5 audit: `\n`-in-`ticket_id`→single MARKER_USED line (P4-010, SM-35 kill)** | ~14 | marker path is the SEC-009 regression surface; +3 (v1.5) — create-pattern injection-safety (P4-002 CRITICAL) + audit control-char sanitization (P4-010) |
+| BC-3.03.001 (v1.13) | VP-HOOK-025, **VP-HOOK-028 (dispatch)** | 33 — **JSON-first dispatch: verdict-JSON class: 15** missing-field (one/field, incl. severity/asset_type/ticket_action_type) + all-15-present-allow; **investigation-markdown class: 12** missing-field (one/field) + all-12-present-allow + **Severity-heading-inserted→still-allow (no wrong-class 15-field deny, SM-30 kill)**; tuning_signal{null-TP-valid, null-FP-invalid, absent-invalid, non-null-FP-valid}; dual-path-routing; **confidence-float→deny + confidence∈{high,medium,low}→allow (4, D-DEC-011)**; **v1.5 validate_enums membership: severity="High"→DENY, severity="CRITICAL"→allow, asset_type="Unknown"→DENY, disposition="indeterminate"→DENY, sensor_health="Degraded"→DENY, ticket_action_type="NONE"→DENY (6, P4-006, SM-31 kill)** | ~24 | disposition-guard artifact-class branching + JSON-first dispatch; +6 over v1.3 for the validate_enums membership legs (ADV-F2-P4-006) |
+| **BC-4.02.001 (v1.8)** *(NEW v1.2)* | VP-SKILL-066, VP-SKILL-067 | 9 — never-reopen{Resolved→propose-only-no-move (EC-007), Closed→create-new+link-no-move (EC-008), static no-autonomous-move grep}=3, SLA-surface{append-comment-has-stmt, link-has-stmt, propose-reopen-has-stmt, SLA-unknown-when-unretrievable, static format grep}=5, valid-marker-comment-allow happy path=1 | ~4 | update-jira path (distinct from monitoring-loop VP-SKILL-062); Inv#4 + Inv#5 |
+| **BC-4.05.001 (v1.3)** *(NEW v1.3)* | VP-SKILL-070, VP-SKILL-071 | 10 — org_slug{PC#5a/5b/5d static WHERE-clause=3, DTU org-a-returns-zero-org-b/c=1, unscoped-query rejected=1}=5 (VP-SKILL-070), confidence-float→enum boundary{0.75→high, 0.749→medium, 0.40→medium, 0.399→low, inconsistent-pair-invalid}=5 (VP-SKILL-071) | ~2 | assess-priority PrismQL scoping + D-DEC-011 threshold boundaries (ADV-F2-P3-004/P3-008) |
+| **BC-5.01.001 (v1.8)** *(NEW v1.3)* | VP-SKILL-069 | 4 — org_slug{static Iron-Law WHERE-clause on Stage-3 OCSF + temporal-adjacency blocks=2, DTU org-a-returns-zero-org-b/c=1, unscoped-query rejected=1} | ~1 | investigate-event PrismQL scoping (ADV-F2-P3-004); mostly static SKILL.md content assertion |
+| BC-6.01.001 | VP-SKILL-051 | 8 — version below/at/above, dual-write settings.json + prism.mcp.json, RUST_LOG=off both, jr-auth blocking, malformed-settings stop, idempotent merge (EC-008..012) | ~6 | prism-version-check.sh + activate-mcp-config.sh |
+| BC-6.01.003 | VP-SKILL-052, 053 | 6 — UUID-v7 reject, idempotent dir, org_slug dedup + 3 EC | ~2 | credential helper parity minimal |
+| BC-6.01.004 | VP-SKILL-054, 055 | 6 — AD-017 no-paste, SELECT 1 present+gated, prism_describe-verify, cred-decline + EC | ~3 | credential-set.sh parity |
+| BC-8.02.001 | VP-SKILL-056, 057 | 5 — 5-field completeness, naming/no-alias, >24h silence warning + EC | 0 | structural + prism-DTU |
+| BC-9.01.001 | VP-SKILL-058, 059 | 5 — describe-first, org_slug scoping, zero-findings message, no-tables skip + EC | 0 | structural |
+| BC-10.01.001 (v1.9) | VP-HOOK-026, VP-HOOK-027, VP-HOOK-028, **VP-HOOK-029**, VP-SKILL-050, **072**, 060, 061, 062, 063, **064**, **065**, **068** | 54 — hard-floor{Indeterminate, severity=HIGH, critical-asset, **unknown-asset+LOW+benign (1, VP-HOOK-026, ADV-F2-P3-001)**, T1003, degraded-sensor}=6, **v1.5 review-surfacing{Indeterminate+create-review→marker=1, silent+comment-review→marker=1, HIGH+create-review→marker=1, authorized_operations=['create-review']=1 (VP-HOOK-026, D-DEC-012, SM-32 kill)}=4**, **v1.5 kill-switch-determinism{autonomy=false+create→no-marker=1, +comment→no-marker=1, autonomy-absent→false→no-marker=1, autonomy=false+create-review→marker-still (exempt)=1 (VP-HOOK-026, P4-005, SM-33 kill)}=4**, **v1.5 fail-loud{hard-floor→review-marker-OR-error, never-silent=1, downstream jr create-review→allow=1 (VP-HOOK-029, D-DEC-012)}=2**, verdict-path-reachability{non-verdict-path→no-marker→jr-deny=1, verdict-path→marker→jr-allow control=1 (VP-HOOK-028)}=2, **v1.5 canonical-dispatch{investigations/verdict-*.json→15-field→marker (JSON-first)=1, investigation-*.md→12-field=1 (VP-HOOK-028, P4-001, SM-34 kill)}=2**, watermark{monotonic,future-reject}=2, **v1.5 first-run{no-watermark→24h-lookback-query=1, post-run-persist=1, existing-watermark→no-lookback control=1 (VP-SKILL-072, P4-012)}=3**, known-FP-before-enrich=2, **hard-floor-before-known-FP-autoclose (EC-009)=1**, BLIND-SPOT positive=2, never-reopen-closed=2, Tavily-degrade=2, `--bare`-absent wrapper assertion=1, allowlist-matches-SKILL=1, cross-hook ASM-009 integration=2, **org_slug{cross-tenant-org-a≠b/c=2, static query-construction check=1, unscoped-query adversarial=1}=4 (VP-SKILL-064)**, **kill-switch{zero-markers=1, zero-jr-writes=1, evidence+draft-still-allowed=1}=3 (VP-SKILL-065)**, **stage-order{document-before-action positive=1, jr-before-Write→deny=1, TTL-expiry→deny=1}=3 (VP-HOOK-027)**, **grace-window-dedup{in-grace+existing-open-ticket→comment=1, in-grace+no-ticket→create=1, _time-normalize+boundary=1, dedup-off→double-ticket mutant kill=1}=4 (VP-SKILL-068)** | ~18 | monitoring-loop CRITICAL; +15 over v1.3 for VP-HOOK-026 review-surfacing (4) + kill-switch determinism (4) + VP-HOOK-029 fail-loud (2) + VP-HOOK-028 canonical-dispatch (2) + VP-SKILL-072 first-run (3) |
+
+**Estimated new BATS test cases: ~155** (hooks/skills/integration; was ~130) + **~76 parity (.ps1)**
+additions (was ~65) ≈ **~231 new test cases** for the cycle (was ~195). The ~+25 BATS delta over v1.3
+is: +3 BC-3.01.001 (create-pattern injection-safety P4-002 + audit control-char P4-010), +6 BC-3.03.001
+(validate_enums membership legs P4-006), +15 BC-10.01.001 (VP-HOOK-026 review-surfacing 4 + kill-switch
+determinism 4, VP-HOOK-029 fail-loud 2, VP-HOOK-028 canonical-dispatch 2, VP-SKILL-072 first-run 3),
+plus ~11 parity (the hook-side additions — the disposition-guard emitter and require-review changes —
+each need a `.ps1` sibling per CONV-004; the VP-SKILL-072 loop-stub integration adds little parity).
+All 5 new pass-4 mutants (SM-31..SM-35) land on the CRITICAL disposition-guard/require-review surface,
+so these are near-exhaustive input-partition BATS on the marker path. This is consistent with the
+CRITICAL/HIGH rigor bar in module-criticality.md (near-exhaustive input-partition BATS on the marker
+path). F3 should size Wave-3 (marker mechanism), Wave-7 (monitoring-loop), the update-jira story, and
+the investigate-event / assess-priority stories to absorb the BC-3.01.001 + BC-3.03.001 +
+BC-10.01.001 + BC-4.02.001 + BC-4.05.001 + BC-5.01.001 test load (~115 of the ~155 new cases
+concentrate on the hook/marker + org_slug surfaces — the pass-4 additions are almost entirely on the
+disposition-guard emitter + require-review marker path).
+
+---
+
+## 6. Verification Strategy Notes (cross-cutting)
+
+- **jr-mock** backs all VP-SKILL-060/061/062 and the ASM-009 integration tests (ticket
+  create/comment/list JQL responses) so tests never touch a live Jira; **prism-DTU-demo-server**
+  (`--config-dir <tmpdir>` mandatory per architecture-delta §Testing-Architecture) backs
+  VP-SKILL-050/056/061 sensor/row/health fixtures.
+- Every prism-invoking test MUST call the mandated `assert_prism_config_dir_set` helper and
+  set `PRISM_CONFIG_DIR=$(mktemp -d)` in `setup()` to avoid corrupting the developer's real
+  prism config.
+- VP-HOOK-024/026 and the ASM-009 test share the `CLAUDE_PLUGIN_DATA=$(mktemp -d)` env-var
+  fixture (answer (c)); marker-store isolation per test prevents cross-test bleed.
+- The D-DEC-003 `--bare`-absent and D-DEC-010 allowlist-matches-SKILL assertions are pure
+  structural greps over `run-monitoring-loop.sh` — cheap, high-value SEC guards folded into
+  BC-10.01.001's count.
+- **VP-SKILL-064 (org_slug scoping — the sole plugin-side cross-tenant isolation guarantee,
+  D-DEC-005) uses three complementary legs:** (i) a prism-DTU-demo-server multi-org fixture with
+  three orgs (org-a / org-b / org-c) seeded with distinguishable rows — a query issued in the
+  org-a FOR-EACH context must return ZERO org-b/org-c rows (behavioral isolation proof);
+  (ii) a static/structural check that the loop's PrismQL construction ALWAYS injects an
+  `org_slug` constraint matching the current org context (grep the query-builder path — no
+  code path emits a query without the constraint); (iii) an adversarial fixture that attempts an
+  unscoped query — the loop must reject or auto-scope it, never issue it bare. This is the
+  monitoring-loop analogue of the sibling structural VP-SKILL-059 (scan-threats), but promoted to
+  a behavioral+adversarial integration property because the loop is autonomous (no human in the
+  query-construction path). Mutant SM-24 (org_slug-drop) is the paired kill target.
+- **VP-SKILL-065 (autonomy_enabled kill switch — Inv#11) is a BATS integration test with
+  `autonomy_enabled=false` injected:** assert the marker dir contains no consumed (`.used`)
+  markers AND the jr-mock spy records zero `jr issue create/comment/assign` invocations, while
+  still asserting evidence collection + verdict construction + Jira drafting proceed (a
+  `propose-only`-annotated draft is written to the verdict file). This is the positive companion
+  to VP-HOOK-026 (which proves hard floors block markers regardless of `autonomy_enabled=true`);
+  VP-SKILL-065 proves the global-off path halts all writes. Mutant SM-25 (kill-switch-ignore) is
+  the paired kill target.
+- **VP-HOOK-027 (stage-order document-before-action — P1 cross-hook, NEW v1.2) reuses the ASM-009
+  cross-hook harness (answer (b))** but tests the *ordering* rather than single-use: the property
+  is that require-review DENIES a Stage-8 `jr` write unless a Stage-7 verdict Write already caused
+  disposition-guard to emit a matching scoped marker within the 120s TTL. The negative leg
+  (`jr` Bash first, empty marker dir → deny) is the empirical guard the adversary said was missing
+  (ADV-F2-P2-014) and would have caught the inverted-stage CRITICAL (ADV-F2-P2-001). Mutant SM-28
+  (stage-order-inverted) is the paired kill target. This VP does NOT assert the monitoring-loop
+  SKILL's internal stage numbering (that is a SKILL-prose/PO concern); it asserts the *hook-enforced
+  consequence* of getting the order wrong — which is why it lives in VP-HOOK, not VP-SKILL.
+- **VP-SKILL-066/067 (update-jira never-reopen + SLA surface, NEW v1.2)** are the missing
+  update-jira-path guards (ADV-F2-P2-009a/b). VP-SKILL-062 asserts never-reopen on the autonomous
+  monitoring-loop path; VP-SKILL-066 asserts it on the analyst-facing update-jira path (jr-mock
+  Resolved→propose-only-halt, Closed→create-new+link, plus a static grep that no code path emits
+  `jr issue move` out of Closed/Resolved — directly realizing BC-4.02.001 §Refactoring-Notes'
+  stated formal-verification target). VP-SKILL-067 asserts every append/link/propose-reopen action
+  emits the explicit SLA-impact statement, defaulting to "SLA: unknown — do not assume compliant"
+  when `jr issue view` yields no SLA data. Mutant SM-26 (reopen-guard-removed) pairs with
+  VP-SKILL-066.
+- **VP-SKILL-068 (grace-window + Jira-first dedup, NEW v1.2)** closes the D-DEC-002 coverage gap
+  (ADV-F2-P2-009c): VP-SKILL-050 tests only that the watermark is monotonic; VP-SKILL-068 tests
+  that the *grace window's* re-fetch of late/out-of-order OCSF events does not double-ticket.
+  prism-DTU seeds an event with normalized `_time` inside `[watermark − WATERMARK_GRACE_SECONDS,
+  watermark]`; jr-mock returns an existing open ticket for it → assert the loop appends a comment
+  (Stage-2 Jira-first dedup, D-DEC-002 §"Jira-first dedup") and does NOT `jr issue create`. Mutant
+  SM-27 (dedup-check-removed→double-ticket) is the paired kill target: with dedup off, the
+  re-fetched event creates a duplicate and the mutant dies.
+- **VP-HOOK-026 unknown-asset leg (NEW v1.3, ADV-F2-P3-001 CRITICAL)** extends the existing
+  hard-floor family with `asset_type=unknown`. The adversary's finding was a mis-propagation on the
+  authorization boundary: BC-10.01.001 v1.9 Inv#10 policy already made `unknown` a conservative hard
+  floor, but the disposition-guard emitter list (BC-3.03.001 Inv#4) and the `hard_floor_applies()`
+  pseudocode omitted it, so a LOW-severity + benign + `asset_type=unknown` verdict with a SKILL-side
+  `ticket_action_type!=none` error would get a marker → auto-write. The BATS test injects exactly that
+  benign-but-unknown verdict with `autonomy_enabled=true` and asserts the marker-store dir stays empty.
+  Mutant SM-29 (unknown-asset-hard-floor-removed) is the paired kill target. This is a pure hook-side
+  guarantee (defense-in-depth independent of SKILL.md), which is why it stays on VP-HOOK-026.
+- **VP-HOOK-025 12-vs-15 artifact-class split + confidence float→enum legs (NEW v1.3,
+  ADV-F2-P3-003/P3-008)** close two VP-coverage seams the adversary flagged (ADV-F2-P3-013). The
+  split makes the field-set an explicit per-class test axis: the investigation-markdown class checks
+  the 12 ICD-203 headings ONLY (a valid 12-field investigation → allow; a spurious Severity heading →
+  still allow, no wrong-class 15-field deny), while the verdict-JSON class checks all 15. Mutant SM-30
+  (artifact-class-over-strict — apply the 15-field set to investigation markdown) dies on the
+  investigation-12-field-accept test — this guards the ADV-F2-P3-003 regression where 15-field
+  validation on investigation markdown would break the investigate-event DI-013 marker path. The
+  float→enum legs assert disposition-guard's field#2 enum type-assertion DENIES a float `confidence`
+  (e.g. `0.85`) and ALLOWS the three enum values — the hook-side backstop for D-DEC-011.
+- **VP-HOOK-028 (verdict-path reachability — NEW v1.3, ADV-F2-P3-005) reuses the ASM-009 cross-hook
+  harness (answer (b))** to prove the load-bearing verdict-file-path naming convention (BC-10.01.001
+  Stage-7 PC#8). Because disposition-guard fast-path-allows any Write whose path lacks the `verdict`
+  substring (no ICD-203 validation, no marker), a mis-named Stage-7 write silently emits no marker, and
+  require-review then DENIES every downstream Stage-8 `jr` write (nothing to consume). The negative leg
+  (Write to `artifacts/findings/alert-001.json` → empty marker dir → jr deny) proves the failure mode
+  is fail-closed (action denied), and the positive control (`.../verdict-alert-001.json` → marker → jr
+  allow) proves the convention is what gates reachability. No paired mutant is assigned (the property is
+  a naming-convention reachability check on the fast-path branch, covered by SM-19's dual-path router
+  mutant family); the value is the explicit reachability seam that had no owning VP.
+- **VP-SKILL-069/070 (investigate-event + assess-priority org_slug scoping — NEW v1.3,
+  ADV-F2-P3-004)** extend the D-DEC-005 tenant-isolation guarantee to the two remaining autonomous/
+  semi-autonomous PrismQL surfaces the adversary found uncovered: VP-SKILL-064 covered only the
+  monitoring-loop and VP-SKILL-059 only scan-threats. Both use the VP-SKILL-064 three-leg pattern —
+  (i) static Iron-Law content assertion that every PrismQL block in the owning SKILL.md carries a
+  `WHERE org_slug=` constraint (VP-SKILL-069: Stage-3 OCSF + temporal-adjacency; VP-SKILL-070:
+  PC#5a/5b/5d); (ii) a prism-DTU multi-org fixture asserting an org-a query returns zero org-b/c rows;
+  (iii) an adversarial unscoped-query fixture that must be rejected/scoped. VP-SKILL-069 leans more
+  static (investigate-event is analyst-driven), VP-SKILL-070 pairs static + DTU behavioral. No new
+  mutant beyond the existing SM-24 org_slug-drop pattern (the same mutation class applied per surface).
+- **VP-SKILL-071 (assess-priority confidence float→enum consistency — NEW v1.3, ADV-F2-P3-008 /
+  D-DEC-011)** is the producer-side companion to VP-HOOK-025's enum type-assertion. Architecture-delta
+  §8.9 item 4 proposed a proptest/hypothesis property test, but this plugin's stack is declarative
+  bash (no proptest — see `verification_stack`), so the property is realized as a BATS
+  boundary/equivalence-partition test over the D-DEC-011 thresholds: `confidence_score` at and around
+  0.75 and 0.40 must map to the correct enum (`0.75→high`, `0.749→medium`, `0.40→medium`, `0.399→low`,
+  endpoints inclusive to the higher tier), and an inconsistent pair (`0.85`/`low`) is flagged invalid.
+  This guarantees the enum handed to verdict field #2 is well-formed before disposition-guard
+  (VP-HOOK-025) type-asserts it — the two VPs are complementary halves of the D-DEC-011 contract.
+- **VP-HOOK-024 create-pattern injection-safety + audit sanitization (NEW v1.5, ADV-F2-P4-002
+  CRITICAL / P4-010).** The pass-4 adversary showed the v1.4 create `command_pattern`
+  `^jr (--output json )?issue create .*--project <key>` was defeated two ways: (a) the unbounded
+  `.*` let an attacker-influenceable `--summary "…--project ORG_A…"` satisfy the `--project ORG_A`
+  substring while the command actually targeted `--project ORG_B` (cross-org create bypass); (b) no
+  trailing boundary let `--project PROD` prefix-match `--project PRODUCTION`. v1.5's tests pin the
+  anchored fixed-position pattern `^jr (--output json )?issue create --project <key>( |$)` (`--project`
+  first, trailing space-or-EOL) and assert the two attack commands DENY. The P4-010 leg asserts a `\n`
+  embedded in `ticket_id` (Jira-content-influenced) cannot forge a second MARKER_USED audit line —
+  `ticket_id`/`org_slug`/`op` are control-char-stripped (`tr -d '\000-\037'`) like the base64 command.
+  These are consumer/emitter-side hook behaviors (require-review anchored match + audit; disposition-guard
+  create-emitter pattern), so they stay on VP-HOOK-024. Mutant SM-35 (control-char-strip-removed) is the
+  audit-forgery kill target; the injection legs kill the retired-`.*` regression class directly.
+- **VP-HOOK-025 validate_enums() membership gate (NEW v1.5, ADV-F2-P4-006).** The adversary found the
+  verdict-JSON check was key-presence-only while `hard_floor_applies()` keys on exact-string membership,
+  so a case-mangled `severity:"High"` passed presence, silently missed the `∈{HIGH,CRITICAL}` membership
+  test, escaped the hard floor, and got a marker for an actually-HIGH alert. v1.5 adds a
+  `validate_enums(verdict)` step that runs BEFORE the hard-floor check and fail-closed-DENIES any
+  non-member value on all six typed fields (severity, asset_type, disposition, sensor_health_status,
+  ticket_action_type, confidence). Fail-closed DENY is deliberate — allow-without-marker would let a
+  field-mangled verdict write to the investigation store without an ICD-203 guarantee. Mutant SM-31
+  (validate_enums-removed) is the paired kill target.
+- **VP-HOOK-026 review-surfacing + kill-switch determinism (extended v1.5, D-DEC-012 / ADV-F2-P4-004 /
+  P4-005).** Two pass-4 corrections extend the hard-floor family without weakening it: (i) the D-DEC-012
+  `create-review`/`comment-review` marker types are EXEMPT from the hard-floor no-marker rule and the
+  kill switch (emitter Step 3 before Step 4) because a `[REVIEW-REQUIRED]`/`[BLIND-SPOT]` ticket is human
+  ESCALATION, not autonomous triage — new legs assert a hard-floor verdict WITH `create-review` DOES get
+  a restricted marker (`authorized_operations=["create-review"]`), even under `autonomy_enabled=false`;
+  (ii) the kill switch is read DIRECTLY by disposition-guard from the verdict's `autonomy_enabled`
+  operational field (P4-005) rather than trusting the loop LLM to set `ticket_action_type=none`, so
+  `autonomy_enabled≠true` (false OR absent→conservative false) suppresses ALL REGULAR markers. The
+  original unconditional-hard-floor legs (Indeterminate/HIGH/critical-asset/unknown/T1003/degraded) are
+  UNCHANGED for regular markers. Mutants SM-32 (review-surfacing-bypass-removed → over-strict, review
+  ticket dropped) and SM-33 (autonomy_enabled-clause-removed → regular marker under kill switch) are the
+  paired kill targets.
+- **VP-HOOK-028 JSON-first canonical-path dispatch (extended v1.5, ADV-F2-P4-001 CRITICAL).** The pass-3
+  fix (mandate `verdict` in the Stage-7 path) collided with the canonical path
+  `artifacts/investigations/verdict-<id>-<iso_ts>.json`, which contains BOTH `investigation` and `verdict`
+  substrings. A plain "check `investigation` first" router misroutes the canonical verdict JSON to the
+  12-field markdown branch → heading assertions fail → DENY → no marker → the entire autonomous pipeline
+  is unreachable (the P4-001 CRITICAL). v1.5 pins the JSON-first dispatch order this doc already specified
+  (JSON-content/`.json` → 15-field verdict path REGARDLESS of the `investigation` substring; `*investigation-*.md`
+  → 12-field; else fast-path) as an explicit VP-HOOK-028 regression leg: `.../verdict-alert-001.json` →
+  15-field path → marker (positive, NOT misrouted); `.../investigation-001.md` → 12-field. Mutant SM-34
+  (dispatch-order-inverted) is the paired kill target. BC-3.03.001 v1.13 PC#1/2/3 own the rewritten dispatch.
+- **VP-HOOK-029 fail-loud invariant (NEW v1.5, P1, D-DEC-012 / ADV-F2-P4-004).** This is the closure of
+  the mutual exclusion the adversary flagged: BC-10.01.001 v1.7 Inv#10 forced hard-floor verdicts to
+  `ticket_action_type=none` (no marker), while EC-006/EC-014 required the loop to create `[BLIND-SPOT]` /
+  `[REVIEW-REQUIRED]` tickets — so in unattended cron a hard-floor verdict was silently dropped (no marker →
+  require-review denies create → ticket lost, no human to approve). BC-10.01.001 v1.8 narrows Inv#10 so hard
+  floors set `create-review`/`comment-review`, and VP-HOOK-029 proves the fail-loud consequence end-to-end:
+  for a hard-floor / Indeterminate / silent-sensor verdict, assert a review marker exists OR an explicit
+  error artifact was written — assert NOT (empty marker dir AND no error). Reuses the ASM-009 cross-hook
+  harness (disposition-guard emit → require-review consume of the review token, BC-3.01.001 v1.17 step 6).
+  Tagged **P1**; architecture-delta §8.11 item 6 requests VP-INDEX status PROPOSED, adjudicated in F6.
+  No dedicated mutant beyond SM-32 (review-surfacing-bypass), which is the direct silent-discard kill target.
+- **VP-SKILL-072 first-run 24h lookback correctness (NEW v1.5, ADV-F2-P4-012 / BC-10.01.001 Inv#13 /
+  EC-001).** Dedicated VP for the absent-watermark bound that VP-SKILL-050 (monotonicity on an existing
+  watermark) only mentioned incidentally. A loop-stub run against an EMPTY watermark dir must emit a
+  PrismQL query bounded to `now() - INTERVAL 24 HOURS` (never a full-history scan) and persist a watermark
+  at the latest processed `_time` after the run; control leg confirms an existing watermark does NOT take
+  the 24h branch. No dedicated mutant (covered by the D-DEC-002 watermark-guard mutant family and the
+  behavioral first-run assertion). Note: BC-10.01.001 Inv#15 (Resolved→propose-only, does NOT auto-reopen)
+  is NOT given a new VP — it is already covered by **VP-SKILL-066** (update-jira never-auto-reopen,
+  BC-4.02.001) on the analyst path and VP-SKILL-062 on the monitoring-loop path; §7 Part E records the
+  cross-reference so Inv#15 is not left VP-orphaned.
+
+---
+
+## 7. BC Corrections Required (product-owner owns the BCs — I do NOT edit them)
+
+These are reference-hygiene corrections surfaced by adjudication. None changes a property; all
+are qualifier/stale-text/VP-reference cleanups. Listed for the product-owner to apply in the BC
+files (I do NOT edit BCs — PO owns them).
+
+**A. Prior v1.0 corrections — CONFIRMED APPLIED (no further action).** Re-verified against the
+LIVE BCs at edit time:
+- VP-HOOK-024 `(PROPOSED)` qualifier dropped in **BC-3.01.001 v1.12/v1.13** (FV-PROPOSED-DROP).
+- VP-HOOK-025 stale "F1 draft listed only 8 fields" meta-instruction removed and dual-path
+  mechanism reference added in **BC-3.03.001 v1.7/v1.8** and **BC-10.01.001 v1.1/v1.2**.
+- VP-SKILL-051..063 `(PROPOSED)` qualifiers dropped across BC-6.01.001/6.01.003/6.01.004/
+  8.02.001/9.01.001/10.01.001 (v1.1/v1.2 FV-PROPOSED-DROP).
+- tuning_signal three-way "absent=always-invalid" leg made explicit in **BC-3.03.001 v1.7 PC#4**
+  (Step 1 unconditional `has()` check) — SM-18 preempted.
+- ADV-F2-007 marker "in conversation context or JIRA comments" wording removed from
+  **BC-4.02.001 v1.5** Precondition #1 / EC-001 (out-of-band `${CLAUDE_PLUGIN_DATA}/markers/` now
+  the sole source).
+
+**B. Prior v1.1 corrections (VP-SKILL-064/065) — CONFIRMED APPLIED (ADV-F2-P2-005; no further
+action; superseding the stale "still-owed" framing).** The four VP-SKILL-064/065 corrections
+requested by v1.1 are now live in **BC-10.01.001 v1.3/v1.4** — re-verified this edit. The earlier
+"pending / still-owed" language (and the circular BC-cites-§7-while-§7-says-owed loop the adversary
+flagged in ADV-F2-P2-005) is **removed**; both VPs are **FINALIZED**:
+- Invariant #1: `(PROPOSED — pending formal-verifier finalization)` qualifier DROPPED for
+  VP-SKILL-064 (BC-10.01.001 v1.3 revision note; line ~139 "FINALIZED v1.3").
+- Invariant #11: VP-SKILL-065 cross-reference ADDED (BC-10.01.001 v1.3; line ~268).
+- Verification Properties table: VP-SKILL-064 + VP-SKILL-065 rows ADDED (BC-10.01.001 v1.3;
+  lines ~376–377).
+- VP Anchors footer: both VPs listed as FINALIZED (BC-10.01.001 v1.3; line ~390).
+- Audit-log path (ADV-F2-P2-007) + iterative-consume (ADV-F2-P2-003): BC-3.01.001 **v1.14**
+  aligned Invariant #2 / PC#2 to `${CLAUDE_PLUGIN_DATA}/markers/audit.log` and replaced the
+  fail-fast consumer with iterative-consume — matching this delta's VP-HOOK-024 (§2). No further
+  BC action.
+
+**C. NEW corrections required by this v1.2 (VP-HOOK-027 + VP-SKILL-066/067/068 finalization).**
+These are the only outstanding BC reference-hygiene items after pass 2. None alters a property.
+
+1. **BC-10.01.001 Invariant #14 + Verification Properties table + VP Anchors footer
+   (VP-HOOK-027 — stage-order document-before-action):** Invariant #14 (v1.4 corrected the
+   Stage 7 DOCUMENT → Stage 8 TICKET ACTION ordering) carries the ordering fix but has **no VP
+   cross-reference**. Add **VP-HOOK-027** (P1 cross-hook: a Stage-8 `jr` write is denied unless a
+   Stage-7 verdict Write emitted a matching marker within TTL) to Invariant #14, add a row to the
+   Verification Properties table, and append it to the VP Anchors footer. Strategy per §2
+   (B-INT-XH: negative jr-before-Write→deny, positive correct-order→allow, TTL-expiry→deny).
+2. **BC-4.02.001 Verification Properties table + Invariants #4/#5 (VP-SKILL-066/067):** the VP
+   table currently lists only VP-SKILL-006/007/008 (line ~105) and Invariants #4 (never-auto-reopen)
+   and #5 (SLA surface) have **no VP cross-reference**. Add **VP-SKILL-066** (Inv#4 never-auto-reopen
+   on the update-jira path — the §Refactoring-Notes formal-verification target: no code path from
+   PC#7c/PC#7d emits `jr issue move`) and **VP-SKILL-067** (Inv#5 SLA surface — append/link/
+   propose-reopen emit an explicit SLA-impact statement) as VP-table rows and as the invariants'
+   VP anchors.
+3. **BC-10.01.001 Invariant #8 (dedup) / D-DEC-002 reference (VP-SKILL-068):** the dedup /
+   grace-window invariant carries the D-DEC-002 grace-window + Jira-first dedup design but has no
+   VP guarding it (VP-SKILL-050 is watermark-monotonicity only). Add **VP-SKILL-068** (in-grace
+   re-fetched event with an existing open ticket → COMMENT not create) as the Invariant #8 / dedup
+   VP anchor and a Verification Properties table row.
+4. **VP-INDEX.md + verification-coverage-matrix.md (formal-verifier/PO registration):** register
+   VP-HOOK-027, VP-SKILL-066, VP-SKILL-067, VP-SKILL-068 as FINALIZED (they occupy the
+   previously-free 027 / 066 / 067 / 068 slots; VP-HOOK is now 024–027, VP-SKILL 001–068). No
+   renumbering of any existing VP.
+
+**D. NEW corrections required by this v1.3 (pass-3 VP finalization: VP-SKILL-069/070/071 +
+VP-HOOK-028).** None alters a property; all are VP-cross-reference / status finalizations.
+
+1. **BC-5.01.001 Invariant #8 + Verification Properties table (VP-SKILL-069):** BC-5.01.001 v1.8
+   already lists VP-SKILL-069 as `PROPOSED — formal-verifier finalizes scope and BATS fixture`
+   (Inv#8 + VP table row). **Drop the `PROPOSED` qualifier → FINALIZED** and confirm the strategy
+   as authored (static Iron-Law WHERE-clause assertion on the Stage-3 OCSF + temporal-adjacency
+   PrismQL blocks + prism-DTU multi-org org-a-returns-zero-org-b/c fixture + unscoped-query
+   adversarial leg). Scope confirmed exactly as the BC states — no scope change.
+2. **BC-4.05.001 Invariant #4 + PC#6 + Verification Properties table (VP-SKILL-070, VP-SKILL-071):**
+   BC-4.05.001 v1.3 already lists VP-SKILL-070 as `PROPOSED` (Inv#4 org_slug + VP table row).
+   **Drop the `PROPOSED` qualifier → FINALIZED** (strategy confirmed: static PC#5a/5b/5d WHERE-clause
+   assertion + DTU multi-org fixture + unscoped-query leg). **Additionally add VP-SKILL-071** (PC#6 /
+   D-DEC-011 confidence float→enum consistency — boundary test at 0.75/0.40) as a NEW Verification
+   Properties table row and as the PC#6 VP anchor (BC-4.05.001 currently has no VP cross-reference for
+   the float→enum mapping guarantee).
+3. **BC-10.01.001 Stage-7 PC#8 + Invariant #9 field#2 + Invariant #10 (VP-HOOK-028, VP-HOOK-026
+   unknown leg, D-DEC-011):** (a) add **VP-HOOK-028** (verdict-path reachability) as the PC#8
+   verdict-file-path-naming-convention VP anchor + a Verification Properties table row; (b) confirm
+   **VP-HOOK-026** now cross-references the `asset_type=unknown` hard-floor member in Invariant #10
+   (BC-10.01.001 v1.9 Inv#10 already includes `unknown`; the VP anchor should name the unknown leg
+   explicitly); (c) Invariant #9 field#2 confidence-is-enum-only note should cross-reference
+   **VP-HOOK-025** (already the field-completeness VP) for the float-reject assertion.
+4. **BC-3.03.001 Invariant #4 hard-floor list + PC#2/PC#3 (VP-HOOK-026 unknown leg, VP-HOOK-025
+   per-class split):** (a) Invariant #4 hard-floor list — once BC-3.03.001 v1.13 adds the
+   `asset_type=='unknown'` bullet (architecture-delta §8.8.1 item 1), the **VP-HOOK-026** anchor
+   should name the unknown leg; (b) PC#2 (investigation markdown = 12 fields) and PC#3 (verdict JSON =
+   15 fields) are the per-class field-set surfaces for **VP-HOOK-025** — confirm both PCs cite
+   VP-HOOK-025 with the 12-vs-15 split made explicit (architecture-delta §8.8.1 item 3 corrects the
+   PC#2 15→12 erratum).
+5. **VP-INDEX.md + verification-coverage-matrix.md (formal-verifier/PO registration):** register
+   **VP-SKILL-069, VP-SKILL-070, VP-SKILL-071, VP-HOOK-028** as FINALIZED (they occupy the
+   previously-free 069 / 070 / 071 / 028 slots — 069/070 already PROPOSED-referenced in BC-5.01.001 /
+   BC-4.05.001; VP-SKILL is now 001–071, VP-HOOK 024–028). Update the **VP-HOOK-025** and
+   **VP-HOOK-026** entries for the per-class split and unknown-asset leg. No renumbering of any
+   existing VP.
+
+**E. NEW corrections required by this v1.5 (pass-4: VP-HOOK-029 + VP-SKILL-072 + VP-HOOK-024/025/026/028
+extensions).** None alters a property; all are VP-cross-reference / status additions on the pass-4
+BCs (BC-3.03.001 v1.13, BC-3.01.001 v1.17, BC-10.01.001 v1.9, BC-4.02.001 v1.8, BC-6.01.001 v1.5).
+These are the outstanding BC VP-anchor additions the PO must apply — I do NOT edit the BCs.
+
+1. **BC-10.01.001 — VP-HOOK-029 (fail-loud, P1) + VP-SKILL-072 (first-run 24h lookback) + Inv#15
+   cross-ref.** (a) Add **VP-HOOK-029** as the VP anchor for the narrowed Invariant #10 / D-DEC-012
+   fail-loud guarantee (hard-floor verdict → `create-review`/`comment-review` marker OR explicit error,
+   never silent discard) + a Verification Properties table row. Architect §8.11 item 6 tags it **P1**
+   and requests **PROPOSED** lifecycle status (F6-adjudicated) — register accordingly. (b) Add
+   **VP-SKILL-072** as the VP anchor for **Invariant #13** (first-run 24h lookback) / EC-001 + a VP-table
+   row (currently Inv#13 has no VP cross-reference; VP-SKILL-050 covers monotonicity only). (c)
+   **Invariant #15** (Resolved→propose-only) needs no new VP — add an explicit cross-reference that it is
+   covered by **VP-SKILL-066** (update-jira never-auto-reopen, BC-4.02.001) and VP-SKILL-062
+   (monitoring-loop path), so Inv#15 is not left VP-orphaned. (d) Confirm **VP-HOOK-028** now cites the
+   Stage-7 PC#8 JSON-first dispatch (not merely `verdict`-substring reachability). (e) Confirm Invariant
+   #9 now lists `autonomy_enabled` among the non-ICD-203 operational metadata fields with a **VP-HOOK-026**
+   determinism cross-reference.
+2. **BC-3.03.001 v1.13 — PC#1/2/3 JSON-first dispatch + validate_enums + review-surfacing.** (a) PC#1/2/3
+   (rewritten to JSON-first per architecture-delta v1.6 §A) are the VP-HOOK-028 dispatch surface — cite
+   **VP-HOOK-028** on the dispatch precedence (JSON/`.json` → verdict-class regardless of `investigation`
+   substring). (b) Invariant #4 / PC#3 emitter — cite **VP-HOOK-025** for the `validate_enums()`
+   membership gate (fail-closed DENY on non-member severity/asset_type/disposition/sensor_health_status/
+   ticket_action_type/confidence, BEFORE hard floor). (c) The D-DEC-012 review-surfacing emitter branch
+   (create-review/comment-review markers, hard-floor + kill-switch EXEMPT) and the `autonomy_enabled`
+   read-direct-from-verdict Step 4 — cite **VP-HOOK-026** (and **VP-HOOK-029** for the fail-loud emit).
+3. **BC-3.01.001 v1.17 — consumer create-pattern + audit sanitization + review-token acceptance.** (a)
+   Consumer step (5) anchored create `command_pattern` (`--project` first, `( |$)` trailing) — cite
+   **VP-HOOK-024** for the injection-safety guarantee (--summary injection + PROD/PRODUCTION prefix →
+   DENY). (b) Consumer step (8) audit control-char stripping (`ticket_id`/`org_slug`/`op`) — cite
+   **VP-HOOK-024** (audit-forgery leg). (c) Consumer step (6) acceptance of `create-review`/
+   `comment-review` `authorized_operations` tokens — cite **VP-HOOK-029** (the fail-loud escalation
+   consumer path).
+4. **BC-4.02.001 v1.8 — PC#4 cross-tenant stale removal (P4-008) + Inv#15 cross-ref confirm.** (a)
+   Confirm the P4-008 removal of "cross-tenant campaign correlation findings" from the PC#4 hard-floor
+   enumeration (align with BC-3.03.001/BC-3.01.001 post-P3-011). (b) Confirm **VP-SKILL-066** remains the
+   anchor for the Resolved→propose-only never-auto-reopen guarantee that BC-10.01.001 Inv#15 cross-refs.
+   (No new VP.)
+5. **VP-INDEX.md + verification-coverage-matrix.md (formal-verifier/PO registration):** register
+   **VP-SKILL-072** as FINALIZED and **VP-HOOK-029** as **PROPOSED** (P1, F6-adjudicated per architect
+   §8.11 item 6) in the previously-free 072 / 029 slots. Update the **VP-HOOK-024/025/026/028** entries
+   for the pass-4 extensions (injection-safety, validate_enums, review-surfacing + kill-switch, JSON-first
+   dispatch). VP-SKILL is now 001–072, VP-HOOK 024–029. No renumbering of any existing VP.
+
+No corrections alter any invariant, EC, or postcondition semantics. All delta BCs are otherwise
+internally consistent with the finalized **29-VP** set (27 from v1.3 + **VP-HOOK-029** + **VP-SKILL-072**)
+and the SM-N catalog extension (SM-9..SM-35). Cross-doc/other-file version-ref reconciliation (prd-delta,
+VP-INDEX headers, inter-BC citations) is explicitly NOT chased here — the dedicated version-coherence
+sweep owns global reconciliation after this edit (ADV-F2-P3-007/P3-009).
+
+---
+
+*F2 Verification Delta v1.5 complete. **29 VPs** finalized (0 collisions, 0 renumbering) —
+27 from v1.3 + **VP-HOOK-029** (P1 fail-loud invariant: hard-floor/Indeterminate/silent-sensor verdict
+→ create-review/comment-review marker OR explicit error, NEVER silent discard, D-DEC-012 / ADV-F2-P4-004)
++ **VP-SKILL-072** (first-run 24h lookback correctness, BC-10.01.001 Inv#13 / ADV-F2-P4-012). Pass-4
+extensions: **VP-HOOK-024** create `command_pattern` injection-safety (--summary injection + PROD/PRODUCTION
+prefix → DENY, P4-002 CRITICAL) + audit control-char sanitization (P4-010); **VP-HOOK-025** `validate_enums()`
+membership gate (wrong-case/non-member → fail-closed DENY before hard floor, P4-006); **VP-HOOK-026**
+create-review/comment-review hard-floor-EXEMPT + kill-switch-EXEMPT legs + `autonomy_enabled`
+read-direct-from-verdict determinism (D-DEC-012 / P4-004 / P4-005); **VP-HOOK-028** JSON-first canonical-path
+dispatch regression (investigations/verdict-*.json → 15-field verdict path, P4-001 CRITICAL). **27 SM-N
+mutants (SM-9..SM-35)** — +SM-31 (validate_enums-removed), +SM-32 (review-surfacing-hard-floor-bypass-removed),
++SM-33 (autonomy_enabled-clause-removed), +SM-34 (dispatch-order-inverted — pass-4 CRITICAL sentinel),
++SM-35 (control-char-strip-removed) — all on the CRITICAL disposition-guard/require-review authorization
+path (≥95%). **~155 new BATS + ~76 parity ≈ ~231** test cases estimated for F3 sizing (was ~195). Live-BC
+snapshot SYNCED (BC-3.03.001 v1.13, BC-3.01.001 v1.17, BC-10.01.001 v1.9, BC-4.02.001 v1.8, BC-6.01.001
+v1.5); verification-delta made internally self-consistent (VP table, mutant catalog, §5 counts, §6 notes,
+§7). Cross-doc/other-file version-ref reconciliation deferred to the dedicated version-coherence sweep
+(ADV-F2-P3-007/P3-009). BC corrections routed to product-owner in §7 Part E.*

@@ -175,3 +175,52 @@ traces_to: STATE.md
     ALL occurrences of the old semantics in the same file (EC rows, test vectors, postcondition
     tables, comments) — not just the primary invariant paragraph — and update them atomically.
     _Discovered: F2 adversarial pass 7 (P7-002 CRITICAL — 6 stale locations), 2026-07-21_
+
+---
+
+## Pass-8 Lessons (F2 adversarial pass 8, 2026-07-21)
+
+### Agent-Level
+
+13. **The happy path is not exempt from the hard-floor axiom — null binding fields are a
+    silent-discard axis on correctly-labeled verdicts [P8-001]** — Passes 1–7 focused on
+    under-label and over-label failure modes; pass 8 found a third orthogonal axis: a
+    verdict that is correctly labeled (hard_floor_applies() true, --label OK) but whose
+    binding field (jira_project_key for create-review, ticket_id for comment-review) is null
+    produces a silent allow-without-marker — the "happy path" through STEP 3. D-DEC-012
+    clause 2 ("NEVER emit allow without marker for a hard-floor verdict") applies regardless
+    of label correctness. Lesson: when specifying a "happy path" through a security gate,
+    explicitly enumerate every required field and assert that any null or absent field triggers
+    the deny-with-error path, not a silent allow.
+    _Discovered: F2 adversarial pass 8 (P8-001 CRITICAL), 2026-07-21_
+
+### Infrastructure-Level
+
+14. **Tokenizers used in hook logic must be modeled with the same quoting semantics as the
+    shell they execute in — split_on_whitespace is not sufficient [P8-002]** — The
+    structural_label_check introduced in burst 3 (P7-005 fix) used split_on_whitespace
+    tokenization to locate the --label token. The adversary demonstrated that a command
+    containing `--summary "some text --label REVIEW-REQUIRED"` would cause split_on_whitespace
+    to present --label as a standalone token inside the quoted string, producing a false deny
+    on an entirely valid command (EC-024 example). This was verified against the live hook
+    source. Fix: the tokenizer must track quote state (UNQUOTED / IN_SINGLE / IN_DOUBLE) to
+    skip tokens inside quoted spans. Lesson: any tokenizer in a security-gate hook should
+    be specified with explicit quote-handling semantics; the spec example (EC-024) must be
+    parsed through the tokenizer mechanically to verify it does not false-positive.
+    _Discovered: F2 adversarial pass 8 (P8-002 MAJOR), verified against live hook source, 2026-07-21_
+
+### Process-Level
+
+15. **Bash `[[ =~ ]]` is NOT tail-anchored — defense-in-depth claims about step ordering
+    must be verified against actual regex semantics [P8-003]** — EC-023 claimed that the
+    regular create pattern at step 5 of require-review "rejects commands with a
+    create-review token because the `( |$)` boundary anchors the match." In reality, Bash
+    `[[ string =~ pattern ]]` does NOT require the pattern to match the full string or be
+    tail-anchored — it matches a substring anywhere in the string. A command with a
+    `create-review` token appended after a regular `create` pattern match would pass step 5
+    unblocked. Step 6a's exact-type anti-fungibility cross-check is the SOLE enforcement
+    point for anti-fungibility direction A. Lesson: any "defense-in-depth" claim that relies
+    on a specific regex behavior (anchoring, boundary semantics, full-string match) must be
+    validated against the actual behavior of the regex engine in use (Bash ERE vs PCRE vs
+    POSIX) before it can be cited as a spec invariant.
+    _Discovered: F2 adversarial pass 8 (P8-003 MINOR), 2026-07-21_

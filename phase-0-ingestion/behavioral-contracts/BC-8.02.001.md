@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-07-20T00:00:00
@@ -17,7 +17,7 @@ subsystem: metrics-pipeline
 capability: CAP-METRICS-02
 lifecycle_status: active
 introduced: v0.10.0-feature-prism-integration
-modified: ["v1.1-FV-PROPOSED-DROP-2026-07-20"]
+modified: ["v1.1-FV-PROPOSED-DROP-2026-07-20", "v1.2-ADV-F2-P8-OBS-2-Cyberint-operator-note-2026-07-21"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -29,6 +29,7 @@ removal_reason: null
 # Behavioral Contract BC-8.02.001: sensor-metrics Skill — Per-Org Sensor Health Telemetry via prism_sensor_health
 
 > **Revision history:**
+> - v1.2 (2026-07-21): Pass-8 OBS-2 — Cyberint operator expectation note. Added "## Operational Notes" section with the pre-ASM-008 Cyberint operator expectation: conservative CRITICAL normalization (D-DEC-013) → 100% review escalation → REVIEW-REQUIRED ticket flood in org-b (if Cyberint-connected) until ASM-008 resolves. Expected behavior, not a defect. BC-10.01.001 cited for full context.
 > - v1.0 (2026-07-20): Initial authoring for prism-integration cycle (v0.10.0). Source: handoff brief §2.4 (metrics skill), architecture-delta.md §D-DEC-006 (skill naming: `sensor-metrics`, not `metrics`), artifact-mapping.md §1.4 (BC-8.02.001 slot). D-DEC-006 resolves naming conflict with existing `generate-metrics` skill.
 > - v1.1 (2026-07-20): FV-PROPOSED-DROP: VP-SKILL-056 and VP-SKILL-057 are now FINALIZED per verification-delta §1 — dropped `(PROPOSED)` qualifier from VP table rows and VP Anchors.
 
@@ -90,6 +91,15 @@ Jira analytics query. The skill name is `sensor-metrics` per D-DEC-006.
 4. **Distinct from generate-metrics.** This skill does not use `jr` for data
    retrieval. It does not produce Jira-based effort metrics. Any confusion between
    `sensor-metrics` and `generate-metrics` in SKILL.md prose is a defect.
+
+## Operational Notes
+
+> **Pre-ASM-008 Cyberint operator expectation (OBS-2 / D-DEC-013):** Conservative CRITICAL
+> normalization (D-DEC-013) → 100% of Cyberint traffic routes through the review escalation
+> path (create-review/comment-review). If Cyberint is connected (sensor_id=cyberint rows appear
+> in `prism_sensor_health` output), expect a REVIEW-REQUIRED ticket flood for that org until
+> ASM-008 validates actual Cyberint severity bands. **This is expected behavior, not a defect.**
+> See BC-10.01.001 Invariant #9 field-13 NORMALIZE_SEVERITY table for full context.
 
 ## Edge Cases
 

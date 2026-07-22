@@ -1,10 +1,11 @@
 ---
 document_type: architecture-delta
 producer: architect
-version: "1.10"
+version: "1.11"
 date: 2026-07-21
 input-hash: COMPUTE-AT-COMMIT
 changelog:
+  - "1.11 (2026-07-21): Pass-8 adversarial remediation (P8-001..P8-004 + OBS). A. D-DEC-008 STEP 3 DENY-THE-WRITE for missing binding fields (P8-001 CRITICAL): both silent-allow branches replaced with HARD-FLOOR-UNBINDABLE deny (create-review + null jira_project_key; comment-review + null ticket_id) per D-DEC-012 clause 2; comment-review corrective reason includes fallback hint when jira_project_key is present (suggests create-review, consistent with STEP 4 required_token logic); non-termination bounded — one HARD-FLOOR-UNBINDABLE audit entry + one deny per re-doc attempt, no Jira write, no silent loop; mirrors STEP 4 non-termination analysis. B. D-DEC-001 STEP 6a quote-aware tokenizer (P8-002 MAJOR): split_on_whitespace replaced with state-machine tokenizer (UNQUOTED/IN_SINGLE/IN_DOUBLE states); hook receives raw command string with literal quotes (jq -r, no shell expansion); EC-024 reconciled — label-literal-in-quoted-summary → has_review_label=false → ALLOW. C. Generation table and STEP 6a ( |$) boundary correction (P8-003 MINOR): explicit note that bash regex is NOT tail-anchored; regular create pattern DOES match review-labeled create at step 5; anti-fungibility direction A enforced EXCLUSIVELY at step 6a (single point of failure — raises step 6a criticality). D. §8.18/§8.19 added: pass-8 PO propagation (BC-3.03.001 STEP 3 deny branches + test vectors; BC-3.01.001 quote-aware tokenizer + EC-023/024 corrections; BC-10.01.001 VP-Anchors footer + Cyberint operator note; BC-8.02.001 Cyberint note; prd-delta §1 VP roster + §5 version catch-up + changelog) and FV propagation (VP-HOOK-029 unbindable-deny vectors; P8-002 quote-aware false-deny vector + revert mutant; EC-023 step-5 correction). P8-OBS-1: SUPERSEDED banners at §8.12.1 item 2 and §8.13 item 1 (retired marker-upgrade mechanism). P8-OBS-2: D-DEC-013 Cyberint operator note (pre-ASM-008: 100% CRITICAL → review queue flood; PO to propagate to BC-8.02.001/BC-10.01.001)."
   - "1.10 (2026-07-21): Pass-7 adversarial remediation (ADV-F2-P7-001..P7-009). A. D-DEC-008 STEP 4 REDESIGN — DENY-THE-WRITE (P7-001 CRITICAL): the marker-upgrade approach from P5-001/P6-002 is REMOVED — P7-001 proved it structurally unsound (the hook cannot rewrite the loop's future Bash command; upgrade writes a marker the loop's own non-review jr command can never consume). DENY-AT-WRITE is the only deterministic lever at the point the LLM can still react. New STEP 4: hard-floor/Indeterminate verdict with non-review ticket_action_type (create/assign/comment/none) → disposition-guard DENIES the verdict Write with a structured machine-readable corrective reason (hard_floor_trigger, required_token, label_instruction) and writes UNDER-LABEL-DENIED audit entry. No marker issued; no Jira write occurs. The loop re-issues the verdict Write with the corrective token; on corrected Write STEP 3 issues the review marker normally. Non-termination: bounded fail-closed — the deny + audit entry ARE the loud failure. STEP 4 remains before STEP 5 kill switch. UNDER-LABEL-CORRECTED audit code RETIRED; replaced by UNDER-LABEL-DENIED. B. D-DEC-012 fail-loud invariant and O3 table updated to reflect deny-the-Write semantics. O3 table extended with O4 standing rule (P7-009): every 'never silently discarded' claim MUST have a VP asserting the consumer-boundary (jr authorization/execution) outcome, not an emitter-local artifact. C. D-DEC-001 consumer STEP 6a has_review_label fix (P7-005 MINOR): structural token detection (whitespace-separated token parse; --label must appear as a standalone token immediately preceding REVIEW-REQUIRED or BLIND-SPOT) replaces raw substring over full command; prevents false-deny of regular creates whose --summary contains the label literal string. D. D-DEC-013 Cyberint explicit conservative mapping (P7-006 MINOR): Cyberint row updated from ambiguous COMPUTE-AT-VALIDATION to explicit default CRITICAL + uncertainty_explicit naming the unvalidated mapping, mirroring the unrecognized-family rule; enum-valid and auditable from first Cyberint contact. E. ASM-014 symmetry obligation added (P7-008 OBS): when jr issue comment --label support is validated, the comment-review structural check MUST be added symmetrically with create-review. F. §8.16 added: pass-7 PO propagation (BC-3.03.001 STEP 4 redesign; BC-3.01.001 step-6a structural fix; BC-10.01.001 six stale locations + Iron Law + loop re-document obligation + Cyberint mapping + brief §3.9 version-pin refresh) and §8.17 FV propagation (VP-HOOK-029 end-to-end consumer-boundary re-scope + deny-path vectors + mutants; VP-SKILL-074 Cyberint partition; step-6a false-deny vector)."
   - "1.9 (2026-07-21): Pass-6 adversarial remediation (ADV-F2-P6-001..P6-009). A. Unified P6-001/P6-004 fix: create-review command_pattern now structurally distinct — `--label (REVIEW-REQUIRED|BLIND-SPOT)` encoded in FIXED second position after `--project <key>`; consumer adds STEP 6a anti-fungibility cross-check enforcing both directions; D-DEC-012 Alternatives Rejected updated (hook-side label enforcement NOW ADOPTED, reversing prior rejection — O3 standing rule mandates this is a security control that cannot live only in SKILL.md). P6-004 unified: per-org-key isolation infeasible under brief's single-PRISM-DEMO constraint; SEC_ORG_A/SEC_ORG_B examples removed; explicit downgrade documented (single-use + TTL + review-label binding provides cross-org protection). B. STEP reorder (P6-002 CRITICAL): hard_floor_applies() under-label upgrade (formerly STEP 5) moved BEFORE autonomy_enabled kill switch (formerly STEP 4); new STEP 4 = hard-floor/under-label upgrade, new STEP 5 = kill switch; EC-012 case (d) updated from silent-drop to upgrade-path semantics. C. Inv#11/VP-SKILL-065 carve-out language added to D-DEC-012 (P6-003 MAJOR): under autonomy_enabled=false, ZERO REGULAR (comment/create/assign) markers consumed and ZERO regular jr writes; create-review/comment-review escalation writes for genuine hard-floor verdicts still execute per Option A. D. D-DEC-013 added: severity normalization named step (P6-005 MAJOR) — per-sensor-family mapping table (CrowdStrike numeric 1-100, Armis/Claroty risk bands, CVSS floats); unrecognized → CRITICAL with uncertainty_explicit; Cyberint COMPUTE-AT-VALIDATION per ASM-008. E. D-DEC-004 BLIND-SPOT dedup updated (P6-006 MINOR): ticket_action_type now create-review (new ticket) / comment-review (open-ticket dedup); D-DEC-012 exempt-marker path cited. F. D-DEC-002 late-event fail-loud added (P6-007 MINOR): events older than watermark-GRACE emit explicit auditable finding; never silent drop; ASM-008 gate noted. G. ASM-009 elevated to BLOCKING pre-Wave-3 deliverable with explicit go/no-go criteria (P6-008 MINOR); marker design marked CONDITIONAL not RESOLVED. H. D-DEC-012 O3 standing rule table extended with consumer-consumption, control-flow-ordering, and trust-boundary-crossing rows (P6-009 OBS). I. §8.14 added: pass-6 PO propagation (BC-3.01.001 consumer step 6a, BC-3.03.001 STEP reorder + pattern, BC-10.01.001 Inv#11 carve-out + VP-SKILL-065 re-scope + severity normalization) and §8.15 FV propagation (VP-HOOK-029 FINALIZE+expand, VP-SKILL-065 re-scope, VP-SKILL-074 severity-normalization, VP-SKILL-073 late-event-drop, consumer-fungibility mutants SM-36/SM-37). Namespace correction (2026-07-21): VP-SKILL-072 collided with existing FINALIZED VP (first-run 24h lookback) — reallocated to VP-SKILL-074 for severity normalization. SM-33/SM-34 collided with occupied pass-4 sentinels — reallocated to SM-36/SM-37 for consumer STEP 6a anti-fungibility mutants."
   - "1.8 (2026-07-21): Adversarial pass-5 remediation (ADV-F2-P5-001..P5-003) + human-gate confirmation. A. D-DEC-001 authoritative schema block (P5-003 MAJOR): updated to true D-DEC-012 superset — authorized_operations now includes create-review/comment-review tokens; disposition.verdict now includes Indeterminate; disposition.ticket_action_type sub-field added; O3 schema-sync obligation codified. B. D-DEC-008 STEP 3 review-exemption (P5-002 MAJOR): gated on hook-computed hard_floor_applies(verdict); create-review/comment-review tokens no longer bypass kill switch or hard floor for non-hard-floor verdicts; over-labeled non-hard-floor verdicts emit allow-without-marker at STEP 3; O3 standing rule codified. C. D-DEC-008 STEP 5 fail-loud (P5-001 CRITICAL): silent emit-allow without marker on hard_floor_applies()=true is PROHIBITED; replaced with deterministic upgrade to create-review (ticket_id null) or comment-review (ticket_id present); missing project_key → explicit error artifact + deny; audit entry written on every upgrade. D. D-DEC-012 fail-loud invariant updated: hook now enforces it deterministically (not delegated to SKILL.md). E. O3 standing rule codified in D-DEC-012. F. §8.12 added: pass-5 PO propagation (BC-3.03.001 STEP 3+5 updates, BC-10.01.001 ticket_action_type under-label semantics) and FV propagation (VP-HOOK-029 re-scope, SM-32 re-scope). G. Kill-switch/brief-§3.9 conflict RESOLVED 2026-07-21: human operator confirmed Option A — create-review/comment-review markers execute under autonomy_enabled=false for genuine hard-floor verdicts; all §8.12 HOLD markers lifted; brief §3.9 amendment delegated to PO."
@@ -214,34 +215,68 @@ FUNCTION validate_marker(command):
     IF NOT anchored_match(json.command_pattern, command):
       CONTINUE           # wrong operation scope or wrong ticket_id (EC-022)
 
-    # ── STEP 6a: Consumer anti-fungibility cross-check (ADV-F2-P6-001; structural fix ADV-F2-P7-005) ──
+    # ── STEP 6a: Consumer anti-fungibility cross-check (ADV-F2-P6-001; P7-005/P8-002 structural fix) ──
     # create-review and create markers must not be fungible in either direction:
     # - A create-review marker cannot authorize a command that lacks --label REVIEW-REQUIRED|BLIND-SPOT
     # - A create marker cannot authorize a command that carries a review label
     # "has_review_label" is a STRUCTURAL property: --label must appear as a standalone flag token,
     # not as a substring anywhere in the command (including attacker/LLM-influenceable --summary text).
     #
-    # ADV-F2-P7-005 FIX — STRUCTURAL TOKEN DETECTION:
-    # Old (defective): has_review_label = ("--label REVIEW-REQUIRED" in command) OR ("--label BLIND-SPOT" in command)
-    # A command like `jr issue create --project KEY --summary "rule --label REVIEW-REQUIRED fired"`
-    # sets has_review_label=true against a ["create"] marker → false-deny of a legitimate regular create.
-    # Fix: parse the command into whitespace-separated tokens; check only for --label as a standalone
-    # token immediately preceding REVIEW-REQUIRED or BLIND-SPOT as the next token.
+    # P8-003 CLARIFICATION: The regular create command_pattern `( |$)` boundary is NOT tail-anchored.
+    # A review-labeled `jr issue create --project KEY --label REVIEW-REQUIRED ...` PASSES step 5
+    # (bash `[[ =~ ]]` matches the prefix up to the space after KEY). `( |$)` guards ONLY against
+    # project-KEY prefix extension (P4-002 purpose; PROD does not match PRODUCTION). Anti-fungibility
+    # direction A (regular create marker cannot authorize review-labeled command) is enforced HERE,
+    # at step 6a, via structural_label_check — NOT at step 5. Step 6a is the SOLE enforcement point
+    # for this invariant; its correctness (P8-002 quote-aware tokenizer) is load-bearing.
     #
+    # ADV-F2-P7-005 FIX — STRUCTURAL TOKEN DETECTION; P8-002 FIX — QUOTE-AWARE TOKENIZER:
+    # P7-005 fix specified split_on_whitespace, which is still defective:
+    # The hook receives tool_input.command as a RAW command string via `jq -r '.tool_input.command'`
+    # (require-review.sh:45) — literal quote characters ARE present; shell has NOT expanded them.
+    # For `jr issue create --project KEY --summary "rule --label REVIEW-REQUIRED fired"`:
+    #   split_on_whitespace yields [..., '"rule', '--label', 'REVIEW-REQUIRED"', ...]
+    # `--label` IS a standalone token in the naive split → has_review_label=true → false-deny STILL
+    # FIRES with split_on_whitespace. Quote-aware tokenizer (P8-002) keeps quoted regions together.
+    #
+    # QUOTE-AWARE TOKENIZER (state machine — bash implementable):
     # Pseudocode for structural_label_check(cmd):
-    #   tokens = split_on_whitespace(cmd)
+    #   state = UNQUOTED
+    #   cur_token = ""
+    #   tokens = []
+    #   for char in cmd:
+    #     if state == UNQUOTED:
+    #       if char == "'":   state = IN_SINGLE   # open single-quote; don't add quote char to token
+    #       elif char == '"': state = IN_DOUBLE   # open double-quote; don't add quote char to token
+    #       elif char is whitespace:
+    #         if cur_token != "": tokens.append(cur_token); cur_token = ""
+    #       else: cur_token += char
+    #     elif state == IN_SINGLE:
+    #       if char == "'": state = UNQUOTED      # close single-quote; don't add quote char
+    #       else: cur_token += char               # all chars inside single-quotes → token body
+    #     elif state == IN_DOUBLE:
+    #       if char == '"': state = UNQUOTED      # close double-quote; don't add quote char
+    #       else: cur_token += char               # all chars inside double-quotes → token body
+    #   if cur_token != "": tokens.append(cur_token)   # flush final token
     #   for i in range(len(tokens) - 1):
     #     if tokens[i] == "--label" AND tokens[i+1] in {"REVIEW-REQUIRED", "BLIND-SPOT"}:
     #       return True
     #   return False
-    # A --summary value containing "--label REVIEW-REQUIRED" as free text is a single quoted token
-    # (or multi-token after quotes are stripped by the shell before hook invocation — but the hook
-    # sees the post-shell-expansion command string, where a --summary value with spaces would have
-    # been quoted; the token boundary check prevents a bare substring match inside an argument value).
+    #
+    # EC-024 RECONCILIATION: for cmd = `jr issue create --project PRISM-DEMO --summary "rule matched literal --label REVIEW-REQUIRED in alert payload"`:
+    # - Tokenizer enters IN_DOUBLE at the `"` before "rule"; all chars through closing `"` → --summary token body
+    # - Token sequence: [jr, issue, create, --project, PRISM-DEMO, --summary,
+    #                    rule matched literal --label REVIEW-REQUIRED in alert payload]
+    # - `--label` is NOT a standalone token → has_review_label=false → ["create"] marker consumed → ALLOW
+    # EC-024 is internally consistent: label-literal-in-quoted-summary → has_review_label=false → ALLOW.
+    #
+    # FV note (P8-002): false-deny vector: the quoted form above must produce ALLOW with ["create"]
+    # marker; revert mutant = "revert structural_label_check to non-quote-aware split_on_whitespace"
+    # → same input produces has_review_label=true → false DENY. Separately killable from P7-005 mutant.
     #
     # Note: comment/comment-review structural check pending ASM-014 (jr issue comment --label support);
     #       current guard for comment-review: ticket_id binding + Iron Law.
-    has_review_label = structural_label_check(command)   # ADV-F2-P7-005: token-position check, not substring
+    has_review_label = structural_label_check(command)   # P8-002: quote-aware tokenizer, not split_on_whitespace
     IF json.authorized_operations == ["create-review"]:
       IF NOT has_review_label:
         CONTINUE         # EC-023: review marker requires review-labeled command (anti-fungibility)
@@ -1054,7 +1089,7 @@ A create marker authorizes exactly one ticket creation; any attempt to reuse it 
 |------------------------|-------------|----------------------------|-------|
 | `["comment"]` | `"SEC-123"` | `^jr (--output json )?issue comment SEC-123 ` | Trailing space guards against SEC-123 matching SEC-1234 (EC-022) |
 | `["assign"]` | `"SEC-123"` | `^jr (--output json )?issue assign SEC-123 ` | Same trailing-space guard |
-| `["create"]` | `null` | `^jr (--output json )?issue create --project <jira_project_key>( \|$)` | ADV-F2-P4-002: `--project` is FIRST arg in fixed position; trailing `( \|$)` prevents prefix-match (`PROD` does not match `PRODUCTION`) |
+| `["create"]` | `null` | `^jr (--output json )?issue create --project <jira_project_key>( \|$)` | ADV-F2-P4-002: `--project` is FIRST arg in fixed position; trailing `( \|$)` prevents project-KEY prefix-extension (`PROD` does not match `PRODUCTION`). **P8-003:** bash `[[ =~ ]]` is NOT tail-anchored — this pattern DOES match a review-labeled `jr issue create --project KEY --label REVIEW-REQUIRED ...` at consumer step 5. `( \|$)` guards ONLY against prefix extension; anti-fungibility direction A (regular create marker cannot authorize review-labeled command) is enforced EXCLUSIVELY at step 6a (`structural_label_check`). |
 | `["create-review"]` | `null` | `^jr (--output json )?issue create --project <jira_project_key> --label (REVIEW-REQUIRED\|BLIND-SPOT)( \|$)` | **ADV-F2-P6-001 fix (unified with P6-004):** structurally DISTINCT from `["create"]` — `--label (REVIEW-REQUIRED\|BLIND-SPOT)` in FIXED second position after `--project <key>` (mirrors P4-002 Iron Law); a regular `jr issue create --project X` without `--label` cannot match this pattern; consumer STEP 6a enforces anti-fungibility in both directions. P6-004 unified: single PRISM-DEMO project key makes per-org project-key isolation infeasible; review-label binding is the primary cross-org protection for create-review operations |
 | `["comment-review"]` | `"SEC-123"` | `^jr (--output json )?issue comment SEC-123 ` | D-DEC-012: ticket_id-bound (same as `["comment"]`); consumer STEP 6a enforces that `["comment"]` markers cannot be consumed by a `["comment-review"]`-context command and vice versa. Structural `--label` check for comment-type commands pending ASM-014 empirical validation of `jr issue comment --label` support |
 
@@ -1080,9 +1115,13 @@ A create marker authorizes exactly one ticket creation; any attempt to reuse it 
 > limitation of the PRISM-DEMO deployment, not a silent assumption. Multi-project deployments
 > (where each org has its own Jira project key) retain full per-org-key binding.
 >
-> If `jira_project_key` is null or absent in the verdict: emit allow WITHOUT marker (do not
-> block the document write; do not authorize a create without org binding). Human approval
-> required for unbound creates.
+> If `jira_project_key` is null or absent in the verdict, behavior depends on the step:
+> - **STEP 3 (create-review — genuinely hard-floor path, P8-001 fix):** DENY-THE-WRITE with
+>   `HARD-FLOOR-UNBINDABLE` audit entry per D-DEC-012 clause 2. A hard-floor verdict cannot
+>   silently discard the review obligation. Corrective reason names missing_field=jira_project_key.
+> - **STEP 6 (regular create — non-hard-floor, autonomy-enabled path):** emit allow WITHOUT
+>   marker; document write proceeds; no jr action authorized. Human approval required for
+>   unbound regular creates.
 
 The trailing space after the ticket_id in comment/assign patterns is intentional: it prevents
 `SEC-1234` from matching a pattern anchored to `SEC-123 ` (EC-022 protection).
@@ -1205,7 +1244,27 @@ IF action in {"create-review", "comment-review"}:
   IF action == "create-review":
     project_key = verdict.jira_project_key
     IF project_key is null OR project_key == "":
-      emit allow without marker      # cannot bind create-review without project key
+      # P8-001 CRITICAL FIX — DENY-THE-WRITE (D-DEC-012 clause 2):
+      # A hard-floor verdict with create-review but no jira_project_key cannot be bound to a
+      # review marker. Silent allow-without-marker here is the P5-001 anti-pattern applied to
+      # the review path: hard-floor finding silently discarded, no audit trail, no review ticket.
+      # D-DEC-012 clause 2 mandates "explicit error artifact written to audit.log AND a deny
+      # emitted" — fail loud instead.
+      #
+      # Non-termination: if the loop re-documents create-review and STILL omits jira_project_key,
+      # this deny fires again — exactly one HARD-FLOOR-UNBINDABLE audit entry + one deny per
+      # attempt; no Jira write; no silent loop. Bounded fail-closed, mirroring the STEP 4
+      # analysis: the deny + audit entry ARE the loud failure.
+      WRITE audit entry:
+        "HARD-FLOOR-UNBINDABLE: hard-floor create-review verdict with missing jira_project_key" +
+        "; missing_field=jira_project_key" +
+        "; verdict Write denied by disposition-guard (P8-001/D-DEC-012 clause 2)"
+      emit deny(
+        "HARD-FLOOR-UNBINDABLE: cannot bind create-review marker without jira_project_key. " +
+        "hard_floor_trigger=" + identify_hard_floor_trigger(verdict) + ". " +
+        "missing_field=jira_project_key. " +
+        "Re-issue this Write with jira_project_key populated in the verdict."
+      )
       RETURN
     # ADV-F2-P4-002: --project MUST be first arg; trailing ( |$) prevents prefix-match
     # ADV-F2-P6-001: --label (REVIEW-REQUIRED|BLIND-SPOT) in FIXED SECOND position after --project
@@ -1216,7 +1275,31 @@ IF action in {"create-review", "comment-review"}:
   ELIF action == "comment-review":
     ticket_id = verdict.ticket_id
     IF ticket_id is null:
-      emit allow without marker      # cannot bind comment-review without ticket_id
+      # P8-001 CRITICAL FIX — DENY-THE-WRITE (D-DEC-012 clause 2):
+      # Same class as create-review + null project_key. Comment-review without ticket_id
+      # cannot be bound to a marker. Fail loud.
+      #
+      # Fallback hint: if jira_project_key IS present, the corrective reason suggests
+      # create-review (consistent with STEP 4 required_token logic: ticket_id=null →
+      # required_token=create-review; the verdict may be mis-classified as comment-review
+      # when no open ticket exists yet). If jira_project_key is also absent, note both
+      # missing fields.
+      project_key_fallback = verdict.jira_project_key
+      IF project_key_fallback is null OR project_key_fallback == "":
+        fallback_hint = "jira_project_key also absent — re-issue with ticket_id (comment-review) or jira_project_key (create-review) populated."
+      ELSE:
+        fallback_hint = "jira_project_key=" + project_key_fallback + " is present — if no review ticket exists yet, re-issue with ticket_action_type=create-review instead."
+      WRITE audit entry:
+        "HARD-FLOOR-UNBINDABLE: hard-floor comment-review verdict with null ticket_id" +
+        "; missing_field=ticket_id" +
+        "; verdict Write denied by disposition-guard (P8-001/D-DEC-012 clause 2)"
+      emit deny(
+        "HARD-FLOOR-UNBINDABLE: cannot bind comment-review marker without ticket_id. " +
+        "hard_floor_trigger=" + identify_hard_floor_trigger(verdict) + ". " +
+        "missing_field=ticket_id. " +
+        fallback_hint + " " +
+        "Re-issue this Write with ticket_id populated (or switch to create-review if appropriate)."
+      )
       RETURN
     pattern = "^jr (--output json )?issue comment " + ticket_id + " "
     ops = ["comment-review"]
@@ -2112,6 +2195,19 @@ visibility. The auditable `uncertainty_explicit` annotation is essential for ope
 **Hard deny on unrecognized severity:** Rejected. A fail-closed deny on unrecognized severity
 makes the pipeline unreachable for any new sensor family until the mapping is explicitly added.
 The conservative CRITICAL default with audit is strictly safer (pipeline continues; operators learn).
+
+**P8-OBS-2 — Operator Expectation Note (Cyberint pre-ASM-008):**
+
+The conservative CRITICAL default for Cyberint means: pre-ASM-008, **100% of Cyberint alerts
+normalize to CRITICAL** → `hard_floor_applies()=TRUE` for every Cyberint alert → every Cyberint
+verdict routes through create-review/comment-review → every Cyberint alert requires a human-review
+ticket. This is **correct-by-conservatism** (unvalidated severity mapping SHOULD require human
+review), but it will mass-escalate all Cyberint traffic to the review queue and flood it with
+REVIEW-REQUIRED tickets for org-b (if Cyberint-connected) until ASM-008 resolves. This is
+expected behavior, not a defect, and should be communicated to operators before the demo.
+
+**PO PROPAGATION OBLIGATION:** Add this operator expectation note to BC-8.02.001 (sensor-metrics
+skill) and BC-10.01.001 (monitoring-loop) — see §8.18.3 item 2 and §8.18.4 item 1.
 
 ---
 
@@ -3320,6 +3416,8 @@ adversarial remediation.*
    delegated to product-owner in this same burst. PO may finalize this Inv#4 paragraph
    without any PENDING qualifier.
 
+> **[SUPERSEDED BY §8.16 (P7-001 deny-the-Write)]** The upgrade-to-create-review mechanism in this item was proved structurally unsound by P7-001 and replaced by DENY-THE-WRITE. Retained for historical traceability only — do NOT apply.
+
 2. **STEP 4 (formerly STEP 5, renumbered at ADV-F2-P6-002) — Fail-loud under-label correction (ADV-F2-P5-001 CRITICAL).**
    Replace the current STEP text (now STEP 4 per architecture-delta v1.9):
    > "IF action == 'none' OR hard_floor_applies(): emit allow without marker; RETURN"
@@ -3364,6 +3462,8 @@ adversarial remediation.*
 ## 8.13 FORMAL-VERIFIER LIST (pass 5 — ADV-F2-P5-001..P5-002)
 
 > **Owner:** Formal verifier. Architect does NOT write VPs.
+
+> **[SUPERSEDED BY §8.17 item 1 (P7-001 deny-the-Write)]** VP-HOOK-029 re-scope in this item was superseded by the end-to-end consumer-boundary re-scope in §8.17. The BATS vectors below that assert marker-in-store for the upgrade path are RETIRED per §8.17. Retained for historical traceability only — do NOT apply.
 
 1. **VP-HOOK-029 re-scope (ADV-F2-P5-001 CRITICAL).**
    Current VP-HOOK-029 scope: "hard-floor verdict WITH ticket_action_type ∈ {create-review,
@@ -3895,4 +3995,262 @@ adversarial remediation.*
 
 *Pass-7 PO PROPAGATION LIST (§8.16) and formal-verifier list (§8.17) complete. Architect does
 NOT edit BCs, verification-delta, prd-delta, or STATE.md. v1.10 is final for pass-7
+adversarial remediation.*
+
+---
+
+## 8.18 PO PROPAGATION LIST (pass 8 — P8-001..P8-004 + OBS)
+
+> **Owner:** Product-owner (PO). Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md.
+>
+> **Live BC version map (frozen pass-8 baseline):** BC-3.01.001 v1.19, BC-3.03.001 v1.16, BC-10.01.001 v1.12.
+>
+> **Application order:** BC-3.03.001 (emitter STEP 3 deny branches) → BC-3.01.001 (quote-aware tokenizer + EC-023/024) → BC-10.01.001 (VP-Anchors footer + Cyberint operator note) → BC-8.02.001 (Cyberint operator note) → prd-delta (P8-004 full refresh).
+
+---
+
+### 8.18.1 BC-3.03.001 (disposition-guard) — Pass-8 Required Changes
+
+**Current version: v1.16. Target: v1.17.**
+
+1. **STEP 3 create-review branch — DENY-THE-WRITE on null jira_project_key (P8-001 CRITICAL).**
+
+   Replace the create-review null-project_key branch:
+
+   Current (defective):
+   ```
+   IF project_key is null OR project_key == "":
+     emit allow without marker  # cannot bind create-review without project key
+     RETURN
+   ```
+
+   Replace with:
+   ```
+   IF project_key is null OR project_key == "":
+     WRITE audit entry: "HARD-FLOOR-UNBINDABLE: ... missing_field=jira_project_key ..."
+     emit deny("HARD-FLOOR-UNBINDABLE: cannot bind create-review marker without jira_project_key. ...")
+     RETURN
+   ```
+   Full pseudocode: see architecture-delta.md §D-DEC-008 STEP 3 (v1.11 update).
+
+   Add normative note: "D-DEC-012 clause 2 mandates explicit error artifact + deny when a hard-floor
+   finding cannot be surfaced. Non-termination: if the loop re-documents and still omits
+   jira_project_key, deny fires again — one HARD-FLOOR-UNBINDABLE per attempt; no Jira write;
+   bounded fail-closed. Mirrors STEP 4 non-termination analysis."
+
+2. **STEP 3 comment-review branch — DENY-THE-WRITE on null ticket_id (P8-001 CRITICAL).**
+
+   Replace the comment-review null-ticket_id branch:
+
+   Current (defective):
+   ```
+   IF ticket_id is null:
+     emit allow without marker  # cannot bind comment-review without ticket_id
+     RETURN
+   ```
+
+   Replace with deny + fallback hint:
+   - If jira_project_key is also absent: deny naming both missing fields.
+   - If jira_project_key IS present: deny with fallback hint suggesting create-review
+     (consistent with STEP 4 required_token logic: ticket_id=null → required_token=create-review).
+
+   Full pseudocode: see architecture-delta.md §D-DEC-008 STEP 3 (v1.11 update).
+
+3. **BATS test vectors for the new deny branches (P8-001).**
+
+   ```bats
+   @test "disposition-guard STEP3: Indeterminate + create-review + null jira_project_key → verdict Write DENIED; HARD-FLOOR-UNBINDABLE in audit.log (P8-001)"
+   @test "disposition-guard STEP3: CRITICAL severity + create-review + null jira_project_key → deny reason contains missing_field=jira_project_key (P8-001)"
+   @test "disposition-guard STEP3: silent sensor + comment-review + null ticket_id + null jira_project_key → DENIED; both fields absent noted in reason (P8-001)"
+   @test "disposition-guard STEP3: Indeterminate + comment-review + null ticket_id + project_key=PRISM-DEMO → DENIED; fallback hint suggests create-review (P8-001)"
+   @test "disposition-guard STEP3: re-doc that still omits project_key → second HARD-FLOOR-UNBINDABLE audit entry; still no Jira write (P8-001 bounded non-termination)"
+   @test "disposition-guard STEP3: Indeterminate + create-review + project_key=PRISM-DEMO → review marker emitted normally (P8-001 happy path unbroken)"
+   ```
+
+---
+
+### 8.18.2 BC-3.01.001 (require-review) — Pass-8 Required Changes
+
+**Current version: v1.19. Target: v1.20.**
+
+1. **structural_label_check — replace split_on_whitespace with quote-aware tokenizer (P8-002 MAJOR).**
+
+   Current consumer algorithm step (6a) uses `split_on_whitespace` (P7-005 fix was insufficient):
+   the hook receives `tool_input.command` as a RAW string (`jq -r`; literal quote chars present;
+   shell NOT expanded). A naive whitespace split of `jr issue create --project KEY --summary "rule --label REVIEW-REQUIRED fired"` yields `--label` as a standalone token → has_review_label=true → false-deny STILL FIRES.
+
+   Replace with the quote-aware state-machine tokenizer (UNQUOTED/IN_SINGLE/IN_DOUBLE states):
+   tokens inside quoted regions are NOT split; a `--label` token inside a quoted `--summary`
+   value is part of the --summary token body, not a standalone flag.
+
+   Full tokenizer pseudocode: see architecture-delta.md §D-DEC-001 STEP 6a (v1.11 P8-002 update).
+
+2. **EC-024 correction — reconcile to quote-aware semantics (P8-002 MAJOR).**
+
+   Remove any text in EC-024 claiming the hook sees post-shell-expansion arguments or that
+   `--summary` quoting "in practice" collapses values. Replace with:
+
+   > "EC-024: false-deny prevention — a regular create command whose `--summary` value contains
+   > the literal text `--label REVIEW-REQUIRED` or `--label BLIND-SPOT` as a QUOTED argument
+   > (e.g., `jr issue create --project KEY --summary "rule --label REVIEW-REQUIRED fired"`)
+   > results in `has_review_label=false`. The quote-aware tokenizer treats the quoted value as a
+   > single token; `--label` inside the quoted region is NOT a standalone flag. Outcome:
+   > `["create"]` marker consumed → ALLOW."
+
+3. **EC-023 direction A correction — ( |$) is not tail-anchored (P8-003 MINOR).**
+
+   If EC-023 direction (A) contains text asserting that the regular create pattern's `( |$)` anchor
+   rejects a review-labeled create at consumer step 5 — remove or correct that assertion:
+
+   > "The regular create pattern `^jr (--output json )?issue create --project KEY( |$)` is NOT
+   > tail-anchored. A command `jr issue create --project KEY --label REVIEW-REQUIRED ...` passes
+   > step 5 (the regex matches the prefix). `( |$)` guards ONLY against project-KEY prefix
+   > extension (P4-002 purpose). Anti-fungibility direction A is enforced EXCLUSIVELY at step 6a
+   > via `structural_label_check`. Step 6a is the single point of failure for this invariant."
+
+   Add BATS vector:
+   ```bats
+   @test "require-review: regular create + create marker + --summary quoted literal '--label REVIEW-REQUIRED' → ALLOW (P8-002 quote-aware tokenizer; EC-024)"
+   ```
+
+---
+
+### 8.18.3 BC-10.01.001 (monitoring-loop) — Pass-8 Required Changes
+
+**Current version: v1.12. Target: v1.13.**
+
+1. **VP-Anchors footer — VP-HOOK-029 status correction (P8-004 MAJOR — blast radius sibling).**
+
+   The VP-Anchors footer in BC-10.01.001 (line ~534) still reads approximately:
+   "VP-HOOK-029 (... P1 PROPOSED — FINALIZED strategy v1.9)."
+
+   Correct to reflect re-FINALIZED status per verification-delta v1.10 and §8.17 item 1:
+   > "VP-HOOK-029: FINALIZED P0 (re-FINALIZED at verification-delta v1.10; consumer-boundary
+   > assertion per O4 standing rule; deny-path vectors + re-doc path + unbindable-deny vectors
+   > active per P8-001)."
+
+2. **Cyberint operator expectation note (P8-OBS-2).**
+
+   Add to the D-DEC-013 severity normalization note in Invariant #9 field 13 or Invariant #14:
+   > "Pre-ASM-008 operator expectation (Cyberint): all Cyberint severity values normalize to
+   > CRITICAL (conservative default per D-DEC-013). 100% of Cyberint traffic routes through the
+   > review escalation path (create-review/comment-review). Review queues will be flooded with
+   > REVIEW-REQUIRED tickets from Cyberint alerts until ASM-008 validates actual severity bands.
+   > This is expected behavior, not a defect."
+
+---
+
+### 8.18.4 BC-8.02.001 (sensor-metrics) — Pass-8 Required Changes
+
+**Current version: see live frontmatter. Target: bump one minor version.**
+
+1. **Cyberint operator expectation note (P8-OBS-2).**
+
+   Add operator note to the operational expectations section (or create one if absent):
+   > "Pre-ASM-008 Cyberint: conservative CRITICAL normalization (D-DEC-013) → 100% review
+   > escalation → REVIEW-REQUIRED ticket flood in org-b (if Cyberint-connected) until ASM-008
+   > resolves. Expected behavior. See BC-10.01.001 for full context."
+
+---
+
+### 8.18.5 prd-delta — Pass-8 Required Changes (P8-004 MAJOR)
+
+**Current version: v1.9. Target: v1.10.**
+
+1. **§1 VP roster — correct inverted statuses (P8-004 MAJOR).**
+
+   Current (wrong):
+   - VP-HOOK-029: `P1 PROPOSED`
+   - VP-SKILL-065: `FINALIZED`
+
+   Correct to:
+   - VP-HOOK-029: `FINALIZED P0` (re-FINALIZED at verification-delta v1.10 per §8.17 item 1; consumer-boundary assertion + deny-path vectors; P8-001 unbindable-deny vectors being added)
+   - VP-SKILL-065: `PROPOSED (re-scoped — ADV-F2-P6-003 MAJOR)` (re-scoped carve-out for create-review/comment-review kill-switch exemption; BC-10.01.001 v1.11+ and verification-delta v1.9+ carry PROPOSED; kill-switch carve-out assertion pending re-verification)
+
+2. **§5 "New Version" column — catch-up to live BC versions (P8-004 MAJOR).**
+
+   prd-delta §5 currently shows versions frozen at pass-5. Update all three rows:
+
+   | BC | prd-delta stale value | Correct target (after this burst) |
+   |----|----------------------|----------------------------------|
+   | BC-3.01.001 | `→ v1.17` | `→ v1.20` |
+   | BC-3.03.001 | `→ v1.13` | `→ v1.17` |
+   | BC-10.01.001 | `→ v1.9` | `→ v1.13` |
+
+   Add pass-5/6/7/8 change summaries for each BC in the §5 annotation column.
+
+3. **Changelog catch-up (passes 6–8).**
+
+   prd-delta changelog stops at v1.9 "Pass-5 (P5-004)". Add entries summarizing:
+   - Pass-6 changes: BC-3.01.001 step-6a anti-fungibility; BC-3.03.001 STEP reorder + review pattern; BC-10.01.001 Inv#11 carve-out + VP-SKILL-065 re-scope + severity normalization
+   - Pass-7 changes: BC-3.03.001 DENY-THE-WRITE; BC-3.01.001 structural token fix (P7-005, now P8-002 quote-aware); BC-10.01.001 six stale locations + Iron Law + re-document obligation
+   - Pass-8 changes: STEP 3 deny branches; quote-aware tokenizer; EC-023/024 corrections; Cyberint notes; VP roster corrections
+
+*Pass-8 PO PROPAGATION LIST (§8.18) complete. Architect does NOT edit BCs, verification-delta,
+prd-delta, or STATE.md.*
+
+---
+
+## 8.19 FORMAL-VERIFIER LIST (pass 8 — P8-001..P8-004 + OBS)
+
+> **Owner:** Formal verifier. Architect does NOT write VPs. FV owns VP-INDEX.md,
+> verification-delta.md, and VP files.
+>
+> **IMPORTANT — ID collision prevention:** Do NOT mint new VP/SM IDs without occupancy
+> verification. Run `grep -r "VP-HOOK-0<next>" .factory/` and `grep -r "SM-<next>" .factory/`
+> before allocating any new ID.
+
+---
+
+1. **VP-HOOK-029 — add unbindable-deny vectors (P8-001 CRITICAL; additive to §8.17 item 1 vectors).**
+
+   VP-HOOK-029 is FINALIZED P0 per verification-delta v1.10. Add the following new deny-path
+   vectors covering the STEP 3 missing-binding sub-case. These are additive — do NOT retire
+   existing deny-path vectors from §8.17 item 1.
+
+   ```bats
+   @test "VP-HOOK-029 unbindable-deny: Indeterminate + create-review + null jira_project_key → verdict Write DENIED; HARD-FLOOR-UNBINDABLE in audit.log; NEVER silent allow-without-marker (P8-001)"
+   @test "VP-HOOK-029 unbindable-deny: silent sensor + comment-review + null ticket_id → verdict Write DENIED; HARD-FLOOR-UNBINDABLE; no marker in store; no Jira write (P8-001)"
+   @test "VP-HOOK-029 unbindable-deny: hard-floor + review token + null binding → deny + audit entry on re-doc that still omits binding field (P8-001 bounded non-termination)"
+   @test "VP-HOOK-029 review-token + null binding → NEVER silent allow-without-marker (P8-001 D-DEC-012 clause 2 invariant)"
+   ```
+
+   New mutant (allocate ID with occupancy verification — do NOT use without `grep -r "SM-P8" .factory/` check):
+   - SM-P8-A (allocate after check): "revert STEP 3 create-review null-project_key branch to
+     emit-allow-without-marker (pre-P8-001 defective behavior)" → assert Indeterminate + create-review
+     + null project_key produces no deny and no HARD-FLOOR-UNBINDABLE in audit (mutant dies when
+     P8-001 test detects missing deny). SEPARATELY killable from SM-NEW-A (which tests STEP 4 revert).
+
+   Re-mark VP-HOOK-029 as FINALIZED P0 with the extended vector set after BATS implementation.
+   Update VP-INDEX.md total counts and per-VP vector list.
+
+2. **VP-HOOK-024 (or assigned VP) — quote-aware false-deny prevention (P8-002 MAJOR).**
+
+   Add to the VP handling consumer anti-fungibility (VP-HOOK-024 or whichever VP owns step-6a
+   — verify occupancy before extending or minting):
+
+   ```bats
+   @test "VP-HOOK-024/P8-002: regular create + create marker + --summary contains quoted '--label REVIEW-REQUIRED' literal → ALLOW (quote-aware tokenizer; no false-deny)"
+   ```
+
+   New mutant (allocate ID with occupancy verification):
+   - SM-P8-B (allocate after check): "revert structural_label_check to non-quote-aware
+     split_on_whitespace" → assert the quoted-summary command above produces DENY (mutant dies
+     when quote-aware tokenizer correctly produces ALLOW). SEPARATELY killable from the existing
+     P7-005 structural-vs-raw-substring mutant.
+
+3. **EC-023 step-5 backstop correction (P8-003 MINOR) — no new VP required.**
+
+   If VP-HOOK-024, VP-HOOK-029, or any other VP currently asserts that the regular create
+   pattern rejects a review-labeled create at consumer step 5 (the false `( |$)` tail-anchor
+   claim): remove or correct that assertion. The correct invariant is: step 5 pattern match
+   PASSES for `jr issue create --project KEY --label REVIEW-REQUIRED ...` with the regular
+   create pattern; anti-fungibility direction A is enforced at step 6a only.
+
+   If any BATS test asserts a step-5 DENY for this input with a regular create marker:
+   correct the expected result to ALLOW (before step 6a applies EC-023 direction B correctly
+   denies the create marker for the review-labeled command).
+
+*Pass-8 PO PROPAGATION LIST (§8.18) and formal-verifier list (§8.19) complete. Architect does
+NOT edit BCs, verification-delta, prd-delta, or STATE.md. v1.11 is final for pass-8
 adversarial remediation.*

@@ -11,6 +11,28 @@ Track all spec version changes. Most recent version first.
 
 ## [1.1.0] - 2026-07-20 (patch edits 2026-07-21 — not a version bump)
 
+### F2 Pass-8 Remediation Edits — Burst 4 (2026-07-21) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 4). Root findings: P8-001
+(CRITICAL — STEP 3 correctly-labeled review verdict with null jira_project_key/ticket_id → silent
+allow-without-marker; contradicts D-DEC-012 clause 2), P8-002 (MAJOR — structural_label_check
+split_on_whitespace not quote-aware; false-denies own EC-024 example with --summary containing
+spaces), P8-003 (MINOR — EC-023 step-5 defense-in-depth claim factually wrong; anti-fungibility
+rests solely on step 6a), P8-004 (MAJOR — prd-delta §9 VP statuses inverted + §5 versions stale
+by 2-3). OBS banners (P8-OBS-1) and operator note (P8-OBS-2) applied.
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.10 | v1.11 | P8-001 STEP-3 unbindable deny branches; P8-002 quote-aware tokenizer spec; P8-003 EC-023 step-5 correction; §8.18/§8.19 propagation; P8-OBS-1 forward-link banners on superseded ledger sections |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.16 | v1.17 [SM-ID-sync per FV] | P8-001: explicit unbindable-deny branches in STEP 3 for null jira_project_key (create-review) and null ticket_id (comment-review); SM-41 allocated as kill-target |
+| phase-0-ingestion/behavioral-contracts/BC-3.01.001.md | v1.19 | v1.20 [SM-ID-sync per FV] | P8-002: structural_label_check upgraded to UNQUOTED/IN_SINGLE/IN_DOUBLE state-machine tokenizer (quote-aware); P8-003: EC-023 step-5 defense-in-depth claim corrected; SM-42 allocated as kill-target |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.12 | v1.13 [SM-ID-sync per FV] | P8-001: VP-HOOK-029 re-FINALIZED P0 (unbindable-deny vectors added); P8-001 loop re-documentation; SM-41/SM-42 IDs synced |
+| phase-0-ingestion/behavioral-contracts/BC-8.02.001.md | v1.1 | v1.2 | P8-OBS-2: Cyberint 100% mass-escalation operator note (pre-ASM-008 expectation) |
+| phase-f2-spec-evolution/verification-delta.md | v1.10 | v1.11 | SM-41/SM-42 allocated; unbindable-deny VP-HOOK-029 vectors (null-binding sub-case of happy path); EC-023 correction; version-coherence sweep: live-BC baseline updated to BC-3.01.001 v1.20 / BC-3.03.001 v1.17 / BC-10.01.001 v1.13 |
+| phase-f2-spec-evolution/prd-delta.md | v1.9 | v1.10 | P8-004: VP-HOOK-029 corrected to FINALIZED P0; VP-SKILL-065 corrected to PROPOSED; §5 BC version table updated to post-burst versions |
+
+---
+
 ### F2 Pass-7 Remediation Edits — Burst 3 (2026-07-21) — spec remains 1.1.0
 
 Remediation edits within the F2 adversarial convergence cycle (burst 3). Central design reversal:

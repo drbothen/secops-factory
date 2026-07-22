@@ -330,3 +330,69 @@ happy path). P8-002 is a real implementation-vs-spec gap in the most recent fix 
 (1C/2M vs 2C/3M in passes 6-7). Package has NOT converged; P8-001/P8-002 are blocking.
 
 **Convergence counter:** 0/3 clean passes. Remediation burst 4 → pass 9 is next.
+
+---
+
+### Archived Current Phase Steps Row — 2026-07-21 (burst-4 displacement)
+
+The following row was archived from STATE.md when the burst-4 row was added (5-row limit enforced):
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 6 | adversary | DONE | 2C/3M/3m/2obs — trust boundary re-derived end-to-end: P6-001 consumer accepts review tokens for regular commands (kill-switch bypass, CRITICAL); P6-002 STEP 4 kill switch precedes STEP 5 upgrade → silent discard of under-labeled hard-floor verdicts when autonomy=false (CRITICAL); P6-003 Inv#11/VP-SKILL-065 contradict Option A; P6-004 single demo project key voids cross-org create binding; P6-005 sensor-severity→enum normalization unspecified; P6-009 [process-gap] O3 rule applied emitter-only. Report persisted. |
+
+---
+
+## Burst 8: F2 Pass-8 Remediation COMPLETE — Burst 4 (2026-07-21)
+
+**Steps rotated from STATE.md Current Phase Steps (5-row limit enforced):**
+
+See "Archived Current Phase Steps Row — 2026-07-21 (burst-4 displacement)" above.
+
+**Step added to STATE.md Current Phase Steps this burst:**
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-8 remediation burst 4 | architect / product-owner / formal-verifier | DONE | arch-delta v1.11 (P8-001 STEP-3 unbindable deny; P8-002 quote-aware tokenizer; P8-003 EC-023 step-5; §8.18/§8.19 propagation); BC-3.03.001 v1.17 (unbindable-deny branches + SM-41); BC-3.01.001 v1.20 (quote-aware tokenizer + SM-42); BC-10.01.001 v1.13 (VP-HOOK-029 re-FINALIZED P0 + loop re-doc P8-001); BC-8.02.001 v1.2 (Cyberint operator note); verif-delta v1.11 (SM-41/SM-42 + unbindable vectors + EC-023 correction); prd-delta v1.10 (VP roster + §5 versions) |
+
+**Narrative:**
+
+Pass-8 remediation (burst 4) addressed P8-001 (CRITICAL — STEP 3 null jira_project_key/ticket_id
+silent allow-without-marker), P8-002 (MAJOR — split_on_whitespace not quote-aware), P8-003 (MINOR —
+EC-023 step-5 defense-in-depth claim), and P8-004 (MAJOR — prd-delta VP statuses inverted + §5
+versions stale). OBS banners and operator note also applied.
+
+P8-001 fix: BC-3.03.001 v1.17 adds explicit unbindable-deny branches in STEP 3 for null
+jira_project_key (create-review verdict) and null ticket_id (comment-review verdict). SM-41 allocated
+as the kill-target mutant reverting STEP-3 to emit-allow-without-marker (VP-HOOK-029 context).
+
+P8-002 fix: BC-3.01.001 v1.20 upgrades structural_label_check from split_on_whitespace to a
+UNQUOTED/IN_SINGLE/IN_DOUBLE state-machine tokenizer that correctly handles quoted --summary values
+containing --label text. SM-42 allocated as the kill-target mutant reverting to non-quote-aware
+split_on_whitespace (VP-HOOK-024/EC-024 context).
+
+P8-003 fix: EC-023 step-5 defense-in-depth claim corrected — anti-fungibility rests solely on step 6a;
+step 5 does not contribute. BC-3.01.001 v1.20.
+
+P8-004 fix: prd-delta v1.10 VP roster statuses corrected (VP-HOOK-029 FINALIZED P0, VP-SKILL-065
+PROPOSED) + §5 BC version table updated to post-burst versions.
+
+SM-ID sync: SM-41 and SM-42 placeholders "SM ID allocated by FV" replaced in BC-3.03.001,
+BC-3.01.001, BC-10.01.001. "[SM-ID-sync per FV]" appended to modified[] changelog entries.
+
+Version-coherence sweep: verification-delta.md v1.11 live-BC baseline updated from v1.19/v1.16/v1.12
+to BC-3.01.001 v1.20 / BC-3.03.001 v1.17 / BC-10.01.001 v1.13 in §7 Part I body and closing
+snapshot. Historical changelog entries (frontmatter v1.11, pass-7 record) intentionally not updated
+per append-only convention.
+
+**Artifacts produced by this burst:**
+
+- `phase-f2-spec-evolution/architecture-delta.md` v1.10 → v1.11: P8-001 STEP-3 unbindable deny; P8-002 quote-aware tokenizer; P8-003 EC-023 step-5 correction; §8.18/§8.19 propagation; OBS banners.
+- `phase-0-ingestion/behavioral-contracts/BC-3.03.001.md` v1.16 → v1.17: unbindable-deny branches STEP 3; SM-41 allocated; SM-ID sync.
+- `phase-0-ingestion/behavioral-contracts/BC-3.01.001.md` v1.19 → v1.20: quote-aware tokenizer; SM-42 allocated; SM-ID sync.
+- `phase-0-ingestion/behavioral-contracts/BC-10.01.001.md` v1.12 → v1.13: VP-HOOK-029 re-FINALIZED P0 + loop re-doc P8-001; SM-ID sync.
+- `phase-0-ingestion/behavioral-contracts/BC-8.02.001.md` v1.1 → v1.2: Cyberint operator note (P8-OBS-2).
+- `phase-f2-spec-evolution/verification-delta.md` v1.10 → v1.11: SM-41/SM-42 allocated; unbindable vectors; EC-023 correction; version-coherence sweep applied.
+- `phase-f2-spec-evolution/prd-delta.md` v1.9 → v1.10: VP roster statuses corrected; §5 BC versions updated.
+
+**Convergence counter:** 0/3 clean passes. Pass 9 is next (adversary fresh context required).

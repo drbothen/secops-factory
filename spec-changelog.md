@@ -11,6 +11,32 @@ Track all spec version changes. Most recent version first.
 
 ## [1.1.0] - 2026-07-20 (patch edits 2026-07-21/22 — not a version bump)
 
+### F2 Pass-10 Remediation Edits — Burst 6 (2026-07-22) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 6). Root findings: P10-001
+(CRITICAL — hard_floor_applies() keys on LLM-supplied verdict.severity/asset_type with no
+hook-side cross-validation; O6 rule: inputs to hook-computed invariant must be hook-recomputable;
+fix: STEP 1a SEVERITY-MISMATCH + 17-field schema extension), P10-002 (MAJOR — cron wrapper gate
+never inspects audit.log fail-loud codes; Gate 2 grep added; ASM-015 BLOCKING gate documented),
+P10-003 (MAJOR — WRITE_MARKER review-path allow-without-marker reintroduces silent-drop;
+fix: review-path write failure → MARKER-WRITE-FAILED deny), P10-004 (MINOR — fallback_hint
+dedup instruction missing full P9-007 dedup gate), P10-008 (MINOR — ASM-014 residual note
+for comment-review kill-switch exemption scope), P10-009 (MINOR — per-org jira_project_key
+in [[orgs]] entries). SM-44/SM-45 allocated. VP-HOOK-030 and VP-SKILL-075 allocated (FINALIZED P0).
+O6 standing rule codified. D-009/D-010 recorded.
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.12 | v1.13 | P10-001: O6 standing rule codified §8.22; STEP 1a SEVERITY-MISMATCH design; D-DEC-013 NORMALIZE_SEVERITY hook-recomputation context; P10-002: Gate 2 cron wrapper audit.log grep §D-DEC-003; P10-009: per-org jira_project_key lookup order §8.23 |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.17 | v1.18 [ID-sync per FV] | P10-001: 17-field schema (native_severity field 16, sensor_family field 17); STEP 1a SEVERITY-MISMATCH; hard_floor_applies() takes recomputed_severity; VP-HOOK-030+SM-44 IDs synced; P10-003: WRITE_MARKER review-path fail-closed + SM-45; P10-004: fallback_hint dedup instruction; P10-008: ASM-014 residual note; 3 new canonical test vectors |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.14 | v1.15 [ID-sync per FV] | P10-001: Inv#9 17-field extension (fields 16+17 at Stage 1 INGEST); Inv#10 trust-basis correction (hook re-derives severity via NORMALIZE_SEVERITY, does not trust LLM-written verdict.severity); P10-002: PC#7 Gate 2 audit.log grep + ASM-015 BLOCKING gate; VP-SKILL-075 added (PC#7 citation, VP table row, VP Anchors footer) |
+| phase-0-ingestion/behavioral-contracts/BC-6.01.003.md | v1.1 | v1.2 | P10-009: per-org jira_project_key in [[orgs]] entries; Postcondition #1 updated; Invariant #6 (per-org lookup order); EC-009 (per-org key supplied during onboard-customer) |
+| phase-f2-spec-evolution/verification-delta.md | v1.12 | v1.13 | VP-HOOK-030 NEW FINALIZED P0 (STEP 1a SEVERITY-MISMATCH; SM-44 kill target); VP-SKILL-075 NEW FINALIZED P0 (operator-boundary cron-exit-nonzero signal; P10-002 Gate 2); SM-44/SM-45 allocated; version-coherence sweep: live-BC baseline updated to BC-3.03.001 v1.18 / BC-10.01.001 v1.15 / BC-6.01.003 v1.2 |
+| phase-f2-spec-evolution/prd-delta.md | v1.11 | v1.12 | P10-001: 17-field schema catch-up (Verdict Schema Summary 15→17 fields; fields 16+17 added); §5 BC version column updated for burst-6 passes; §8 EC-010 updated (15→17 fields) |
+| phase-f2-spec-evolution/dtu-assessment.md | v1.0 | v1.1 | P10-001: prism-demo-server clone must produce native_severity + sensor_family fields in synthetic alert payloads; jr-mock clone requirements unchanged |
+
+---
+
 ### F2 Pass-9 Remediation Edits — Burst 5 (2026-07-22) — spec remains 1.1.0
 
 Remediation edits within the F2 adversarial convergence cycle (burst 5). Root findings: P9-001

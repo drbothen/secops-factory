@@ -479,8 +479,43 @@ append-only convention.
 
 ---
 
-## Archived from STATE.md Current Phase Steps (rotated at pass-10 entry)
+## Burst 6: F2 Pass-10 Remediation (2026-07-22)
+
+**Root findings remediated:** P10-001 (CRITICAL), P10-002 (MAJOR), P10-003 (MAJOR), P10-004 (MINOR), P10-008 (MINOR), P10-009 (MINOR). D-009 and D-010 recorded. O6 standing rule codified.
+
+**P10-001 fix (CRITICAL — hook-side severity re-normalization):** disposition-guard STEP 1a added — hook independently re-runs NORMALIZE_SEVERITY(verdict.native_severity, verdict.sensor_family) using the deterministic D-DEC-013 table; if recomputed_severity != verdict.severity → write SEVERITY-MISMATCH audit entry + emit deny. O6 standing rule: inputs to a hook-computed invariant must be hook-recomputable or hook-cross-validated against deterministic ground truth (not LLM-supplied). ICD-203 verdict schema extended from 15 to 17 mandatory fields: native_severity (field 16, raw sensor-provided severity string) and sensor_family (field 17, enum crowdstrike|armis|claroty|cyberint) added as required verdict fields; written at Stage 1 INGEST. VP-HOOK-025 updated to 17-field; VP-HOOK-030 newly allocated (STEP 1a SEVERITY-MISMATCH; SM-44 kill target: revert STEP 1a re-normalization). D-009 records the trust-basis fix decision.
+
+**P10-002 fix (MAJOR — operator-boundary cron-exit-nonzero signal):** BC-10.01.001 PC#7 Gate 2 added to the cron wrapper spec: after JSON envelope check, the wrapper independently greps markers/audit.log for fail-loud codes (HARD-FLOOR-LIVELOCK-ABORT|HARD-FLOOR-UNBINDABLE|UNDER-LABEL-DENIED|SEVERITY-MISMATCH|MARKER-WRITE-FAILED); exits 1 even when is_error=false and permission_denials==0. ASM-015 BLOCKING gate documented: empirical validation needed that permissionDecision:deny populates .permission_denials[] in --allowedTools JSON envelope before Gate 1 check on permission_denials is reliable. VP-SKILL-075 allocated (FINALIZED P0, operator-boundary cron-exit-nonzero signal).
+
+**P10-003 fix (MAJOR — WRITE_MARKER review-path fail-closed):** WRITE_MARKER pseudocode updated to branch on is_review_path: create-review/comment-review marker-write failure → MARKER-WRITE-FAILED audit entry + emit deny (mirrors HARD-FLOOR-UNBINDABLE); regular marker paths retain emit-allow-without-marker (require-review denies the jr call — human gate preserved). marker schema disposition.severity updated to use recomputed_severity (O6 consistency). SM-45 allocated (revert WRITE_MARKER review-path to allow-without-marker, paired with VP-HOOK-029 extension).
+
+**P10-004 fix (MINOR):** comment-review null-ticket_id branch fallback_hint updated to full P9-007 dedup instruction (dedup-before-create-review gate; previously only the shorter form was present).
+
+**P10-008 fix (MINOR):** Explicit ASM-014-pending residual note added in BC-3.03.001 STEP 3 comment-review section: the comment-review kill-switch exemption is currently broader than "review ticket only"; restriction to review-labeled tickets is deferred until ASM-014 resolves. D-010 records the per-org jira_project_key choice.
+
+**P10-009 fix (MINOR):** BC-6.01.003 v1.2 — per-org jira_project_key in [[orgs]] entries; Postcondition #1 updated; Invariant #6 added (per-org lookup order); EC-009 added.
+
+**SM/VP ID sync:** BC-3.03.001 line 70 placeholder "SM/VP ID for 17-field extension allocated by FV" → VP-HOOK-030 (STEP 1a SEVERITY-MISMATCH) + SM-44. BC-3.03.001 VP table VP-HOOK-025 row placeholder "SM/VP ID allocated by FV" → SM-44 + VP-HOOK-030 cross-ref. BC-10.01.001 PC#7 Gate 2 → VP-SKILL-075 citation added; VP table new row VP-SKILL-075; VP Anchors footer updated.
+
+**Decisions recorded:** D-009 (P10-001 hard-floor trust-basis fix: 17-field verdict schema + SEVERITY-MISMATCH deny + ASM-008-DEFERRED residual; human, F2, 2026-07-22). D-010 (P10-009 per-org jira_project_key choice: lookup per-org first, fall back to global; architect, F2, 2026-07-22).
+
+**Artifacts produced by this burst:**
+
+- `phase-0-ingestion/behavioral-contracts/BC-3.03.001.md` v1.17 → v1.18 (P10-001: 17-field schema + STEP 1a SEVERITY-MISMATCH + SM-44/VP-HOOK-030 ID sync; P10-003: WRITE_MARKER review-path fail-closed + SM-45; P10-004: fallback_hint dedup; P10-008: ASM-014 residual note; 3 new canonical test vectors)
+- `phase-0-ingestion/behavioral-contracts/BC-10.01.001.md` v1.14 → v1.15 (P10-001: Inv#9 17-field + fields 16/17 at Stage 1 INGEST; Inv#10 trust-basis correction hook re-derives severity; PC#7 Gate 2 audit.log grep + ASM-015 BLOCKING gate; VP-SKILL-075 added throughout; VP-HOOK-025 updated to 17-field)
+- `phase-0-ingestion/behavioral-contracts/BC-6.01.003.md` v1.1 → v1.2 (P10-009: per-org jira_project_key; Postcondition #1; Invariant #6; EC-009)
+- `phase-f2-spec-evolution/verification-delta.md` v1.12 → v1.13 (VP-HOOK-030 NEW FINALIZED P0; VP-SKILL-075 NEW FINALIZED P0; SM-44/SM-45 allocated; version-coherence sweep: live-BC baseline updated to BC-3.03.001 v1.18 / BC-10.01.001 v1.15 / BC-6.01.003 v1.2)
+- `phase-f2-spec-evolution/prd-delta.md` v1.11 → v1.12 (17-field schema catch-up; BC version table updated)
+- `phase-f2-spec-evolution/architecture-delta.md` v1.12 → v1.13 (O6 standing rule codified; STEP 1a SEVERITY-MISMATCH; Gate 2 cron wrapper; D-DEC-013 NORMALIZE_SEVERITY context; per-org jira_project_key lookup order)
+- `phase-f2-spec-evolution/dtu-assessment.md` v1.0 → v1.1 (native_severity/sensor_family fields added to prism-demo-server clone requirements)
+
+**Convergence counter:** 0/3 clean passes. Pass-10 REMEDIATED. Pass 11 is next (carry confirmed-invariants list including VP-HOOK-030/STEP-1a; mark ASM-008/ASM-015 as KNOWN-DEFERRED).
+
+---
+
+## Archived from STATE.md Current Phase Steps (rotated at pass-10 entry and burst-6 entry)
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
 | F2: pass-7 remediation burst 3 | architect / product-owner / formal-verifier | DONE | DENY-THE-WRITE redesign per human D-008 + O4 standing rule. arch-delta v1.10 (STEP-4 deny-the-Write, SM-38/39/40, O4 rule); BC-3.03.001 v1.16 (STEP 4 deny + UNDER-LABEL-DENIED audit, corrective-reason struct); BC-3.01.001 v1.19 (structural_label_check step-6a, EC-024, SM-40); BC-10.01.001 v1.12 (P7-002 6 stale ECs, P7-003 --label Iron Law, P7-006 Cyberint); verif-delta v1.10 (VP-HOOK-029 consumer-boundary re-scope+FINALIZED P0, SM-38/39/40, Cyberint partition); prd-delta v1.9 (non-pinned); SM-ID sync + version-coherence sweep applied. |
+| F2: adversarial pass 8 | adversary | DONE | 1C/2M/1m/2obs — decay begun. P8-001 (CRITICAL): STEP 3 correctly-labeled review verdict with null jira_project_key/ticket_id → silent allow-without-marker (last orthogonal silent-discard axis; contradicts D-DEC-012 clause 2 which already mandates deny+error). P8-002 (MAJOR): P7-005 structural_label_check split_on_whitespace not quote-aware — false-denies its own EC-024 example (verified against live hook source). P8-004 (MAJOR): prd-delta VP statuses inverted (VP-HOOK-029/VP-SKILL-065) + §5 versions stale by 2-3. P8-003 (MINOR): EC-023 step-5 defense-in-depth claim factually wrong — anti-fungibility rests solely on step 6a. P8-OBS-1 [process-gap]: superseded propagation ledger sections need forward-link banners. P8-OBS-2: Cyberint 100% mass-escalation pre-ASM-008 needs operator note. 8 confirmed-intact invariants listed for pass-9 accumulation. Report persisted. |

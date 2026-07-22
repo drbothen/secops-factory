@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-07-20T00:00:00
@@ -17,7 +17,7 @@ subsystem: lifecycle-management
 capability: CAP-LIFECYCLE-03
 lifecycle_status: active
 introduced: v0.10.0-feature-prism-integration
-modified: ["v1.1-FV-PROPOSED-DROP-2026-07-20"]
+modified: ["v1.1-FV-PROPOSED-DROP-2026-07-20", "v1.2-ADV-F2-P10-009-per-org-jira-project-key-2026-07-22"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -29,6 +29,7 @@ removal_reason: null
 # Behavioral Contract BC-6.01.003: onboard-customer Skill — Org Slug / UUID Provisioning and prism.toml Registration
 
 > **Revision history:**
+> - v1.2 (2026-07-22): Pass-10 adversarial remediation — P10-009 (MINOR) per-org `jira_project_key`. (1) **Postcondition #1:** `[[orgs]]` entry now optionally includes `jira_project_key` (string, overrides global `jira_project_key` for this org). The onboard-customer skill prompts for it optionally during org creation. (2) **Invariant #6 added (P10-009):** Per-org lookup order for `jira_project_key`: check `[[orgs]].jira_project_key` first (per-org override); if absent or empty, fall back to global `jira_project_key` from `[plugin_config]` or plugin state. This allows multi-tenant deployments where different orgs use different Jira projects. (3) **EC-009 added:** canonical behavior when user supplies a per-org `jira_project_key` during onboard-customer.
 > - v1.0 (2026-07-20): Initial authoring for prism-integration cycle (v0.10.0). Source: handoff brief §2.3, architecture-delta.md §D-DEC-003/D-DEC-005, artifact-mapping.md §1.4 (BC-6.01.003 slot).
 > - v1.1 (2026-07-20): FV-PROPOSED-DROP: VP-SKILL-052 and VP-SKILL-053 are now FINALIZED per verification-delta §1 — dropped `(PROPOSED)` qualifier from VP table rows and VP Anchors.
 
@@ -58,7 +59,11 @@ into chat (AD-017 invariant).
 
 1. A new `[[orgs]]` entry is appended to `prism.toml` with fields `org_slug` (the
    provided or confirmed slug), `uuid` (UUID-v7 format, auto-generated if not
-   supplied), and optionally `display_name`. Confidence: inferred from brief §2.3.
+   supplied), optionally `display_name`, and optionally `jira_project_key` (string —
+   a per-org Jira project key override; if supplied, disposition-guard uses this value
+   for `create-review` command_pattern org-binding for this org instead of the global
+   key; if absent, the global `jira_project_key` from plugin state is used as fallback
+   per Invariant #6 / P10-009). Confidence: inferred from brief §2.3; P10-009 addition.
 2. The directory `<spec_dir>/customers/<org_slug>/` exists after the skill
    completes. If it already existed (idempotent path), it is not destroyed.
    Confidence: inferred from brief §2.3.
@@ -88,6 +93,19 @@ into chat (AD-017 invariant).
    before reading `prism.toml` or performing any file operation.
 5. **No destructive writes.** Appending to `prism.toml` must not truncate or
    overwrite existing entries. The write is strictly additive (append TOML block).
+6. **[NEW v1.2 — P10-009] Per-org `jira_project_key` lookup order.** The `[[orgs]]` entry
+   MAY include an optional `jira_project_key` field that overrides the global key for that
+   org. When disposition-guard (BC-3.03.001) builds a `create-review` or `create` command_pattern
+   for a verdict from this org, the lookup order is:
+   1. **Per-org key first:** `[[orgs]].jira_project_key` (if present and non-empty in
+      `prism.toml` for the verdict's `org_slug`)
+   2. **Global fallback:** `jira_project_key` from the global plugin state / `[plugin_config]`
+      (set at activate time, BC-6.01.001)
+   If neither is present, disposition-guard emits HARD-FLOOR-UNBINDABLE (per Invariant #10 of
+   BC-10.01.001 and BC-9.01.001 Precondition #9). The onboard-customer skill MUST communicate
+   this optional field to the user without requiring it. If the user provides a per-org key,
+   the skill validates it is non-empty and contains only Jira-project-key safe characters
+   (uppercase alphanumeric, hyphens) before writing it to the `[[orgs]]` entry.
 
 ## Edge Cases
 
@@ -101,6 +119,7 @@ into chat (AD-017 invariant).
 | EC-006 | `<spec_dir>/customers/<org_slug>/` directory already exists | Skill proceeds without error; does NOT delete or overwrite existing directory contents (idempotent create) |
 | EC-007 | org_slug contains characters that are not filesystem-safe (spaces, slashes, special chars) | Skill rejects with message specifying allowed characters (lowercase alphanumeric, hyphens, underscores); re-prompts |
 | EC-008 | User attempts to enter a credential value during this skill | Skill explicitly declines: "Credential setup happens via onboard-sensor. I will not accept credentials here." |
+| EC-009 | **[NEW v1.2 — P10-009]** User supplies `jira_project_key = "ACME"` for per-org override during onboard-customer | Skill appends `[[orgs]]` entry with `jira_project_key = "ACME"` alongside `org_slug`, `uuid`. Printed confirmation states: "Per-org Jira project key 'ACME' stored for org 'acme-corp'. This overrides the global jira_project_key for all disposition-guard create-review/create operations on this org. Global key is still used for orgs without a per-org override." |
 
 ## Canonical Test Vectors
 

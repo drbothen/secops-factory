@@ -1,10 +1,11 @@
 ---
 document_type: architecture-delta
 producer: architect
-version: "1.12"
-date: 2026-07-21
+version: "1.13"
+date: 2026-07-22
 input-hash: COMPUTE-AT-COMMIT
 changelog:
+  - "1.13 (2026-07-22): Pass-10 adversarial remediation (P10-001..P10-009). A. D-DEC-008 FULL HOOK-SIDE RE-NORMALIZATION (P10-001 CRITICAL): native_severity + sensor_family added as REQUIRED verdict fields 16+17 (verdict schema is now 17-field: 12 ICD-203 + severity + asset_type + ticket_action_type + native_severity + sensor_family); emitter STEP 1a re-runs NORMALIZE_SEVERITY(native_severity, sensor_family) deterministically; mismatch with verdict.severity → SEVERITY-MISMATCH audit entry + deny; hard_floor_applies() now keys on hook-recomputed severity. asset_type: enum-membership enforced; prism_asset_class cross-validation is ASM-008-DEFERRED with explicit residual-risk note. Hard-floor binding section corrected: prior 'LLM cannot bypass / definitive enforcement surface' language removed. O6 standing rule added to D-DEC-012 O3 table: inputs to a hook-computed invariant must be hook-recomputable or hook-cross-validated, not LLM-supplied. D-DEC-008 Decision Summary + Artifact-Class table + field-count references updated to 17. O3 schema-sync obligation applies to this burst. B. P10-002 (MAJOR, process-gap): new ASM-015 added (BLOCKING for loop stories) to empirically validate whether a PreToolUse-hook permissionDecision:deny populates .permission_denials in the --allowedTools JSON envelope; cron wrapper extended to grep ${CLAUDE_PLUGIN_DATA}/markers/audit.log for HARD-FLOOR-LIVELOCK-ABORT|HARD-FLOOR-UNBINDABLE|UNDER-LABEL-DENIED|SEVERITY-MISMATCH entries newer than run-start and exit 1 if any present; LOG_DIR vs markers-dir path discrepancy resolved (LOG_DIR is for wrapper output logs; markers/audit.log is under ${CLAUDE_PLUGIN_DATA}/markers/); PO/FV propagation notes added. C. P10-003 (MAJOR): WRITE_MARKER failure on the hard-floor review path (STEP 3 create-review/comment-review) now fails closed: write MARKER-WRITE-FAILED audit entry + emit deny (mirrors HARD-FLOOR-UNBINDABLE); allow-without-marker retained ONLY for non-review regular marker paths. D. P10-004 (MINOR, note for PO): BC-3.03.001 emitter fallback_hint propagation gap documented in §8.22. E. P10-005 (MINOR, note for FV): VP-SKILL-059 upgrade to behavioral multi-org + static hunt-query library assertion documented in §8.23. F. P10-006 (MINOR): D-DEC-005 carve-out predicate tightened: exempt ONLY when prism_sensor_health is the SOLE table reference (no JOIN, no subquery against any raw per-tenant table). G. P10-007 (MINOR, note for FV): VP-SKILL-064 test-name qualification documented in §8.23. H. P10-008 (MINOR): ASM-014-pending residual documented: comment-review kill-switch exemption currently broader than 'review ticket only'; when ASM-014 resolves, comment-review MUST be bound to a review-labeled command; disposition-guard should confirm ticket_id corresponds to a review-labeled ticket. I. P10-009 (MINOR): per-org jira_project_key — CHOICE (a): BC-6.01.003 onboard-customer must capture per-org jira_project_key; verdict.jira_project_key sourced per-org with global-key fallback; multi-project binding claim is now technically grounded; PO propagation in §8.22. OBS: dtu-assessment BATS invocation drift noted in §8.22."
   - "1.12 (2026-07-21): Pass-9 adversarial remediation (P9-001/005/007/008/009). A. D-DEC-001 STEP 6a backslash-escape tokenizer extension (P9-001 MAJOR): quote-aware tokenizer extended to handle \\\" in IN_DOUBLE (literal \", stay IN_DOUBLE) and \\' in UNQUOTED (literal ', no state toggle), matching bash tokenization; index-based iteration replaces for-char-in-cmd loop; jr --label=VALUE equals form confirmed NOT supported by jr CLI (jr issue create --help, 2026-07-21) — equals-form vector scoped OUT; escaped-quote differential-vs-bash attack vectors + paired mutants added for FV. B. D-DEC-005 sensor-metrics carve-out (P9-005 MINOR): explicit exemption added for prism_sensor_health metadata queries from the per-tenant raw-data org_slug isolation rule; grounded in brief §2.4 (SELECT * FROM prism_sensor_health without org_slug) and §3.6 (health metadata is not raw per-tenant security records); PO to propagate to BC-8.02.001. No HUMAN-GATE-CONFIRM required — brief is unambiguous. C. D-DEC-008 STEP 3 dedup-before-fallback obligation (P9-007 MINOR): comment-review fallback hint conditioned on mandatory re-run of §3.4 BLIND-SPOT/REVIEW-REQUIRED dedup query before switching to create-review; null ticket_id may be a dedup-lookup miss, not absence of ticket; blind switch risks D-DEC-004 duplicate-ticket violation; PO to propagate to BC-10.01.001. D. D-DEC-008 jira_project_key Stage-0 precondition + re-doc cap (P9-008 OBS): activate/onboard MUST gate on jira_project_key presence as a hard Stage-0 precondition before the monitoring loop is permitted to run; re-doc attempt cap set at max 3 HARD-FLOOR-UNBINDABLE denies per-verdict per loop run before loop emits operator-facing failure and exits that verdict path; PO to propagate to BC-6.01.001 (Stage-0 gate) + BC-10.01.001 (cap). E. O5 standing rule added to D-DEC-012 O3 table (P9-009 OBS): any hook that re-implements shell tokenization to make a security decision MUST carry a differential-vs-bash vector partition covering all shell-quoting classes the downstream CLI honors."
   - "1.11 (2026-07-21): Pass-8 adversarial remediation (P8-001..P8-004 + OBS). A. D-DEC-008 STEP 3 DENY-THE-WRITE for missing binding fields (P8-001 CRITICAL): both silent-allow branches replaced with HARD-FLOOR-UNBINDABLE deny (create-review + null jira_project_key; comment-review + null ticket_id) per D-DEC-012 clause 2; comment-review corrective reason includes fallback hint when jira_project_key is present (suggests create-review, consistent with STEP 4 required_token logic); non-termination bounded — one HARD-FLOOR-UNBINDABLE audit entry + one deny per re-doc attempt, no Jira write, no silent loop; mirrors STEP 4 non-termination analysis. B. D-DEC-001 STEP 6a quote-aware tokenizer (P8-002 MAJOR): split_on_whitespace replaced with state-machine tokenizer (UNQUOTED/IN_SINGLE/IN_DOUBLE states); hook receives raw command string with literal quotes (jq -r, no shell expansion); EC-024 reconciled — label-literal-in-quoted-summary → has_review_label=false → ALLOW. C. Generation table and STEP 6a ( |$) boundary correction (P8-003 MINOR): explicit note that bash regex is NOT tail-anchored; regular create pattern DOES match review-labeled create at step 5; anti-fungibility direction A enforced EXCLUSIVELY at step 6a (single point of failure — raises step 6a criticality). D. §8.18/§8.19 added: pass-8 PO propagation (BC-3.03.001 STEP 3 deny branches + test vectors; BC-3.01.001 quote-aware tokenizer + EC-023/024 corrections; BC-10.01.001 VP-Anchors footer + Cyberint operator note; BC-8.02.001 Cyberint note; prd-delta §1 VP roster + §5 version catch-up + changelog) and FV propagation (VP-HOOK-029 unbindable-deny vectors; P8-002 quote-aware false-deny vector + revert mutant; EC-023 step-5 correction). P8-OBS-1: SUPERSEDED banners at §8.12.1 item 2 and §8.13 item 1 (retired marker-upgrade mechanism). P8-OBS-2: D-DEC-013 Cyberint operator note (pre-ASM-008: 100% CRITICAL → review queue flood; PO to propagate to BC-8.02.001/BC-10.01.001)."
   - "1.10 (2026-07-21): Pass-7 adversarial remediation (ADV-F2-P7-001..P7-009). A. D-DEC-008 STEP 4 REDESIGN — DENY-THE-WRITE (P7-001 CRITICAL): the marker-upgrade approach from P5-001/P6-002 is REMOVED — P7-001 proved it structurally unsound (the hook cannot rewrite the loop's future Bash command; upgrade writes a marker the loop's own non-review jr command can never consume). DENY-AT-WRITE is the only deterministic lever at the point the LLM can still react. New STEP 4: hard-floor/Indeterminate verdict with non-review ticket_action_type (create/assign/comment/none) → disposition-guard DENIES the verdict Write with a structured machine-readable corrective reason (hard_floor_trigger, required_token, label_instruction) and writes UNDER-LABEL-DENIED audit entry. No marker issued; no Jira write occurs. The loop re-issues the verdict Write with the corrective token; on corrected Write STEP 3 issues the review marker normally. Non-termination: bounded fail-closed — the deny + audit entry ARE the loud failure. STEP 4 remains before STEP 5 kill switch. UNDER-LABEL-CORRECTED audit code RETIRED; replaced by UNDER-LABEL-DENIED. B. D-DEC-012 fail-loud invariant and O3 table updated to reflect deny-the-Write semantics. O3 table extended with O4 standing rule (P7-009): every 'never silently discarded' claim MUST have a VP asserting the consumer-boundary (jr authorization/execution) outcome, not an emitter-local artifact. C. D-DEC-001 consumer STEP 6a has_review_label fix (P7-005 MINOR): structural token detection (whitespace-separated token parse; --label must appear as a standalone token immediately preceding REVIEW-REQUIRED or BLIND-SPOT) replaces raw substring over full command; prevents false-deny of regular creates whose --summary contains the label literal string. D. D-DEC-013 Cyberint explicit conservative mapping (P7-006 MINOR): Cyberint row updated from ambiguous COMPUTE-AT-VALIDATION to explicit default CRITICAL + uncertainty_explicit naming the unvalidated mapping, mirroring the unrecognized-family rule; enum-valid and auditable from first Cyberint contact. E. ASM-014 symmetry obligation added (P7-008 OBS): when jr issue comment --label support is validated, the comment-review structural check MUST be added symmetrically with create-review. F. §8.16 added: pass-7 PO propagation (BC-3.03.001 STEP 4 redesign; BC-3.01.001 step-6a structural fix; BC-10.01.001 six stale locations + Iron Law + loop re-document obligation + Cyberint mapping + brief §3.9 version-pin refresh) and §8.17 FV propagation (VP-HOOK-029 end-to-end consumer-boundary re-scope + deny-path vectors + mutants; VP-SKILL-074 Cyberint partition; step-6a false-deny vector)."
@@ -56,7 +57,7 @@ asm_004_validation: .factory/phase-f2-spec-evolution/asm-004-validation.md
 | D-DEC-005 | **RESOLVED (F1)** | Cross-tenant correlation is prism-side architecture; plugin obligation = org_slug query scoping invariant in BC-10.01.001 only |
 | D-DEC-006 | **RESOLVED** | Skill named `sensor-metrics` (dir: `skills/sensor-metrics/`, command: `commands/sensor-metrics.md`) to avoid namespace confusion with existing `generate-metrics` |
 | D-DEC-007 | **RESOLVED** | Shell helper scripts co-located under `skills/<name>/` (e.g., `skills/activate/activate-mcp-config.sh`) |
-| D-DEC-008 | **RESOLVED** | Marker carries `authorized_operations: [string]` scope field; comment/create/assign each require a separately scoped marker; ticket-bound command_pattern for comment/assign; create scope has no ticket_id (bounded by org+single-use+TTL); emitter selects scope from verdict.ticket_action_type (field 15); hard floors (§3.9) unconditionally prevent marker issuance and key on verdict.severity + verdict.asset_type (NOT confidence); verdict schema: 15 mandatory fields (12 ICD-203 + severity + asset_type + ticket_action_type) |
+| D-DEC-008 | **RESOLVED** | Marker carries `authorized_operations: [string]` scope field; comment/create/assign each require a separately scoped marker; ticket-bound command_pattern for comment/assign; create scope has no ticket_id (bounded by org+single-use+TTL); emitter selects scope from verdict.ticket_action_type (field 15); hard floors (§3.9) unconditionally prevent marker issuance and key on **hook-recomputed severity** (via D-DEC-013 NORMALIZE_SEVERITY in disposition-guard STEP 1a) + verdict.asset_type (NOT confidence); verdict schema: **17 mandatory fields** (12 ICD-203 + severity + asset_type + ticket_action_type + native_severity + sensor_family); P10-001: disposition-guard STEP 1a re-runs NORMALIZE_SEVERITY(native_severity, sensor_family) → SEVERITY-MISMATCH deny on recomputed≠verdict.severity; asset_type cross-validation is ASM-008-DEFERRED (see D-DEC-008 Hard floor binding) |
 | D-DEC-009 | **RESOLVED** | Tavily MCP is `recommended` with explicit fallback to Perplexity-only enrichment; monitoring-loop does not fail if Tavily unavailable |
 | D-DEC-010 | **RESOLVED** | Unattended permission model: `--allowedTools` scoped allowlist (prism/tavily/perplexity MCP tools + Bash + Write + Read) — NOT `--dangerously-skip-permissions`; `--bare` explicitly forbidden (would disable require-review hook); require-review hook remains the Jira auth gate |
 | D-DEC-011 | **RESOLVED** | Confidence float→enum contract: assess-priority outputs BOTH a float posterior (0.0–1.0) AND a mapped enum `{high,medium,low}`; monitoring-loop uses the enum for verdict field #2; canonical thresholds: high ≥ 0.75, medium ≥ 0.40 and < 0.75, low < 0.40 |
@@ -839,14 +840,49 @@ claude -p "/monitoring-loop" \
   2>> "${LOG_DIR}/stderr.log"
 
 exit_code=$?
+run_end_ts=$(date -u +%Y%m%dT%H%M%SZ)
 
-# Gate on structured output
+# ── Gate 1: Structured JSON output (is_error / permission_denials) ─────────
+# NOTE — LOG_DIR vs markers dir (P10-002 path clarification):
+# LOG_DIR ("monitoring-loop-logs") holds the claude -p JSON output envelopes for each run.
+# The AUDIT LOG at ${CLAUDE_PLUGIN_DATA}/markers/audit.log holds hook-emitted audit codes
+# (HARD-FLOOR-LIVELOCK-ABORT, HARD-FLOOR-UNBINDABLE, UNDER-LABEL-DENIED, SEVERITY-MISMATCH).
+# These are SEPARATE paths. The gate below checks BOTH because each captures different failure
+# classes: is_error/permission_denials catches process-level errors and hook-deny signals
+# visible in the envelope; audit.log checks catch audit-only failures that complete with
+# is_error=false (e.g., a livelock-abort that exhaust re-doc cap and advances past the verdict).
+MARKERS_AUDIT="${CLAUDE_PLUGIN_DATA:-${HOME}/.local/share/claude}/markers/audit.log"
+
 result_file=$(ls -t "${LOG_DIR}/"*.json 2>/dev/null | head -1)
 if [ -n "${result_file}" ]; then
   is_error=$(jq -r '.is_error // true' "${result_file}" 2>/dev/null || echo "true")
-  denials=$(jq -r '.permission_denials | length' "${result_file}" 2>/dev/null || echo "1")
+  # P10-002: ASM-015 pending — whether PreToolUse-hook permissionDecision:deny populates
+  # .permission_denials[] is unvalidated under --allowedTools invocation. Once ASM-015 is
+  # resolved, this check may be the primary signal for hook-deny events. Until then, the
+  # audit.log grep (Gate 2) is the reliable signal for hook-layer failures.
+  denials=$(jq -r '.permission_denials | length' "${result_file}" 2>/dev/null || echo "0")
   if [ "${is_error}" = "true" ] || [ "${denials}" -gt 0 ]; then
     echo "MONITORING_LOOP_FAILURE: is_error=${is_error} permission_denials=${denials}" >&2
+    exit 1
+  fi
+fi
+
+# ── Gate 2: Audit log fail-loud codes (P10-002) ────────────────────────────
+# Grep markers/audit.log for fail-loud audit codes emitted during THIS run.
+# HARD-FLOOR-LIVELOCK-ABORT: loop exhausted re-doc cap; finding dropped to audit-only.
+# HARD-FLOOR-UNBINDABLE: hard-floor verdict cannot bind to a marker (missing project_key/ticket_id).
+# UNDER-LABEL-DENIED: hard-floor verdict with wrong ticket_action_type denied at STEP 4.
+# SEVERITY-MISMATCH: hook-recomputed severity disagrees with LLM-reported severity (P10-001).
+# MARKER-WRITE-FAILED: review marker could not be written to disk (P10-003).
+# A completed run (is_error=false) that has any of these codes is a partial failure — the
+# run succeeded at the process level but failed to surface one or more hard-floor findings.
+if [ -f "${MARKERS_AUDIT}" ]; then
+  # Use file modification time of the run's JSON output as the lower bound; fall back to
+  # run_end_ts - 60s as a conservative window (covers all hook events in this run).
+  audit_failures=$(grep -E "HARD-FLOOR-LIVELOCK-ABORT|HARD-FLOOR-UNBINDABLE|UNDER-LABEL-DENIED|SEVERITY-MISMATCH|MARKER-WRITE-FAILED" "${MARKERS_AUDIT}" 2>/dev/null | tail -20)
+  if [ -n "${audit_failures}" ]; then
+    echo "MONITORING_LOOP_AUDIT_FAILURE: fail-loud codes found in audit.log since run start:" >&2
+    echo "${audit_failures}" >&2
     exit 1
   fi
 fi
@@ -1039,9 +1075,19 @@ Basis (ground truth from handoff brief):
   `WHERE org_slug = <org_slug>` when it needs per-org health details; the cross-org shape
   is used by the sensor-metrics skill for operator dashboards.
 
-Scope of carve-out: limited to `prism_sensor_health`. All other tables
-(`crowdstrike_detections`, `armis_alerts`, `claroty_events`, `cyberint_alerts`, etc.) are
-raw security event records and remain subject to the mandatory org_slug constraint.
+Scope of carve-out: exempt ONLY when `prism_sensor_health` is the **sole** table reference
+in the query — no JOIN, no subquery, no CTE that references any raw per-tenant table
+(`crowdstrike_detections`, `armis_alerts`, `claroty_events`, `cyberint_alerts`, etc.).
+A query that references `prism_sensor_health` together with a raw table (e.g.,
+`SELECT ... FROM prism_sensor_health h JOIN crowdstrike_detections d ...`) does NOT qualify
+for the carve-out and MUST include an `org_slug` scope clause. This prevents a mixed query
+from inheriting the health-metadata exemption and escaping the per-tenant isolation rule.
+VP-SKILL-064's static assertion MUST reject a `prism_sensor_health` query that also
+references any raw per-tenant table without an `org_slug` clause (P10-006).
+
+All other tables (`crowdstrike_detections`, `armis_alerts`, `claroty_events`, `cyberint_alerts`,
+etc.) are raw security event records and remain subject to the mandatory org_slug constraint
+with no exceptions.
 
 **PO propagation (P9-005):** BC-8.02.001 (sensor-metrics skill) must reflect this carve-out —
 its postconditions should NOT require org_slug on `prism_sensor_health` queries. BC-10.01.001
@@ -1199,17 +1245,30 @@ A create marker authorizes exactly one ticket creation; any attempt to reuse it 
 > pattern match via the trailing `( |$)` boundary). BC-3.03.001 create emitter branch must
 > adopt this pattern (PO obligation — see §8.10 item 2).
 >
-> **ADV-F2-P3-002 create-scope org-binding (updated ADV-F2-P6-004):** The create pattern
+> **ADV-F2-P3-002 create-scope org-binding (updated ADV-F2-P6-004, P10-009):** The create pattern
 > embeds the Jira project key from `verdict.jira_project_key` (non-ICD-203 operational metadata
-> field; does NOT count against the 15 ICD-203 fields; does NOT affect VP-HOOK-025 test count).
-> Under the brief's single-demo-project configuration (key `PRISM-DEMO`), all orgs share one
-> project key — per-org isolation via project key is architecturally infeasible in the demo
-> deployment. **SEC_ORG_A/SEC_ORG_B per-org-key examples are REMOVED (ADV-F2-P6-004 explicit
-> downgrade).** Cross-org isolation for create operations in single-project config relies on:
+> field; does NOT count against the 17 mandatory verdict fields; does NOT affect VP-HOOK-025 test count).
+>
+> **P10-009 resolution — CHOICE (a): per-org jira_project_key in onboard-customer.**
+> BC-6.01.003 (onboard-customer) MUST add a `jira_project_key` field to the `[[orgs]]` entry
+> for each org. The verdict.jira_project_key lookup order: (1) org's per-org key from the
+> `[[orgs]]` table entry for the current org_slug; (2) fall back to the global jira_project_key
+> captured at activate time. This is backward-compatible: existing single-project deployments
+> (all orgs sharing one key) continue working without change; multi-org deployments may now
+> configure distinct project keys per org. The "multi-project deployments retain full per-org-key
+> binding" claim is now technically grounded (no longer aspirational). PO must propagate to
+> BC-6.01.003 and BC-3.01.001 (verdict.jira_project_key sourcing note). Note: P10-009(a) does
+> not require HUMAN-GATE-CONFIRM — per-org project key is architecturally consistent with the
+> multi-org model and uses per-org fallback semantics that are backward-compatible.
+>
+> Under the brief's PRISM-DEMO single-project configuration (key `PRISM-DEMO`), all orgs' per-org
+> keys would be set to the same value (or left empty to use the global fallback) — per-org project-key
+> isolation is a deployment-time choice, not an architectural constraint. **SEC_ORG_A/SEC_ORG_B
+> per-org-key examples are REMOVED (ADV-F2-P6-004 explicit downgrade was correct for demo;
+> the P10-009 fix makes multi-org per-key deployment architecturally achievable).** Cross-org
+> isolation for create operations in single-project config still relies on:
 > (a) single-use atomic rename, (b) 120s TTL, (c) for create-review: review-label binding via
-> the structural `--label` requirement enforced by consumer STEP 6a. This is a documented
-> limitation of the PRISM-DEMO deployment, not a silent assumption. Multi-project deployments
-> (where each org has its own Jira project key) retain full per-org-key binding.
+> the structural `--label` requirement enforced by consumer STEP 6a. This is documented behavior.
 >
 > If `jira_project_key` is null or absent in the verdict, behavior depends on the step:
 > - **STEP 3 (create-review — genuinely hard-floor path, P8-001 fix):** DENY-THE-WRITE with
@@ -1225,9 +1284,10 @@ The trailing space after the ticket_id in comment/assign patterns is intentional
 **ADV-F2-004: emitter scope selection — disposition-guard reads `verdict.ticket_action_type`:**
 
 The verdict file (monitoring-loop output) carries `ticket_action_type` (field 15 in the full
-15-field mandatory schema — see §D-DEC-001 schema v2.0 and §5.3 updated field count). This
-field is set by the monitoring-loop SKILL.md at Stage 7 (Ticket Action) and tells
-disposition-guard exactly which Jira action is authorized:
+17-field mandatory schema — see §D-DEC-001 schema v2.0/v2.1 and §5.3 updated field count;
+P10-001 adds native_severity (field 16) and sensor_family (field 17)). This field is set by
+the monitoring-loop SKILL.md at Stage 7 (Ticket Action) and tells disposition-guard exactly
+which Jira action is authorized:
 
 ```
 verdict.ticket_action_type values (v1.6 — D-DEC-012 additions):
@@ -1249,7 +1309,7 @@ verdict.ticket_action_type values (v1.6 — D-DEC-012 additions):
 ```
 # ── STEP 0: Dispatch precedence (ADV-F2-P4-001) ──────────────────────────────
 # This pseudocode is entered AFTER the JSON-first dispatch routes the write to the
-# verdict-class path (15-field check). The investigation-markdown path (12-field)
+# verdict-class path (17-field check — P10-001). The investigation-markdown path (12-field)
 # has its own separate pseudocode and does NOT reach this emitter.
 # See "Artifact-Class Field-Set Branching" above for canonical dispatch order.
 
@@ -1258,13 +1318,16 @@ verdict.ticket_action_type values (v1.6 — D-DEC-012 additions):
 # but fails the {HIGH,CRITICAL} hard-floor membership test → no hard floor → marker
 # issued for a genuinely HIGH-severity alert. Fail-closed deny on any non-member value
 # prevents this class of bypass.
+# P10-001: validate native_severity (string, non-empty) and sensor_family (enum) are
+# present as REQUIRED fields 16+17; they must exist for STEP 1a re-normalization.
 FUNCTION validate_enums(verdict):
-  SEVERITY_ENUM    = {"LOW","MEDIUM","HIGH","CRITICAL"}
-  ASSET_TYPE_ENUM  = {"domain_controller","privileged_account","ot_safety_system","standard","unknown"}
-  DISPOSITION_ENUM = {"TP","FP","BTP","Indeterminate"}
-  SENSOR_ENUM      = {"healthy","degraded","silent"}
-  ACTION_ENUM      = {"comment","create","assign","none","create-review","comment-review"}
-  CONFIDENCE_ENUM  = {"high","medium","low"}
+  SEVERITY_ENUM       = {"LOW","MEDIUM","HIGH","CRITICAL"}
+  ASSET_TYPE_ENUM     = {"domain_controller","privileged_account","ot_safety_system","standard","unknown"}
+  DISPOSITION_ENUM    = {"TP","FP","BTP","Indeterminate"}
+  SENSOR_ENUM         = {"healthy","degraded","silent"}
+  ACTION_ENUM         = {"comment","create","assign","none","create-review","comment-review"}
+  CONFIDENCE_ENUM     = {"high","medium","low"}
+  SENSOR_FAMILY_ENUM  = {"crowdstrike","armis","claroty","cyberint"}  # P10-001
 
   IF verdict.severity NOT IN SEVERITY_ENUM:
     RETURN (False, "severity '" + verdict.severity + "' not in allowed set")
@@ -1278,12 +1341,48 @@ FUNCTION validate_enums(verdict):
     RETURN (False, "ticket_action_type '" + verdict.ticket_action_type + "' not in allowed set")
   IF verdict.confidence NOT IN CONFIDENCE_ENUM:
     RETURN (False, "confidence '" + verdict.confidence + "' not in allowed set (must be enum, not float)")
+  # P10-001: required operational-metadata fields for hook-side re-normalization
+  IF verdict.native_severity IS NULL OR verdict.native_severity == "":
+    RETURN (False, "native_severity is absent or empty — required field 16 (P10-001)")
+  IF verdict.sensor_family NOT IN SENSOR_FAMILY_ENUM:
+    RETURN (False, "sensor_family '" + verdict.sensor_family + "' not in {crowdstrike,armis,claroty,cyberint} (P10-001)")
   RETURN (True, "")
 
 (enum_ok, enum_err) = validate_enums(verdict)
 IF NOT enum_ok:
   emit deny("ICD-203 enum-membership validation failed: " + enum_err)
   RETURN
+
+# ── STEP 1a: Hook-side severity re-normalization — SEVERITY-MISMATCH check (P10-001) ──
+# O6 standing rule: the inputs to a hook-computed invariant (hard_floor_applies severity check)
+# must themselves be hook-recomputable or hook-cross-validated — not LLM-supplied.
+# NORMALIZE_SEVERITY is the D-DEC-013 deterministic table (no prism data dependency; pure
+# sensor-native-value + sensor-family lookup). Relocates trust from LLM to hook.
+#
+# If the LLM wrote an under-reported verdict.severity (e.g., "LOW" for a CrowdStrike score 90
+# that the D-DEC-013 table maps to CRITICAL), this step detects the mismatch and DENIES the
+# verdict Write before any marker decision is made. hard_floor_applies() keys on the
+# hook-recomputed severity, not the raw verdict.severity field.
+#
+# Pseudocode for NORMALIZE_SEVERITY is the D-DEC-013 table (executed inline by the hook).
+recomputed_severity = NORMALIZE_SEVERITY(verdict.native_severity, verdict.sensor_family)
+IF recomputed_severity != verdict.severity:
+  WRITE audit entry:
+    "SEVERITY-MISMATCH: verdict.severity='" + verdict.severity +
+    "' does not match hook-recomputed severity='" + recomputed_severity +
+    "' via NORMALIZE_SEVERITY(native_severity='" + verdict.native_severity +
+    "', sensor_family='" + verdict.sensor_family + "') (P10-001/D-DEC-013)" +
+    "; verdict Write denied by disposition-guard"
+  emit deny(
+    "SEVERITY-MISMATCH: disposition-guard recomputed severity='" + recomputed_severity +
+    "' from (native_severity='" + verdict.native_severity +
+    "', sensor_family='" + verdict.sensor_family +
+    "') but verdict.severity='" + verdict.severity + "'. " +
+    "Correct verdict.severity to match the D-DEC-013 normalization table and re-issue."
+  )
+  RETURN
+# After STEP 1a: hard_floor_applies() uses recomputed_severity (not verdict.severity)
+# to prevent severity-underreporting bypass.
 
 # ── STEP 2: Extract ticket_action_type ───────────────────────────────────────
 action = verdict.ticket_action_type   # "comment"|"create"|"assign"|"none"|"create-review"|"comment-review"
@@ -1331,7 +1430,7 @@ action = verdict.ticket_action_type   # "comment"|"create"|"assign"|"none"|"crea
 # - create marker rejected for any command carrying --label REVIEW-REQUIRED|BLIND-SPOT
 # SKILL.md Iron Law remains in force as defense-in-depth (ADV-F2-P6-001 adopted adoption).
 IF action in {"create-review", "comment-review"}:
-  IF NOT hard_floor_applies(verdict):
+  IF NOT hard_floor_applies(verdict, recomputed_severity):
     # Over-label: non-hard-floor verdict with review token. Do NOT exempt from kill switch.
     # Emit allow for the document write; no review marker issued; jr action denied by require-review.
     emit allow without marker
@@ -1472,7 +1571,7 @@ IF action in {"create-review", "comment-review"}:
 #   VP-HOOK-029's consumer-boundary assertion (authorized jr write occurs on corrected re-doc).
 #   Bounded: the deny produces exactly one auditable artifact per Write attempt; no silent loop.
 #
-IF hard_floor_applies(verdict):
+IF hard_floor_applies(verdict, recomputed_severity):
   ticket_id_val = verdict.ticket_id
   # Compute required_token for the corrective reason
   IF ticket_id_val IS NULL OR ticket_id_val == "":
@@ -1553,6 +1652,15 @@ ELIF action == "assign":
   ops = ["assign"]
 
 # ── WRITE_MARKER: common path for all marker types ───────────────────────────
+# P10-003: marker-write FAILURE is handled differently for review vs regular paths.
+# On the hard-floor review path (create-review/comment-review), a write failure MUST fail
+# closed: WRITE audit entry MARKER-WRITE-FAILED + emit deny (mirroring HARD-FLOOR-UNBINDABLE).
+# On regular marker paths (comment/create/assign), allow-without-marker is acceptable:
+# require-review will deny the jr call (no marker in store = human gate still holds).
+# Rationale: a silently-dropped hard-floor finding (no ticket, no error) contradicts D-DEC-012
+# fail-loud invariant. The regular path's allow-without-marker is safe because the absence of
+# a marker causes require-review to deny the Jira write — the human gate is preserved.
+# is_review_path is TRUE when the GOTO WRITE_MARKER was from STEP 3 (create-review/comment-review).
 WRITE_MARKER:
 expires_at = now() + 120s             # absolute expiry (schema v2.0)
 marker = {
@@ -1566,12 +1674,33 @@ marker = {
   command_pattern: pattern,
   disposition: {
     verdict: verdict.disposition,
-    severity: verdict.severity,         # field 13 — required for hard floor check
+    severity: recomputed_severity,      # P10-001: hook-recomputed, not raw verdict.severity
     asset_type: verdict.asset_type,     # field 14 — required for hard floor check
     ticket_action_type: action          # for audit trail (includes create-review/comment-review)
   }
 }
-write_marker(marker, "${CLAUDE_PLUGIN_DATA}/markers/${marker.marker_id}.marker.json")
+is_review_path = (action in {"create-review", "comment-review"})
+write_ok = write_marker(marker, "${CLAUDE_PLUGIN_DATA}/markers/${marker.marker_id}.marker.json")
+IF NOT write_ok:
+  IF is_review_path:
+    # P10-003 CRITICAL FIX — hard-floor review path MUST fail closed on marker-write failure
+    WRITE audit entry:
+      "MARKER-WRITE-FAILED: hard-floor review marker could not be written to " +
+      "${CLAUDE_PLUGIN_DATA}/markers/${marker.marker_id}.marker.json" +
+      "; verdict Write denied by disposition-guard (P10-003/D-DEC-012 clause 2)" +
+      "; hard_floor_trigger=" + identify_hard_floor_trigger(verdict)
+    emit deny(
+      "MARKER-WRITE-FAILED: disposition-guard could not write the review marker to the " +
+      "marker store (disk full, read-only volume, or permissions error). " +
+      "Hard-floor finding cannot be silently dropped (D-DEC-012 fail-loud invariant). " +
+      "Investigate ${CLAUDE_PLUGIN_DATA}/markers/ filesystem access and retry."
+    )
+    RETURN
+  ELSE:
+    # Regular (non-review) path: allow-without-marker; require-review denies jr call (no marker)
+    # This is safe: the human gate (require-review) still prevents the Jira write.
+    emit allow without marker
+    RETURN
 emit allow
 ```
 
@@ -1579,15 +1708,39 @@ Require-review validates the `command_pattern` with an anchored match. A marker 
 `authorized_operations: ["comment"]` CANNOT authorize a `jr issue create` command because
 `^jr (--output json )?issue comment SEC-123 ` does not match `jr issue create ...`.
 
-**Hard floor binding (§3.9 — unconditional code branches) [v2.0 — ADV-F2-001 fix]:**
+**Hard floor binding (§3.9 — unconditional code branches) [v2.0 — ADV-F2-001 fix; v2.1 — P10-001 trust-basis correction]:**
 
 The monitoring-loop skill contains unconditional if-blocks for the hard floor categories.
 **Hard floors are enforced at BOTH layers:** (1) in the monitoring-loop SKILL.md (controls
 whether disposition-guard is even invoked with a ticket_action_type of "none"); and (2) in
-disposition-guard itself (validates verdict.severity + verdict.asset_type — the definitive
-enforcement surface that the LLM cannot bypass). This dual enforcement is defense-in-depth.
+disposition-guard itself.
 
-**ADV-F2-001 critical fix:** Hard floors key on `verdict.severity` and `verdict.asset_type`
+**P10-001 critical fix (v2.1) — trust-basis correction:** Prior text read "validates
+verdict.severity + verdict.asset_type — the definitive enforcement surface that the LLM
+cannot bypass." That claim was **false**: `hard_floor_applies()` was keying on
+`verdict.severity`, which the monitoring-loop LLM writes. An attacker-influenced LLM could
+write `verdict.severity="LOW"` for a genuinely CRITICAL alert; `hard_floor_applies()` would
+return FALSE; the hard floor would be bypassed. The O3 standing rule (codified for
+`ticket_action_type`) applies equally here: the INPUTS to a hook-computed invariant must
+themselves be hook-recomputable, not LLM-supplied.
+
+**Post-P10-001 enforcement (genuinely deterministic):**
+- **Severity:** STEP 1a re-runs `NORMALIZE_SEVERITY(native_severity, sensor_family)` using the
+  D-DEC-013 deterministic table. If recomputed severity != verdict.severity → SEVERITY-MISMATCH
+  deny (Write refused). `hard_floor_applies()` keys on `recomputed_severity` — the hook-computed
+  value — never on raw `verdict.severity`. The LLM cannot bypass the severity floor by
+  under-reporting severity, because the hook independently derives it from raw sensor values.
+- **asset_type — ASM-008-DEFERRED:** Asset classification from prism data (what type is this
+  asset in practice?) cannot be independently verified until ASM-008 resolves the prism data
+  format. ENFORCED NOW: `verdict.asset_type` is validated for enum membership (fail-closed
+  on non-member) and checked against the hard-floor set. NOT yet enforced: cross-validation
+  against a prism-sourced classification. **Residual risk (explicit):** Until ASM-008 resolves,
+  the LLM could under-report asset_type (e.g., "standard" for a domain controller) to bypass
+  the asset_type hard floor. This is the only remaining LLM-trust surface in the hard floor.
+  **Follow-up gate:** ASM-008 resolution MUST include specifying the hook-side prism_asset_class
+  cross-validation mechanism before prism-integration reaches production.
+
+**ADV-F2-001 critical fix:** Hard floors key on severity and `verdict.asset_type`
 (mandatory fields 13 and 14), NOT on `verdict.confidence`. Severity and confidence are
 orthogonal axes. A HIGH-confidence FP verdict on a HIGH-severity alert is still a hard floor.
 The prior design that keyed on confidence was a latent bypass: HIGH-severity + low-confidence
@@ -1601,13 +1754,17 @@ would have escaped the hard floor if `confidence` had been used as the severity 
 # hard floor correctly blocks autonomous TRIAGE; it does NOT block human ESCALATION.
 
 # FUNCTION: hard_floor_applies(verdict) — called by emitter for regular (non-review) markers
-hard_floor_applies(verdict):
+# P10-001: this function is called AFTER STEP 1a. The caller passes recomputed_severity
+# (hook-derived via NORMALIZE_SEVERITY) as the authoritative severity — the raw
+# verdict.severity field is not used for floor evaluation. Signature updated below.
+hard_floor_applies(verdict, recomputed_severity):
 
   IF verdict.disposition == "Indeterminate":
     RETURN TRUE   # → NEVER issue marker; route to human; [REVIEW-REQUIRED]
 
-  # ADV-F2-001: key on verdict.severity (field 13), NOT confidence
-  IF verdict.severity in {"HIGH", "CRITICAL"}:
+  # P10-001: key on hook-recomputed severity (STEP 1a), NOT raw verdict.severity
+  # ADV-F2-001: key on severity (field 13), NOT confidence
+  IF recomputed_severity in {"HIGH", "CRITICAL"}:
     RETURN TRUE   # → NEVER issue marker; route to human
 
   # ADV-F2-001: key on verdict.asset_type (field 14)
@@ -1637,8 +1794,8 @@ hard_floor_applies(verdict):
 # Only after all hard floors pass (for regular markers):
 # Note: create-review/comment-review bypass hard_floor_applies() — see D-DEC-012.
 # Note: autonomy_enabled is validated as a verdict field (not config) — see emitter STEP 5 (ADV-F2-P6-002 reorder).
-IF autonomy_enabled == true AND NOT hard_floor_applies(verdict):
-  → disposition-guard validates all 15 ICD-203 fields + enum-membership (ADV-F2-P4-006)
+IF autonomy_enabled == true AND NOT hard_floor_applies(verdict, recomputed_severity):
+  → disposition-guard validates all 17 mandatory fields + enum-membership (ADV-F2-P4-006 + P10-001)
   → disposition-guard issues scoped marker per verdict.ticket_action_type
   → monitoring-loop proceeds with jr issue comment/create/assign as marker authorizes
 ```
@@ -1695,10 +1852,10 @@ This is the load-bearing sequencing invariant that makes the marker mechanism re
 
 ```
 Stage 7: DOCUMENT
-  monitoring-loop writes the ICD-203 verdict file (all 15 mandatory fields,
-  including ticket_action_type set at Stage 6 DISPOSE)
+  monitoring-loop writes the ICD-203 verdict file (all 17 mandatory fields — P10-001:
+  includes native_severity + sensor_family; ticket_action_type set at Stage 6 DISPOSE)
     → disposition-guard PreToolUse/Write event fires
-    → validates all 15 fields
+    → validates all 17 fields (P10-001: includes STEP 1a SEVERITY-MISMATCH check)
     → if no hard floor AND ticket_action_type != "none":
          atomically writes scoped marker to ${CLAUDE_PLUGIN_DATA}/markers/<uuid>.marker.json
 
@@ -1761,8 +1918,8 @@ resolves the collision.
 
 1. **JSON-content check (verdict-class):** If `tool_input.file_path` ends in `.json` OR
    `tool_input.content` parses as valid JSON (`jq empty 2>/dev/null` succeeds) → route to
-   **VERDICT JSON path** (15-field jq key-presence + type check). This check takes absolute
-   precedence regardless of any `investigation` substring in the path.
+   **VERDICT JSON path** (17-field jq key-presence + type check — P10-001). This check takes
+   absolute precedence regardless of any `investigation` substring in the path.
 2. **Investigation-markdown check:** Elif `tool_input.file_path` matches `*investigation-*.md`
    (must end in `.md`) → route to **INVESTIGATION MARKDOWN path** (12-field heading-anchored grep).
 3. **Fast-path allow:** Else → `emit allow` without any ICD-203 enforcement (neither artifact
@@ -1770,7 +1927,7 @@ resolves the collision.
 
 | Artifact Class | Dispatch condition (evaluated in order) | Field-set enforced | Source |
 |----------------|----------------------------------------|--------------------|--------|
-| Verdict JSON | ends in `.json` OR content is valid JSON | **15 fields** (12 ICD-203 + severity + asset_type + ticket_action_type) | Monitoring-loop (BC-10.01.001) |
+| Verdict JSON | ends in `.json` OR content is valid JSON | **17 fields** (12 ICD-203 + severity + asset_type + ticket_action_type + native_severity + sensor_family) | Monitoring-loop (BC-10.01.001) |
 | Investigation markdown | `*investigation-*.md` glob (`.md` required) | **12 ICD-203 fields** | Human investigate-event workflow (BC-5.01.001) |
 | Fast-path allow | neither condition above | None | — |
 
@@ -1783,7 +1940,7 @@ investigation-markdown branch.**
 Artifacts, Timeline Events, Hypotheses Considered, Alternatives Rejected, Uncertainty
 Explicit, Attack Techniques, Agent Actions, Human Actions, Tuning Signal.
 
-**Verdict 15-field set:** Above 12 plus Severity, Asset Type, Ticket Action Type.
+**Verdict 17-field set (P10-001):** Above 12 plus Severity (13), Asset Type (14), Ticket Action Type (15), Native Severity (16), Sensor Family (17). Fields 16-17 carry raw Stage-1 INGEST values verbatim into the verdict for hook-side re-normalization (STEP 1a SEVERITY-MISMATCH check).
 
 **ERRATUM — BC-3.03.001 v1.11 PC#2 (investigation path) incorrectly states 15 mandatory
 field headings.** The three additional headings (Severity, Asset Type, Ticket Action Type)
@@ -2193,6 +2350,7 @@ cross-validated against a hook-computed invariant before the grant or bypass tak
 | **[P6-009 — trust boundary]** any marker consumption point; control-flow ordering involving security gates | unauthorized Jira writes; silent discard of security findings | O3 audit checklist MUST cover: (a) every marker CONSUMPTION point, (b) every control-flow ORDERING between kill switch and fail-loud paths, (c) every trust-boundary crossing — scope is NOT emitter-only; consumer rows (P6-001) and ordering row (P6-002) are now represented in this table |
 | **[P7-009 — O4 standing rule]** any "never silently discarded" claim verified only at the emitter (marker present in store) | hard-floor finding silently dropped when emitter artifact is unconsumable (wrong command pattern, loop ignores deny reason, Write↔Bash seam gap) | **O4 standing rule:** every "never silently discarded" claim MUST have a VP whose assertion is the downstream authorization/execution outcome at the consumer/Bash boundary — a jr write is authorized AND consumable — not an emitter-local artifact (marker file presence). An emitter-only VP CANNOT detect the Write→Bash seam gap. VP-HOOK-029 re-scope per §8.17 item 1 operationalizes this rule for the hard-floor fail-loud invariant. |
 | **[P9-009 — O5 standing rule]** hook re-implements shell tokenization without a differential-vs-bash test partition | tokenizer diverges from bash for a specific quoting class (e.g., backslash-escaped quotes) → false-allow or false-deny for commands that bash parses differently; security bypass or false-positive gate possible | **O5 standing rule:** any hook that re-implements shell tokenization to make a security decision MUST carry a differential-vs-bash vector partition covering all shell-quoting classes the downstream CLI honors. The partition MUST include: (a) vectors for each quoting class the CLI command surface uses (single-quoted, double-quoted, backslash-escaped, unquoted), (b) paired mutants demonstrating that divergence from bash tokenization is detectable and killable by the VP. The structural_label_check (P9-001 backslash-escape extension) operationalizes this rule for the escaped-quote class. Any future change to the tokenizer or to the set of CLI arguments the hook parses must extend the partition correspondingly. |
+| **[P10-001 — O6 standing rule]** hook-computed invariant inputs are LLM-supplied without independent recomputation | LLM writes under-reported value (e.g., severity="LOW" for a CRITICAL alert) → hook invariant computes from the manipulated LLM value → invariant is circumvented; hard floor or security control bypassed | **O6 standing rule:** the inputs to a hook-computed invariant MUST themselves be hook-recomputable or hook-cross-validated against a deterministic ground truth — not merely accepted from the LLM-written verdict. An invariant computed exclusively from LLM-supplied fields is NOT a deterministic enforcement surface. Remediation pattern: (a) carry the raw source data (native_severity, sensor_family) verbatim from Stage 1 INGEST into the verdict as required fields; (b) the hook re-runs the deterministic computation (NORMALIZE_SEVERITY table) and cross-checks the LLM-reported result; (c) mismatch → deny. This pattern (STEP 1a SEVERITY-MISMATCH) is the canonical operationalization of O6 for severity. Any future hook invariant whose inputs are LLM-derived MUST apply O6: either carry the raw source + recompute deterministically, or cross-validate against a hook-observable ground truth. |
 
 P5-001 and P5-002 are the under-label and over-label duals of the single root cause: the hook
 trusted the LLM-supplied `ticket_action_type` token completely without verifying it against
@@ -2240,6 +2398,20 @@ encoding (--label in fixed second position after the ticket_id), same anti-fungi
 cross-check directions, same Iron Law in BC-10.01.001 Stage-8. This is an architectural
 obligation recorded here so it survives as a forward obligation into the ASM-014 resolution
 burst. The ASM-014 resolution story acceptance criteria MUST reference this symmetry requirement.
+
+**P10-008 — ASM-014-pending residual (EXPLICIT):** Until ASM-014 resolves, the comment-review
+kill-switch exemption is **broader than "review ticket only."** The current comment-review
+command_pattern (`^jr (--output json )?issue comment <ticket_id> `) contains no `--label`
+restriction — ticket_id is LLM-supplied (from the §3.4 dedup lookup). An LLM that mis-sets
+ticket_id (bug or injection via crafted alert/ticket content) could cause the kill-switch-exempt
+path to comment on a non-review ticket under `autonomy_enabled=false`. **Residual risk:** bounded
+to comment-only on a single ticket; requires a genuine hard-floor verdict to reach this path
+(impact is limited). **Interim mitigation when ASM-014 resolves:** (a) if `jr issue comment
+--label` is supported, bind comment-review to a review-labeled command and add STEP 6a
+structural check symmetrically; (b) consider requiring disposition-guard to confirm
+`ticket_id` corresponds to a review-labeled ticket before issuing a comment-review marker
+(adds a prism-side Jira ticket lookup step — depends on ASM-014 resolution to determine
+feasibility). This residual is documented here and in §8.22 for PO awareness.
 
 ---
 
@@ -2295,10 +2467,19 @@ IF native_severity NOT IN known_values_for(sensor_family):
 
 **Integration with pipeline stages:**
 - **Stage 1 INGEST:** extract raw severity from OCSF event; call `NORMALIZE_SEVERITY(raw, family)`;
-  store as `verdict.severity`
+  store as `verdict.severity`. **P10-001 addition:** also store `native_severity` (raw value before
+  normalization) and `sensor_family` (enum: crowdstrike|armis|claroty|cyberint) as REQUIRED fields
+  16+17 in the verdict JSON — these are carried verbatim from Stage 1 into the verdict for
+  disposition-guard's hook-side re-normalization (STEP 1a SEVERITY-MISMATCH check).
 - **Stage 5 SCORE:** if recalibration produces a non-enum value, re-apply `NORMALIZE_SEVERITY`
 - **Stage 1 fast-path (known-FP):** `NORMALIZE_SEVERITY` is the ONLY severity transformation step;
   the normalized value must be in the verdict before Stage 3 CATEGORIZE for hard-floor technique evaluation
+- **disposition-guard STEP 1a (P10-001):** the hook re-runs `NORMALIZE_SEVERITY(native_severity,
+  sensor_family)` from the verdict fields using the same D-DEC-013 table. Mismatch with
+  verdict.severity → SEVERITY-MISMATCH deny. This is NOT a second normalization step — it is a
+  cross-check: the LLM-reported severity must agree with what the deterministic table would produce
+  given the same inputs. Relocates severity trust from LLM to hook; makes the hard floor un-bypassable
+  for the severity dimension.
 
 #### Consequences
 
@@ -2584,6 +2765,8 @@ primary test surface) is consistent with D-DEC-009's `recommended` classificatio
 | ASM-011 | No existing `skills/sensor-metrics/` directory or `commands/sensor-metrics.md` file exists at HEAD (d181ca2) | VALIDATED | Filesystem inspection (2026-07-20): `ls plugins/secops-factory/skills/` shows no `sensor-metrics`; `ls plugins/secops-factory/commands/` shows no `sensor-metrics.md` | None — naming decision confirmed free |
 | ASM-012 | UUID v4 generation is available without external tooling from within disposition-guard shell scripts: via `/proc/sys/kernel/random/uuid` (Linux), `openssl rand -hex 16` (macOS/Linux fallback), or PowerShell `[System.Guid]::NewGuid()` | PARTIALLY VALIDATED | Linux `/proc` path available on kernel >= 2.6.26; macOS has OpenSSL in stdlib; PowerShell .NET Guid is always available; chained fallback provides coverage across all supported platforms | LOW — fallback chain covers all platforms; worst case: use sha256sum of entropy inputs |
 | ASM-013 | The monitoring-loop skill's hard floor unconditional branches (§3.9) remain code branches (not config-evaluated) even after LLM-driven skill evolution — structural verification requires a BATS test that asserts the hard floor logic cannot be bypassed by `autonomy_enabled=true` | UNVALIDATED | BATS tests (VP-HOOK-026 target): inject Indeterminate verdict + autonomy_enabled=true and assert no marker file created in marker-store; same for HIGH/CRIT severity | CRITICAL — if hard floors migrate to config-evaluated conditions, R-001 materializes |
+| ASM-014 | `jr issue comment --label <label>` is a supported CLI form (required for comment-review structural label binding, symmetric with create-review) | UNVALIDATED | Empirical test: run `jr issue comment --help` and inspect whether `--label` is a recognized flag; test `jr issue comment SEC-NNN --label REVIEW-REQUIRED` against a test ticket; verify `--label` appears in the command as a standalone token the hook can check structurally | MEDIUM — if not supported, comment-review kill-switch exemption cannot be structurally bound to review-labeled tickets; residual: comment-review path can comment on any ticket while kill switch is OFF (P10-008 residual, documented in D-DEC-012) |
+| ASM-015 | A `PreToolUse` hook that returns `permissionDecision: "deny"` populates the top-level `.permission_denials` array in the `claude -p --output-format json` envelope when invoked under the authoritative `--allowedTools` scoped allowlist (NOT `--dangerously-skip-permissions`) | **UNVALIDATED — BLOCKING for monitoring-loop stories (P10-002)** | **Go/no-go criterion:** A BATS test MUST exercise the authoritative invocation (`claude -p "/monitoring-loop" --strict-mcp-config --mcp-config ~/.claude/prism.mcp.json --allowedTools "..." --output-format json < /dev/null`) with a hook configured to deny a specific tool call, then inspect the resulting `.json` output to verify that `.permission_denials` is non-empty and contains the denied tool call. The test MUST pass before any loop story that relies on `permission_denials` for operator signaling is merged. If hook denies surface in `.result` or `.content` transcript entries rather than `.permission_denials`, the cron wrapper Gate 1 `denials` check is ineffective — audit.log Gate 2 (P10-002) becomes the primary operator signal. Document the actual behavior. | HIGH — if hook denies do not populate `.permission_denials`, the cron wrapper Gate 1 cannot detect hook-level failures; Gate 2 (audit.log grep) partially compensates but is latency-sensitive (audit.log must be written before the grep runs) |
 
 ---
 
@@ -2628,17 +2811,17 @@ hook (C-14) validates ICD-203 fields and hard floors; only then does it write a 
 
 > **VP anchor clarification (ADV-F2-009 fix):**
 > - **VP-HOOK-025** = ICD-203 field completeness enforcement (disposition-guard validates all
->   **15 mandatory fields** including severity + asset_type + ticket_action_type; dual-path
->   heading-anchored markdown / jq key-presence JSON)
+>   **17 mandatory fields** including severity + asset_type + ticket_action_type + native_severity
+>   + sensor_family — P10-001; dual-path heading-anchored markdown / jq key-presence JSON)
 > - **VP-HOOK-024** = marker soundness (require-review consumer: valid marker → allow + consume;
 >   invalid/expired/wrong-scope/replayed marker → deny; rename-fail → deny; audit log)
 
 | Property | Mechanism | VP subject |
 |----------|-----------|-----------|
-| Marker cannot be issued without all 15 mandatory verdict fields | disposition-guard validates all 15 fields (12 ICD-203 + severity + asset_type + ticket_action_type) BEFORE writing marker; validation failure → no marker written | **VP-HOOK-025** (field completeness) |
+| Marker cannot be issued without all 17 mandatory verdict fields | disposition-guard validates all 17 fields (12 ICD-203 + severity + asset_type + ticket_action_type + native_severity + sensor_family — P10-001) BEFORE writing marker, including STEP 1a SEVERITY-MISMATCH check; validation failure → no marker written | **VP-HOOK-025** (field completeness) |
 | Marker is single-use (replay impossible) | Atomic `mv` rename before `emit_allow`; rename failure → explicit `emit_deny` (ADV-F2-014) | **VP-HOOK-024** (marker soundness) |
 | Marker TTL of 120s via absolute `expires_at_utc` prevents stale-marker attacks | `now() > expires_at_utc` check on every evaluation (absolute; no clock-skew arithmetic) | VP-HOOK-024 |
-| Hard floor categories cannot receive markers regardless of `autonomy_enabled` | Unconditional if-blocks keyed on `verdict.severity` + `verdict.asset_type` (NOT confidence) in monitoring-loop skill + disposition-guard emitter gate (ADV-F2-001 fix) | VP-HOOK-026 (hard floor enforcement) |
+| Hard floor categories cannot receive markers regardless of `autonomy_enabled` | Unconditional if-blocks keyed on hook-recomputed severity (STEP 1a NORMALIZE_SEVERITY) + `verdict.asset_type` (NOT confidence) in monitoring-loop skill + disposition-guard emitter gate (ADV-F2-001 + P10-001 fix); SEVERITY-MISMATCH deny prevents LLM under-reporting the severity floor | VP-HOOK-026 (hard floor enforcement) |
 | Ticket-bound command_pattern for comment/assign prevents cross-ticket marker reuse | `command_pattern` interpolates literal ticket_id; EC-022: wrong-ticket → deny; ADV-F2-002 fix | VP-HOOK-024 (EC-022 anchored match test) |
 | Marker directory is outside git repository and SEC-001 read-ticket surface | Path `${CLAUDE_PLUGIN_DATA}/markers/` is never committed; read-ticket reads Jira ticket bodies, not filesystem paths | Architectural constraint; tested indirectly by bypass-class BATS |
 | Enum-membership validation prevents field-mangling hard-floor bypass (ADV-F2-P4-006) | disposition-guard validates severity/asset_type/disposition/sensor_health_status/ticket_action_type/confidence against allowed-value sets (fail-closed deny) BEFORE hard-floor check; `severity:"High"` (wrong case) → deny, not allow-without-marker | **VP-HOOK-025** (field completeness — must add enum-membership BATS assertions) |
@@ -4601,3 +4784,242 @@ prd-delta, or STATE.md.*
 
 *Pass-9 FV list (§8.21) complete. Architect does NOT edit BCs, verification-delta, prd-delta,
 or STATE.md. v1.12 is final for pass-9 adversarial remediation.*
+
+---
+
+## 8.22 PO PROPAGATION LIST (pass 10 — P10-001..P10-009)
+
+> **Owner:** Product Owner. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md.
+> PO uses this list to propagate architecture-delta v1.13 changes into behavioral contracts.
+
+### 8.22.1 BC-3.03.001 (disposition-guard emitter) — Pass-10 Required Changes
+
+**Current version: v1.17. Target: v1.18.**
+
+1. **native_severity + sensor_family as REQUIRED verdict fields (P10-001 CRITICAL).**
+
+   The 15-field verdict class check becomes a 17-field check. Add fields 16+17 to PC#1/PC#2/PC#3:
+   - Field 16: `native_severity` — string, raw sensor-native severity value, non-empty; populated by
+     Stage 1 INGEST before normalization; carried verbatim into the verdict JSON.
+   - Field 17: `sensor_family` — enum `{crowdstrike, armis, claroty, cyberint}`; populated by
+     Stage 1 INGEST from the OCSF event's sensor routing metadata.
+   Add to Invariant #4 (validate_enums): `sensor_family NOT IN enum → fail-closed deny`.
+   Add to the key-presence field list: `native_severity` (non-empty string), `sensor_family` (enum).
+
+2. **NORMALIZE_SEVERITY in disposition-guard — STEP 1a (P10-001 CRITICAL).**
+
+   Add a new STEP 1a between enum-validation (STEP 1) and ticket_action_type extract (STEP 2):
+   - Extract `native_severity` and `sensor_family` from the verdict.
+   - Re-run D-DEC-013 NORMALIZE_SEVERITY(native_severity, sensor_family) deterministically.
+   - If recomputed_severity != verdict.severity: WRITE audit entry `SEVERITY-MISMATCH` + emit deny.
+   - Pass `recomputed_severity` to `hard_floor_applies()` instead of raw `verdict.severity`.
+   This is the load-bearing security change. Exact pseudocode: see architecture-delta §D-DEC-008
+   STEP 1a (v1.13).
+
+3. **STEP 3 marker-write failure fail-closed on review path (P10-003 MAJOR).**
+
+   Update WRITE_MARKER handling: on the hard-floor review path (create-review/comment-review),
+   a marker-write failure MUST FAIL CLOSED — WRITE audit entry `MARKER-WRITE-FAILED` + emit deny.
+   The allow-without-marker fallback is NOT permitted on the review path (D-DEC-012 fail-loud
+   invariant: hard-floor findings cannot be silently dropped). The allow-without-marker fallback
+   is retained ONLY for the regular (non-review) marker paths.
+   Update BC-3.03.001 line 514 guidance: branch on review vs regular path for marker-write-failure
+   handling; add the MARKER-WRITE-FAILED deny path explicitly.
+
+4. **Propagate the full P9-007 dedup instruction to BC-3.03.001 fallback_hint (P10-004 MINOR).**
+
+   BC-3.03.001 line 286 (comment-review null-ticket_id branch `fallback_hint`) currently reads
+   the weaker short form: "if no review ticket exists yet, re-issue with ticket_action_type=create-review."
+   Update to match architecture-delta v1.12 line 1410 (P9-007 dedup gate), adding:
+   "Before re-issuing as create-review, the loop MUST re-run the §3.4 BLIND-SPOT/REVIEW-REQUIRED
+   dedup query for this (org_slug, sensor_id). Null ticket_id may be a dedup-lookup miss; blindly
+   switching to create-review risks a D-DEC-004 duplicate-ticket violation. Only re-issue as
+   create-review if dedup confirms no open ticket."
+   Add revision-history entry v1.18/P9-007 (propagation gap found at pass 10).
+
+5. **comment-review kill-switch exemption residual note (P10-008 MINOR).**
+
+   Add a note to the comment-review emitter branch documenting the ASM-014-pending residual:
+   the comment-review exemption is currently broader than "review ticket only" (no --label
+   restriction); ticket_id is LLM-supplied; risk bounded to comment-only on hard-floor path.
+   Cite D-DEC-012 ASM-014 obligation. No behavior change required until ASM-014 resolves.
+
+### 8.22.2 BC-10.01.001 (monitoring-loop) — Pass-10 Required Changes
+
+**Current version: v1.14. Target: v1.15.**
+
+1. **Stage 1 INGEST: populate native_severity + sensor_family in verdict (P10-001).**
+
+   Add to the Stage 1 INGEST description: after extracting raw severity from the OCSF event,
+   store `native_severity` (pre-normalization raw value) and `sensor_family` (routing enum:
+   crowdstrike|armis|claroty|cyberint) as REQUIRED fields in the verdict draft. These MUST be
+   populated before Stage 7 DOCUMENT writes the verdict file. Failure to populate them will
+   cause disposition-guard STEP 1 enum-validation to deny.
+
+2. **Invariant #10 severity enforcement — correct "LLM cannot bypass" language (P10-001).**
+
+   Remove or correct the "disposition-guard validates verdict.severity — the definitive enforcement
+   surface the LLM cannot bypass" claim in Inv#10 and wherever similar language appears. Replace
+   with: "disposition-guard STEP 1a re-runs NORMALIZE_SEVERITY(native_severity, sensor_family) and
+   denies (SEVERITY-MISMATCH) if the recomputed severity does not match verdict.severity; the hard
+   floor keys on the hook-recomputed severity. asset_type enforcement is ASM-008-DEFERRED (see
+   architecture-delta D-DEC-008 Hard floor binding v2.1)."
+
+3. **Wrapper audit.log grep gate (P10-002 MAJOR).**
+
+   Add to PC#7 (cron wrapper): the wrapper MUST grep `${CLAUDE_PLUGIN_DATA}/markers/audit.log`
+   for `HARD-FLOOR-LIVELOCK-ABORT|HARD-FLOOR-UNBINDABLE|UNDER-LABEL-DENIED|SEVERITY-MISMATCH|MARKER-WRITE-FAILED`
+   entries and exit non-zero if any are found, even when `is_error=false`. This bridges the
+   audit-artifact → operator-signal gap identified in P10-002. Updated wrapper pseudocode:
+   see architecture-delta §D-DEC-003 (v1.13).
+
+4. **ASM-015 blocking gate (P10-002 MAJOR).**
+
+   Add to the monitoring-loop story acceptance criteria (or the Wave-7 gate criteria):
+   ASM-015 (PreToolUse-hook deny → permission_denials empirical validation under --allowedTools
+   invocation) MUST be validated before loop stories are merged. Cite architecture-delta §4.2
+   ASM-015 (v1.13).
+
+### 8.22.3 BC-6.01.003 (onboard-customer) — Pass-10 Required Changes
+
+**Current version: v1.1. Target: v1.2.**
+
+1. **Per-org jira_project_key field (P10-009 CHOICE a).**
+
+   Add `jira_project_key` as an optional field in the `[[orgs]]` TOML entry captured during
+   onboard-customer. The field is optional at onboard time (backward-compatible: omitting it
+   causes the global fallback to be used). If provided, it must be a valid non-empty Jira
+   project key string.
+
+   Add to PC#1 (onboard-customer postconditions): "The `[[orgs]]` entry for the org being
+   onboarded MAY include an optional `jira_project_key` field. If present, monitoring-loop
+   Stage 6 DISPOSE must source `verdict.jira_project_key` from this per-org key (not the
+   global key from activate). If absent, fall back to the global `jira_project_key` configured
+   at activate time."
+
+   This makes the "multi-project deployments retain full per-org-key binding" claim in
+   architecture-delta D-DEC-008 technically grounded. Update BC-3.01.001 and any reference
+   to `verdict.jira_project_key` sourcing to note the per-org lookup with global fallback.
+
+### 8.22.4 prd-delta — Pass-10 Process Items
+
+1. Update prd-delta §1 VP roster to reflect any new VPs added in §8.23 below (FV to allocate IDs).
+2. Update prd-delta §5 version column for BC-3.03.001 (v1.18), BC-10.01.001 (v1.15), BC-6.01.003 (v1.2).
+3. Update prd-delta field-count references: "15-field verdict schema" → "17-field verdict schema (P10-001)".
+
+### 8.22.5 dtu-assessment — Observation (non-blocking)
+
+The BATS example invocation in dtu-assessment.md (line ~378) reads:
+`run claude -p "/monitoring-loop" --output-format json`
+This omits `--strict-mcp-config --mcp-config ~/.claude/prism.mcp.json --allowedTools ...`
+Per ASM-004's own findings, prism MCP would not load headlessly with that bare invocation.
+Update the illustrative snippet to match the authoritative invocation from architecture-delta
+§D-DEC-003 and BC-10.01.001 Pre#1. This is a documentation clarity fix, not a security issue.
+
+*Pass-10 PO PROPAGATION LIST (§8.22) complete. Architect does NOT edit BCs, verification-delta,
+prd-delta, or STATE.md. v1.13 continues with convergence check.*
+
+---
+
+## 8.23 FORMAL-VERIFIER LIST (pass 10 — P10-001..P10-007)
+
+> **Owner:** Formal verifier. Architect does NOT write VPs or allocate IDs.
+>
+> **IMPORTANT — ID collision prevention:** Do NOT mint new VP/SM IDs without occupancy
+> verification. Run `grep -rE "VP-SKILL-0[6-9][0-9]|VP-HOOK-03[0-9]|SM-4[0-9]" .factory/`
+> before allocating any new ID. All IDs in this section are UNALLOCATED placeholders — FV
+> assigns actual numbers after occupancy check.
+
+---
+
+1. **SEVERITY-MISMATCH adversarial vectors (P10-001 CRITICAL).**
+
+   Add to VP-HOOK-029 (or a new VP — verify occupancy) the following BATS vectors:
+
+   ```bats
+   @test "P10-001 SEVERITY-MISMATCH: CrowdStrike score 90 (→ CRITICAL) but verdict.severity=LOW → disposition-guard STEP 1a denies, SEVERITY-MISMATCH in audit.log"
+   @test "P10-001 SEVERITY-MISMATCH: Armis band=Critical but verdict.severity=MEDIUM → deny, SEVERITY-MISMATCH in audit.log"
+   @test "P10-001 SEVERITY-MISMATCH: Claroty band=High but verdict.severity=LOW → deny, SEVERITY-MISMATCH in audit.log"
+   @test "P10-001 severity agreement: CrowdStrike score 90 + verdict.severity=CRITICAL → no SEVERITY-MISMATCH; hard floor applies normally"
+   @test "P10-001 missing native_severity: native_severity absent → STEP 1 enum-validation deny (field 16 absent)"
+   @test "P10-001 missing sensor_family: sensor_family absent → STEP 1 enum-validation deny (field 17 absent)"
+   @test "P10-001 unknown sensor_family: sensor_family='unknown_vendor' → enum deny, not SEVERITY-MISMATCH"
+   ```
+
+   Paired mutant for SEVERITY-MISMATCH (allocate SM-ID with occupancy check):
+   - SM-P10-A: "revert STEP 1a — remove SEVERITY-MISMATCH check; hard_floor_applies() keys on
+     raw verdict.severity" → inject verdict with native_severity=90 (CrowdStrike), sensor_family=crowdstrike,
+     verdict.severity=LOW → assert NO deny, hard floor does NOT apply → security bypass confirmed.
+     Mutant dies when P10-001 fix correctly denies with SEVERITY-MISMATCH.
+
+2. **Operator-boundary signal / cron-exit-nonzero VP (P10-002 MAJOR).**
+
+   Add a new VP (verify occupancy for ID) asserting that the cron wrapper exits non-zero when
+   `markers/audit.log` contains a `HARD-FLOOR-LIVELOCK-ABORT` entry. Test scenario:
+   - Simulate a monitoring-loop run that exhausts the 3-deny re-doc cap for a hard-floor verdict.
+   - Verify `HARD-FLOOR-LIVELOCK-ABORT` is written to `${CLAUDE_PLUGIN_DATA}/markers/audit.log`.
+   - Verify the cron wrapper exits 1 (Gate 2 audit.log grep fires).
+   This VP bridges the audit-artifact → operator-observable-signal gap (P10-002).
+
+   ```bats
+   @test "P10-002 cron-exit: HARD-FLOOR-LIVELOCK-ABORT in audit.log → wrapper exits 1 (Gate 2)"
+   @test "P10-002 cron-exit: SEVERITY-MISMATCH in audit.log → wrapper exits 1 (Gate 2)"
+   @test "P10-002 cron-exit: clean run (no fail-loud codes in audit.log) → wrapper exits 0"
+   ```
+
+3. **Marker-write-failure fail-closed VP (P10-003 MAJOR).**
+
+   Add to VP-HOOK-029 (or a new VP — verify occupancy):
+
+   ```bats
+   @test "P10-003 MARKER-WRITE-FAILED review path: create-review + unwritable markers dir → MARKER-WRITE-FAILED in audit.log + verdict Write denied (no allow-without-marker)"
+   @test "P10-003 MARKER-WRITE-FAILED review path: comment-review + unwritable markers dir → MARKER-WRITE-FAILED + deny"
+   @test "P10-003 regular path: comment + unwritable markers dir → allow-without-marker (require-review will deny jr call)"
+   ```
+
+   Paired mutant (allocate SM-ID with occupancy check):
+   - SM-P10-B: "revert P10-003 — emit allow-without-marker on WRITE_MARKER failure regardless of
+     is_review_path" → inject create-review path + simulated write failure → assert allow is emitted
+     (no deny) → hard-floor finding silently dropped (no ticket, no error). Mutant dies when P10-003
+     fix correctly emits deny.
+
+4. **VP-SKILL-059 behavioral upgrade (P10-005 MINOR).**
+
+   Upgrade VP-SKILL-059 (scan-threats org_slug) from structural-only to behavioral:
+   (a) Multi-org prism-DTU fixture: org-a threat hunt returns zero org-b/c rows.
+   (b) Static assertion: every query in `data/threat-hunt-queries.md` (the predefined hunting
+       query library) contains an `org_slug` scope clause. The static check must parse the library
+       file and fail if any query is missing the clause — not just check SKILL.md prose.
+
+   ```bats
+   @test "VP-SKILL-059 behavioral: org-a threat hunt returns zero org-b/c rows (prism-DTU multi-org fixture)"
+   @test "VP-SKILL-059 static: all queries in data/threat-hunt-queries.md contain org_slug clause"
+   ```
+
+5. **VP-SKILL-064 test-name qualification (P10-007 MINOR).**
+
+   Rename the existing BATS test in VP-SKILL-064:
+   - OLD: `@test "monitoring-loop rejects unscoped PrismQL query"`
+   - NEW: `@test "monitoring-loop rejects unscoped RAW-TABLE PrismQL query"`
+
+   Add:
+   ```bats
+   @test "monitoring-loop allows unscoped prism_sensor_health query (D-DEC-005 carve-out)"
+   @test "monitoring-loop rejects prism_sensor_health JOIN raw-table query without org_slug (P10-006 carve-out boundary)"
+   ```
+
+   The last test operationalizes the P10-006 carve-out tightening: a query referencing both
+   `prism_sensor_health` and a raw table without `org_slug` MUST be rejected.
+
+6. **New VP for ASM-015 operator-boundary (P10-002).**
+
+   When ASM-015 is validated: add a VP (verify occupancy for ID) asserting that a hook deny
+   under the authoritative `--allowedTools` invocation produces an observable operator signal
+   (either in `.permission_denials` in the JSON envelope, or in `markers/audit.log`, or both).
+   Document the actual observed behavior from ASM-015 empirical results. If `.permission_denials`
+   is populated: Gate 1 is the primary signal; audit.log Gate 2 is defense-in-depth.
+   If not populated: document that audit.log Gate 2 is the sole hook-fail signal; add a VP
+   asserting Gate 2 fires for each hook-deny audit code type.
+
+*Pass-10 FV list (§8.23) complete. Architect does NOT edit BCs, verification-delta, prd-delta,
+or STATE.md. v1.13 is final for pass-10 adversarial remediation.*

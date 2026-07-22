@@ -1,8 +1,8 @@
 ---
 document_type: dtu-assessment
 producer: architect
-version: "1.0"
-date: 2026-07-20
+version: "1.1"
+date: 2026-07-22
 feature: prism-integration
 feature_version: v0.10.0-feature-prism-integration
 status: draft
@@ -90,6 +90,7 @@ No identity/access external services. All auth in this feature cycle is:
 | # | Service | DTU? | Justification |
 |---|---------|------|---------------|
 | — | None identified | N/A | All state is local filesystem (watermarks, prism config dir); tested with temp dirs |
+| 1 | **C-29 marker-store** (`${CLAUDE_PLUGIN_DATA}/markers/`) | NO (local filesystem; BATS temp dir injection) | The marker-store is local filesystem: disposition-guard writes `<uuid>.marker.json` files here; require-review reads and atomically renames them to `.used`; audit.log is written here for fail-loud codes. No DTU required — BATS tests override `CLAUDE_PLUGIN_DATA` to a per-test temp dir (`export CLAUDE_PLUGIN_DATA="$(mktemp -d)"`). Marker isolation must be per-test to prevent cross-test leakage. ASM-009 (cross-hook marker visibility: disposition-guard write → require-review read within the same Claude session) is a BLOCKING gap — see Blocking Gaps section. |
 
 ### Observability & Export (Product → Monitoring)
 
@@ -375,8 +376,16 @@ The monitoring loop is designed to be invoked ad-hoc as well as by a scheduler
 directly:
 
 ```bash
-# BATS test invocation (no scheduler involved)
-run claude -p "/monitoring-loop" --output-format json
+# BATS test invocation (no scheduler involved) — authoritative form per D-DEC-003
+run claude -p "/monitoring-loop" \
+  --strict-mcp-config \
+  --mcp-config "${TEST_PRISM_MCP_CONFIG}" \
+  --allowedTools "mcp__prism__*,mcp__tavily__tavily_search,mcp__tavily__tavily_extract,mcp__perplexity__perplexity_ask,mcp__perplexity__perplexity_search,Bash,Write,Read,Edit" \
+  --output-format json \
+  < /dev/null
+# TEST_PRISM_MCP_CONFIG: path to per-test prism.mcp.json pointing to prism-dtu-demo-server
+# --strict-mcp-config: prevents loading ~/.claude/prism.mcp.json (D-DEC-003 bare-mode equivalent)
+# < /dev/null: prevents the Claude process from reading stdin (required for headless invocation)
 ```
 
 The OS scheduler's only role is to invoke this command on a recurring interval.
@@ -395,6 +404,7 @@ ASM-005: documented per-OS paths and tested with a simulated environment).
 | Gap | Risk | Resolution Path |
 |-----|------|----------------|
 | **ASM-004 unvalidated**: `claude -p` headless invocation must load `settings.json` MCP servers (prism). If it does not, the monitoring-loop SKILL.md cannot reach prism MCP in CI. | HIGH — monitoring-loop stories cannot be authored until this is confirmed | Empirical validation before F2 completes (delta-analysis.md §3.2 gate). If false, D-DEC-003 must choose an alternative packaging. |
+| **ASM-009 unvalidated**: cross-hook marker visibility — disposition-guard writes `${CLAUDE_PLUGIN_DATA}/markers/<uuid>.marker.json` in a PreToolUse hook subprocess; require-review reads the same directory in a separate PreToolUse hook subprocess. It is unvalidated whether two hook subprocesses within the same `claude` session share the same `${CLAUDE_PLUGIN_DATA}` filesystem view (no tmpfs isolation, no kernel namespace separation). If they don't share the view, every require-review check will find no marker and deny all Jira writes — the entire marker mechanism collapses silently. | HIGH — the disposition-guard → require-review marker exchange (D-DEC-001/D-DEC-012, VP-HOOK-029) is the core enforcement mechanism; if cross-hook filesystem access is isolated, the mechanism is non-functional | Formal-verifier must design a BATS test that writes a marker from a hook invocation and verifies it is readable from a second hook invocation within the same `claude` session before Wave 3 story merge. Resolution path: if isolated, D-DEC-003 must use an alternative (e.g., a shared sidecar process or env-passed nonce). VP-HOOK-029's ASM-009 cross-hook harness citation (BC-3.03.001 v1.18 / BC-10.01.001 v1.15 Invariant #10) is the verification anchor. |
 | **prism-demo-bundle CI download**: The `prism-dtu-demo-server` binary is in the `prism-demo-bundle-*` release asset, not the main prism binary. CI must have a mechanism to download it. | MEDIUM — integration tests and holdout evaluation blocked in CI until available | Prism must publish the demo bundle as a GitHub Release asset alongside the main binary. secops-factory CI downloads it via the same mechanism as the main binary. This is a prism release engineering dependency. |
 | **Test prism.toml isolation**: BATS tests must not use the developer's real `~/.config/prism/prism.toml`. Needs a per-test `PRISM_CONFIG_DIR` override. | MEDIUM — tests could corrupt real org config | Confirmed in story for activate skill shell helper BATS: use `--config-dir` pointing to a tmpdir. All BATS tests that invoke prism must pass this flag. |
 

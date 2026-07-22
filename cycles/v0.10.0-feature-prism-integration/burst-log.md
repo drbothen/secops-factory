@@ -602,3 +602,9 @@ Row displaced from STATE.md Current Phase Steps when burst-8 row was added (kept
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
 | F2: pass-9 remediation burst 5 | architect / product-owner / formal-verifier | DONE | P9-001 backslash-escape tokenizer extension + --label= form (MAJOR security fix; O5 rule codified — tokenizer must carry differential-vs-bash vector partition). P9-002 asm-004-validation SUPERSEDED/CORRECTION banners (D-DEC-003/010). P9-005 D-DEC-005 sensor-health cross-org carve-out. P9-007 dedup-before-create-review gate hint. P9-008 jira_project_key HARD Stage-0 precondition + HARD-FLOOR-LIVELOCK-ABORT re-doc cap. P9-009 O5 standing-rule codified. SM-43 allocated. arch-delta v1.12, verif-delta v1.12, prd-delta v1.11, BC-3.01.001 v1.21, BC-10.01.001 v1.14, BC-6.01.001 v1.6, BC-8.02.001 v1.3. First zero-CRITICAL pass; clean streak 0/3. |
+
+<!-- Row displaced from STATE.md Current Phase Steps when pass-13 row was added (kept to 5-row limit). -->
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 10 | adversary | DONE | 1C/2M/6m — P10-001 (CRITICAL): hard_floor_applies() keys on LLM-supplied verdict.severity/asset_type with NO hook-side cross-validation vs source — O3 rule unapplied to the floor's own inputs; 'LLM cannot bypass' claim false. P10-002 (MAJOR)[process-gap]: cron wrapper gate never inspects audit.log fail-loud codes (HARD-FLOOR-LIVELOCK-ABORT/UNBINDABLE) + hook-deny→permission_denials unvalidated → livelock-abort run reports success. P10-003 (MAJOR): marker-write-failure allow-without-marker reintroduces silent-drop on hard-floor review path. P10-004..009 MINOR: fallback_hint dedup propagation, scan-threats structural-only VP, carve-out JOIN predicate, VP-SKILL-064 test-name, comment-review no --label (ASM-014), global jira_project_key vs multi-org. Report persisted; P10-001 approach at human gate. |

@@ -85,3 +85,16 @@ Superseded checkpoints rotated out of STATE.md.
 | **Position** | Pass-9 remediation COMPLETE + committed. NEXT: adversarial pass 10 (fresh context; carry forward the 12-item confirmed-invariants list from pass 9 into the prompt). Clean streak 0/3 — pass 9 was first zero-CRITICAL, decay strong; watch for a clean pass. |
 | **Context** | Artifact versions: arch-delta v1.12, verif-delta v1.12, prd-delta v1.11, asm-004-validation annotated, BC-3.01.001 v1.21, BC-3.03.001 v1.17, BC-10.01.001 v1.14, BC-6.01.001 v1.6, BC-8.02.001 v1.3. P9 report: adversarial-spec-delta-review-pass9.md. F-001 cosmetic §5.4 still open. |
 | **Convergence counter** | 0/3 clean passes (pass-9 first zero-CRITICAL — remediated; pass 10 next) |
+
+---
+
+## Checkpoint 5 — Pass-10 remediation complete, pass 11 pending (2026-07-22)
+
+**Superseded by:** Pass-11 complete checkpoint (2026-07-22)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-07-22 |
+| **Position** | Pass-10 remediation COMPLETE + committed. NEXT: adversarial pass 11 (carry confirmed-invariants list including VP-HOOK-030/STEP-1a; mark ASM-008/ASM-015 as KNOWN-DEFERRED). Clean streak 0/3; decay strong (2C→2C→1C→0C→1C). |
+| **Context** | Artifact versions: arch-delta v1.13, verif-delta v1.13, prd-delta v1.12, dtu-assessment v1.1, BC-3.03.001 v1.18, BC-10.01.001 v1.15, BC-6.01.003 v1.2, BC-3.01.001 v1.21, BC-8.02.001 v1.3, BC-6.01.001 v1.6. D-009/D-010 recorded. VP-HOOK-030 + VP-SKILL-075 FINALIZED P0. O6 rule codified. |
+| **Convergence counter** | 0/3 clean passes (pass-10: 1C/2M — REMEDIATED. Pass-11 needed for clean streak. ASM-008/ASM-015 KNOWN-DEFERRED — carry to pass-11 as confirmed scope exclusions.) |

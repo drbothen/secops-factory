@@ -519,3 +519,11 @@ append-only convention.
 |------|-------|--------|--------|
 | F2: pass-7 remediation burst 3 | architect / product-owner / formal-verifier | DONE | DENY-THE-WRITE redesign per human D-008 + O4 standing rule. arch-delta v1.10 (STEP-4 deny-the-Write, SM-38/39/40, O4 rule); BC-3.03.001 v1.16 (STEP 4 deny + UNDER-LABEL-DENIED audit, corrective-reason struct); BC-3.01.001 v1.19 (structural_label_check step-6a, EC-024, SM-40); BC-10.01.001 v1.12 (P7-002 6 stale ECs, P7-003 --label Iron Law, P7-006 Cyberint); verif-delta v1.10 (VP-HOOK-029 consumer-boundary re-scope+FINALIZED P0, SM-38/39/40, Cyberint partition); prd-delta v1.9 (non-pinned); SM-ID sync + version-coherence sweep applied. |
 | F2: adversarial pass 8 | adversary | DONE | 1C/2M/1m/2obs — decay begun. P8-001 (CRITICAL): STEP 3 correctly-labeled review verdict with null jira_project_key/ticket_id → silent allow-without-marker (last orthogonal silent-discard axis; contradicts D-DEC-012 clause 2 which already mandates deny+error). P8-002 (MAJOR): P7-005 structural_label_check split_on_whitespace not quote-aware — false-denies its own EC-024 example (verified against live hook source). P8-004 (MAJOR): prd-delta VP statuses inverted (VP-HOOK-029/VP-SKILL-065) + §5 versions stale by 2-3. P8-003 (MINOR): EC-023 step-5 defense-in-depth claim factually wrong — anti-fungibility rests solely on step 6a. P8-OBS-1 [process-gap]: superseded propagation ledger sections need forward-link banners. P8-OBS-2: Cyberint 100% mass-escalation pre-ASM-008 needs operator note. 8 confirmed-intact invariants listed for pass-9 accumulation. Report persisted. |
+
+---
+
+## Archived from STATE.md Current Phase Steps (rotated at pass-11 entry)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-8 remediation burst 4 | architect / product-owner / formal-verifier | DONE | arch-delta v1.11 (P8-001 STEP-3 unbindable deny; P8-002 quote-aware tokenizer; P8-003 EC-023 step-5; §8.18/§8.19 propagation); BC-3.03.001 v1.17 (unbindable-deny branches + SM-41); BC-3.01.001 v1.20 (quote-aware tokenizer + SM-42); BC-10.01.001 v1.13 (VP-HOOK-029 re-FINALIZED P0 + loop re-doc P8-001); BC-8.02.001 v1.2 (Cyberint operator note); verif-delta v1.11 (SM-41/SM-42 + unbindable vectors + EC-023 correction); prd-delta v1.10 (VP roster + §5 versions) |

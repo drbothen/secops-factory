@@ -584,3 +584,11 @@ Pass-11 remediation (burst 7) closed P11-001 through P11-007. Four structural im
 - `phase-f2-spec-evolution/architecture-delta.md` v1.13 → v1.14 (P11-001: STEP 1a reframed consistency-only; P11-002: scored_priority field 18; P11-003: NVD clean separation; P11-004: separate human-comment marker path)
 
 **Convergence counter:** 0/3 clean passes. Pass-11 REMEDIATED. Pass 12 is next (adversary fresh context; carry confirmed-invariants list).
+
+---
+
+## Archived from STATE.md Current Phase Steps (displaced by pass-12 entry)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 9 | adversary | DONE | 0C/2M/5m/2obs — FIRST zero-CRITICAL pass; silent-discard class exhausted. P9-001 (MAJOR): quote-aware tokenizer still misses backslash-escaped quotes + --label= form — defeats EC-023 dir-A (sole anti-fungibility gate post-P8-003, no backstop). P9-002 (MAJOR): asm-004-validation.md recommends forbidden --dangerously-skip-permissions + --bare (hook-disabling) with no supersession banner vs D-DEC-003/010. P9-003 prd-delta BC-10.01.001 double-counted (11→10). P9-004 verif-delta VP split mislabeled 8/23 vs 6/25 + FINALIZED/ACCEPTED drift. P9-005 D-DEC-005 org_slug absolute vs sensor-metrics cross-org health. P9-006 dtu-assessment omits C-29 marker-store + ASM-009. P9-007 comment-review fallback hint dup-ticket risk. P9-008/009 [process-gap] obs. Report persisted. |

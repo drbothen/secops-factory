@@ -1,10 +1,11 @@
 ---
 document_type: architecture-delta
 producer: architect
-version: "1.11"
+version: "1.12"
 date: 2026-07-21
 input-hash: COMPUTE-AT-COMMIT
 changelog:
+  - "1.12 (2026-07-21): Pass-9 adversarial remediation (P9-001/005/007/008/009). A. D-DEC-001 STEP 6a backslash-escape tokenizer extension (P9-001 MAJOR): quote-aware tokenizer extended to handle \\\" in IN_DOUBLE (literal \", stay IN_DOUBLE) and \\' in UNQUOTED (literal ', no state toggle), matching bash tokenization; index-based iteration replaces for-char-in-cmd loop; jr --label=VALUE equals form confirmed NOT supported by jr CLI (jr issue create --help, 2026-07-21) — equals-form vector scoped OUT; escaped-quote differential-vs-bash attack vectors + paired mutants added for FV. B. D-DEC-005 sensor-metrics carve-out (P9-005 MINOR): explicit exemption added for prism_sensor_health metadata queries from the per-tenant raw-data org_slug isolation rule; grounded in brief §2.4 (SELECT * FROM prism_sensor_health without org_slug) and §3.6 (health metadata is not raw per-tenant security records); PO to propagate to BC-8.02.001. No HUMAN-GATE-CONFIRM required — brief is unambiguous. C. D-DEC-008 STEP 3 dedup-before-fallback obligation (P9-007 MINOR): comment-review fallback hint conditioned on mandatory re-run of §3.4 BLIND-SPOT/REVIEW-REQUIRED dedup query before switching to create-review; null ticket_id may be a dedup-lookup miss, not absence of ticket; blind switch risks D-DEC-004 duplicate-ticket violation; PO to propagate to BC-10.01.001. D. D-DEC-008 jira_project_key Stage-0 precondition + re-doc cap (P9-008 OBS): activate/onboard MUST gate on jira_project_key presence as a hard Stage-0 precondition before the monitoring loop is permitted to run; re-doc attempt cap set at max 3 HARD-FLOOR-UNBINDABLE denies per-verdict per loop run before loop emits operator-facing failure and exits that verdict path; PO to propagate to BC-6.01.001 (Stage-0 gate) + BC-10.01.001 (cap). E. O5 standing rule added to D-DEC-012 O3 table (P9-009 OBS): any hook that re-implements shell tokenization to make a security decision MUST carry a differential-vs-bash vector partition covering all shell-quoting classes the downstream CLI honors."
   - "1.11 (2026-07-21): Pass-8 adversarial remediation (P8-001..P8-004 + OBS). A. D-DEC-008 STEP 3 DENY-THE-WRITE for missing binding fields (P8-001 CRITICAL): both silent-allow branches replaced with HARD-FLOOR-UNBINDABLE deny (create-review + null jira_project_key; comment-review + null ticket_id) per D-DEC-012 clause 2; comment-review corrective reason includes fallback hint when jira_project_key is present (suggests create-review, consistent with STEP 4 required_token logic); non-termination bounded — one HARD-FLOOR-UNBINDABLE audit entry + one deny per re-doc attempt, no Jira write, no silent loop; mirrors STEP 4 non-termination analysis. B. D-DEC-001 STEP 6a quote-aware tokenizer (P8-002 MAJOR): split_on_whitespace replaced with state-machine tokenizer (UNQUOTED/IN_SINGLE/IN_DOUBLE states); hook receives raw command string with literal quotes (jq -r, no shell expansion); EC-024 reconciled — label-literal-in-quoted-summary → has_review_label=false → ALLOW. C. Generation table and STEP 6a ( |$) boundary correction (P8-003 MINOR): explicit note that bash regex is NOT tail-anchored; regular create pattern DOES match review-labeled create at step 5; anti-fungibility direction A enforced EXCLUSIVELY at step 6a (single point of failure — raises step 6a criticality). D. §8.18/§8.19 added: pass-8 PO propagation (BC-3.03.001 STEP 3 deny branches + test vectors; BC-3.01.001 quote-aware tokenizer + EC-023/024 corrections; BC-10.01.001 VP-Anchors footer + Cyberint operator note; BC-8.02.001 Cyberint note; prd-delta §1 VP roster + §5 version catch-up + changelog) and FV propagation (VP-HOOK-029 unbindable-deny vectors; P8-002 quote-aware false-deny vector + revert mutant; EC-023 step-5 correction). P8-OBS-1: SUPERSEDED banners at §8.12.1 item 2 and §8.13 item 1 (retired marker-upgrade mechanism). P8-OBS-2: D-DEC-013 Cyberint operator note (pre-ASM-008: 100% CRITICAL → review queue flood; PO to propagate to BC-8.02.001/BC-10.01.001)."
   - "1.10 (2026-07-21): Pass-7 adversarial remediation (ADV-F2-P7-001..P7-009). A. D-DEC-008 STEP 4 REDESIGN — DENY-THE-WRITE (P7-001 CRITICAL): the marker-upgrade approach from P5-001/P6-002 is REMOVED — P7-001 proved it structurally unsound (the hook cannot rewrite the loop's future Bash command; upgrade writes a marker the loop's own non-review jr command can never consume). DENY-AT-WRITE is the only deterministic lever at the point the LLM can still react. New STEP 4: hard-floor/Indeterminate verdict with non-review ticket_action_type (create/assign/comment/none) → disposition-guard DENIES the verdict Write with a structured machine-readable corrective reason (hard_floor_trigger, required_token, label_instruction) and writes UNDER-LABEL-DENIED audit entry. No marker issued; no Jira write occurs. The loop re-issues the verdict Write with the corrective token; on corrected Write STEP 3 issues the review marker normally. Non-termination: bounded fail-closed — the deny + audit entry ARE the loud failure. STEP 4 remains before STEP 5 kill switch. UNDER-LABEL-CORRECTED audit code RETIRED; replaced by UNDER-LABEL-DENIED. B. D-DEC-012 fail-loud invariant and O3 table updated to reflect deny-the-Write semantics. O3 table extended with O4 standing rule (P7-009): every 'never silently discarded' claim MUST have a VP asserting the consumer-boundary (jr authorization/execution) outcome, not an emitter-local artifact. C. D-DEC-001 consumer STEP 6a has_review_label fix (P7-005 MINOR): structural token detection (whitespace-separated token parse; --label must appear as a standalone token immediately preceding REVIEW-REQUIRED or BLIND-SPOT) replaces raw substring over full command; prevents false-deny of regular creates whose --summary contains the label literal string. D. D-DEC-013 Cyberint explicit conservative mapping (P7-006 MINOR): Cyberint row updated from ambiguous COMPUTE-AT-VALIDATION to explicit default CRITICAL + uncertainty_explicit naming the unvalidated mapping, mirroring the unrecognized-family rule; enum-valid and auditable from first Cyberint contact. E. ASM-014 symmetry obligation added (P7-008 OBS): when jr issue comment --label support is validated, the comment-review structural check MUST be added symmetrically with create-review. F. §8.16 added: pass-7 PO propagation (BC-3.03.001 STEP 4 redesign; BC-3.01.001 step-6a structural fix; BC-10.01.001 six stale locations + Iron Law + loop re-document obligation + Cyberint mapping + brief §3.9 version-pin refresh) and §8.17 FV propagation (VP-HOOK-029 end-to-end consumer-boundary re-scope + deny-path vectors + mutants; VP-SKILL-074 Cyberint partition; step-6a false-deny vector)."
   - "1.9 (2026-07-21): Pass-6 adversarial remediation (ADV-F2-P6-001..P6-009). A. Unified P6-001/P6-004 fix: create-review command_pattern now structurally distinct — `--label (REVIEW-REQUIRED|BLIND-SPOT)` encoded in FIXED second position after `--project <key>`; consumer adds STEP 6a anti-fungibility cross-check enforcing both directions; D-DEC-012 Alternatives Rejected updated (hook-side label enforcement NOW ADOPTED, reversing prior rejection — O3 standing rule mandates this is a security control that cannot live only in SKILL.md). P6-004 unified: per-org-key isolation infeasible under brief's single-PRISM-DEMO constraint; SEC_ORG_A/SEC_ORG_B examples removed; explicit downgrade documented (single-use + TTL + review-label binding provides cross-org protection). B. STEP reorder (P6-002 CRITICAL): hard_floor_applies() under-label upgrade (formerly STEP 5) moved BEFORE autonomy_enabled kill switch (formerly STEP 4); new STEP 4 = hard-floor/under-label upgrade, new STEP 5 = kill switch; EC-012 case (d) updated from silent-drop to upgrade-path semantics. C. Inv#11/VP-SKILL-065 carve-out language added to D-DEC-012 (P6-003 MAJOR): under autonomy_enabled=false, ZERO REGULAR (comment/create/assign) markers consumed and ZERO regular jr writes; create-review/comment-review escalation writes for genuine hard-floor verdicts still execute per Option A. D. D-DEC-013 added: severity normalization named step (P6-005 MAJOR) — per-sensor-family mapping table (CrowdStrike numeric 1-100, Armis/Claroty risk bands, CVSS floats); unrecognized → CRITICAL with uncertainty_explicit; Cyberint COMPUTE-AT-VALIDATION per ASM-008. E. D-DEC-004 BLIND-SPOT dedup updated (P6-006 MINOR): ticket_action_type now create-review (new ticket) / comment-review (open-ticket dedup); D-DEC-012 exempt-marker path cited. F. D-DEC-002 late-event fail-loud added (P6-007 MINOR): events older than watermark-GRACE emit explicit auditable finding; never silent drop; ASM-008 gate noted. G. ASM-009 elevated to BLOCKING pre-Wave-3 deliverable with explicit go/no-go criteria (P6-008 MINOR); marker design marked CONDITIONAL not RESOLVED. H. D-DEC-012 O3 standing rule table extended with consumer-consumption, control-flow-ordering, and trust-boundary-crossing rows (P6-009 OBS). I. §8.14 added: pass-6 PO propagation (BC-3.01.001 consumer step 6a, BC-3.03.001 STEP reorder + pattern, BC-10.01.001 Inv#11 carve-out + VP-SKILL-065 re-scope + severity normalization) and §8.15 FV propagation (VP-HOOK-029 FINALIZE+expand, VP-SKILL-065 re-scope, VP-SKILL-074 severity-normalization, VP-SKILL-073 late-event-drop, consumer-fungibility mutants SM-36/SM-37). Namespace correction (2026-07-21): VP-SKILL-072 collided with existing FINALIZED VP (first-run 24h lookback) — reallocated to VP-SKILL-074 for severity normalization. SM-33/SM-34 collided with occupied pass-4 sentinels — reallocated to SM-36/SM-37 for consumer STEP 6a anti-fungibility mutants."
@@ -230,7 +231,8 @@ FUNCTION validate_marker(command):
     # at step 6a, via structural_label_check — NOT at step 5. Step 6a is the SOLE enforcement point
     # for this invariant; its correctness (P8-002 quote-aware tokenizer) is load-bearing.
     #
-    # ADV-F2-P7-005 FIX — STRUCTURAL TOKEN DETECTION; P8-002 FIX — QUOTE-AWARE TOKENIZER:
+    # ADV-F2-P7-005 FIX — STRUCTURAL TOKEN DETECTION; P8-002 FIX — QUOTE-AWARE TOKENIZER;
+    # P9-001 FIX — BACKSLASH-ESCAPE EXTENSION:
     # P7-005 fix specified split_on_whitespace, which is still defective:
     # The hook receives tool_input.command as a RAW command string via `jq -r '.tool_input.command'`
     # (require-review.sh:45) — literal quote characters ARE present; shell has NOT expanded them.
@@ -239,40 +241,105 @@ FUNCTION validate_marker(command):
     # `--label` IS a standalone token in the naive split → has_review_label=true → false-deny STILL
     # FIRES with split_on_whitespace. Quote-aware tokenizer (P8-002) keeps quoted regions together.
     #
-    # QUOTE-AWARE TOKENIZER (state machine — bash implementable):
+    # P9-001 DIVERGENCE FROM BASH — two residual input classes (P8-002 did NOT fix):
+    # (1) `\"` inside IN_DOUBLE: current tokenizer exits double-quote state (wrong). Bash: `\"`
+    #     is an escaped `"` — literal `"` added to the string, double-quote state STAYS.
+    #     Attack vector: `jr issue create --project KEY --summary "normal\"" --label REVIEW-REQUIRED`
+    #     Buggy tokenizer: `\"` in IN_DOUBLE → exits IN_DOUBLE at `\"` → next `"` starts a NEW
+    #     IN_DOUBLE region containing ` --label REVIEW-REQUIRED` → has_review_label=FALSE (label hidden!)
+    #     → regular create marker would authorize this command → SECURITY BYPASS.
+    #     Fixed tokenizer: `\"` in IN_DOUBLE → stays IN_DOUBLE, adds `"` to token body; only the
+    #     real closing `"` ends the double-quote region → ` --label REVIEW-REQUIRED` is OUTSIDE
+    #     the double-quoted summary → has_review_label=TRUE → regular create marker DENIED ✓.
+    # (2) `\'` in UNQUOTED: current tokenizer enters IN_SINGLE state (wrong). Bash: `\'` outside
+    #     quotes is an escaped `'` — literal `'` added to token, no state toggle.
+    #     Practical impact: low (jr does not commonly emit `\'` outside quotes), but divergence
+    #     closes the differential-vs-bash surface completely.
+    #
+    # P9-001 REALITY CHECK — jr --label= equals form:
+    # The finding also asked whether jr honors `--label=REVIEW-REQUIRED` (equals form).
+    # Confirmed via `jr issue create --help` (2026-07-21): jr only supports `--label <LABEL>`
+    # (space-separated, repeatable). The `--label=VALUE` equals form is NOT supported.
+    # Consequence: the monitoring loop NEVER emits `--label=VALUE`; the equals-form vector is
+    # SCOPED OUT of this fix. The fix addresses the escaped-quote class only.
+    #
+    # QUOTE-AWARE TOKENIZER v2 (bash implementable, index-based to support lookahead):
     # Pseudocode for structural_label_check(cmd):
     #   state = UNQUOTED
     #   cur_token = ""
     #   tokens = []
-    #   for char in cmd:
+    #   i = 0
+    #   while i < len(cmd):
+    #     char = cmd[i]
     #     if state == UNQUOTED:
-    #       if char == "'":   state = IN_SINGLE   # open single-quote; don't add quote char to token
-    #       elif char == '"': state = IN_DOUBLE   # open double-quote; don't add quote char to token
+    #       if char == '\\' AND i+1 < len(cmd):       # P9-001: backslash in UNQUOTED
+    #         i += 1
+    #         cur_token += cmd[i]   # next char is literal (e.g., \' → ', \" → "); NO state toggle
+    #       elif char == "'":   state = IN_SINGLE   # open single-quote; don't add quote char to token
+    #       elif char == '"': state = IN_DOUBLE     # open double-quote; don't add quote char to token
     #       elif char is whitespace:
     #         if cur_token != "": tokens.append(cur_token); cur_token = ""
     #       else: cur_token += char
     #     elif state == IN_SINGLE:
-    #       if char == "'": state = UNQUOTED      # close single-quote; don't add quote char
-    #       else: cur_token += char               # all chars inside single-quotes → token body
+    #       if char == "'": state = UNQUOTED        # close single-quote; don't add quote char
+    #       else: cur_token += char                 # all chars inside single-quotes → literal
+    #                                               # (backslash is literal inside single-quotes —
+    #                                               #  UNCHANGED from P8-002; no escaping in bash single-quotes)
     #     elif state == IN_DOUBLE:
-    #       if char == '"': state = UNQUOTED      # close double-quote; don't add quote char
-    #       else: cur_token += char               # all chars inside double-quotes → token body
+    #       if char == '\\' AND i+1 < len(cmd):    # P9-001: backslash in IN_DOUBLE
+    #         next_char = cmd[i+1]
+    #         if next_char == '"':
+    #           cur_token += '"'    # \" in double-quotes → literal ", STAY IN_DOUBLE
+    #           i += 1
+    #         elif next_char == '\\':
+    #           cur_token += '\\'   # \\ in double-quotes → literal \, STAY IN_DOUBLE
+    #           i += 1
+    #         else:
+    #           cur_token += char   # other \X in double-quotes: backslash is literal char;
+    #                               # next char processed on next iteration (bash behavior)
+    #       elif char == '"': state = UNQUOTED      # close double-quote; don't add quote char
+    #       else: cur_token += char                 # all other chars inside double-quotes → token body
+    #     i += 1
     #   if cur_token != "": tokens.append(cur_token)   # flush final token
     #   for i in range(len(tokens) - 1):
     #     if tokens[i] == "--label" AND tokens[i+1] in {"REVIEW-REQUIRED", "BLIND-SPOT"}:
     #       return True
     #   return False
     #
-    # EC-024 RECONCILIATION: for cmd = `jr issue create --project PRISM-DEMO --summary "rule matched literal --label REVIEW-REQUIRED in alert payload"`:
+    # EC-024 RECONCILIATION (UNCHANGED — still valid under v2 tokenizer):
+    # For cmd = `jr issue create --project PRISM-DEMO --summary "rule matched literal --label REVIEW-REQUIRED in alert payload"`:
     # - Tokenizer enters IN_DOUBLE at the `"` before "rule"; all chars through closing `"` → --summary token body
     # - Token sequence: [jr, issue, create, --project, PRISM-DEMO, --summary,
     #                    rule matched literal --label REVIEW-REQUIRED in alert payload]
     # - `--label` is NOT a standalone token → has_review_label=false → ["create"] marker consumed → ALLOW
     # EC-024 is internally consistent: label-literal-in-quoted-summary → has_review_label=false → ALLOW.
     #
-    # FV note (P8-002): false-deny vector: the quoted form above must produce ALLOW with ["create"]
-    # marker; revert mutant = "revert structural_label_check to non-quote-aware split_on_whitespace"
+    # FV note (P8-002): false-deny vector (UNCHANGED): quoted-summary with literal label must produce
+    # ALLOW with ["create"] marker; revert mutant = "revert to non-quote-aware split_on_whitespace"
     # → same input produces has_review_label=true → false DENY. Separately killable from P7-005 mutant.
+    #
+    # FV note (P9-001) — NEW DIFFERENTIAL-VS-BASH VECTOR PARTITION:
+    # Partition 1 (escaped-quote hiding a real label — SECURITY-CRITICAL):
+    #   Input: `jr issue create --project KEY --summary "normal\"" --label REVIEW-REQUIRED`
+    #   Buggy (P8-002 tokenizer): exits IN_DOUBLE at `\"` → `--label REVIEW-REQUIRED` hidden in
+    #     second IN_DOUBLE region → has_review_label=FALSE → regular create marker ALLOWS (security bypass)
+    #   Fixed (P9-001 tokenizer): `\"` stays IN_DOUBLE → token body = `normal"`; real closing `"` ends
+    #     IN_DOUBLE; `--label REVIEW-REQUIRED` is a standalone token → has_review_label=TRUE → regular
+    #     create marker DENIED ✓
+    #   Paired mutant: "revert P9-001 backslash-escape handling — treat `\"` in IN_DOUBLE as quote-close
+    #     (pre-P9-001 behavior)" → assert above input produces has_review_label=FALSE (mutant dies when
+    #     fixed tokenizer produces has_review_label=TRUE). SEPARATELY killable from P8-002 mutant.
+    # Partition 2 (unquoted backslash-escaped quote — bash parity):
+    #   Input: `jr issue create --project KEY \'--label REVIEW-REQUIRED\' --summary normal`
+    #   (Pathological input; verifies UNQUOTED backslash handling matches bash)
+    #   Fixed: `\'` in UNQUOTED → literal `'` consumed, no IN_SINGLE toggle; rest of `--label` continues
+    #     as a single token `'--label` (note: `'` is part of the token body, NOT a quote delimiter)
+    #   has_review_label: `'--label` != `--label` → FALSE → correct (the attacker cannot use `\'`
+    #     to hide a label from outside-quote context either)
+    # Partition 3 (equals-form — SCOPED OUT):
+    #   `--label=REVIEW-REQUIRED` is NOT emitted by jr CLI (jr only supports space-separated form).
+    #   No test required. Note in VP: "equals-form vector scoped out; jr CLI does not support
+    #   --label=VALUE as of 2026-07-21 (jr issue create --help confirmation)."
     #
     # Note: comment/comment-review structural check pending ASM-014 (jr issue comment --label support);
     #       current guard for comment-review: ticket_id binding + Iron Law.
@@ -945,11 +1012,40 @@ append preserves each observation as a distinct record.
 Cross-tenant correlation architecture is prism-side (prism release engineering concern,
 not plugin scope for v0.10.0). The plugin's sole obligation is the tenant-isolation invariant:
 
-**All PrismQL queries issued by the plugin MUST include an explicit `org_slug` scope
-constraint. The plugin MUST NEVER construct a PrismQL query without this constraint.**
+**All PrismQL queries issued by the plugin that retrieve raw per-tenant security event data
+MUST include an explicit `org_slug` scope constraint. The plugin MUST NEVER construct a
+raw-data PrismQL query without this constraint.**
 
 This is BC-10.01.001 Invariant #1. The MSSP-global correlation store, anonymized IOC
 federation, and per-tenant RBAC enforcement are prism concerns.
+
+**SENSOR-HEALTH METADATA CARVE-OUT (P9-005 / brief §2.4 + §3.6):**
+
+`prism_sensor_health` metadata queries are **EXEMPT** from the per-tenant raw-data org_slug
+isolation rule. `SELECT * FROM prism_sensor_health` is a cross-org operational health
+telemetry query returning administrative metadata (last-seen timestamps, row counts, error
+rates) across all configured orgs.
+
+Basis (ground truth from handoff brief):
+- Brief §2.4 (sensor-metrics skill) explicitly models the canonical query as
+  `SELECT * FROM prism_sensor_health` WITHOUT an org_slug filter. This is not an oversight —
+  the "per-org sensor telemetry" description refers to the per-org breakdown in the
+  prism_sensor_health result set, not to per-org query scoping.
+- Brief §3.6 (cross-tenant correlation) isolates the rule to "raw per-tenant sensor records."
+  `prism_sensor_health` contains operational health metadata (connectivity, data flow), not
+  customer security event records (CrowdStrike detections, Armis alerts, etc.). The RBAC
+  boundary applies to security data; health metadata is MSSP-operator-scoped by design.
+- The monitoring loop STAGE 0 iterates `FOR EACH customer` in the outer loop and uses
+  `WHERE org_slug = <org_slug>` when it needs per-org health details; the cross-org shape
+  is used by the sensor-metrics skill for operator dashboards.
+
+Scope of carve-out: limited to `prism_sensor_health`. All other tables
+(`crowdstrike_detections`, `armis_alerts`, `claroty_events`, `cyberint_alerts`, etc.) are
+raw security event records and remain subject to the mandatory org_slug constraint.
+
+**PO propagation (P9-005):** BC-8.02.001 (sensor-metrics skill) must reflect this carve-out —
+its postconditions should NOT require org_slug on `prism_sensor_health` queries. BC-10.01.001
+Invariant #1 must be updated to scope the absolute rule to non-health tables only.
 
 #### Rationale
 
@@ -1255,6 +1351,23 @@ IF action in {"create-review", "comment-review"}:
       # this deny fires again — exactly one HARD-FLOOR-UNBINDABLE audit entry + one deny per
       # attempt; no Jira write; no silent loop. Bounded fail-closed, mirroring the STEP 4
       # analysis: the deny + audit entry ARE the loud failure.
+      #
+      # P9-008 STAGE-0 PRECONDITION (prevents livelock in production):
+      # If jira_project_key was never stored (e.g., activate/onboard completed without it),
+      # the loop will produce a HARD-FLOOR-UNBINDABLE deny on every re-doc attempt for every
+      # hard-floor verdict, degrading to audit-only mode with no review tickets ever created.
+      # Two mitigations required (PO obligations — BC-6.01.001 and BC-10.01.001):
+      # (a) jira_project_key MUST be a hard Stage-0 precondition in activate/onboard: the
+      #     activate and onboard-customer skills MUST refuse to complete if jira_project_key
+      #     is not configured and validated (BC-6.01.001 obligation). The monitoring loop
+      #     MUST NOT run without a valid jira_project_key in config.
+      # (b) Re-doc attempt cap: the loop MUST track consecutive HARD-FLOOR-UNBINDABLE denies
+      #     per-verdict-per-run. After 3 consecutive denies for the same verdict (indicating
+      #     structural misconfiguration rather than a correctable re-doc), the loop MUST stop
+      #     re-documenting that verdict and emit a single operator-facing failure artifact
+      #     (to stderr and audit.log with audit code HARD-FLOOR-LIVELOCK-ABORT) then advance
+      #     to the next verdict/sensor. This bounds LLM re-doc livelock to at most 3 cycles
+      #     per finding and ensures the operator receives exactly one actionable failure signal.
       WRITE audit entry:
         "HARD-FLOOR-UNBINDABLE: hard-floor create-review verdict with missing jira_project_key" +
         "; missing_field=jira_project_key" +
@@ -1288,7 +1401,13 @@ IF action in {"create-review", "comment-review"}:
       IF project_key_fallback is null OR project_key_fallback == "":
         fallback_hint = "jira_project_key also absent — re-issue with ticket_id (comment-review) or jira_project_key (create-review) populated."
       ELSE:
-        fallback_hint = "jira_project_key=" + project_key_fallback + " is present — if no review ticket exists yet, re-issue with ticket_action_type=create-review instead."
+        # P9-007 DEDUP GATE: null ticket_id may indicate a dedup-lookup MISS (§3.4 query
+        # failed to find an existing open BLIND-SPOT/REVIEW-REQUIRED ticket) rather than
+        # true absence of a review ticket. Blindly switching to create-review risks creating
+        # a DUPLICATE ticket for the same (org_slug, sensor_id), violating D-DEC-004's
+        # one-open-ticket-per-(org_slug, sensor_id) rule. The fallback to create-review
+        # is CONDITIONAL on the loop having re-run the §3.4 dedup query first.
+        fallback_hint = "jira_project_key=" + project_key_fallback + " is present — BUT before re-issuing as create-review, the loop MUST re-run the §3.4 BLIND-SPOT/REVIEW-REQUIRED dedup query to confirm no open review ticket exists for this (org_slug, sensor_id). Null ticket_id may be a dedup-lookup miss; blindly switching to create-review risks duplicating a BLIND-SPOT/REVIEW-REQUIRED ticket (D-DEC-004 one-open-ticket violation). Re-run dedup first; only re-issue as create-review if dedup confirms no open ticket."
       WRITE audit entry:
         "HARD-FLOOR-UNBINDABLE: hard-floor comment-review verdict with null ticket_id" +
         "; missing_field=ticket_id" +
@@ -2073,6 +2192,7 @@ cross-validated against a hook-computed invariant before the grant or bypass tak
 | **[P6-002 — ordering]** kill switch precedes under-label hard-floor deny | fail-loud safety for under-labeled hard-floor verdicts (silent discard of finding) | hard_floor_applies() DENY-THE-WRITE (STEP 4) executed BEFORE autonomy_enabled kill switch (STEP 5); ordering invariant: hard-floor evaluation has higher priority than kill switch; P7-001 upgraded action from "upgrade marker" to "deny Write" but STEP ordering is preserved |
 | **[P6-009 — trust boundary]** any marker consumption point; control-flow ordering involving security gates | unauthorized Jira writes; silent discard of security findings | O3 audit checklist MUST cover: (a) every marker CONSUMPTION point, (b) every control-flow ORDERING between kill switch and fail-loud paths, (c) every trust-boundary crossing — scope is NOT emitter-only; consumer rows (P6-001) and ordering row (P6-002) are now represented in this table |
 | **[P7-009 — O4 standing rule]** any "never silently discarded" claim verified only at the emitter (marker present in store) | hard-floor finding silently dropped when emitter artifact is unconsumable (wrong command pattern, loop ignores deny reason, Write↔Bash seam gap) | **O4 standing rule:** every "never silently discarded" claim MUST have a VP whose assertion is the downstream authorization/execution outcome at the consumer/Bash boundary — a jr write is authorized AND consumable — not an emitter-local artifact (marker file presence). An emitter-only VP CANNOT detect the Write→Bash seam gap. VP-HOOK-029 re-scope per §8.17 item 1 operationalizes this rule for the hard-floor fail-loud invariant. |
+| **[P9-009 — O5 standing rule]** hook re-implements shell tokenization without a differential-vs-bash test partition | tokenizer diverges from bash for a specific quoting class (e.g., backslash-escaped quotes) → false-allow or false-deny for commands that bash parses differently; security bypass or false-positive gate possible | **O5 standing rule:** any hook that re-implements shell tokenization to make a security decision MUST carry a differential-vs-bash vector partition covering all shell-quoting classes the downstream CLI honors. The partition MUST include: (a) vectors for each quoting class the CLI command surface uses (single-quoted, double-quoted, backslash-escaped, unquoted), (b) paired mutants demonstrating that divergence from bash tokenization is detectable and killable by the VP. The structural_label_check (P9-001 backslash-escape extension) operationalizes this rule for the escaped-quote class. Any future change to the tokenizer or to the set of CLI arguments the hook parses must extend the partition correspondingly. |
 
 P5-001 and P5-002 are the under-label and over-label duals of the single root cause: the hook
 trusted the LLM-supplied `ticket_action_type` token completely without verifying it against
@@ -4254,3 +4374,230 @@ prd-delta, or STATE.md.*
 *Pass-8 PO PROPAGATION LIST (§8.18) and formal-verifier list (§8.19) complete. Architect does
 NOT edit BCs, verification-delta, prd-delta, or STATE.md. v1.11 is final for pass-8
 adversarial remediation.*
+
+---
+
+## 8.20 PO PROPAGATION LIST (pass 9 — P9-001/005/007/008/009)
+
+> **Owner:** Product-owner (PO). Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md.
+>
+> **Live BC version map (frozen pass-9 baseline):** BC-3.01.001 v1.20, BC-3.03.001 v1.17,
+> BC-6.01.001 v1.5, BC-8.02.001 (see live frontmatter), BC-10.01.001 v1.13.
+>
+> **Application order:** BC-3.01.001 (tokenizer extension) → BC-8.02.001 (D-DEC-005 sensor-health
+> carve-out) → BC-10.01.001 (dedup-before-create-review + re-doc cap + D-DEC-005 Inv#1 scope
+> narrowing) → BC-6.01.001 (jira_project_key Stage-0 precondition) → prd-delta (process items).
+
+---
+
+### 8.20.1 BC-3.01.001 (require-review / consumer) — Pass-9 Required Changes
+
+**Current version: v1.20. Target: v1.21.**
+
+1. **structural_label_check — extend to handle backslash-escaped quotes (P9-001 MAJOR).**
+
+   The P8-002 quote-aware tokenizer (v1.20) still diverges from bash for two input classes:
+   - `\"` inside IN_DOUBLE: current tokenizer exits IN_DOUBLE (wrong). Attack vector: a command
+     whose `--summary` value ends with `\"` causes the tokenizer to prematurely exit double-quote
+     context, making subsequent `--label REVIEW-REQUIRED` appear as standalone tokens when bash
+     would keep them inside the quoted region. The buggy tokenizer HIDES a real label from
+     detection (has_review_label=FALSE) → security bypass.
+   - `\'` in UNQUOTED: current tokenizer enters IN_SINGLE (wrong). Bash: `\'` is a literal `'`
+     with no state change.
+
+   Replace the P8-002 tokenizer with the v2 index-based tokenizer (UNQUOTED/IN_SINGLE/IN_DOUBLE
+   states + backslash-escape handling):
+   - In UNQUOTED: if `char == '\\'` and next char exists → consume both chars; add next_char
+     literally to cur_token; NO state toggle.
+   - In IN_DOUBLE: if `char == '\\'` and next char is `"` or `\\` → consume both; add escaped
+     char to cur_token; STAY IN_DOUBLE. Other `\X` in IN_DOUBLE: backslash is literal (next char
+     processed on next iteration).
+   - IN_SINGLE: unchanged (no escaping in bash single-quotes; backslash is always literal).
+
+   Full pseudocode: see architecture-delta.md §D-DEC-001 STEP 6a (v1.12 P9-001 update).
+
+   Add note: "jr --label=VALUE equals form is NOT supported by jr CLI (confirmed 2026-07-21);
+   only `--label VALUE` space-separated form is emitted. Equals-form vector scoped out."
+
+2. **BATS test vectors for escaped-quote tokenization (P9-001 MAJOR).**
+
+   Add to the VP owning structural_label_check (VP-HOOK-024 or VP-HOOK-029 — verify occupancy):
+   ```bats
+   @test "P9-001 escaped-quote-hiding-label: create + create marker + summary contains escaped-quote boundary + real --label REVIEW-REQUIRED after it → DENY (escaped-quote fix correctly detects label)"
+   @test "P9-001 escaped-quote-inside-summary: create + create marker + summary value contains \\\" but --label is genuinely inside double-quoted summary → ALLOW (false-deny prevention)"
+   ```
+   These are the differential-vs-bash partition 1 vectors (see §8.21 FV list below).
+
+---
+
+### 8.20.2 BC-8.02.001 (sensor-metrics) — Pass-9 Required Changes
+
+**Current version: see live frontmatter. Target: bump one minor version.**
+
+1. **D-DEC-005 sensor-health carve-out — reflect in postconditions (P9-005 MINOR).**
+
+   BC-8.02.001 postconditions must NOT require org_slug on `prism_sensor_health` queries.
+   Update or add a normative note:
+
+   > "SENSOR-HEALTH CARVE-OUT (D-DEC-005 / architecture-delta v1.12): `SELECT * FROM
+   > prism_sensor_health` is explicitly exempt from the per-tenant org_slug isolation rule.
+   > prism_sensor_health contains MSSP operational health metadata (last-seen, row counts,
+   > error rates), not raw per-tenant security event data. The cross-org query shape is
+   > intentional (per handoff brief §2.4). Scope of carve-out: limited to prism_sensor_health;
+   > all other sensor tables require explicit org_slug filtering per D-DEC-005 / BC-10.01.001 Inv#1."
+
+---
+
+### 8.20.3 BC-10.01.001 (monitoring-loop) — Pass-9 Required Changes
+
+**Current version: v1.13. Target: v1.14.**
+
+1. **Invariant #1 — narrow org_slug isolation rule to raw security event tables (P9-005 MINOR).**
+
+   Current Inv#1 is an absolute rule: "ALL PrismQL queries MUST include org_slug." Narrow to:
+
+   > "All PrismQL queries that retrieve raw per-tenant security event data (crowdstrike_detections,
+   > armis_alerts, claroty_events, cyberint_alerts, and any other sensor-data tables) MUST include
+   > an explicit org_slug scope constraint. EXCEPTION: prism_sensor_health metadata queries are
+   > exempt (D-DEC-005 carve-out; architecture-delta v1.12 P9-005)."
+
+2. **STEP 3 comment-review fallback — require dedup before create-review switch (P9-007 MINOR).**
+
+   The current fallback hint (when comment-review arrives with null ticket_id but valid
+   jira_project_key) says: "if no review ticket exists yet, re-issue as create-review."
+
+   Update to make the dedup gate explicit:
+
+   > "Null ticket_id on a comment-review path may indicate a dedup-lookup miss rather than true
+   > absence of a ticket. Before switching to create-review, the loop MUST re-run the §3.4
+   > BLIND-SPOT/REVIEW-REQUIRED dedup query for this (org_slug, sensor_id). Only if dedup
+   > returns no open ticket may the loop re-issue the verdict with ticket_action_type=create-review.
+   > Skipping the dedup re-run risks creating a duplicate BLIND-SPOT/REVIEW-REQUIRED ticket,
+   > violating D-DEC-004's one-open-ticket-per-(org_slug, sensor_id) constraint."
+
+   Full pseudocode: see architecture-delta.md §D-DEC-008 STEP 3 (v1.12 P9-007 update).
+
+3. **Re-doc attempt cap — HARD-FLOOR-UNBINDABLE livelock prevention (P9-008 OBS).**
+
+   Add to the monitoring-loop control logic (near the re-document-on-deny obligation):
+
+   > "Re-doc cap: the loop MUST track consecutive HARD-FLOOR-UNBINDABLE denies per verdict per
+   > loop run. After 3 consecutive HARD-FLOOR-UNBINDABLE denies for the same verdict (indicating
+   > structural misconfiguration — jira_project_key not configured), the loop MUST:
+   > (a) stop re-documenting that verdict;
+   > (b) emit a single operator-facing failure artifact to stderr and audit.log with code
+   >     HARD-FLOOR-LIVELOCK-ABORT and the missing_field identified in the deny reason;
+   > (c) advance to the next verdict/sensor.
+   > This bounds LLM re-doc livelock to at most 3 cycles per finding."
+
+---
+
+### 8.20.4 BC-6.01.001 (activate skill) — Pass-9 Required Changes
+
+**Current version: v1.5. Target: v1.6.**
+
+1. **jira_project_key as a hard Stage-0 precondition (P9-008 OBS).**
+
+   The activate skill (and onboard-customer) must gate on jira_project_key presence BEFORE
+   the monitoring loop is permitted to run. Add to activate postconditions:
+
+   > "Stage-0 precondition: activate MUST prompt for and validate jira_project_key (non-empty
+   > string, Jira project key format) before completing. The monitoring-loop MUST NOT be
+   > scheduled or run without a valid jira_project_key configured in plugin state. If
+   > jira_project_key is absent when the loop starts, the loop MUST emit a fatal
+   > MISSING-JIRA-PROJECT-KEY error and exit immediately (before processing any alerts).
+   > Rationale: a structurally absent jira_project_key causes HARD-FLOOR-UNBINDABLE livelock
+   > on every hard-floor create-review verdict; preventing the loop from starting is strictly
+   > better than degrading to audit-only mode silently."
+
+---
+
+### 8.20.5 prd-delta — Process Items (P9-003 / P9-004)
+
+> **Note:** P9-003 (BC-10.01.001 double-count in prd-delta) and P9-004 (verification-delta VP
+> split mislabel + FINALIZED/ACCEPTED drift) are PO/FV-owned process findings. The architect
+> does NOT edit these files.
+
+1. **P9-003 (PO-owned): BC-10.01.001 double-count in prd-delta.**
+
+   If BC-10.01.001 appears more than once in prd-delta's BC roster or requirement tables,
+   remove the duplicate row. Verify that pass-9 changes (Inv#1 scope narrowing, STEP 3
+   dedup gate, re-doc cap) are reflected in prd-delta's §5 version column and changelog.
+
+2. **P9-004 (FV-owned): verification-delta VP split mislabel + FINALIZED/ACCEPTED drift.**
+
+   See §8.21 FV list item 4 below. PO should coordinate with FV to ensure any VP lifecycle
+   state changes in verification-delta are reflected consistently in prd-delta §1 VP roster.
+
+*Pass-9 PO PROPAGATION LIST (§8.20) complete. Architect does NOT edit BCs, verification-delta,
+prd-delta, or STATE.md.*
+
+---
+
+## 8.21 FORMAL-VERIFIER LIST (pass 9 — P9-001/007/009)
+
+> **Owner:** Formal verifier. Architect does NOT write VPs. FV owns VP-INDEX.md,
+> verification-delta.md, and VP files.
+>
+> **IMPORTANT — ID collision prevention:** Do NOT mint new VP/SM IDs without occupancy
+> verification. Run `grep -r "SM-P9" .factory/` and `grep -r "VP-HOOK-0<next>" .factory/`
+> before allocating any new ID.
+
+---
+
+1. **Differential-vs-bash vector partition — escaped-quote class (P9-001 MAJOR).**
+
+   Extend the VP owning structural_label_check (VP-HOOK-024 or per occupancy check) with the
+   O5 standing-rule-mandated differential-vs-bash partition for the escaped-quote class.
+
+   ```bats
+   @test "P9-001 diff-bash partition 1a: IN_DOUBLE + escaped-quote boundary + real --label REVIEW-REQUIRED after boundary → has_review_label=TRUE; regular create marker DENIED"
+   @test "P9-001 diff-bash partition 1b: IN_DOUBLE + escaped-quote INSIDE double-quoted summary (not a boundary) → --label inside summary is NOT standalone token → has_review_label=FALSE; create marker ALLOWED"
+   @test "P9-001 diff-bash partition 2: UNQUOTED + \\' → literal apostrophe in token; no IN_SINGLE state entered; --label after \\' is a standalone token when it follows whitespace"
+   ```
+
+   Paired mutant for partition 1 (allocate ID with occupancy check — do NOT use without grep):
+   - SM-P9-A: "revert P9-001 IN_DOUBLE backslash-escape handling — treat `\"` as a quote-close
+     (pre-P9-001 behavior)" → assert partition 1a input (escaped-quote boundary before real
+     --label) produces has_review_label=FALSE and create marker is ALLOWED (security bypass).
+     Mutant dies when P9-001 fix correctly produces has_review_label=TRUE and DENY.
+     SEPARATELY killable from SM-P8-B (which tests non-quote-aware split_on_whitespace revert).
+
+   Note: equals-form (--label=VALUE) vector SCOPED OUT — jr CLI does not support this form.
+   Document in the VP: "equals-form vector excluded; jr only supports --label VALUE (confirmed
+   2026-07-21). Re-evaluate if jr adds equals-form support in a future release."
+
+2. **Dedup-before-fallback vector (P9-007 MINOR).**
+
+   The STEP 3 fallback hint (comment-review + null ticket_id → suggest create-review) now
+   requires a dedup re-run gate. Add a VP assertion or extend VP-HOOK-029 (verify occupancy):
+
+   ```bats
+   @test "P9-007 dedup-gate: comment-review + null ticket_id + jira_project_key present → deny reason includes dedup-before-create-review instruction (not just 'try create-review')"
+   ```
+
+   No new mutant required for this item (behavioral change is in the deny reason text, not
+   in a security-critical control-flow path). Document as a test-only coverage vector.
+
+3. **O5 standing rule — future coverage obligation.**
+
+   Per O5 (architecture-delta §D-DEC-012): any future change to structural_label_check or
+   to the CLI argument surface the hook parses MUST extend the differential-vs-bash vector
+   partition. Add a standing note to the VP file:
+
+   > "O5 standing rule (P9-009): this VP is the O5 compliance artifact for structural_label_check.
+   > Any future tokenizer change or new CLI flag added to the monitored command surface MUST add
+   > a corresponding differential-vs-bash vector to this VP before the change is merged."
+
+4. **P9-004 (FV-owned process): verification-delta VP split mislabel + FINALIZED/ACCEPTED drift.**
+
+   Audit verification-delta.md for:
+   - VPs listed as FINALIZED that should be ACCEPTED (or vice versa) — reconcile lifecycle
+     labels to match VP-INDEX.md as the source of truth.
+   - Any VP split (one VP split into two) that still shows the pre-split single entry —
+     correct verification-delta to reflect the post-split VP IDs and scopes.
+   - After correction, re-verify VP-INDEX.md total count symmetry (VP-INDEX total must equal
+     the sum of per-tool counts; verification-coverage-matrix.md Totals row must agree).
+
+*Pass-9 FV list (§8.21) complete. Architect does NOT edit BCs, verification-delta, prd-delta,
+or STATE.md. v1.12 is final for pass-9 adversarial remediation.*

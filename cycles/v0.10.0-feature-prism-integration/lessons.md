@@ -224,3 +224,53 @@ traces_to: STATE.md
     validated against the actual behavior of the regex engine in use (Bash ERE vs PCRE vs
     POSIX) before it can be cited as a spec invariant.
     _Discovered: F2 adversarial pass 8 (P8-003 MINOR), 2026-07-21_
+
+## Pass-9 Lessons (F2 adversarial pass 9, 2026-07-21 — first zero-CRITICAL pass)
+
+### Infrastructure-Level
+
+16. **Any hook that re-implements shell tokenization MUST carry a differential-vs-bash vector
+    partition in its specification [P9-001 / O5 rule]** — The quote-aware tokenizer added in
+    burst 4 (P8-002 fix) handles IN_SINGLE and IN_DOUBLE quoting states correctly, but the
+    adversary identified that the IN_DOUBLE state reverted to UNQUOTED on backslash (\\")
+    rather than staying in IN_DOUBLE, causing backslash-escaped quotes inside double-quoted
+    arguments to split the token. Additionally, the --label=VALUE form (equals sign, no space)
+    was not covered. Both are valid Bash token boundaries. Fixing individual missed cases
+    each pass is not a durable approach: Bash's shell quoting rules include further edge cases
+    (e.g., $'...', ANSI-C quoting, heredoc-derived arguments) that a naive state machine will
+    diverge from. The O5 standing rule codified here: any hook specification describing a
+    tokenizer that re-implements shell quoting must include a documented differential-vs-bash
+    vector partition — an explicit enumeration of known divergences from the shell's actual
+    tokenization — so that the FV can verify coverage rather than discovering edge cases one
+    pass at a time.
+    _Discovered: F2 adversarial pass 9 (P9-001 MAJOR), O5 codified burst 5, 2026-07-22_
+
+### Process-Level
+
+17. **Stale validation documentation recommending forbidden invocations is a live regression
+    vector — superseded analysis must carry correction banners immediately [P9-002]** — The
+    asm-004-validation.md document, produced during Phase 0 security analysis, contained
+    paragraphs recommending --dangerously-skip-permissions (violates D-DEC-003: hooks must
+    remain active) and --bare (hook-disabling; violates D-DEC-010) as setup patterns. These
+    decisions were superseded by D-DEC-003 and D-DEC-010 adopted later, but the document was
+    never updated with forward-links or correction banners. Any practitioner reading the
+    document in isolation would follow the forbidden invocations. Lesson: when a design
+    decision supersedes a prior analysis document's recommendations, a SUPERSEDED or
+    CORRECTION banner must be applied to the affected sections immediately — not deferred to
+    a "cleanup pass." Stale prescriptive text in an analysis doc is functionally equivalent
+    to a live specification that contradicts the current design.
+    _Discovered: F2 adversarial pass 9 (P9-002 MAJOR), 2026-07-22_
+
+18. **Absolute invariants expressed without carve-outs will be silently violated by legitimate
+    cross-cutting surfaces — the carve-out must be explicit in the spec [P9-005]** — D-DEC-005
+    stated that every query must include an org_slug predicate for tenant isolation, expressed
+    as an absolute invariant. However, the prism_sensor_health endpoint performs cross-org
+    health-check reads (monitoring that spans all tenants) by design — a surface that
+    legitimately cannot include a tenant-scoping predicate without breaking its purpose.
+    Because the invariant had no carve-outs, D-DEC-005 was technically violated by an
+    intended workflow. The fix was to add an explicit carve-out in the spec naming the
+    prism_sensor_health surface and the rationale. Lesson: when writing an absolute security
+    or isolation invariant, actively enumerate any surfaces that are designed to cross that
+    boundary; document each as a named carve-out with a rationale. An invariant without
+    carve-outs is either incomplete or will be violated by legitimate design.
+    _Discovered: F2 adversarial pass 9 (P9-005 MINOR), 2026-07-22_

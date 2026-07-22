@@ -9,7 +9,33 @@ Track all spec version changes. Most recent version first.
 
 ---
 
-## [1.1.0] - 2026-07-20 (patch edits 2026-07-21 — not a version bump)
+## [1.1.0] - 2026-07-20 (patch edits 2026-07-21/22 — not a version bump)
+
+### F2 Pass-9 Remediation Edits — Burst 5 (2026-07-22) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 5). Root findings: P9-001
+(MAJOR — structural_label_check misses backslash-escaped quotes in IN_DOUBLE state and --label=VALUE
+form; sole anti-fungibility gate post-P8-003; no backstop), P9-002 (MAJOR — asm-004-validation.md
+recommends forbidden --dangerously-skip-permissions and --bare with no supersession banners vs
+D-DEC-003/010), P9-003 (MINOR — prd-delta BC-10.01.001 double-counted 11 instead of 10), P9-004
+(MINOR — verif-delta VP split mislabeled 8/23 vs correct 6/25 + FINALIZED/ACCEPTED drift), P9-005
+(MINOR — D-DEC-005 org_slug absolute invariant needs sensor-health cross-org carve-out), P9-007
+(MINOR — comment-review fallback hint creates duplicate review ticket risk), P9-008 (OBSERVATION —
+jira_project_key not HARD Stage-0; re-doc cap absent), P9-009 (OBSERVATION — O5 rule not formally
+codified). SM-43 allocated. First zero-CRITICAL pass.
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.11 | v1.12 | P9-001: O5 standing rule — tokenizer must carry differential-vs-bash vector partition; P9-005: D-DEC-005 sensor-health carve-out §8.11; P9-007: dedup-before-create-review gate §8.20; P9-008: jira_project_key HARD Stage-0 + HARD-FLOOR-LIVELOCK-ABORT §8.20; P9-009: O5 codified §8.21 |
+| phase-0-ingestion/behavioral-contracts/BC-3.01.001.md | v1.20 | v1.21 [SM-ID-sync per FV] | P9-001: step-6a IN_DOUBLE backslash-escape-reverted state (SM-43 kill-target); --label=VALUE form (no space); O5 differential-vs-bash vector partition; SM-43 IDs synced all 4 occurrences |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.13 | v1.14 | P9-001: Inv#15 tokenizer backslash-escape + --label= coverage; P9-005: Inv#11 D-DEC-005 sensor-health carve-out; P9-008: jira_project_key Stage-0 precondition; re-doc cap; O5 obligation |
+| phase-0-ingestion/behavioral-contracts/BC-6.01.001.md | v1.5 | v1.6 | P9-005: D-DEC-005 sensor-health carve-out annotation (cross-org health-check reads exempt from org_slug isolation) |
+| phase-0-ingestion/behavioral-contracts/BC-8.02.001.md | v1.2 | v1.3 | Version bump tracking prd-delta P9-003 correction |
+| phase-f2-spec-evolution/verification-delta.md | v1.11 | v1.12 | P9-004: VP split count corrected to 6/25; FINALIZED/ACCEPTED status parity; O5 obligation; version-coherence sweep: BC anchor column updated to final post-burst values (BC-3.01.001 v1.21, BC-8.02.001 v1.3, BC-10.01.001 v1.14, BC-6.01.001 v1.6, BC-3.03.001 v1.17) |
+| phase-f2-spec-evolution/prd-delta.md | v1.10 | v1.11 | P9-003: BC-10.01.001 double-count corrected (11→10); BC-6.01.001 version bump to v1.6 |
+| phase-0-ingestion/asm-004-validation.md | annotated | annotated + SUPERSEDED/CORRECTION banners | P9-002: SUPERSEDED banner over --dangerously-skip-permissions paragraph; CORRECTION banner over --bare paragraph; forward-links to D-DEC-003/010 |
+
+---
 
 ### F2 Pass-8 Remediation Edits — Burst 4 (2026-07-21) — spec remains 1.1.0
 

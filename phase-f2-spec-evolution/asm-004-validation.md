@@ -7,6 +7,7 @@ status: PARTIAL
 feature: prism-integration
 feature_version: v0.10.0-feature-prism-integration
 source_register: .factory/phase-f1-delta-analysis/delta-analysis.md §4
+correction_note: "2026-07-21 P9-002: 'Recommended packaging' and 'Alternative: --bare --mcp-config' sections annotated SUPERSEDED — both rejected by D-DEC-010/D-DEC-003. Authoritative invocation is --strict-mcp-config --mcp-config ... --allowedTools ... with NO --bare and NO --dangerously-skip-permissions. Historical analysis preserved; banners added."
 ---
 
 # ASM-004 Empirical Validation — Headless MCP Loading in `claude -p`
@@ -221,12 +222,35 @@ The monitoring-loop then runs headlessly via `claude -p`. However:
 
 ### Recommended packaging for D-DEC-003
 
+> **[SUPERSEDED — P9-002 CORRECTION, 2026-07-21]**
+> The invocation in this section uses `--dangerously-skip-permissions`, which was
+> **REJECTED** by D-DEC-010 (architecture-delta v1.1). Using `--dangerously-skip-permissions`
+> bypasses Claude Code's tool-permission layer. Although hooks technically still fire with
+> this flag, D-DEC-010 explicitly rejects it in favor of the narrower `--allowedTools` approach.
+>
+> **Authoritative invocation (D-DEC-003 + D-DEC-010):**
+> ```bash
+> claude -p "/monitoring-loop" \
+>   --strict-mcp-config \
+>   --mcp-config ~/.claude/prism.mcp.json \
+>   --allowedTools "mcp__prism__*,mcp__tavily__tavily_search,mcp__tavily__tavily_extract,mcp__perplexity__perplexity_ask,mcp__perplexity__perplexity_search,Bash,Write,Read,Edit" \
+>   --output-format json \
+>   < /dev/null
+> ```
+> Key constraints: NO `--dangerously-skip-permissions`, NO `--bare`.
+> See architecture-delta.md §D-DEC-010 for the full allowlist rationale and
+> compensating control stack.
+
+---
+
 The activate skill should write the prism MCP config to **both** `~/.claude/settings.json`
 (for interactive sessions) AND a dedicated prism MCP config file at a known path
 (e.g., `~/.claude/prism.mcp.json`). The monitoring-loop invocation should explicitly
 reference this file:
 
 ```bash
+# HISTORICAL RECORD — invocation as originally researched in this probe.
+# THIS FORM IS SUPERSEDED. See CORRECTION banner above for authoritative invocation.
 claude -p "/monitoring-loop" \
   --mcp-config ~/.claude/prism.mcp.json \
   --dangerously-skip-permissions \
@@ -240,9 +264,26 @@ monitoring-loop's scope (reducing noise/attack surface).
 
 ### Alternative: `--bare --mcp-config`
 
+> **[SUPERSEDED — P9-002 CORRECTION, 2026-07-21]**
+> The `--bare` flag in this section was **REJECTED** by D-DEC-010 (architecture-delta v1.1)
+> for a critical reason: `--bare` disables hook enforcement entirely. The require-review
+> hook — the sole hard Jira authorization gate — does NOT fire under `--bare`. Using `--bare`
+> removes the only deterministic control blocking unauthorized Jira writes. This is a
+> **CRITICAL SECURITY REGRESSION**, not a startup-time optimization.
+>
+> The framing below ("eliminates hook interference") is INCORRECT and MISLEADING. Hook
+> enforcement in the monitoring-loop context is a security requirement, not interference.
+>
+> This invocation form MUST NOT be used. See the CORRECTION banner in the "Recommended
+> packaging" section above for the authoritative invocation.
+
+---
+
 If the monitoring loop should run with minimal plugin/hook overhead:
 
 ```bash
+# HISTORICAL RECORD — invocation rejected by D-DEC-010.
+# DO NOT USE. --bare disables require-review hook (sole Jira auth gate).
 claude -p "/monitoring-loop" \
   --bare \
   --mcp-config ~/.claude/prism.mcp.json \
@@ -252,7 +293,9 @@ claude -p "/monitoring-loop" \
 ```
 
 `--bare` skips hooks, LSP, plugin sync, CLAUDE.md auto-discovery, and keychain reads.
-This reduces startup time and eliminates hook interference during the patrol loop.
+~~This reduces startup time and eliminates hook interference during the patrol loop.~~
+**CORRECTION: `--bare` eliminates the require-review SECURITY GATE, not mere "interference."
+This is a critical regression. `--bare` is explicitly forbidden by D-DEC-010.**
 
 ### What activate-mcp-config.sh should write
 

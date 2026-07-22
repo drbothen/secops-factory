@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-07-20T00:00:00
@@ -17,7 +17,7 @@ subsystem: metrics-pipeline
 capability: CAP-METRICS-02
 lifecycle_status: active
 introduced: v0.10.0-feature-prism-integration
-modified: ["v1.1-FV-PROPOSED-DROP-2026-07-20", "v1.2-ADV-F2-P8-OBS-2-Cyberint-operator-note-2026-07-21"]
+modified: ["v1.1-FV-PROPOSED-DROP-2026-07-20", "v1.2-ADV-F2-P8-OBS-2-Cyberint-operator-note-2026-07-21", "v1.3-ADV-F2-P9-005-2026-07-21"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -29,6 +29,7 @@ removal_reason: null
 # Behavioral Contract BC-8.02.001: sensor-metrics Skill — Per-Org Sensor Health Telemetry via prism_sensor_health
 
 > **Revision history:**
+> - v1.3 (2026-07-21): Pass-9 adversarial remediation — ADV-F2-P9-005 (MINOR) D-DEC-005 sensor-health carve-out. (1) **Invariant #2 updated:** `prism_sensor_health` is explicitly exempt from the per-tenant org_slug isolation rule (D-DEC-005 carve-out, architecture-delta v1.12). The invariant previously stated that org_slug filtering must be applied if the prism MCP tool supports it for `prism_sensor_health` — this is incorrect. `prism_sensor_health` contains MSSP operational health metadata (last-seen, row counts, error rates), not raw per-tenant security event data. The cross-org query shape is intentional per handoff brief §2.4 (`SELECT * FROM prism_sensor_health` without org_slug). Raw security-event tables (crowdstrike_detections, armis_alerts, claroty_events, cyberint_alerts) remain mandatory for org_slug isolation. (2) **Normative carve-out note added to Postconditions:** explicit SENSOR-HEALTH CARVE-OUT statement per architecture-delta §8.20.2.
 > - v1.2 (2026-07-21): Pass-8 OBS-2 — Cyberint operator expectation note. Added "## Operational Notes" section with the pre-ASM-008 Cyberint operator expectation: conservative CRITICAL normalization (D-DEC-013) → 100% review escalation → REVIEW-REQUIRED ticket flood in org-b (if Cyberint-connected) until ASM-008 resolves. Expected behavior, not a defect. BC-10.01.001 cited for full context.
 > - v1.0 (2026-07-20): Initial authoring for prism-integration cycle (v0.10.0). Source: handoff brief §2.4 (metrics skill), architecture-delta.md §D-DEC-006 (skill naming: `sensor-metrics`, not `metrics`), artifact-mapping.md §1.4 (BC-8.02.001 slot). D-DEC-006 resolves naming conflict with existing `generate-metrics` skill.
 > - v1.1 (2026-07-20): FV-PROPOSED-DROP: VP-SKILL-056 and VP-SKILL-057 are now FINALIZED per verification-delta §1 — dropped `(PROPOSED)` qualifier from VP table rows and VP Anchors.
@@ -75,6 +76,13 @@ Jira analytics query. The skill name is `sensor-metrics` per D-DEC-006.
    NOT return empty data silently as if all sensors are healthy. Confidence:
    fail-loud requirement.
 
+> **SENSOR-HEALTH CARVE-OUT (D-DEC-005 / architecture-delta v1.12):** `SELECT * FROM
+> prism_sensor_health` is explicitly exempt from the per-tenant org_slug isolation rule.
+> prism_sensor_health contains MSSP operational health metadata (last-seen, row counts,
+> error rates), not raw per-tenant security event data. The cross-org query shape is
+> intentional (per handoff brief §2.4). Scope of carve-out: limited to prism_sensor_health;
+> all other sensor tables require explicit org_slug filtering per D-DEC-005 / BC-10.01.001 Inv#1.
+
 ## Invariants
 
 1. **Skill name is `sensor-metrics` (D-DEC-006).** The skill directory is
@@ -82,9 +90,14 @@ Jira analytics query. The skill name is `sensor-metrics` per D-DEC-006.
    No alias, no renaming. This name was chosen specifically to distinguish from
    `generate-metrics` at the user interface level. Changing this name is a
    breaking change.
-2. **org_slug scoping.** If the prism MCP tool supports org_slug filtering on
-   `prism_sensor_health`, the query must include it. The skill must never return
-   cross-tenant raw sensor data without org_slug isolation (D-DEC-005).
+2. **org_slug scoping (D-DEC-005 with carve-out).** `prism_sensor_health` metadata queries are
+   explicitly EXEMPT from the per-tenant org_slug isolation rule (D-DEC-005 carve-out;
+   architecture-delta v1.12 P9-005). `prism_sensor_health` contains MSSP operational health
+   metadata (last-seen timestamps, row counts, error rates), not raw per-tenant security event
+   data. The cross-org query shape (`SELECT * FROM prism_sensor_health` without org_slug) is
+   intentional per handoff brief §2.4. Raw security-event tables (crowdstrike_detections,
+   armis_alerts, claroty_events, cyberint_alerts) are NOT exempt and MUST include explicit
+   org_slug filtering per D-DEC-005.
 3. **Fail-loud on prism error.** An E-SPEC-024 or E-CRED-008 error from prism
    must be surfaced to the user verbatim with corrective action. Silent empty
    output on prism error is a defect.

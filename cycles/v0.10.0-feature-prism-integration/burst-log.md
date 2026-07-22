@@ -401,8 +401,78 @@ per append-only convention.
 
 ## Archived Step Row — rotated from STATE.md Current Phase Steps (2026-07-21)
 
-The following row was displaced from the 5-row Current Phase Steps limit when pass-9 was added:
+The following rows were displaced from the 5-row Current Phase Steps limit (burst-4 and burst-5 additions):
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
 | F2: pass-6 remediation burst 2 | architect / product-owner / formal-verifier | DONE | arch-delta v1.9 (P6-001..009: --label in create-review pattern + hook-side label enforcement D-DEC-012 ADOPTED; STEP 4/5 reorder; D-DEC-013 severity normalization; P6-008 ASM-009 BLOCKING; O3 extended to consumer+ordering+trust-boundary; VP-SKILL-074+SM-36/SM-37 namespace-corrected); BC-3.01.001 v1.18 (STEP 6a anti-fungibility both directions, EC-023, VP-HOOK-029 FINALIZED ref, SM-36/SM-37); BC-3.03.001 v1.15 (STEP 4/5 swap, labeled create-review pattern, Iron Law updated); BC-10.01.001 v1.11 (Inv#11 Option A carve-out, NORMALIZE_SEVERITY per D-DEC-013, VP-SKILL-065 re-scoped PROPOSED); verif-delta v1.9 (VP-HOOK-029 FINALIZED P0, VP-HOOK-024 anti-fungibility, VP-SKILL-073/074 new, 31VPs/31mutants; FV caught VP-SKILL-072+SM-33/34 collisions) |
+| F2: adversarial pass 7 | adversary | DONE | 2C/3M/3m/2obs — root cause: marker↔command seam. P7-001 (CRITICAL): STEP 4 under-label upgrade writes a marker the loop's actual jr command cannot consume — silent drop persists for create/assign/none under-label paths. P7-002 (CRITICAL): 6 locations in BC-10.01.001 (EC-015/016/017/021 + 2 test vectors) still encode pre-D-DEC-012 'no marker for hard floor' semantics. P7-003: --label Iron Law missing from loop contract. P7-004: VP-HOOK-029 emitter-only, cannot detect unconsumable-marker drop. P7-005 substring false-deny; P7-006 Cyberint mapping; P7-007 brief stale versions. P7-009 [process-gap]: fail-loud claims proven at emitter, guarantee lives at consumer — need end-to-end verification axis. Report persisted. |
+
+---
+
+## Burst 5: F2 Pass-9 Remediation (2026-07-22)
+
+**Steps archived from STATE.md Current Phase Steps:**
+
+(see row above — F2: adversarial pass 7 rotated out of the 5-row limit by this burst's addition)
+
+**Narrative:**
+
+P9-001 fix: BC-3.01.001 v1.21 — structural_label_check step-6a extended to cover backslash-escaped
+quotes (\") and the --label=VALUE form (no space after --label). Both forms are valid bash token
+boundaries and yield the same tag-key string; the IN_DOUBLE state was reverting to UNQUOTED on
+backslash, causing the escape to be treated as a split point. SM-43 allocated as the kill-target
+mutant reverting the IN_DOUBLE-backslash-escape state (direction-A). Architecture-delta v1.12
+codifies O5 standing rule: any hook implementation re-implementing shell tokenization MUST carry
+a differential-vs-bash vector partition (enumerating known divergence cases vs bash) in the
+specification for that component. BC-10.01.001 v1.14 absorbs P9-001 coverage in Inv#15 and
+propagates O5 obligation.
+
+P9-002 fix: asm-004-validation.md updated with SUPERSEDED and CORRECTION banners over the two
+paragraphs recommending --dangerously-skip-permissions (violates D-DEC-003) and --bare
+(hook-disabling, violates D-DEC-010). Forward-links point to D-DEC-003/010 and the current
+recommended activation pattern.
+
+P9-003/004 fix (bookkeeping): prd-delta v1.11 corrects BC-10.01.001 double-count (11→10 BCs) and
+BC-6.01.001 version bump. verif-delta v1.12 corrects VP split count label (6/25 not 8/23) and
+FINALIZED/ACCEPTED status parity.
+
+P9-005 fix: architecture-delta v1.12 §8.11 D-DEC-005 carve-out added — prism_sensor_health queries
+are exempt from the org_slug isolation invariant because they are cross-org health-check reads, not
+tenant-scoped queries. BC-10.01.001 v1.14 Inv#11 updated to reflect the carve-out.
+BC-6.01.001 v1.6 adds matching carve-out annotation.
+
+P9-007 fix: architecture-delta v1.12 comment-review fallback guidance updated — dedup-before-create-
+review gate added to the hint text to prevent the fallback path from creating a duplicate review
+ticket when the primary path already created one.
+
+P9-008 fix: architecture-delta v1.12 §8.20 + BC-10.01.001 v1.14 — jira_project_key promoted to HARD
+Stage-0 precondition; re-documentation cap (HARD-FLOOR-LIVELOCK-ABORT) added to prevent infinite
+loop when the precondition is absent.
+
+P9-009 fix: O5 standing rule formally codified in architecture-delta v1.12 §8.21 and propagated to
+verif-delta v1.12.
+
+SM-ID sync: SM-43 placeholder "SM ID allocated by FV" replaced in BC-3.01.001 (4 occurrences:
+frontmatter modified[], revision history, pseudocode comment, VP table test-surface column).
+"[SM-ID-sync per FV]" appended to modified[] v1.21 changelog entry.
+
+Version-coherence sweep: verification-delta.md v1.12 VP table BC anchor column updated from frozen
+pass-7 values to final post-burst versions: BC-3.01.001 v1.21, BC-8.02.001 v1.3, BC-10.01.001
+v1.14, BC-6.01.001 v1.6, BC-3.03.001 v1.17 (unchanged this burst). §7 Part J body and closing
+snapshot updated. Historical changelog entries (frontmatter) intentionally not updated per
+append-only convention.
+
+**Artifacts produced by this burst:**
+
+- `phase-f2-spec-evolution/architecture-delta.md` v1.11 → v1.12: O5 rule; D-DEC-005 sensor-health carve-out §8.11; dedup-before-create-review gate §8.20; jira_project_key HARD Stage-0 + HARD-FLOOR-LIVELOCK-ABORT §8.20; O5 codified §8.21; P9-007/008 guidance.
+- `phase-0-ingestion/behavioral-contracts/BC-3.01.001.md` v1.20 → v1.21: IN_DOUBLE backslash-escape revert mutant (SM-43); --label= form coverage; O5 differential-vs-bash partition; SM-ID sync all 4 occurrences.
+- `phase-0-ingestion/behavioral-contracts/BC-10.01.001.md` v1.13 → v1.14: Inv#11 D-DEC-005 sensor-health carve-out; Inv#15 P9-001 tokenizer coverage; jira_project_key Stage-0 precondition; re-doc cap; O5 obligation.
+- `phase-0-ingestion/behavioral-contracts/BC-6.01.001.md` v1.5 → v1.6: D-DEC-005 sensor-health carve-out annotation.
+- `phase-0-ingestion/behavioral-contracts/BC-8.02.001.md` v1.2 → v1.3: version bump for P9-003 prd-delta correction.
+- `phase-f2-spec-evolution/verification-delta.md` v1.11 → v1.12: VP split count corrected (6/25); FINALIZED/ACCEPTED status parity; O5 obligation; version-coherence sweep applied (BC anchor column final post-burst values).
+- `phase-f2-spec-evolution/prd-delta.md` v1.10 → v1.11: BC-10.01.001 double-count corrected (11→10); BC-6.01.001 v1.6 version bump.
+- `phase-0-ingestion/asm-004-validation.md`: SUPERSEDED + CORRECTION banners over --dangerously-skip-permissions and --bare paragraphs.
+
+**Convergence counter:** 0/3 clean passes. Pass 10 is next (adversary fresh context required; carry
+12-item confirmed-invariants list from pass 9).

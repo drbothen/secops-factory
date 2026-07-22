@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.5"
+version: "1.6"
 status: draft
 producer: product-owner
 timestamp: 2026-07-20T00:00:00
@@ -15,7 +15,7 @@ subsystem: lifecycle-management
 capability: CAP-LIFECYCLE-01
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v1.1-D-DEC-003-PRISM-2026-07-20", "v1.2-FV-PROPOSED-DROP-2026-07-20", "v1.3-ADV-F2-P2-008-012-013-2026-07-20", "v1.4-ADV-F2-P3-010-2026-07-20"]
+modified: ["v1.1-D-DEC-003-PRISM-2026-07-20", "v1.2-FV-PROPOSED-DROP-2026-07-20", "v1.3-ADV-F2-P2-008-012-013-2026-07-20", "v1.4-ADV-F2-P3-010-2026-07-20", "v1.5-consistency-F3-changelog-correction-2026-07-21", "v1.6-ADV-F2-P9-008-2026-07-21"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -27,6 +27,7 @@ removal_reason: null
 # Behavioral Contract BC-6.01.001: activate Skill — Per-Project Activation Lifecycle with Prism MCP Integration
 
 > **Revision history:**
+> - v1.6 (2026-07-21): Pass-9 adversarial remediation — ADV-F2-P9-008 (OBS) jira_project_key as HARD Stage-0 precondition. The monitoring loop requires `jira_project_key` to be configured before it may run. A missing `jira_project_key` causes HARD-FLOOR-UNBINDABLE livelock on every hard-floor `create-review` verdict (disposition-guard STEP 3 denies every review marker because `jira_project_key` is null). (1) **Postcondition #12 added:** activate MUST prompt for and validate `jira_project_key` (non-empty string, Jira project key format) before completing. The monitoring-loop MUST NOT be scheduled or run without a valid `jira_project_key` configured in plugin state. If `jira_project_key` is absent when the loop starts, the loop MUST emit a fatal `MISSING-JIRA-PROJECT-KEY` error and exit immediately before processing any alerts. (See also BC-10.01.001 Precondition #9 v1.14.) (2) **EC-013 added:** jira_project_key absent at activation time — activate prompts user, validates format, blocks completion until populated.
 > - v1.5 (2026-07-21): consistency-F3 changelog correction — v1.4 entry had identical left/right sides in the subcommand rename notation; corrected to `jr auth check` → `jr auth status` to accurately record the rename that was applied.
 > - v1.4 (2026-07-20): ADV-F2-P3-010 (minor) GROUND TRUTH correction: `jr auth check` → `jr auth status` in PC#10, EC-010, test vectors, and purity classification (jr 0.5.0 subcommand is `jr auth status`; `jr auth check` does not exist).
 > - v1.0 (2026-07-19): Initial extraction from `skills/activate/SKILL.md` at v0.9.0 HEAD (Step 0d).
@@ -120,6 +121,26 @@ removal_reason: null
     ```
     This display is informational (no credential collection occurs during activation).
 
+12. **[NEW v1.6] `jira_project_key` HARD Stage-0 precondition (P9-008 / architecture-delta v1.12 §D-DEC-008):**
+
+    Activate MUST prompt for and validate `jira_project_key` (non-empty string, valid Jira
+    project key format — uppercase letters and numbers, e.g. `SEC`, `PRISM-DEMO`) before
+    completing. The monitoring-loop MUST NOT be scheduled or run without a valid
+    `jira_project_key` configured in plugin state.
+
+    If `jira_project_key` is absent when the monitoring-loop starts (despite this gate),
+    the loop MUST emit a fatal `MISSING-JIRA-PROJECT-KEY` error and exit immediately before
+    processing any alerts (BC-10.01.001 Precondition #9).
+
+    Rationale: a structurally absent `jira_project_key` causes HARD-FLOOR-UNBINDABLE livelock
+    on every hard-floor `create-review` verdict — disposition-guard STEP 3 denies every review
+    marker because the `jira_project_key` binding field is null; the monitoring-loop then
+    re-documents indefinitely without ever writing a Jira ticket. Preventing the loop from
+    starting without this field is strictly better than degrading to audit-only mode silently.
+
+    The `jira_project_key` is persisted in plugin state (alongside other operational metadata)
+    so that the cron wrapper can verify its presence at loop start time without user interaction.
+
 ## Invariants
 
 1. **[Preserved v1.0]** Activation is always an explicit user action — the plugin being enabled never auto-activates. Confidence: verified by code analysis (Notes: "No hijack on enable" principle).
@@ -153,6 +174,7 @@ removal_reason: null
 | EC-010 | `jr auth status` returns non-zero (not authenticated) | Halt with setup instructions ("jr auth login; then re-run /activate"); agent key WAS written to settings.local.json but activation not complete |
 | EC-011 | `~/.claude/settings.json` exists but is malformed JSON | Show parse error for `settings.json`; stop the MCP config write; do not overwrite; prism.mcp.json write is also skipped (both writes must succeed together) |
 | EC-012 | Idempotent re-run: `~/.claude/settings.json` already has `mcpServers.prism` key with RUST_LOG=off | Merge is a no-op; confirm "prism MCP already configured — settings unchanged"; still run `jr auth status` |
+| EC-013 | `jira_project_key` absent at activate time (user skips prompt or provides empty string) | Activate prompts user: "Enter your Jira project key (e.g., SEC, PRISM-DEMO):"; validates non-empty + project-key format; blocks completion until a valid value is provided or user explicitly cancels. If user cancels: activation halts with "jira_project_key is required before the monitoring-loop can run. Re-run /activate to complete setup." No partial state is written. |
 
 ## Canonical Test Vectors
 

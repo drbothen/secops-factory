@@ -11,6 +11,30 @@ Track all spec version changes. Most recent version first.
 
 ## [1.1.0] - 2026-07-20 (patch edits 2026-07-21 — not a version bump)
 
+### F2 Pass-7 Remediation Edits — Burst 3 (2026-07-21) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 3). Central design reversal:
+STEP-4 marker-upgrade approach RETIRED; replaced with DENY-THE-WRITE per human decision D-008.
+Root findings: P7-001 (CRITICAL — marker-upgrade emits markers loop's own jr command cannot consume
+for 3 of 4 under-label action types; silent drop of hard-floor findings), P7-002 (CRITICAL — 6
+stale locations in BC-10.01.001 encoding pre-D-DEC-012 "no marker for hard floor" semantics),
+P7-003 (MAJOR — --label Iron Law missing from Stage-8 loop contract), P7-004 (MAJOR — VP-HOOK-029
+emitter-only, cannot detect unconsumable-marker seam gap), P7-005 (MINOR — step-6a raw-substring
+false-deny on --summary containing label text), P7-006 (MINOR — Cyberint severity unvalidated,
+needs explicit conservative default), P7-007 (MINOR — brief §3.9 version pins stale), P7-009
+(PROCESS-GAP — O4 standing rule: fail-loud guarantees must be verified at consumer/Bash boundary).
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.9 | v1.10 | P7-001/P7-004/P7-009: DENY-THE-WRITE redesign; STEP-4 deny + corrective-reason struct + UNDER-LABEL-DENIED audit; SM-38/SM-39/SM-40 allocated; O4 standing rule codified; P7-003: --label Iron Law Stage-8/loop contract; P7-006: Cyberint D-DEC-013 explicit conservative default |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.15 | v1.16 [SM-ID-sync per FV] | P7-001: STEP 4 deny-the-Write; UNDER-LABEL-DENIED audit replaces UNDER-LABEL-CORRECTED; corrective-reason struct (hard_floor_trigger/required_token/label_instruction); EC-012 under-label rows updated to deny semantics; VP-HOOK-029 citation updated; SM-38/SM-39 IDs synced |
+| phase-0-ingestion/behavioral-contracts/BC-3.01.001.md | v1.18 | v1.19 [SM-ID-sync per FV] | P7-005: structural_label_check step-6a (standalone --label token check, not raw substring); EC-024 false-deny prevention; VP-HOOK-024 v1.19 extension; SM-40 kill target added |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.11 | v1.12 [SM-ID-sync per FV] | P7-002: 6 stale EC locations (EC-015/016/017/021 + 2 canonical test vectors) updated from "no marker for hard floor" to create-review/comment-review semantics; P7-003: --label Iron Law Stage-8; P7-006: Cyberint conservative default CRITICAL + uncertainty_explicit; VP-HOOK-029 citation updated to deny-the-Write; SM-38/SM-39 IDs synced |
+| feature/prism-integration-handoff-brief.md | §3.9 (pinned versions) | §3.9 non-pinned | P7-007: stale version pins removed |
+| phase-f2-spec-evolution/verification-delta.md | v1.9 | v1.10 | P7-001/P7-004: VP-HOOK-029 re-scoped end-to-end consumer-boundary, re-FINALIZED P0 (deny-path vectors + machine-actionable-reason + corrected-rewrite + consumer-boundary + kill-switch-irrelevance); SM-38/SM-39/SM-40; VP-HOOK-024 step-6a false-deny vector; VP-SKILL-074 Cyberint partition; 31→34 mutants; ~258→~263 tests; version-coherence sweep (VP-HOOK-025/027/028/SKILL-064/065/068/072/073 BC anchors + §5 row header) |
+
+---
+
 ### F2 Pass-6 Remediation Edits — Burst 2 (2026-07-21) — spec remains 1.1.0
 
 Remediation edits within the F2 adversarial convergence cycle (burst 2). Root findings: P6-001

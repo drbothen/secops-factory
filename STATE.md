@@ -1,10 +1,10 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "2.5"
+version: "2.6"
 status: active
 producer: state-manager
-timestamp: 2026-07-21T22:00:00Z
+timestamp: 2026-07-21T23:00:00Z
 phase: F2
 pipeline: FEATURE-CYCLE
 inputs: []
@@ -12,8 +12,8 @@ input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "F2 adversarial convergence — pass 7 done (2C/3M), remediation pending"
-awaiting: "F2-pass7-remediation"
+current_step: "F2 adversarial convergence — pass-7 remediation COMPLETE, pass 8 pending"
+awaiting: "F2-adversarial-pass-8"
 current_cycle: v0.10.0-feature-prism-integration
 dtu_required: true
 dtu_assessment: "2026-07-20"
@@ -42,7 +42,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-21 |
 | **Current Phase** | F2: Spec Evolution (prism-integration cycle) |
-| **Current Step** | F2 adversarial convergence — pass 7 done (2C/3M), remediation pending |
+| **Current Step** | F2 adversarial convergence — pass-7 remediation COMPLETE, pass 8 pending |
 
 ## Phase Progress
 
@@ -51,7 +51,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | pre-0: Pre-pipeline | PASSED | 2026-07-19 | 2026-07-19 | PASS | — |
 | 0: Codebase Ingestion + Remediation | COMPLETE | 2026-07-19 | 2026-07-20 | PASS | 12→11→7→8(1FP)→6→6→6→6(CRITICAL)→4→5→2→1→0; ADV-R1-4 CLEAN |
 | F1: Delta Analysis | PASSED | 2026-07-19 | 2026-07-20 | PASS | consistency: 7→0 |
-| F2: Spec Evolution | in-progress — pass 7 done (2C/3M), remediation pending | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M (remediation pending) |
+| F2: Spec Evolution | in-progress — pass7 remediated, pass 8 pending | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated |
 | F3: Incremental Stories | not-started | | | | |
 | F4: Delta Implementation | not-started | | | | |
 | F5: Scoped Adversarial | not-started | | | | |
@@ -64,11 +64,11 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| F2: consistency audit pass-5 | consistency-validator | DONE | PASS-WITH-MINORS (0 blocking) — all prior-pass Critical/Major resolved, marker+verdict schemas uniform, VP namespace clean, sensor-silence direction correct. 3 non-blocking: F-001 arch-delta §5.4 (cosmetic), F-002 6 BCs COMPUTE-AT-COMMIT (F2 state-backup), F-003 VP-SKILL-061 silence wording (this burst). CONSISTENCY CLEAN. |
 | F2: pass-5 remediation | architect / product-owner / formal-verifier | DONE | arch-delta v1.8 (fail-loud STEP 5, hard_floor_applies() STEP 3 gate, schema v2.1 sync, O3 rule/D-DEC-012, Option A); BC-3.03.001 v1.14 (STEP 3+5 gates, EC-012, TV-SYNC); BC-10.01.001 v1.10 (Inv#10, VP-SKILL-061 sensor-silence fix); verif-delta v1.8 (VP-HOOK-029 re-scoped, SM-32a/32b, §7 Part F, ~238 tests); prd-delta v1.9 (§4/§6 12/15-field); brief §3.9 Option A confirmed 2026-07-21 |
 | F2: adversarial pass 6 | adversary | DONE | 2C/3M/3m/2obs — trust boundary re-derived end-to-end: P6-001 consumer accepts review tokens for regular commands (kill-switch bypass, CRITICAL); P6-002 STEP 4 kill switch precedes STEP 5 upgrade → silent discard of under-labeled hard-floor verdicts when autonomy=false (CRITICAL); P6-003 Inv#11/VP-SKILL-065 contradict Option A; P6-004 single demo project key voids cross-org create binding; P6-005 sensor-severity→enum normalization unspecified; P6-009 [process-gap] O3 rule applied emitter-only. Report persisted. |
 | F2: pass-6 remediation burst 2 | architect / product-owner / formal-verifier | DONE | arch-delta v1.9 (P6-001..009: --label in create-review pattern + hook-side label enforcement D-DEC-012 ADOPTED; STEP 4/5 reorder; D-DEC-013 severity normalization; P6-008 ASM-009 BLOCKING; O3 extended to consumer+ordering+trust-boundary; VP-SKILL-074+SM-36/SM-37 namespace-corrected); BC-3.01.001 v1.18 (STEP 6a anti-fungibility both directions, EC-023, VP-HOOK-029 FINALIZED ref, SM-36/SM-37); BC-3.03.001 v1.15 (STEP 4/5 swap, labeled create-review pattern, Iron Law updated); BC-10.01.001 v1.11 (Inv#11 Option A carve-out, NORMALIZE_SEVERITY per D-DEC-013, VP-SKILL-065 re-scoped PROPOSED); verif-delta v1.9 (VP-HOOK-029 FINALIZED P0, VP-HOOK-024 anti-fungibility, VP-SKILL-073/074 new, 31VPs/31mutants; FV caught VP-SKILL-072+SM-33/34 collisions) |
 | F2: adversarial pass 7 | adversary | DONE | 2C/3M/3m/2obs — root cause: marker↔command seam. P7-001 (CRITICAL): STEP 4 under-label upgrade writes a marker the loop's actual jr command cannot consume — silent drop persists for create/assign/none under-label paths. P7-002 (CRITICAL): 6 locations in BC-10.01.001 (EC-015/016/017/021 + 2 test vectors) still encode pre-D-DEC-012 'no marker for hard floor' semantics. P7-003: --label Iron Law missing from loop contract. P7-004: VP-HOOK-029 emitter-only, cannot detect unconsumable-marker drop. P7-005 substring false-deny; P7-006 Cyberint mapping; P7-007 brief stale versions. P7-009 [process-gap]: fail-loud claims proven at emitter, guarantee lives at consumer — need end-to-end verification axis. Report persisted. |
+| F2: pass-7 remediation burst 3 | architect / product-owner / formal-verifier | DONE | DENY-THE-WRITE redesign per human D-008 + O4 standing rule. arch-delta v1.10 (STEP-4 deny-the-Write, SM-38/39/40, O4 rule); BC-3.03.001 v1.16 (STEP 4 deny + UNDER-LABEL-DENIED audit, corrective-reason struct); BC-3.01.001 v1.19 (structural_label_check step-6a, EC-024, SM-40); BC-10.01.001 v1.12 (P7-002 6 stale ECs, P7-003 --label Iron Law, P7-006 Cyberint); verif-delta v1.10 (VP-HOOK-029 consumer-boundary re-scope+FINALIZED P0, SM-38/39/40, Cyberint partition); prd-delta v1.9 (non-pinned); SM-ID sync + version-coherence sweep applied. |
 
 ## Decisions Log
 
@@ -81,6 +81,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | D-005 | DI-013 resolved via review-approval MARKER MECHANISM — require-review hook recognizes disposition-guard-validated approval marker; `jr issue comment` permitted only with valid marker | Marker mechanism closes DI-013 comment-gate friction without removing the gate | F1 | 2026-07-19 | human |
 | D-006 | secops-factory is DEMO-UNAWARE: all demo setup (demo Jira project, ticket seeding, demo bundle) is external; brief §4 items out of scope except the generic `jr` auth check in the activate skill | secops-factory ships the plugin; demo orchestration is the operator's concern | F1 | 2026-07-19 | human |
 | D-007 | Kill-switch Option A: create-review/comment-review escalation markers stay live under autonomy_enabled=false, gated on hook-computed hard_floor_applies() OR Indeterminate; brief §3.9 amended | Escalation surfaces to a human rather than acting autonomously; O3 gate removes the LLM-token bypass | F2 | 2026-07-21 | human |
+| D-008 | P7-001 fixed via DENY-THE-WRITE: disposition-guard denies under-labeled hard-floor verdict Writes with machine-actionable corrective reason; marker-upgrade approach retired | Deterministic hook's only lever over FUTURE commands is denying the CURRENT Write; marker-upgrade could rewrite the marker but not the loop's subsequent Bash command — 3 of 4 under-label paths produced unconsumable markers (silent drop) | F2 | 2026-07-21 | human |
 
 ## Skip Log
 
@@ -124,9 +125,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-21 |
-| **Position** | Pass 7 COMPLETE (2C/3M/3m/2obs, report persisted). NEXT: remediation burst 3 pending human direction on P7-001 approach. Clean streak 0/3. |
-| **Context** | Artifact versions: arch-delta v1.9, verif-delta v1.9, prd-delta v1.9, BC-3.01.001 v1.18, BC-3.03.001 v1.15, BC-10.01.001 v1.11, brief §3.9. P7-001 (CRITICAL): marker↔command seam — STEP 4 upgrade emits a marker the loop jr command cannot consume; silent drop for create/assign/none under-label paths. P7-002 (CRITICAL): 6 locations in BC-10.01.001 still encode pre-D-DEC-012 silent-discard semantics. P7-003/P7-004/P7-005–P7-007/P7-009 open. F-001 cosmetic §5.4 still open. |
-| **Convergence counter** | 0/3 clean passes (pass 8 after remediation) |
+| **Position** | Pass-7 remediation COMPLETE + committed. NEXT: adversarial pass 8 (fresh context). Clean streak 0/3. |
+| **Context** | Artifact versions: arch-delta v1.10, verif-delta v1.10, prd-delta v1.9, BC-3.01.001 v1.19, BC-3.03.001 v1.16, BC-10.01.001 v1.12, brief §3.9 non-pinned. D-008: DENY-THE-WRITE (marker-upgrade retired). P7-001..P7-009 REMEDIATED. SM-38/39/40 allocated. VP-HOOK-029 consumer-boundary FINALIZED P0. SM-ID sync complete. Version-coherence sweep complete. F-001 cosmetic §5.4 still open (minor, pass-5 residual). |
+| **Convergence counter** | 0/3 clean passes (pass 8 is next) |
 
 ## Historical Content
 

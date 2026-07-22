@@ -433,14 +433,21 @@ suppresses only autonomous triage decisions (regular comment, create, and assign
 not suppress escalation. Provides emergency circuit-breaker when automation produces unexpected
 output. [Q6 §"kill switch"]
 
-> **§3.9 Amendment (P5-002 + human confirmation 2026-07-21):** The original wording
-> ("halts all autonomous actions") was ambiguous about whether human-escalation ticket actions
-> (create-review / comment-review) remain active under the kill switch. Human operator confirmed
-> **Option A** on 2026-07-21: create-review and comment-review markers ARE issued and consumed
-> under `autonomy_enabled=false` for genuine hard-floor verdicts (hard_floor_applies()=true per
-> architecture-delta §D-DEC-012 / ADV-F2-P5-002). Disposition-guard enforces this at the
-> deterministic hook layer. BC-3.03.001 v1.14 STEP 3 and BC-10.01.001 v1.10 Inv#10 carry the
-> corresponding BC updates.
+> **§3.9 Amendment (P5-002 + human confirmation 2026-07-21; refreshed ADV-F2-P7-007 2026-07-21):**
+> The original wording ("halts all autonomous actions") was ambiguous about whether
+> human-escalation ticket actions (create-review / comment-review) remain active under the
+> kill switch. Human operator confirmed **Option A** on 2026-07-21: create-review and
+> comment-review markers ARE issued and consumed under `autonomy_enabled=false` for genuine
+> hard-floor verdicts (hard_floor_applies()=true per architecture-delta §D-DEC-012 /
+> ADV-F2-P5-002). Disposition-guard enforces this at the deterministic hook layer. The current
+> BC-3.03.001 and BC-10.01.001 carry the corresponding BC updates. The mechanism operates
+> across two STEPs: **STEP 3** (correctly-labeled review path — `ticket_action_type` is
+> `create-review` or `comment-review` AND `hard_floor_applies()=true` → review marker issued,
+> exempt from kill switch) and **STEP 4** (under-labeled path — non-review token with hard-floor
+> → disposition-guard DENIES the verdict Write with a structured corrective reason
+> (HARD-FLOOR-UNDER-LABEL); the loop re-documents the verdict with the corrective review token;
+> STEP 3 then issues the review marker normally). Version pins are intentionally omitted here
+> to prevent future staleness of this class (ADV-F2-P7-007).
 
 **Automation-boundary annotation per action:**
 - `auto` — loop executes without human approval (narrow FP/BTP scope only)

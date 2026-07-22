@@ -206,3 +206,73 @@ corrected to SM-36/SM-37.
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
 | F2: adversarial pass 5 | adversary | DONE | 1C/2M/1m/3obs — root cause: disposition-guard trusts LLM ticket_action_type without cross-checking hard_floor_applies(); P5-001 (silent discard) + P5-002 (kill-switch bypass) are under/over-label duals; P5-003 stale §D-DEC-001 schema block; report persisted. |
+
+---
+
+## Burst 6: F2 Pass-7 Remediation COMPLETE — Burst 3 (2026-07-21)
+
+**Steps rotated from STATE.md Current Phase Steps (5-row limit enforced):**
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: consistency audit pass-5 | consistency-validator | DONE | PASS-WITH-MINORS (0 blocking) — all prior-pass Critical/Major resolved, marker+verdict schemas uniform, VP namespace clean, sensor-silence direction correct. 3 non-blocking: F-001 arch-delta §5.4 (cosmetic), F-002 6 BCs COMPUTE-AT-COMMIT (F2 state-backup), F-003 VP-SKILL-061 silence wording (this burst). CONSISTENCY CLEAN. |
+
+**Step added to STATE.md Current Phase Steps this burst:**
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-7 remediation burst 3 | architect / product-owner / formal-verifier | DONE | DENY-THE-WRITE redesign per human D-008 + O4 standing rule. arch-delta v1.10 (STEP-4 deny-the-Write, SM-38/39/40, O4 rule); BC-3.03.001 v1.16 (STEP 4 deny + UNDER-LABEL-DENIED audit, corrective-reason struct); BC-3.01.001 v1.19 (structural_label_check step-6a, EC-024, SM-40); BC-10.01.001 v1.12 (P7-002 6 stale ECs, P7-003 --label Iron Law, P7-006 Cyberint); verif-delta v1.10 (VP-HOOK-029 consumer-boundary re-scope+FINALIZED P0, SM-38/39/40, Cyberint partition); prd-delta v1.9 (non-pinned); SM-ID sync + version-coherence sweep applied. |
+
+**Narrative:**
+
+Pass-7 remediation (burst 3) addressed P7-001..P7-009. Central design reversal: the pass-5/pass-6
+STEP-4 marker-upgrade mechanism was RETIRED per human decision (D-008). P7-001 proved the upgrade
+unsound — disposition-guard can rewrite the marker but not the loop's future Bash command. For 3 of
+4 under-label action types (create/assign/none), the upgraded review marker was structurally
+unconsumable by the loop's own non-review jr command, producing a silent drop of hard-floor findings.
+DENY-THE-WRITE is the deterministic hook's only lever over FUTURE commands: by denying the current
+Write, the loop is forced to re-document with the correct review token before proceeding. O4 standing
+rule codified: fail-loud guarantees must be verified at the consumer/Bash boundary, not by
+emitter-local artifacts.
+
+P7-002 (CRITICAL): 6 stale locations in BC-10.01.001 (EC-015/016/017/021 + 2 canonical test vectors)
+still encoding pre-D-DEC-012 "no marker for hard-floor" semantics corrected to create-review/
+comment-review semantics.
+
+P7-005 (MINOR): step-6a raw-substring check replaced with structural_label_check (standalone --label
+token immediately preceding REVIEW-REQUIRED/BLIND-SPOT); prevents false-deny on regular creates
+whose --summary contains the literal label text.
+
+P7-006 (MINOR): Cyberint explicit conservative default CRITICAL + uncertainty_explicit appended to
+VP-SKILL-074 Cyberint partition (pre-ASM-008, 3 vectors).
+
+P7-003 (MAJOR): --label Iron Law added to Stage-8/loop contract (--project FIRST, --label SECOND).
+
+P7-004 (MAJOR): VP-HOOK-029 re-scoped end-to-end to assert consumer-boundary jr authorization/
+execution outcome (not emitter-local marker presence); re-FINALIZED P0.
+
+P7-007 (MINOR): brief §3.9 version pins replaced with non-pinned form.
+
+P7-009 (PROCESS-GAP): O4 standing rule codified.
+
+SM-ID sync: placeholders "SM IDs allocated by FV" replaced in BC-3.03.001, BC-3.01.001,
+BC-10.01.001 with real IDs SM-38/SM-39/SM-40. "[SM-ID-sync per FV]" appended to changelog entries.
+
+Version-coherence sweep: VP table BC anchor column in verification-delta v1.10 updated to final
+versions (BC-3.03.001 v1.16, BC-10.01.001 v1.12, BC-3.01.001 v1.19) for VP-HOOK-025, VP-HOOK-027,
+VP-HOOK-028, VP-SKILL-064/065/068/072/073; §5 test-count table row header BC-3.03.001 updated to
+v1.16.
+
+**Artifacts produced by this burst:**
+
+- `phase-f2-spec-evolution/architecture-delta.md` v1.9 → v1.10: DENY-THE-WRITE redesign (P7-001/P7-004/P7-009); SM-38/SM-39/SM-40 allocated; O4 standing rule; --label Iron Law Stage-8 (P7-003); Cyberint D-DEC-013 (P7-006).
+- `phase-0-ingestion/behavioral-contracts/BC-3.03.001.md` v1.15 → v1.16: STEP 4 deny-the-Write; UNDER-LABEL-DENIED audit; corrective-reason structure (hard_floor_trigger/required_token/label_instruction); UNDER-LABEL-CORRECTED retired; EC-012 under-label rows updated; FAIL-LOUD comment updated; SM-ID sync SM-38/SM-39 [SM-ID-sync per FV].
+- `phase-0-ingestion/behavioral-contracts/BC-3.01.001.md` v1.18 → v1.19: structural_label_check step-6a (P7-005); EC-024 false-deny prevention; SM-40 kill target; VP-HOOK-024 v1.19 extension; SM-ID sync SM-40 [SM-ID-sync per FV].
+- `phase-0-ingestion/behavioral-contracts/BC-10.01.001.md` v1.11 → v1.12: P7-002 6 stale EC locations; P7-003 --label Iron Law; P7-006 Cyberint CRITICAL default; VP-HOOK-029 citation updated to deny-the-Write semantics; SM-ID sync SM-38/SM-39 [SM-ID-sync per FV].
+- `feature/prism-integration-handoff-brief.md`: §3.9 version pins replaced with non-pinned form (P7-007).
+- `phase-f2-spec-evolution/verification-delta.md` v1.9 → v1.10: VP-HOOK-029 consumer-boundary re-scope + re-FINALIZED P0 (deny-path vectors, machine-actionable-reason vector, corrected-rewrite happy path, consumer-boundary consumable/unconsumable vectors, kill-switch-irrelevance vector); SM-38/SM-39/SM-40 allocated; VP-HOOK-024 step-6a false-deny vector; VP-SKILL-074 Cyberint partition; SM-32a re-targeted; SM-32-ext kill-vector re-worded; 31→34 mutants; test estimate ~258→~263. Version-coherence sweep applied (9 VP table anchor edits + §5 row header).
+
+**Decision D-008 recorded:** DENY-THE-WRITE approach selected over marker-upgrade; marker-upgrade
+approach retired. Made by human on 2026-07-21.
+
+**Convergence counter:** 0/3 clean passes. Pass 8 is next (adversary fresh context required).

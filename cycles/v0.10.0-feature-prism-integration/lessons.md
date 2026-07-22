@@ -126,3 +126,52 @@ traces_to: STATE.md
    from its source through all enforcement surfaces, not just the surfaces touched in prior
    remediation bursts.
    _Discovered: F2 adversarial pass 6 trust-boundary re-derivation, 2026-07-21_
+
+---
+
+## Pass-7 Lessons (F2 adversarial pass 7, 2026-07-21)
+
+### Agent-Level
+
+10. **O4 standing rule: fail-loud guarantees must be verified at the consumer/Bash boundary,
+    never by emitter-local artifacts [codified]** — P7-009 identified that VP-HOOK-029 was
+    asserting "marker exists OR error artifact written" (emitter-local) rather than "the
+    downstream jr authorization/execution outcome at the consumer/Bash boundary." A marker
+    file on disk and an audit line in audit.log ARE emitter-local artifacts; they CANNOT
+    detect the case where the marker is structurally unconsumable by the loop's own future
+    command (the P7-001 seam gap: upgrade wrote a create-review marker, loop issued a
+    non-review jr command, require-review denied — hard-floor finding silently dropped).
+    Every "never silently discarded" claim MUST have a VP asserting the consumer-boundary
+    (require-review allow/deny) outcome, not just marker presence. Codified as O4 standing
+    rule in verification-delta §0.
+    _tag: [codified]_
+    _Discovered: F2 adversarial pass 7 (P7-009 [process-gap]), root-cause analysis, 2026-07-21_
+
+### Infrastructure-Level
+
+11. **A deterministic hook's only lever over FUTURE commands is denying the current Write —
+    corrective-deny beats artifact-rewrite** — P7-001 proved that when a stateful artifact
+    (the marker) is the enforcement mechanism, rewriting that artifact at denial-time (the
+    pass-5/pass-6 marker-upgrade approach) does not fix the loop: the hook can rewrite the
+    marker but cannot rewrite the loop LLM's NEXT Bash command. For 3 of 4 under-label
+    action types (create/assign/none), the upgraded create-review marker was structurally
+    unconsumable by the loop's own non-review jr command — hard-floor finding silently
+    dropped. The correct design is DENY-THE-WRITE with a machine-actionable corrective
+    reason: the loop cannot proceed until it re-documents with the correct review token,
+    at which point the standard marker path runs normally. Lesson: when a deterministic
+    gate must force a behavior change in a FUTURE command, deny the current Write (with a
+    structured corrective reason the actor can mechanically follow); do not try to
+    pre-position an artifact the actor may not be able to use.
+    _Discovered: F2 adversarial pass 7 (P7-001 CRITICAL), human decision D-008, 2026-07-21_
+
+### Process-Level
+
+12. **Partial-fix blast radius includes sibling edge cases and test vectors in the SAME file** —
+    P7-002 found 6 stale locations in BC-10.01.001 (EC-015/EC-016/EC-017/EC-021 + 2 canonical
+    test vectors) still encoding pre-D-DEC-012 "no marker for hard-floor" semantics after
+    the Inv#10 text had been updated in an earlier burst. The same D-DEC-012 semantic change
+    that updated Inv#10 should have been propagated to all edge-case rows and test vectors in
+    the same file. Fix: when remediating a finding that changes a behavioral invariant, grep
+    ALL occurrences of the old semantics in the same file (EC rows, test vectors, postcondition
+    tables, comments) — not just the primary invariant paragraph — and update them atomically.
+    _Discovered: F2 adversarial pass 7 (P7-002 CRITICAL — 6 stale locations), 2026-07-21_

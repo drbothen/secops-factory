@@ -592,3 +592,13 @@ Pass-11 remediation (burst 7) closed P11-001 through P11-007. Four structural im
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
 | F2: adversarial pass 9 | adversary | DONE | 0C/2M/5m/2obs — FIRST zero-CRITICAL pass; silent-discard class exhausted. P9-001 (MAJOR): quote-aware tokenizer still misses backslash-escaped quotes + --label= form — defeats EC-023 dir-A (sole anti-fungibility gate post-P8-003, no backstop). P9-002 (MAJOR): asm-004-validation.md recommends forbidden --dangerously-skip-permissions + --bare (hook-disabling) with no supersession banner vs D-DEC-003/010. P9-003 prd-delta BC-10.01.001 double-counted (11→10). P9-004 verif-delta VP split mislabeled 8/23 vs 6/25 + FINALIZED/ACCEPTED drift. P9-005 D-DEC-005 org_slug absolute vs sensor-metrics cross-org health. P9-006 dtu-assessment omits C-29 marker-store + ASM-009. P9-007 comment-review fallback hint dup-ticket risk. P9-008/009 [process-gap] obs. Report persisted. |
+
+---
+
+## Burst 8 (archived from STATE.md)
+
+Row displaced from STATE.md Current Phase Steps when burst-8 row was added (kept to 5-row limit).
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-9 remediation burst 5 | architect / product-owner / formal-verifier | DONE | P9-001 backslash-escape tokenizer extension + --label= form (MAJOR security fix; O5 rule codified — tokenizer must carry differential-vs-bash vector partition). P9-002 asm-004-validation SUPERSEDED/CORRECTION banners (D-DEC-003/010). P9-005 D-DEC-005 sensor-health cross-org carve-out. P9-007 dedup-before-create-review gate hint. P9-008 jira_project_key HARD Stage-0 precondition + HARD-FLOOR-LIVELOCK-ABORT re-doc cap. P9-009 O5 standing-rule codified. SM-43 allocated. arch-delta v1.12, verif-delta v1.12, prd-delta v1.11, BC-3.01.001 v1.21, BC-10.01.001 v1.14, BC-6.01.001 v1.6, BC-8.02.001 v1.3. First zero-CRITICAL pass; clean streak 0/3. |

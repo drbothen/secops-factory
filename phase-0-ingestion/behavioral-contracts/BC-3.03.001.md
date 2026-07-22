@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.19"
+version: "1.20"
 status: draft
 producer: product-owner
 timestamp: 2026-07-20T00:00:00
@@ -15,7 +15,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-03
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-501-ADV-0-507-2026-07-19", "v1.3-ADV-0-605-ADV-0-606-2026-07-19", "v1.4-ADV-0-B01-2026-07-19", "v1.5-RESYNC-PR17-2026-07-19", "v1.6-D-DEC-001-ICD-203-2026-07-20", "v1.7-FV-VP-HOOK-025-FINALIZED-2026-07-20", "v1.8-ADV-F2-001-003-004-016-2026-07-20", "v1.9-ADV-F2-P2-001-emitter-ordering-2026-07-20", "v1.10-ADV-F2-P3-001-002-003-011-2026-07-20", "v1.11-FV-VP-026-025-ANCHORS-2026-07-20", "v1.12-P4-001-P4-002-P4-005-P4-006-D-DEC-012-2026-07-21", "v1.13-FV-VP-028-025-026-029-ANCHORS-2026-07-21", "v1.14-ADV-F2-P5-001-P5-002-P5-003-2026-07-21", "v1.15-ADV-F2-P6-001-P6-002-2026-07-21", "v1.16-ADV-F2-P7-001-2026-07-21 [SM-ID-sync per FV]", "v1.17-ADV-F2-P8-001-OBS-2-2026-07-21", "v1.18-ADV-F2-P10-001-P10-003-P10-004-P10-008-2026-07-22 [ID-sync per FV]", "v1.19-ADV-F2-P11-001-P11-002-P11-003-P11-004-2026-07-22 [ID-sync per FV]"]
+modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-501-ADV-0-507-2026-07-19", "v1.3-ADV-0-605-ADV-0-606-2026-07-19", "v1.4-ADV-0-B01-2026-07-19", "v1.5-RESYNC-PR17-2026-07-19", "v1.6-D-DEC-001-ICD-203-2026-07-20", "v1.7-FV-VP-HOOK-025-FINALIZED-2026-07-20", "v1.8-ADV-F2-001-003-004-016-2026-07-20", "v1.9-ADV-F2-P2-001-emitter-ordering-2026-07-20", "v1.10-ADV-F2-P3-001-002-003-011-2026-07-20", "v1.11-FV-VP-026-025-ANCHORS-2026-07-20", "v1.12-P4-001-P4-002-P4-005-P4-006-D-DEC-012-2026-07-21", "v1.13-FV-VP-028-025-026-029-ANCHORS-2026-07-21", "v1.14-ADV-F2-P5-001-P5-002-P5-003-2026-07-21", "v1.15-ADV-F2-P6-001-P6-002-2026-07-21", "v1.16-ADV-F2-P7-001-2026-07-21 [SM-ID-sync per FV]", "v1.17-ADV-F2-P8-001-OBS-2-2026-07-21", "v1.18-ADV-F2-P10-001-P10-003-P10-004-P10-008-2026-07-22 [ID-sync per FV]", "v1.19-ADV-F2-P11-001-P11-002-P11-003-P11-004-2026-07-22 [ID-sync per FV]", "v1.20-ADV-F2-P12-001-P12-002-P12-003-2026-07-22 [ID-sync per FV]"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -27,6 +27,7 @@ removal_reason: null
 # Behavioral Contract BC-3.03.001: disposition-guard Hook — Alternatives-Required Gate and ICD-203 Validator / Marker Emitter
 
 > **Revision history:**
+> - v1.20 (2026-07-22): Pass-12 adversarial remediation — P12-001 (CRITICAL, charset-validation at all 5 command_pattern interpolation sites), P12-002 (CRITICAL, Separate Human-Comment Marker Path kill-switch + route-to-review redesign), P12-003 (fast-path SEVERITY_TO_SCORED_PRIORITY_MAP reference). (1) **P12-001 (CRITICAL) — charset-validation + regex-escape at all 5 interpolation sites (O7 standing rule):** Before interpolating `ticket_id` or `jira_project_key` into any `command_pattern` anchored regex, disposition-guard now validates the field against a strict charset and DENIES on mismatch: `ticket_id` → `^[A-Z][A-Z0-9]+-[0-9]+$` → TICKET-ID-CHARSET-DENY; `jira_project_key` → `^[A-Z][A-Z0-9]+$` → PROJECT-KEY-CHARSET-DENY. `regex_escape()` applied as defense-in-depth AFTER the charset check. Sites covered: STEP 3 comment-review (ticket_id), STEP 3 create-review (jira_project_key), STEP 6 comment (ticket_id), STEP 6 create (jira_project_key), STEP 6 assign (ticket_id). Also covers ticket_id on the Separate Human-Comment Marker Path. (2) **D-DEC-001-echoed claim corrected (P12-001):** Added explicit P12-001/O7 security note that `ticket_id` IS derived from Jira/alert/markdown content (loop-written from ingested data on the verdict path; from free-text markdown on the Human-Comment path) — NOT an intrinsic constant of the hook's logic. The prior implicit D-DEC-001/D-DEC-008 claim ("command_pattern not derived from content") was incorrect; anchored matching alone is insufficient when anchor components can contain metacharacters. Metacharacter safety is now enforced by charset-validation + regex-escape. (3) **P12-002 (CRITICAL, per human decision 2026-07-22) — Separate Human-Comment Marker Path redesigned (kill-switch + route-to-review):** GATE 1 (new, fires FIRST): reads `autonomy_enabled` from markdown content — if absent or not exactly boolean true → emit allow-without-marker (kill-switch parity, closes the autonomous-loop-masquerade bypass). GATES 2/3 (unchanged): markdown-evaluable floors. NEW route rule: `parsed_disposition != "FP"` → MARKDOWN_REVIEW_PATH (create-review/comment-review marker; escalation-worthy findings route to review because scored_priority/asset_type cannot be evaluated from 12-field markdown); FP + autonomy_enabled=true → MARKDOWN_COMMENT_PATH (benign analyst FP save gets comment marker). Trust basis updated accordingly. (4) **P12-003 (fast-path context):** SEVERITY_TO_SCORED_PRIORITY_MAP reference added near SCORED_PRIORITY_ENUM in validate_enums(); documents that fast-path scored_priority MUST be derived via map — NOT direct NORMALIZE_SEVERITY assignment (which produces non-members {CRITICAL,MEDIUM}). (5) **VP-HOOK-031 scope update required per P12-002:** SM-50 (markdown kill-switch gate removed) + SM-51 (route-to-review rule removed) allocated by FV [ID-sync per FV]. (6) **New canonical test vectors:** TICKET-ID-CHARSET-DENY (ticket_id=".*"); PROJECT-KEY-CHARSET-DENY (jira_project_key="SEC|.*"); markdown TP → MARKDOWN_REVIEW_PATH (comment-review marker); markdown FP (autonomy_enabled=true) → MARKDOWN_COMMENT_PATH (comment marker); markdown autonomy_enabled absent → allow-without-marker. ADV-F2-P12-001, P12-002, P12-003.
 > - v1.19 (2026-07-22): Pass-11 adversarial remediation — P11-001 (CRITICAL, STEP 1a consistency-only reframe), P11-002 (MAJOR, scored_priority as field 18 + hard_floor_applies() re-key), P11-003 (NVD/CVSS clean separation), P11-004 (MAJOR, Separate Human-Comment Marker Path). (1) **18-field verdict schema (P11-002):** `scored_priority` (field 18, enum CRIT|HIGH|MED|LOW) added as required verdict field; `validate_enums()` extended with `SCORED_PRIORITY_ENUM = {"CRIT","HIGH","MED","LOW"}` fail-closed check; all "17-field"/"17 mandatory"/"17 keys" references in PC#1/PC#2/PC#3 updated to 18; field list in PC#1 updated to include `scored_priority` after `sensor_family`. VP-HOOK-025 description updated to 18-field. (2) **hard_floor_applies() re-keyed to scored_priority (P11-002):** HIGH/CRIT severity floor now keys on `verdict.scored_priority ∈ {HIGH, CRIT}` (NOT `recomputed_severity`); `verdict.severity` (detector-native) and `verdict.scored_priority` (Stage-5 recalibrated) may legitimately differ; STEP 3 and STEP 4 call-sites retain `hard_floor_applies(verdict, recomputed_severity)` signature; `recomputed_severity` no longer drives the floor internally. (3) **STEP 1a consistency-only language (P11-001):** replaced "genuinely un-bypassable / independently derives from raw sensor values / only remaining LLM-trust surface" with: "STEP 1a is a DETERMINISTIC CONSISTENCY CHECK between verdict.severity and verdict.native_severity (both LLM-supplied Stage-1 fields); hardens against careless/buggy LLM under-reporting only; NOT ground-truth enforcement." Added ASM-008-class symmetric residuals for native_severity, asset_type, and scored_priority (all LLM-supplied; genuine enforcement requires hook-side prism cross-validation — ASM-008-DEFERRED). (4) **Investigation-markdown emitter entry corrected (P11-004):** Invariant #4 preamble and STEP 0 corrected — the investigation-markdown path (PC#2) does NOT enter this emitter. PC#2 text updated accordingly. Added **Separate Human-Comment Marker Path (P11-004)** section in Invariant #4 after the hard-floor check block: 12-field completeness + markdown-evaluable hard floors ONLY (Indeterminate disposition, forbidden techniques T1003/T1068/T1021/T1041, degraded/silent sensor); parses ticket_id; emits comment-scoped marker; does NOT call validate_enums or STEP 1a; floor fires → MARKDOWN-HARD-FLOOR deny; compliant analyst save → comment marker, not denied. (5) **Canonical test vectors added (P11-002/P11-004):** scored_priority=HIGH with detector severity=LOW → hard floor fires (scored_priority floor, not STEP 1a mismatch); 18th-field (scored_priority) absent → deny; investigation-markdown compliant save → comment marker, not denied.
 > - v1.18 (2026-07-22): Pass-10 adversarial remediation — P10-001 (CRITICAL, full hook-side severity re-normalization), P10-003 (MAJOR, WRITE_MARKER fail-closed on review path), P10-004 (MINOR, fallback_hint P9-007 dedup instruction propagation), P10-008 (MINOR, ASM-014-pending residual note). (1) **17-field verdict schema (P10-001):** PC#1 verdict JSON path updated from 15-field to 17-field: `native_severity` (field 16, string, non-empty) and `sensor_family` (field 17, enum crowdstrike|armis|claroty|cyberint) added as required verdict fields; `validate_enums()` extended with `SENSOR_FAMILY_ENUM` check; all "15-field"/"15 mandatory" references in PC#1/PC#2/PC#3 updated to 17. VP-HOOK-025 description updated to 17-field. (2) **STEP 1a SEVERITY-MISMATCH (P10-001):** New emitter step inserted between STEP 1 (validate_enums) and STEP 2 (extract ticket_action_type): hook re-runs `NORMALIZE_SEVERITY(verdict.native_severity, verdict.sensor_family)` using the D-DEC-013 deterministic table; if `recomputed_severity != verdict.severity` → write `SEVERITY-MISMATCH` audit entry + emit deny. O6 standing rule: inputs to a hook-computed invariant must be hook-recomputable. `hard_floor_applies()` signature updated to `hard_floor_applies(verdict, recomputed_severity)` — both STEP 3 and STEP 4 call-sites updated. (3) **WRITE_MARKER fail-closed on review path (P10-003):** WRITE_MARKER pseudocode updated to branch on `is_review_path`: create-review/comment-review marker-write failure → `MARKER-WRITE-FAILED` audit entry + emit deny (mirrors HARD-FLOOR-UNBINDABLE); regular marker paths retain emit allow without marker (require-review denies jr call — human gate preserved). Marker schema `disposition.severity` updated to use `recomputed_severity` (P10-001). Marker directory initialization note updated to reference WRITE_MARKER branching. (4) **fallback_hint dedup instruction (P10-004):** comment-review null-ticket_id branch `fallback_hint` for the jira_project_key-present case updated to the full P9-007 dedup instruction from architecture-delta v1.13 line 1509 (previously the weaker short form: "if no review ticket exists yet, re-issue with ticket_action_type=create-review instead"). (5) **ASM-014-pending residual note (P10-008):** Explicit residual note added in STEP 3 comment-review section: the comment-review kill-switch exemption is currently broader than "review ticket only"; the exemption is not restricted to review-labeled tickets until ASM-014 resolves. (6) **Canonical test vectors added:** SEVERITY-MISMATCH deny (native_severity maps to CRITICAL but verdict.severity=LOW); missing field 16 (native_severity absent) → deny; missing field 17 (sensor_family absent/non-member) → deny; known-good agreement (native_severity+sensor_family map to verdict.severity) → proceed normally.
 > - v1.17 (2026-07-21): Pass-8 adversarial remediation — ADV-F2-P8-001 (CRITICAL), OBS-2. (1) **STEP 3 create-review null-project_key branch — HARD-FLOOR-UNBINDABLE deny (P8-001 CRITICAL):** Replaced `emit allow without marker # cannot bind review-create without project key; RETURN` with HARD-FLOOR-UNBINDABLE deny per D-DEC-012 clause 2: WRITE audit entry naming `missing_field=jira_project_key`; emit deny with `hard_floor_trigger`, `missing_field=jira_project_key`, and corrective instruction. (2) **STEP 3 comment-review null-ticket_id branch — HARD-FLOOR-UNBINDABLE deny with fallback hint (P8-001 CRITICAL):** Replaced `emit allow without marker # cannot bind review-comment without ticket_id; RETURN` with HARD-FLOOR-UNBINDABLE deny: if `jira_project_key` is present, deny includes fallback hint suggesting `create-review` (consistent with STEP 4 `required_token` logic: `ticket_id`=null → `required_token=create-review`; the verdict may be mis-classified as `comment-review` when no open ticket exists yet); if `jira_project_key` also absent, deny names both missing fields. (3) **FAIL-LOUD invariant comment updated:** Three cases now explicit — bindable (marker issued), unbindable P8-001 deny, under-labeled STEP 4 deny. (4) **Generation table notes updated:** `create-review` and `comment-review` rows — "if binding field null → NO marker" replaced with "HARD-FLOOR-UNBINDABLE deny; NEVER silent allow-without-marker". (5) **Hard-floor block NOTE updated:** "correctly-labeled verdicts → marker" qualified to "correctly-labeled AND bindable → marker; correctly-labeled but UNBINDABLE → HARD-FLOOR-UNBINDABLE deny (P8-001)". (6) **VP-HOOK-029 citation updated:** FINALIZED P0 per verification-delta v1.10; unbindable-deny vectors cited as active kill targets alongside deny-path and re-doc vectors. (7) **Bounded-retry note:** Non-termination — each re-doc attempt that still omits the binding field fires exactly one HARD-FLOOR-UNBINDABLE audit entry + one deny; no Jira write; bounded fail-closed; mirrors STEP 4 analysis. (8) **Canonical test vectors added:** DENY vectors for create-review + null `jira_project_key`; comment-review + null `ticket_id` + `jira_project_key=PRISM-DEMO` present (fallback hint). **Residual sweep:** all "emit allow without marker # cannot bind" language removed from live content.
@@ -162,6 +163,13 @@ removal_reason: null
      CONFIDENCE_ENUM    = {"high","medium","low"}
      SENSOR_FAMILY_ENUM    = {"crowdstrike","armis","claroty","cyberint"}  # P10-001: field 17
      SCORED_PRIORITY_ENUM  = {"CRIT","HIGH","MED","LOW"}                  # P11-002: field 18
+     # P12-003 note: SEVERITY_TO_SCORED_PRIORITY_MAP = {CRITICAL→CRIT, MEDIUM→MED, HIGH→HIGH, LOW→LOW}
+     # Maps SEVERITY_ENUM → SCORED_PRIORITY_ENUM. On the known-FP fast-path (Stage 5 bypassed in
+     # BC-10.01.001 EC-009), the monitoring loop MUST derive scored_priority via this map from
+     # NORMALIZE_SEVERITY output — NOT a raw assignment. Direct assignment produces non-member
+     # tokens {CRITICAL, MEDIUM} that fail SCORED_PRIORITY_ENUM membership → DENY at this step.
+     # SEVERITY_ENUM ≠ SCORED_PRIORITY_ENUM: {CRITICAL,HIGH,MEDIUM,LOW} vs {CRIT,HIGH,MED,LOW}
+     # (CRIT ≠ CRITICAL; MED ≠ MEDIUM). The map is the required bridge.
 
      IF verdict.severity NOT IN SEVERITY_ENUM:
        RETURN (False, "severity '" + verdict.severity + "' not in allowed set (case-exact: HIGH not High)")
@@ -310,6 +318,20 @@ removal_reason: null
            "Re-issue this Write with jira_project_key populated in the verdict."
          )
          RETURN
+       # P12-001/O7: charset-validation before interpolating jira_project_key into command_pattern
+       # jira_project_key is derived from verdict.jira_project_key (operator-configured field in
+       # prism.toml/verdict — not a static hook constant). A crafted value defeats property (d).
+       IF NOT regex_match("^[A-Z][A-Z0-9]+$", project_key):
+         WRITE audit entry:
+           now_iso8601() + " PROJECT-KEY-CHARSET-DENY: create-review path jira_project_key='" +
+           project_key + "' failed charset validation (required: ^[A-Z][A-Z0-9]+$) (P12-001/O7)"
+         emit deny(
+           "PROJECT-KEY-CHARSET-DENY: jira_project_key contains invalid characters or metacharacters. " +
+           "Required format: ^[A-Z][A-Z0-9]+$ (e.g., SEC, PRISM). " +
+           "jira_project_key='" + project_key + "' rejected before command_pattern interpolation (P12-001/O7)."
+         )
+         RETURN
+       project_key = regex_escape(project_key)   # defense-in-depth after charset check
        # ADV-F2-P4-002: --project MUST be first arg; trailing ( |$) prevents prefix-match
        # ADV-F2-P6-001: --label (REVIEW-REQUIRED|BLIND-SPOT) in FIXED SECOND position after --project
        pattern = "^jr (--output json )?issue create --project " + project_key + " --label (REVIEW-REQUIRED|BLIND-SPOT)( |$)"
@@ -353,6 +375,19 @@ removal_reason: null
        # ASM-014 residual: comment-review kill-switch exemption is broader than "review ticket
        # only" — no --label binding constraint applies to comment-review path until ASM-014
        # resolves. Current guard: ticket_id binding + Iron Law only.
+       # P12-001/O7: charset-validation before interpolating ticket_id into command_pattern
+       # ticket_id is derived from verdict.ticket_id (loop-written from Jira/alert content — P12-001)
+       IF NOT regex_match("^[A-Z][A-Z0-9]+-[0-9]+$", ticket_id):
+         WRITE audit entry:
+           now_iso8601() + " TICKET-ID-CHARSET-DENY: comment-review path ticket_id='" + ticket_id +
+           "' failed charset validation (required: ^[A-Z][A-Z0-9]+-[0-9]+$) (P12-001/O7)"
+         emit deny(
+           "TICKET-ID-CHARSET-DENY: ticket_id contains invalid characters or metacharacters. " +
+           "Required format: ^[A-Z][A-Z0-9]+-[0-9]+$ (e.g., SEC-123, PRISM-456). " +
+           "ticket_id='" + ticket_id + "' rejected before command_pattern interpolation (P12-001/O7)."
+         )
+         RETURN
+       ticket_id = regex_escape(ticket_id)   # defense-in-depth after charset check
        pattern = "^jr (--output json )?issue comment " + ticket_id + " "
        ops = ["comment-review"]
        GOTO WRITE_MARKER
@@ -430,6 +465,18 @@ removal_reason: null
    IF action == "comment":
      ticket_id = verdict.ticket_id
      IF ticket_id is null: emit allow without marker; RETURN
+     # P12-001/O7: charset-validation before interpolating ticket_id into command_pattern
+     # ticket_id derived from Jira/alert content via verdict.ticket_id — not a static constant
+     IF NOT regex_match("^[A-Z][A-Z0-9]+-[0-9]+$", ticket_id):
+       WRITE audit entry:
+         now_iso8601() + " TICKET-ID-CHARSET-DENY: comment path ticket_id='" + ticket_id +
+         "' failed charset validation (P12-001/O7)"
+       emit deny(
+         "TICKET-ID-CHARSET-DENY: ticket_id='" + ticket_id + "' rejected before " +
+         "command_pattern interpolation. Required: ^[A-Z][A-Z0-9]+-[0-9]+$ (P12-001/O7)."
+       )
+       RETURN
+     ticket_id = regex_escape(ticket_id)   # defense-in-depth
      pattern = "^jr (--output json )?issue comment " + ticket_id + " "
      ops = ["comment"]
 
@@ -439,6 +486,17 @@ removal_reason: null
      IF project_key is null OR project_key == "":
        emit allow without marker   # cannot org-bind without project key (human gate required)
        RETURN
+     # P12-001/O7: charset-validation before interpolating jira_project_key into command_pattern
+     IF NOT regex_match("^[A-Z][A-Z0-9]+$", project_key):
+       WRITE audit entry:
+         now_iso8601() + " PROJECT-KEY-CHARSET-DENY: create path jira_project_key='" + project_key +
+         "' failed charset validation (P12-001/O7)"
+       emit deny(
+         "PROJECT-KEY-CHARSET-DENY: jira_project_key='" + project_key + "' rejected before " +
+         "command_pattern interpolation. Required: ^[A-Z][A-Z0-9]+$ (P12-001/O7)."
+       )
+       RETURN
+     project_key = regex_escape(project_key)   # defense-in-depth
      # ADV-F2-P4-002: --project is FIRST arg (Iron Law); trailing ( |$) prevents prefix-match
      # Old (v1.10): "^jr (--output json )?issue create .*--project <jira_project_key>"
      # New: "^jr (--output json )?issue create --project <jira_project_key>( |$)"
@@ -448,6 +506,17 @@ removal_reason: null
    ELIF action == "assign":
      ticket_id = verdict.ticket_id
      IF ticket_id is null: emit allow without marker; RETURN
+     # P12-001/O7: charset-validation before interpolating ticket_id into command_pattern
+     IF NOT regex_match("^[A-Z][A-Z0-9]+-[0-9]+$", ticket_id):
+       WRITE audit entry:
+         now_iso8601() + " TICKET-ID-CHARSET-DENY: assign path ticket_id='" + ticket_id +
+         "' failed charset validation (P12-001/O7)"
+       emit deny(
+         "TICKET-ID-CHARSET-DENY: ticket_id='" + ticket_id + "' rejected before " +
+         "command_pattern interpolation. Required: ^[A-Z][A-Z0-9]+-[0-9]+$ (P12-001/O7)."
+       )
+       RETURN
+     ticket_id = regex_escape(ticket_id)   # defense-in-depth
      pattern = "^jr (--output json )?issue assign " + ticket_id + " "
      ops = ["assign"]
 
@@ -506,6 +575,8 @@ removal_reason: null
    > **Previous (v1.10) create pattern:** `^jr (--output json )?issue create .*--project <jira_project_key>` — the `.*` between `create ` and `--project` allowed an attacker-controlled `--summary "... --project ORG_A ..."` argument to satisfy the project key binding via prefix match. Also: `PROD` would match `PRODUCTION` (no trailing boundary). (ADV-F2-P3-002 cross-org fungibility attack; ADV-F2-P4-002 prefix-match bypass.)
 
    A create marker issued for `--project ORG-A` cannot authorize `jr issue create --project ORG-B` or `jr issue create --project ORG-A_EXTRA` (trailing `( |$)` ensures the key must be followed by a space or end-of-string). Anti-forgery is preserved: each marker is single-use via atomic rename; forged markers cannot be created by the LLM (filesystem-isolated from LLM surface).
+
+   **P12-001/O7 security note — command_pattern inputs are content-derived (corrects implicit D-DEC-001/D-DEC-008 claim):** `ticket_id` IS derived from Jira/alert content on the verdict path (`verdict.ticket_id` is loop-written from ingested Jira/alert data at Stage 1 INGEST in BC-10.01.001) and from free-text markdown `content` on the Human-Comment path (`parse_ticket_id_from_markdown`). `jira_project_key` is derived from plugin state (prism.toml / verdict operational metadata), itself sourced from operator-configured data. Neither field is an intrinsic constant of the hook's logic — both are externally-influenced inputs. This corrects the prior implicit D-DEC-001/D-DEC-008 claim (echoed in earlier BC versions) that `command_pattern` was effectively "not derived from Jira ticket content." The accurate statement: `ticket_id` and `jira_project_key` ARE content-derived inputs; anchored matching (D-DEC-001 property (d)) alone is NOT sufficient when anchor components can contain regex metacharacters. A crafted `ticket_id=".*"` or `ticket_id="SEC-1|.*"` broadens the anchored pattern to authorize any `jr issue comment` command, defeating property (d). Metacharacter safety is now enforced by: (1) **charset-validation before interpolation** at all 5 sites (TICKET-ID-CHARSET-DENY / PROJECT-KEY-CHARSET-DENY — hard deny on mismatch); (2) **`regex_escape()` as defense-in-depth** applied after charset check. These two controls together preserve the anchored-match property (d) regardless of content-derived inputs. O7 standing rule: every value interpolated into a `command_pattern` MUST be charset-validated to a fixed grammar AND/OR regex-escaped; every interpolation site needs a covering VP with metacharacter-injection mutant. (P12-001/O7)
 
    **Canonical Marker JSON schema v2.1 (D-DEC-001 — single source of truth — ADV-F2-P5-003 sync):**
 
@@ -575,6 +646,8 @@ removal_reason: null
 
    Trailing space after ticket_id in comment/assign/comment-review patterns is intentional: prevents `SEC-1234` matching a pattern anchored to `SEC-123 `.
 
+   **P12-001/O7 charset-validation at all interpolation sites:** Before any `ticket_id` or `jira_project_key` value is interpolated into a `command_pattern`, it is validated against a fixed charset (`ticket_id` → `^[A-Z][A-Z0-9]+-[0-9]+$`; `jira_project_key` → `^[A-Z][A-Z0-9]+$`) with hard deny on mismatch (TICKET-ID-CHARSET-DENY / PROJECT-KEY-CHARSET-DENY). `regex_escape()` applied as defense-in-depth after the charset check. This applies to all 5 rows that construct a `command_pattern` (comment, comment-review, assign, create, create-review) — see STEP 3 and STEP 6 pseudocode above.
+
    **Hard-floor check (D-DEC-008 — Step 4 [reordered BEFORE kill switch per ADV-F2-P6-002; DENY-THE-WRITE redesigned per ADV-F2-P7-001] — for REGULAR markers only; review path exempt):** The following conditions unconditionally trigger the FAIL-LOUD deny-the-Write path. When ANY hard-floor applies and the verdict is under-labeled (non-review `ticket_action_type`), STEP 4 DENIES the verdict Write and writes an `UNDER-LABEL-DENIED` audit entry. `autonomy_enabled` is irrelevant — deny fires regardless. D-DEC-012: correctly-labeled create-review and comment-review markers bypass this function entirely (see Step 3). **P10-001/P11-002: `hard_floor_applies()` keys the HIGH/CRIT severity floor on `verdict.scored_priority` (field 18 — Stage-5 assess-priority output), NOT on `recomputed_severity`; `recomputed_severity` (STEP 1a consistency check result) is still computed and compared but no longer drives the severity floor:**
    - `disposition` is `Indeterminate` (hard floor — never auto-close)
    - `verdict.scored_priority` is `HIGH` or `CRIT` (P11-002; Stage-5 assess-priority output, enum CRIT|HIGH|MED|LOW; formerly keyed on `recomputed_severity` at P10-001; captures KEV/exposure/critical-asset escalations not reflected in detector-native severity; **ADV-F2-001 CRITICAL fix: keyed on scored assessment, NOT confidence — orthogonal axes; Paired mutant SM-46 (high-severity-floor-rekeyed-to-recomputed-severity): re-keys HIGH/CRIT floor back to recomputed_severity instead of scored_priority — a LOW-detector/CRIT-scored verdict silently loses the hard floor; kill vector: VP-HOOK-026 LOW-detector/CRIT-scored escalation vector [ID-sync per FV]**)
@@ -595,27 +668,79 @@ removal_reason: null
 
    Confidence: D-DEC-001 binding decision (architecture-delta.md v1.2 §D-DEC-001); D-DEC-008 v1.6 hard-floor pseudocode + generation table (architecture-delta.md v1.6 §D-DEC-008); D-DEC-012 review-surfacing path; ADV-F2-001 (severity/confidence orthogonal axes); ADV-F2-P4-001 (JSON-first dispatch); ADV-F2-P4-002 (anchored create pattern); ADV-F2-P4-005 (autonomy_enabled kill switch); ADV-F2-P4-006 (enum-membership validation).
 
-   **Separate Human-Comment Marker Path (P11-004):**
+   **Separate Human-Comment Marker Path (P11-004 / redesigned P12-002):**
 
-   This sub-path applies ONLY to `investigation-*.md` files dispatched via PC#2. It does NOT enter the verdict emitter above. `validate_enums()` and STEP 1a (NORMALIZE_SEVERITY / SEVERITY-MISMATCH) are NOT called on this path. Only markdown-evaluable floors are checked.
+   This sub-path applies ONLY to `investigation-*.md` files dispatched via PC#2. It does NOT enter the verdict emitter above. `validate_enums()` and STEP 1a (NORMALIZE_SEVERITY / SEVERITY-MISMATCH) are NOT called on this path.
 
    ```
-   # ── SEPARATE HUMAN-COMMENT MARKER PATH (P11-004) ─────────────────────────────
+   # ── SEPARATE HUMAN-COMMENT MARKER PATH (P11-004 / redesigned P12-002) ──────────────────────
    # Applies ONLY to investigation-*.md files (PC#2 dispatch).
    # This path does NOT enter the verdict emitter above.
    # Does NOT call validate_enums() or STEP 1a.
-   # Gating conditions (markdown-evaluable hard floors ONLY):
-   #   (a) Disposition: Indeterminate
-   #   (b) Any of T1003/T1068/T1021/T1041 in Attack Techniques heading section
-   #   (c) Sensor Health Status: degraded or silent
+   #
+   # ── GATE 1 (P12-002, fires FIRST): autonomy_enabled kill switch ────────────────────────────
+   # Reads autonomy_enabled from markdown content if explicitly present (not a standard ICD-203
+   # 12-field heading; present only when the markdown author explicitly includes it).
+   # Default-false: absent or non-boolean-true → allow-without-marker (kill-switch parity).
+   # Rationale: closes P12-002 autonomous-loop-masquerade bypass — the loop cannot obtain a live
+   # marker via the markdown path while autonomy_enabled is absent/false. Human analyst saves
+   # (which typically lack autonomy_enabled) → allow-without-marker → file saved, no Jira marker.
+   autonomy_enabled_md = parse_autonomy_enabled_from_markdown(content)  # absent/non-bool-true = false
+   IF autonomy_enabled_md IS NOT exactly true:
+     emit allow without marker   # kill-switch parity: investigation file saved; no Jira marker
+     RETURN
+   #
+   # ── GATES 2/3: markdown-evaluable hard floors (unchanged from P11-004) ──────────────────────
    IF disposition_section_contains("Indeterminate") OR
       attack_techniques_contains_forbidden(["T1003","T1068","T1021","T1041"]) OR
       sensor_health_status_is("degraded") OR sensor_health_status_is("silent"):
      WRITE audit entry: "MARKDOWN-HARD-FLOOR: [specific condition] in investigation markdown..."
      emit deny("MARKDOWN-HARD-FLOOR: ...")
      RETURN
-   # All floors passed: parse ticket_id and emit comment-scoped marker
+   #
+   # ── PARSE DISPOSITION + TICKET_ID: route non-FP to review (P12-002) ────────────────────────
+   parsed_disposition = parse_disposition_from_markdown(content)   # "FP"|"TP"|"BTP"|"Indeterminate"
    ticket_id = parse_ticket_id_from_markdown(content)
+   #
+   # P12-001/O7: charset-validation before interpolating ticket_id into command_pattern
+   # ticket_id comes from free-text markdown content — attacker-influenceable; must validate
+   IF ticket_id is NOT null:
+     IF NOT regex_match("^[A-Z][A-Z0-9]+-[0-9]+$", ticket_id):
+       WRITE audit entry:
+         now_iso8601() + " TICKET-ID-CHARSET-DENY: markdown path ticket_id='" + ticket_id +
+         "' failed charset validation (P12-001/O7)"
+       emit deny(
+         "TICKET-ID-CHARSET-DENY: ticket_id from investigation markdown contains " +
+         "invalid characters. Required: ^[A-Z][A-Z0-9]+-[0-9]+$ (P12-001/O7)."
+       )
+       RETURN
+     ticket_id = regex_escape(ticket_id)   # defense-in-depth after charset check
+   #
+   # ── MARKDOWN_REVIEW_PATH: non-FP disposition → route to review (P12-002) ──────────────────
+   # Because this hook cannot evaluate scored_priority/asset_type from a 12-field markdown,
+   # any non-FP disposition is conservatively routed to human review.
+   # TP/BTP/unclear dispositions → create-review (no ticket) or comment-review (existing ticket).
+   IF parsed_disposition != "FP":
+     IF ticket_id is NOT null:
+       ops = ["comment-review"]
+       pattern = "^jr (--output json )?issue comment " + ticket_id + " "
+       GOTO WRITE_MARKER
+     ELSE:
+       project_key = parse_project_key_from_markdown(content) or get_global_project_key()
+       IF project_key is NOT null:
+         IF NOT regex_match("^[A-Z][A-Z0-9]+$", project_key):
+           WRITE audit entry:
+             now_iso8601() + " PROJECT-KEY-CHARSET-DENY: markdown review path (P12-001/O7)"
+           emit deny("PROJECT-KEY-CHARSET-DENY: jira_project_key from markdown (P12-001/O7).")
+           RETURN
+         project_key = regex_escape(project_key)
+         ops = ["create-review"]
+         pattern = "^jr (--output json )?issue create --project " + project_key + " --label (REVIEW-REQUIRED|BLIND-SPOT)( |$)"
+         GOTO WRITE_MARKER
+       ELSE:
+         emit allow without marker   # cannot bind review marker; human gate preserved
+         RETURN
+   # ── MARKDOWN_COMMENT_PATH: benign FP (autonomy_enabled=true) → comment marker (P12-002) ───
    IF ticket_id is null:
      emit allow without marker
      RETURN
@@ -624,9 +749,9 @@ removal_reason: null
    GOTO WRITE_MARKER
    ```
 
-   **Trust basis (P11-004):** Markdown-evaluable floors (Indeterminate disposition, forbidden techniques T1003/T1068/T1021/T1041, degraded/silent sensor) are structurally checkable from the 12-field investigation markdown without calling verdict-class validation. Verdict-only fields (`scored_priority`, `asset_type`, `verdict.severity`) are NOT present in an investigation markdown and are NOT checked on this path. Any investigation markdown that passes these floors yields a comment-scoped marker (not a create-scoped or review-surfacing marker).
+   **Trust basis (P11-004 / P12-002 redesign):** Gate 1 (P12-002): `autonomy_enabled` is read from markdown content — absent or non-boolean-true → emit allow-without-marker (matching kill-switch semantics; closes the autonomous-loop-masquerade bypass where the loop uses artifact-class choice to obtain a live comment marker without the autonomy_enabled gate). Gates 2/3 (P11-004, unchanged): markdown-evaluable floors (Indeterminate disposition, forbidden techniques T1003/T1068/T1021/T1041, degraded/silent sensor) are structurally checkable without verdict-class validation. P12-002 route rule: `parsed_disposition != "FP"` → MARKDOWN_REVIEW_PATH (create-review/comment-review) because this hook cannot evaluate `scored_priority`/`asset_type` from a 12-field markdown; a TP/BTP investigation markdown with `autonomy_enabled=true` yields a review-surfacing marker, not an autonomous comment. Only an explicitly-enabled (`autonomy_enabled=true`) FP investigation markdown yields a comment-scoped marker via the MARKDOWN_COMMENT_PATH. Verdict-only fields (`scored_priority`, `asset_type`, `verdict.severity`) are NOT present in a standard ICD-203 investigation markdown and are NOT checked on this path. `ticket_id` parsed from free-text markdown is charset-validated (P12-001/O7) before interpolation.
 
-   **Verification property (VP-HOOK-031 — FINALIZED P0, per verification-delta.md v1.14):** Separate human-comment marker path correctness (P11-004): the 12-field ICD-203 investigation-markdown path (PC#2 dispatch) does NOT enter the verdict emitter; emits a comment-scoped marker gated ONLY on 12-field completeness + markdown-evaluable hard floors. `validate_enums()` and STEP 1a are NOT called on this path. Floor fires → MARKDOWN-HARD-FLOOR deny; compliant save → comment marker emitted. Consumed by BC-5.01.001 (investigate-event Invariant #7) and BC-4.02.001 (update-jira PC#4). Paired mutant SM-47 (markdown-routed-into-verdict-emitter): routes 12-field investigation-markdown into verdict emitter, calling `validate_enums()`/STEP 1a on investigation content — kills the no-validate_enums-on-markdown and compliant-save vectors; a compliant analyst save would be incorrectly denied. [ID-sync per FV]
+   **Verification property (VP-HOOK-031 — FINALIZED P0, per verification-delta.md v1.14; **UPDATED v1.15 P12-002 four-guarantee redesign — SM-50 (kill-switch gate) + SM-51 (route-to-review) [ID-sync per FV]**):** Separate human-comment marker path correctness (P11-004 / P12-002): the 12-field ICD-203 investigation-markdown path (PC#2 dispatch) does NOT enter the verdict emitter; `validate_enums()` and STEP 1a are NOT called on this path. Gate 1 (P12-002): `autonomy_enabled` absent/non-bool-true → allow-without-marker. Gates 2/3: markdown-evaluable floors → MARKDOWN-HARD-FLOOR deny. Route rule (P12-002): non-FP → MARKDOWN_REVIEW_PATH (create-review/comment-review); FP + `autonomy_enabled=true` → MARKDOWN_COMMENT_PATH (comment marker). Consumed by BC-5.01.001 (investigate-event Invariant #7) and BC-4.02.001 (update-jira PC#4). Paired mutant SM-47 (markdown-routed-into-verdict-emitter): routes investigation-markdown into verdict emitter — kills compliant-save-allowed and no-validate_enums vectors. [ID-sync per FV]
 
 ## Edge Cases
 
@@ -672,8 +797,12 @@ removal_reason: null
 | `verdict-ALERT-001.json` → JSON with all 18 keys, disposition=TP, severity=CRITICAL, **native_severity=95** (CrowdStrike 1-100 numeric, ≥80 → CRITICAL), **sensor_family=crowdstrike**; scored_priority=CRIT; NORMALIZE_SEVERITY(95, crowdstrike) = CRITICAL = verdict.severity (match); ticket_action_type=comment, ticket_id=SEC-999, autonomy_enabled=true, non-hard-floor-eligible | STEP 1a passes (recomputed_severity='CRITICAL' == verdict.severity='CRITICAL'); proceeds to STEP 2; but scored_priority=CRIT → hard_floor_applies()=true → STEP 4 DENY-THE-WRITE fires (under-labeled; `comment` is not a review token); `UNDER-LABEL-DENIED` audit entry; deny with required_token="comment-review" | **edge-case (P11-002 — scored_priority=CRIT triggers hard floor even when STEP 1a passes)** |
 | `verdict-ALERT-001.json` → JSON with 17 keys, **`scored_priority` key absent** (field 18 missing) | `permissionDecision: deny`; reason "ICD-203 required field missing: scored_priority"; no marker written | **error (P11-002 — 18-field STEP 0 validation, field 18 absent)** |
 | `verdict-ALERT-001.json` → JSON with all 18 keys, disposition=TP, severity=LOW, **scored_priority=HIGH**, asset_type=standard, ticket_action_type=create (under-labeled), autonomy_enabled=true | `permissionDecision: deny`; STEP 1a passes (severity consistent with native_severity); STEP 4 fires: scored_priority=HIGH → hard_floor_applies()=true → HARD-FLOOR-UNDER-LABEL deny; `UNDER-LABEL-DENIED` audit entry; required_token="create-review". NOTE: verdict.severity=LOW does NOT suppress the floor — scored_priority (Stage-5 recalibrated) is the floor driver (P11-002). | **edge-case (P11-002 — scored_priority=HIGH hard floor, detector severity LOW)** |
-| `investigation-ALERT-001.md` → all 12 mandatory headings, Disposition=TP, Sensor Health Status=healthy, no forbidden techniques (T1003/T1068/T1021/T1041 absent from Attack Techniques section) | Separate Human-Comment Marker Path (P11-004): floors pass; ticket_id parsed; comment-scoped marker written; `permissionDecision: allow`; verdict emitter NOT entered; validate_enums NOT called; STEP 1a NOT called | **happy-path (P11-004 Separate Human-Comment Marker Path)** |
-| `investigation-ALERT-001.md` → all 12 mandatory headings, Disposition=Indeterminate, Sensor Health Status=healthy | Separate Human-Comment Marker Path (P11-004): MARKDOWN-HARD-FLOOR fires (Indeterminate disposition); `permissionDecision: deny`; deny reason "MARKDOWN-HARD-FLOOR: Indeterminate disposition"; audit entry written; verdict emitter NOT entered | **edge-case (P11-004 — MARKDOWN-HARD-FLOOR, Indeterminate)** |
+| `investigation-ALERT-001.md` → all 12 mandatory headings, **autonomy_enabled: true** in content, Disposition=FP, Sensor Health Status=healthy, no forbidden techniques, ticket_id=SEC-123 | Separate Human-Comment Marker Path (P12-002): Gate 1 passes (autonomy_enabled=true); Gates 2/3 floors pass; parsed_disposition=FP → MARKDOWN_COMMENT_PATH; ticket_id charset-validated (SEC-123 passes `^[A-Z][A-Z0-9]+-[0-9]+$`); comment-scoped marker written; `permissionDecision: allow`; verdict emitter NOT entered; validate_enums NOT called; STEP 1a NOT called | **happy-path (P12-002 MARKDOWN_COMMENT_PATH — FP + autonomy_enabled=true)** |
+| `investigation-ALERT-001.md` → all 12 mandatory headings, **autonomy_enabled: true** in content, Disposition=TP, Sensor Health Status=healthy, no forbidden techniques, ticket_id=SEC-123 | Separate Human-Comment Marker Path (P12-002): Gate 1 passes (autonomy_enabled=true); Gates 2/3 floors pass; parsed_disposition=TP != "FP" → MARKDOWN_REVIEW_PATH; ticket_id charset-validated; comment-review marker written (NOT plain comment); `permissionDecision: allow`; verdict emitter NOT entered | **happy-path (P12-002 MARKDOWN_REVIEW_PATH — non-FP routes to review)** |
+| `investigation-ALERT-001.md` → all 12 mandatory headings, Disposition=Indeterminate (autonomy_enabled absent) | Separate Human-Comment Marker Path (P12-002): Gate 1 fires — autonomy_enabled absent → allow-without-marker (kill-switch parity); investigation file IS saved; NO Jira marker issued | **edge-case (P12-002 Gate 1 — autonomy_enabled absent → allow-without-marker)** |
+| `investigation-ALERT-001.md` → all 12 mandatory headings, **autonomy_enabled: true**, Disposition=Indeterminate, Sensor Health Status=healthy | Separate Human-Comment Marker Path (P12-002): Gate 1 passes (autonomy_enabled=true); Gate 2 fires (Indeterminate → MARKDOWN-HARD-FLOOR); `permissionDecision: deny`; deny reason "MARKDOWN-HARD-FLOOR: Indeterminate disposition"; audit entry written; verdict emitter NOT entered | **edge-case (P12-002 Gate 2 — MARKDOWN-HARD-FLOOR, Indeterminate)** |
+| `verdict-ALERT-001.json` → JSON with all 18 keys, disposition=TP, **ticket_id=".*"** (metacharacter injection), ticket_action_type=comment, severity=LOW, scored_priority=LOW, non-hard-floor, autonomy_enabled=true | `permissionDecision: deny`; audit.log: `TICKET-ID-CHARSET-DENY: comment path ticket_id='.*' failed charset validation (P12-001/O7)`; deny reason: "TICKET-ID-CHARSET-DENY: ticket_id='.*' rejected before command_pattern interpolation (P12-001/O7)"; NO marker written | **error (P12-001 — TICKET-ID-CHARSET-DENY)** |
+| `verdict-ALERT-001.json` → JSON with all 18 keys, disposition=FP, **jira_project_key="SEC\|.*"** (metacharacter injection), ticket_action_type=create, severity=LOW, scored_priority=LOW, non-hard-floor, autonomy_enabled=true | `permissionDecision: deny`; audit.log: `PROJECT-KEY-CHARSET-DENY: create path jira_project_key='SEC\|.*' failed charset validation (P12-001/O7)`; deny reason: "PROJECT-KEY-CHARSET-DENY: jira_project_key='SEC\|.*' rejected before command_pattern interpolation (P12-001/O7)"; NO marker written | **error (P12-001 — PROJECT-KEY-CHARSET-DENY)** |
 
 ## Verification Properties
 
@@ -684,7 +813,7 @@ removal_reason: null
 | VP-HOOK-009 | Non-investigation, non-verdict files always produce allow | integration / BATS |
 | VP-HOOK-026 | **[NEW v1.11; SM-46 extended v1.19 P11-002]** Hard-floor non-overridability (FINALIZED per verification-delta.md v1.3 §7 Part D): all hard-floor conditions unconditionally suppress marker issuance, including the separate `asset_type=unknown` leg (NOT a member of CRITICAL_ASSET_TYPES — explicit check). Tests: LOW-severity + benign-technique + asset_type=unknown verdict → zero markers written (SM-29 kill target); HIGH/CRIT `scored_priority` → zero markers (**SM-46 kill target**: high-severity-floor-rekeyed-to-recomputed-severity — re-keying floor to `recomputed_severity` silently loses the LOW-detector/CRIT-scored escalation path); Indeterminate disposition → zero markers; CRITICAL_ASSET_TYPES → zero markers; degraded/silent sensor health → zero markers. | integration / BATS (`@test "disposition-guard unknown-asset hard-floor: no marker emitted"`, `@test "disposition-guard critical-severity hard-floor: no marker emitted"`, `@test "disposition-guard indeterminate hard-floor: no marker emitted"`, `@test "disposition-guard scored_priority=CRIT severity=LOW: hard floor fires (SM-46 kill)"`) |
 | VP-HOOK-025 | **[UPDATED v1.19 — P10-001/P11-002]** Artifact-class branching enforcement (architecture-delta v1.4 §D-DEC-008-C — ADV-F2-P3-003). **Investigation markdown path (12 ICD-203 fields):** heading-anchored `grep -qiE "^#{1,6}[[:space:]]+<field>"` for each of: (1) disposition, (2) confidence, (3) sensor_health_status, (4) evidence_artifacts, (5) timeline_events, (6) hypotheses_considered, (7) alternatives_rejected, (8) uncertainty_explicit, (9) attack_techniques, (10) agent_actions, (11) human_actions, (12) tuning_signal. Severity, asset_type, ticket_action_type are NOT required headings in the investigation-markdown path. **Verdict JSON path (18 fields — P10-001/P11-002):** `jq has()` key-presence check + per-field type assertions for all 18 fields (fields 1–12 above plus (13) severity, (14) asset_type, (15) ticket_action_type, (16) native_severity, (17) sensor_family, (18) scored_priority). Verdict JSON files missing any of the 18 keys receive deny. tuning_signal null-vs-absent semantics enforced (null valid for TP/Indeterminate; non-null object required for FP/BTP). scored_priority membership in {CRIT,HIGH,MED,LOW} enforced (fail-closed; P11-002). Hard-floor check re-keyed to `verdict.scored_priority` (field 18 — P11-002; Stage-5 assess-priority output) + verdict.asset_type (field 14) including separate `unknown` check (ADV-F2-P3-001). SM-44 (revert STEP 1a re-normalization — SEVERITY-MISMATCH context). Cross-ref: VP-HOOK-030 (STEP 1a SEVERITY-MISMATCH, FINALIZED P0 per verification-delta v1.13). [ID-sync per FV]. | integration / BATS (`@test "disposition-guard denies verdict missing timeline_events"`, `@test "disposition-guard denies verdict missing severity"`, `@test "disposition-guard denies verdict missing native_severity"`, `@test "disposition-guard denies verdict missing sensor_family"`, `@test "disposition-guard denies verdict missing scored_priority"`, `@test "disposition-guard denies verdict scored_priority not in enum"`, `@test "disposition-guard denies FP verdict with null tuning_signal"`, `@test "disposition-guard allows TP verdict with null tuning_signal and all 18 fields"`, `@test "disposition-guard allows investigation with 12 fields (severity/asset_type/ticket_action_type headings not required)"`) |
-| VP-HOOK-031 | **[NEW v1.19 — P11-004 [ID-sync per FV]]** Separate human-comment marker path correctness (FINALIZED P0, per verification-delta.md v1.14): the 12-field ICD-203 investigation-markdown path (PC#2 dispatch) does NOT enter the verdict emitter; emits a comment-scoped marker gated ONLY on 12-field completeness + markdown-evaluable hard floors. `validate_enums()` and STEP 1a are NOT called on this path. Vectors: (1) compliant-save path: a 12-field investigation markdown with non-Indeterminate disposition, no forbidden techniques, healthy sensor → comment-scoped marker written + allow; (2) MARKDOWN-HARD-FLOOR path: Indeterminate disposition / T1003|T1068|T1021|T1041 technique / degraded|silent sensor → deny; (3) path isolation: 12-field markdown does NOT trigger validate_enums or STEP 1a. Consumed by BC-5.01.001 Invariant #7 (investigate-event Stage 7) and BC-4.02.001 PC#4 (update-jira Stage 7). Paired mutant SM-47 (markdown-routed-into-verdict-emitter): routes investigation-markdown into verdict emitter — kills compliant-save-allowed and no-validate_enums vectors. | integration / BATS (`@test "disposition-guard investigation markdown compliant save: comment marker emitted, no validate_enums"`, `@test "disposition-guard investigation markdown MARKDOWN-HARD-FLOOR Indeterminate: deny"`, `@test "disposition-guard investigation markdown does not enter verdict emitter path (SM-47 kill)"`) |
+| VP-HOOK-031 | **[NEW v1.19 — P11-004; scope update required v1.20 — P12-002 / SM-50 (kill-switch gate) + SM-51 (route-to-review) [ID-sync per FV]]** Separate human-comment marker path correctness (FINALIZED P0, per verification-delta.md v1.14; **UPDATED v1.15 P12-002 four-guarantee redesign — SM-50 (kill-switch gate) + SM-51 (route-to-review) [ID-sync per FV]**): the 12-field ICD-203 investigation-markdown path (PC#2 dispatch) does NOT enter the verdict emitter; `validate_enums()` and STEP 1a are NOT called on this path. Gate 1 (P12-002): `autonomy_enabled` absent/non-bool-true → allow-without-marker (kill-switch parity). Vectors: (1) FP compliant-save path (autonomy_enabled=true): 12-field investigation markdown, FP disposition, healthy sensor, no forbidden techniques, autonomy_enabled=true → comment-scoped marker written + allow (MARKDOWN_COMMENT_PATH); (2) non-FP route-to-review path (P12-002): autonomy_enabled=true, TP/BTP disposition → comment-review or create-review marker (MARKDOWN_REVIEW_PATH); (3) kill-switch path (P12-002): autonomy_enabled absent/false → allow-without-marker; (4) MARKDOWN-HARD-FLOOR path: Indeterminate disposition / T1003|T1068|T1021|T1041 technique / degraded|silent sensor → deny; (5) path isolation: 12-field markdown does NOT trigger validate_enums or STEP 1a; (6) ticket_id charset-validation (P12-001/O7): ticket_id=".*" → TICKET-ID-CHARSET-DENY. Consumed by BC-5.01.001 Invariant #7 (investigate-event Stage 7) and BC-4.02.001 PC#4 (update-jira Stage 7). Paired mutant SM-47 (markdown-routed-into-verdict-emitter): routes investigation-markdown into verdict emitter — kills compliant-save-allowed and no-validate_enums vectors. | integration / BATS (`@test "disposition-guard investigation markdown FP compliant save (autonomy_enabled=true): comment marker emitted"`, `@test "disposition-guard investigation markdown TP (autonomy_enabled=true): routes to review (MARKDOWN_REVIEW_PATH)"`, `@test "disposition-guard investigation markdown autonomy_enabled absent: allow-without-marker"`, `@test "disposition-guard investigation markdown MARKDOWN-HARD-FLOOR Indeterminate: deny"`, `@test "disposition-guard investigation markdown does not enter verdict emitter path (SM-47 kill)"`, `@test "disposition-guard investigation markdown ticket_id metachar: TICKET-ID-CHARSET-DENY"`) |
 
 ## Traceability
 

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-07-20T00:00:00
@@ -10,14 +10,14 @@ inputs:
   - .factory/feature/prism-integration-handoff-brief.md
   - .factory/phase-f2-spec-evolution/architecture-delta.md
   - .factory/phase-f1-delta-analysis/artifact-mapping.md
-input-hash: "COMPUTE-AT-COMMIT — state-manager: sha256sum .factory/feature/prism-integration-handoff-brief.md .factory/phase-f2-spec-evolution/architecture-delta.md .factory/phase-f1-delta-analysis/artifact-mapping.md"
+input-hash: "COMPUTE-AT-COMMIT"
 traces_to: feature/prism-integration-handoff-brief.md
 origin: greenfield
 subsystem: lifecycle-management
 capability: CAP-LIFECYCLE-03
 lifecycle_status: active
 introduced: v0.10.0-feature-prism-integration
-modified: ["v1.1-FV-PROPOSED-DROP-2026-07-20", "v1.2-ADV-F2-P10-009-per-org-jira-project-key-2026-07-22", "v1.3-ADV-F2-P11-005-mis-anchor-fix-2026-07-22"]
+modified: ["v1.1-FV-PROPOSED-DROP-2026-07-20", "v1.2-ADV-F2-P10-009-per-org-jira-project-key-2026-07-22", "v1.3-ADV-F2-P11-005-mis-anchor-fix-2026-07-22", "v1.4-ADV-F2-P12-005-postcondition-anchor-fix-2026-07-22"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -29,7 +29,8 @@ removal_reason: null
 # Behavioral Contract BC-6.01.003: onboard-customer Skill — Org Slug / UUID Provisioning and prism.toml Registration
 
 > **Revision history:**
-> - v1.3 (2026-07-22): Pass-11 adversarial remediation — P11-005 (MINOR, mis-anchor fix). **Invariant #6 cross-reference corrected:** replaced the dead reference "BC-9.01.001 Precondition #9" (no such precondition exists — scan-threats has 4 preconditions, none related to jira_project_key) with the correct anchor "BC-6.01.001 Invariant #12 / EC-013" (activate skill's jira_project_key Stage-0 gate, which controls what happens when neither per-org nor global jira_project_key is present). ADV-F2-P11-005.
+> - v1.4 (2026-07-22): Pass-12 adversarial remediation — P12-005 (MINOR, mis-anchor correction). **Invariant #6 cross-reference corrected again:** the v1.3 fix introduced a secondary error — "BC-6.01.001 Invariant #12 / EC-013" is incorrect because BC-6.01.001 (activate-skill) has only 6 invariants; the jira_project_key Stage-0 gate is a **Postcondition** (#12), not an Invariant. Corrected to "BC-6.01.001 Postcondition #12 / EC-013" in both Invariant #6 body and the v1.3 revision history entry. ADV-F2-P12-005.
+> - v1.3 (2026-07-22): Pass-11 adversarial remediation — P11-005 (MINOR, mis-anchor fix). **Invariant #6 cross-reference corrected:** replaced the dead reference "BC-9.01.001 Precondition #9" (no such precondition exists — scan-threats has 4 preconditions, none related to jira_project_key) with the correct anchor "BC-6.01.001 Postcondition #12 / EC-013" (activate skill's jira_project_key Stage-0 gate, which controls what happens when neither per-org nor global jira_project_key is present). ADV-F2-P11-005.
 > - v1.2 (2026-07-22): Pass-10 adversarial remediation — P10-009 (MINOR) per-org `jira_project_key`. (1) **Postcondition #1:** `[[orgs]]` entry now optionally includes `jira_project_key` (string, overrides global `jira_project_key` for this org). The onboard-customer skill prompts for it optionally during org creation. (2) **Invariant #6 added (P10-009):** Per-org lookup order for `jira_project_key`: check `[[orgs]].jira_project_key` first (per-org override); if absent or empty, fall back to global `jira_project_key` from `[plugin_config]` or plugin state. This allows multi-tenant deployments where different orgs use different Jira projects. (3) **EC-009 added:** canonical behavior when user supplies a per-org `jira_project_key` during onboard-customer.
 > - v1.0 (2026-07-20): Initial authoring for prism-integration cycle (v0.10.0). Source: handoff brief §2.3, architecture-delta.md §D-DEC-003/D-DEC-005, artifact-mapping.md §1.4 (BC-6.01.003 slot).
 > - v1.1 (2026-07-20): FV-PROPOSED-DROP: VP-SKILL-052 and VP-SKILL-053 are now FINALIZED per verification-delta §1 — dropped `(PROPOSED)` qualifier from VP table rows and VP Anchors.
@@ -103,7 +104,7 @@ into chat (AD-017 invariant).
    2. **Global fallback:** `jira_project_key` from the global plugin state / `[plugin_config]`
       (set at activate time, BC-6.01.001)
    If neither is present, disposition-guard emits HARD-FLOOR-UNBINDABLE (per Invariant #10 of
-   BC-10.01.001 and BC-6.01.001 Invariant #12 / EC-013). The onboard-customer skill MUST communicate
+   BC-10.01.001 and BC-6.01.001 Postcondition #12 / EC-013). The onboard-customer skill MUST communicate
    this optional field to the user without requiring it. If the user provides a per-org key,
    the skill validates it is non-empty and contains only Jira-project-key safe characters
    (uppercase alphanumeric, hyphens) before writing it to the `[[orgs]]` entry.

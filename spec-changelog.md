@@ -11,6 +11,42 @@ Track all spec version changes. Most recent version first.
 
 ## [1.1.0] - 2026-07-20 (patch edits 2026-07-21/22 — not a version bump)
 
+### F2 Pass-12 Remediation Edits — Burst 8 (2026-07-22) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 8). Root findings:
+P12-001 (CRITICAL — ticket_id/jira_project_key concatenated unescaped into command_pattern
+regex; regex-injection (ticket_id='.*' broadens anchored match); latent since original marker
+design; NOT ASM-008-covered; fix: charset-validation ^[A-Z][A-Z0-9]+-[0-9]+$ /
+^[A-Z][A-Z0-9]+$ at 5 interpolation sites + regex-escape; O7 rule codified),
+P12-002 (CRITICAL — human-comment markdown path (P11-004) selectable by autonomous loop;
+bypasses kill switch + scored_priority/asset_type floors; issues live comment marker;
+fix: four-guarantee redesign — (a) kill-switch gate: autonomy_enabled absent/≠true →
+allow-without-marker; (b) route-to-review: disposition≠FP → create-review/comment-review;
+(c) FP + floors pass → comment marker; (d) ticket_id charset-validated; D-015),
+P12-003 (MAJOR — fast-path scored_priority raw CRITICAL/MEDIUM not in SCORED_PRIORITY_ENUM
+{CRIT,HIGH,MED,LOW} → fail-closed deny 30-40% known-FP volume; fix: SEVERITY_TO_SCORED_PRIORITY_MAP;
+known-FP fast-path EXEMPT from HIGH/CRIT floor per D-016; residual → DI-015),
+P12-004 (MAJOR — BC-4.05.001 assess-priority never emits/maps scored_priority (field 18);
+producer/consumer contract gap; fix: priority output IS scored_priority field 18),
+P12-005 (MINOR — BC-6.01.003 Invariant#12 nonexistent reference; fix: → Postcondition#12),
+P12-006 (MINOR — BC-8.02.001 stale traceability label),
+P12-007 (process-gap — no regex-escape standing rule; fix: O7 codified in §0).
+VP-HOOK-032, SM-48/SM-49 (O7 charset-validation), SM-50/SM-51 (markdown-path guarantees) allocated.
+D-015/D-016 recorded.
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.14 | v1.15 | P12-001: D-DEC-012 O7 rule codified + 5 interpolation-site charset-validation + regex-escape spec; §8.26.1 markdown-path four-guarantee redesign (D-015); §8.26.2 known-FP floor exemption (D-016); §8.27 SM-P12-A/B/C/D → SM-48/49/50/51 + VP-HOOK-032 allocations |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.19 | v1.20 [ID-sync per FV] | P12-001: VP-HOOK-032 + SM-48/SM-49 (O7 charset-validation at 5 command_pattern sites); P12-002: VP-HOOK-031 four-guarantee redesign + SM-50 (kill-switch gate) + SM-51 (route-to-review); P12-003: SEVERITY_TO_SCORED_PRIORITY_MAP note on fast-path |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.16 | v1.17 | P12-003: fast-path enum map (SEVERITY_TO_SCORED_PRIORITY_MAP: CRITICAL→CRIT, MEDIUM→MED) + EC-009 floor-exemption annotation + known-FP store integrity invariants |
+| phase-0-ingestion/behavioral-contracts/BC-4.05.001.md | v1.3 | v1.4 | P12-004: priority output field mapped to scored_priority (field 18); producer/consumer contract closed |
+| phase-0-ingestion/behavioral-contracts/BC-6.01.003.md | v1.3 | v1.4 | P12-005: Invariant#12 → Postcondition#12 mis-anchor corrected |
+| phase-0-ingestion/behavioral-contracts/BC-8.02.001.md | v1.3 | v1.4 | P12-006: stale traceability label corrected |
+| phase-f2-spec-evolution/verification-delta.md | v1.14 | v1.15 | P12-001/P12-007: VP-HOOK-032 NEW FINALIZED P0 (O7 interpolation-safety — SM-48/SM-49); P12-002: VP-HOOK-031 UPDATED four-guarantee redesign (SM-50/SM-51); P12-003: VP-HOOK-025/VP-HOOK-026 extended (fast-path enum map + known-FP floor exemption); version-coherence sweep: BC-3.03.001 v1.19→v1.20, BC-10.01.001 v1.16→v1.17, BC-4.05.001 v1.3→v1.4 in §5 + VP table |
+| phase-f2-spec-evolution/prd-delta.md | v1.13 | v1.14 | P12-004/P12-005/P12-006: §5 New Version column updated for burst-8 BCs (BC-4.05.001 v1.3→v1.4, BC-6.01.003 v1.3→v1.4, BC-8.02.001 v1.3→v1.4); BC-3.03.001 v1.19→v1.20, BC-10.01.001 v1.16→v1.17 |
+
+---
+
 ### F2 Pass-11 Remediation Edits — Burst 7 (2026-07-22) — spec remains 1.1.0
 
 Remediation edits within the F2 adversarial convergence cycle (burst 7). Root findings:

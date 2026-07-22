@@ -298,3 +298,75 @@ traces_to: STATE.md
 
 26. **[Process gap] False-closure language in a remediation summary copy-propagates to all docs that quote or paraphrase it — audit propagation as a commit discipline [P11-007]** — the pass-10 remediation burst used strong closure language ("un-bypassable / hook independently derives from raw sensor values") in arch-delta §8.22, the primary description of STEP 1a. Three downstream documents that cross-referenced §8.22 — BC-3.03.001 §3.2 trust-basis paragraph, BC-10.01.001 Inv#10 rationale, and verification-delta VP-HOOK-030 assertion text — imported the same language, either by direct quotation or paraphrase. When pass 11 found the language was overstated, four documents needed correction simultaneously. The root cause was that the original remediation burst only checked whether the spec language was technically sound for the finding being fixed; it did not audit downstream documents that would inherit the claim. Lesson: whenever a remediation burst establishes a new normative claim (especially a security guarantee), immediately grep all spec files for documents that reference the fixed component and apply the claim-text to see which ones would inherit the overstatement. A conservative workflow: before closing a burst, run a targeted grep for the claim's key phrase across the spec corpus and note which documents carry a version of it.
     _Discovered: F2 adversarial pass 11 (P11-007 process gap), 2026-07-22_
+
+---
+
+## Pass-12 Lessons (F2 adversarial pass 12, 2026-07-22)
+
+### Agent-Level
+
+27. **[O7 codified] Any value interpolated into an authorization regex must be charset-validated
+    to a fixed grammar (fail-closed DENY on mismatch) AND regex-escaped as defense-in-depth —
+    this is a LATENT class of bug, not a new design decision [P12-001]** — ticket_id and
+    jira_project_key were concatenated directly into command_pattern (the anchored regex that
+    require-review evaluates with `[[ =~ ]]`) without charset validation or escaping. The only
+    prior sanitization was a control-character strip for audit purposes (P4-010). An adversary
+    who controls the LLM can supply ticket_id='.*' or ticket_id='SEC-1 |.*#' to broaden the
+    pattern to authorize an entirely unrelated `jr issue comment` call — defeating the anchored
+    match property that was the primary security guarantee. This class of bug is latent since
+    the original marker design: it exists wherever a user-supplied value is used inside a regex
+    rather than compared against a regex. The O7 standing rule codifies the fix: before any
+    interpolation into a command_pattern or authorization regex, the value MUST be (1) validated
+    against a fixed charset grammar (fail-closed DENY on mismatch, with a machine-actionable
+    audit entry), AND (2) regex-escaped for defense-in-depth. Every interpolation site needs a
+    covering VP with a metacharacter-injection mutant. VP-HOOK-032 is the O7 compliance
+    artifact (mirrors VP-HOOK-024=O4, VP-HOOK-029=O4-review-path, VP-SKILL-050=O5).
+    _tag: [codified]_
+    _Discovered: F2 adversarial pass 12 (P12-001 CRITICAL), 2026-07-22_
+
+28. **A new surface added to fix a finding immediately becomes the next pass's attack surface —
+    the fix must include a discriminator that closes the selection vector [P12-002]** — pass 11
+    (P11-004) introduced a separate human-comment marker path for 12-field investigation
+    markdowns to avoid the validate_enums() false-denial. The fix correctly separated the paths.
+    But pass 12 found that the autonomous loop could SELECT the new weaker path by writing a
+    TP verdict as an investigation-*.md file: the 12-field markdown path skipped kill-switch
+    enforcement and scored_priority/asset_type floor checks that would have caught it on the
+    standard path. The lesson is that any new path introduced to fix a false-positive must
+    simultaneously include a discriminator that prevents an adversary from choosing the path
+    to avoid controls on the standard path. Here, the discriminator is twofold: (a) the
+    kill switch applies identically on the markdown path (autonomy_enabled absent/≠true →
+    allow-without-marker), and (b) the disposition provides a hard gate — only disposition=FP
+    reaches the comment marker; disposition≠FP routes to human review. Without these two
+    discriminators, the new path's existence becomes an unintended bypass route.
+    _Discovered: F2 adversarial pass 12 (P12-002 CRITICAL), 2026-07-22_
+
+### Process-Level
+
+29. **Producer/consumer contract coherence: when a consumer BC gains a new output field, the
+    PRODUCER BC must be updated in the SAME burst [P12-004]** — burst 7 (P11-002) added
+    scored_priority as field 18 of the verdict schema and updated BC-3.03.001 (the consumer:
+    disposition-guard reads scored_priority for the hard floor) and BC-10.01.001 (another
+    consumer: monitoring-loop stores the full 18-field verdict). BC-4.05.001 (assess-priority:
+    the PRODUCER that computes scored_priority at Stage 5) was not updated. BC-4.05.001 still
+    described outputting a `priority` field in the non-SCORED_PRIORITY_ENUM vocabulary, with
+    no mention of scored_priority or the SEVERITY_TO_SCORED_PRIORITY_MAP. The producer/consumer
+    contract was internally inconsistent from burst 7 onwards. The lesson: whenever a burst
+    adds or renames a field in a verdict schema, the burst checklist must include a grep for
+    every BC that either produces (writes) or consumes (reads) that field, and ALL of them
+    must be updated atomically. Writing the consumer side without the producer side is a
+    half-fix that leaves the spec inconsistent.
+    _Discovered: F2 adversarial pass 12 (P12-004 MAJOR), 2026-07-22_
+
+30. **A mis-anchor FIX can introduce a new mis-anchor — always verify the TARGET reference
+    exists before committing [P12-005]** — burst 6 (P11-005 fix) corrected a stale BC-9.01.001
+    reference in BC-6.01.003 by changing `Invariant#12` to a reference in BC-6.01.003 itself.
+    The selected target was `Invariant#12` of BC-6.01.003, but that invariant does not exist
+    in BC-6.01.003 (the contract has Postcondition#12, not Invariant#12). The fix introduced
+    a new mis-anchor in a different document. The root cause: the repair was made without
+    verifying that the target section (Invariant#12) actually exists in the destination
+    document. Lesson: when correcting a cross-document reference, the commit checklist must
+    include (1) confirming the destination document exists, AND (2) confirming the specific
+    section/anchor (Invariant#N, Postcondition#N, EC-NNN) exists within that document. A
+    reference to a nonexistent anchor is functionally equivalent to the original stale
+    reference — it just points nowhere within a different file.
+    _Discovered: F2 adversarial pass 12 (P12-005 MINOR), 2026-07-22_

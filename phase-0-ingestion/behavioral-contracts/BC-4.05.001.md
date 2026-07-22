@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-07-20T00:00:00
@@ -15,7 +15,7 @@ subsystem: vulnerability-pipeline
 capability: CAP-VULN-01
 lifecycle_status: active
 introduced: v0.9.0
-modified: ["v1.1-PRISM-SCORING-2026-07-20", "v1.2-ADV-F2-P3-008-004-2026-07-20", "v1.3-FV-VP-070-071-FINALIZED-2026-07-20"]
+modified: ["v1.1-PRISM-SCORING-2026-07-20", "v1.2-ADV-F2-P3-008-004-2026-07-20", "v1.3-FV-VP-070-071-FINALIZED-2026-07-20", "v1.4-ADV-F2-P12-004-priority-to-scored-priority-mapping-2026-07-22"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -27,6 +27,7 @@ removal_reason: null
 # Behavioral Contract BC-4.05.001: assess-priority Skill — Prism-Grounded Vulnerability Priority Calculation
 
 > **Revision history:**
+> - v1.4 (2026-07-22): Pass-12 adversarial remediation — P12-004 (MAJOR, producer/consumer coherence gap). **Invariant #5 added:** assess-priority's `priority` output field IS verdict field 18 `scored_priority`. The monitoring-loop (BC-10.01.001) reads this skill's output as verdict field 18 `scored_priority` (P11-002), but no BC had previously documented the producer→consumer field mapping explicitly, creating a coherence gap where an implementation could emit `priority` without knowing it becomes `scored_priority`. Invariant #5 closes this gap: the `priority` key in PC#6 output IS the value that populates field 18 in the ICD-203 verdict. Also documents fast-path behavior: when Stage 5 is bypassed (known-FP fast-path), this skill is not invoked and `scored_priority` is derived by SEVERITY_TO_SCORED_PRIORITY_MAP — P12-003. ADV-F2-P12-004.
 > - v1.3 (2026-07-20): FV-VP-070-071-FINALIZED: [Job 1] (1) VP-SKILL-070 PROPOSED → FINALIZED (Invariant #4 + VP table row; strategy confirmed: static PC#5a/5b/5d WHERE-clause assertion + prism-DTU multi-org org-a-returns-zero-org-b/c fixture + unscoped-query adversarial leg; verification-delta.md v1.3 §7 Part D). (2) VP-SKILL-071 ADDED as new VP-table row + PC#6 VP anchor (confidence float→enum mapping guard, D-DEC-011 thresholds 0.75/0.40; boundary test: 0.75→high, 0.749→medium, 0.40→medium, 0.399→low; inconsistent pair invalid; verification-delta.md v1.3 §7 Part D).
 > - v1.2 (2026-07-20): ADV-F2-P3-008/P3-004: (1) [P3-008 MEDIUM] PC#6 prism-grounded output format updated to emit BOTH `confidence_score` (float 0.0–1.0) AND `confidence` (enum high|medium|low) per D-DEC-011 thresholds (high ≥ 0.75, medium ≥ 0.40 & < 0.75, low < 0.40); the monitoring-loop uses the enum for verdict field #2; previous output had `confidence: 0.0-1.0` (float only) which failed the enum contract. (2) [P3-004 MAJOR] Invariant #4 org_slug scoping: added VP-SKILL-070 cross-reference as PROPOSED (formal-verifier finalizes scope and BATS fixture); VP-SKILL-070 row added to Verification Properties table.
 > - v1.0 (2026-07-19): Initial extraction from `skills/assess-priority/SKILL.md` at v0.9.0 HEAD (DI-012 resolution, Step 0d extension).
@@ -111,6 +112,16 @@ removal_reason: null
 4. **[NEW v1.1]** All PrismQL queries MUST include an explicit `org_slug` constraint in the WHERE clause (D-DEC-005). Omitting `org_slug` is a hard invariant violation. If `org_slug` is not available from execution context, all prism-grounded scoring stages are skipped entirely and the skill falls back to degraded mode (Precondition #4 degradation path). Confidence: D-DEC-005 binding decision (architecture-delta.md v1.1).
 
    **Verification property (ADV-F2-P3-004, FINALIZED):** VP-SKILL-070 — assess-priority PrismQL queries (PC#5a, PC#5b, PC#5d) always include org_slug WHERE clause; strategy: static WHERE-clause assertion on PC#5a/5b/5d PrismQL blocks + prism-DTU multi-org org-a-returns-zero-org-b/c fixture + unscoped-query adversarial leg. FINALIZED per verification-delta.md v1.3 §7 Part D.
+
+5. **[NEW v1.4 — P12-004] `priority` output IS verdict field 18 `scored_priority` (producer/consumer coherence).** The `priority` key in PC#6 output (`{"priority": "CRIT"|"HIGH"|"MED"|"LOW", ...}`) is the **authoritative producer** of verdict field 18 `scored_priority` as consumed by BC-10.01.001 Invariant #9 field 18 (P11-002). When the monitoring-loop writes the ICD-203 verdict, the `scored_priority` key (field 18) is populated **directly from this skill's `priority` output** — no intermediate rename, adapter, or re-derivation is applied. The two tokens (`priority` here; `scored_priority` in the verdict) are semantically identical and carry the same enum `{CRIT, HIGH, MED, LOW}`.
+
+   This mapping MUST be explicit in any monitoring-loop implementation. An implementation that derives `scored_priority` independently (re-running scoring logic after this skill) or renames the field without a documented mapping is non-conformant.
+
+   Disposition-guard validates `scored_priority` membership in `SCORED_PRIORITY_ENUM = {CRIT, HIGH, MED, LOW}` via `validate_enums()` (BC-3.03.001); any non-member token (e.g., `CRITICAL`, `MEDIUM`, from a raw NORMALIZE_SEVERITY assignment) → SEVERITY-MISMATCH DENY.
+
+   **Fast-path note (Stage 5 bypassed, P12-003):** On the known-FP fast-path in the monitoring-loop (BC-10.01.001 EC-009), this skill is NOT invoked. In that case, the monitoring-loop derives `scored_priority` directly from NORMALIZE_SEVERITY output mapped through `SEVERITY_TO_SCORED_PRIORITY_MAP` (CRITICAL→CRIT, MEDIUM→MED, HIGH→HIGH, LOW→LOW) — NOT a raw assignment. When Stage 5 runs normally (non-fast-path), this skill is the sole producer of `scored_priority`.
+
+   Confidence: P12-004 producer/consumer coherence gap closure (architecture-delta.md v1.15 §8.26 item D). Cites P11-002 (scored_priority field 18 definition), BC-10.01.001 Invariant #9 field 18, P12-003 (SEVERITY_TO_SCORED_PRIORITY_MAP).
 
 ## Edge Cases
 

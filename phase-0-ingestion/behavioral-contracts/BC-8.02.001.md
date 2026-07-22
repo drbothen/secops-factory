@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-07-20T00:00:00
@@ -10,14 +10,14 @@ inputs:
   - .factory/feature/prism-integration-handoff-brief.md
   - .factory/phase-f2-spec-evolution/architecture-delta.md
   - .factory/phase-f1-delta-analysis/artifact-mapping.md
-input-hash: "COMPUTE-AT-COMMIT — state-manager: sha256sum .factory/feature/prism-integration-handoff-brief.md .factory/phase-f2-spec-evolution/architecture-delta.md .factory/phase-f1-delta-analysis/artifact-mapping.md"
+input-hash: "COMPUTE-AT-COMMIT"
 traces_to: feature/prism-integration-handoff-brief.md
 origin: greenfield
 subsystem: metrics-pipeline
 capability: CAP-METRICS-02
 lifecycle_status: active
 introduced: v0.10.0-feature-prism-integration
-modified: ["v1.1-FV-PROPOSED-DROP-2026-07-20", "v1.2-ADV-F2-P8-OBS-2-Cyberint-operator-note-2026-07-21", "v1.3-ADV-F2-P9-005-2026-07-21"]
+modified: ["v1.1-FV-PROPOSED-DROP-2026-07-20", "v1.2-ADV-F2-P8-OBS-2-Cyberint-operator-note-2026-07-21", "v1.3-ADV-F2-P9-005-2026-07-21", "v1.4-ADV-F2-P12-006-traceability-label-fix-2026-07-22"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -29,6 +29,7 @@ removal_reason: null
 # Behavioral Contract BC-8.02.001: sensor-metrics Skill — Per-Org Sensor Health Telemetry via prism_sensor_health
 
 > **Revision history:**
+> - v1.4 (2026-07-22): Pass-12 adversarial remediation — P12-006 (MINOR, stale traceability label). **Traceability L2 Domain Invariants row corrected:** the label "D-DEC-005 (org_slug scoping on all prism queries)" was too broad — it implied prism_sensor_health is also org_slug-scoped, which contradicts the D-DEC-005 carve-out established in v1.3 / P9-005 / Invariant #2. Updated to: "D-DEC-005 (org_slug scoping on raw per-tenant tables; prism_sensor_health carve-out per Invariant #2)". No behavioral change; label now accurately reflects the established carve-out. ADV-F2-P12-006.
 > - v1.3 (2026-07-21): Pass-9 adversarial remediation — ADV-F2-P9-005 (MINOR) D-DEC-005 sensor-health carve-out. (1) **Invariant #2 updated:** `prism_sensor_health` is explicitly exempt from the per-tenant org_slug isolation rule (D-DEC-005 carve-out, architecture-delta v1.12). The invariant previously stated that org_slug filtering must be applied if the prism MCP tool supports it for `prism_sensor_health` — this is incorrect. `prism_sensor_health` contains MSSP operational health metadata (last-seen, row counts, error rates), not raw per-tenant security event data. The cross-org query shape is intentional per handoff brief §2.4 (`SELECT * FROM prism_sensor_health` without org_slug). Raw security-event tables (crowdstrike_detections, armis_alerts, claroty_events, cyberint_alerts) remain mandatory for org_slug isolation. (2) **Normative carve-out note added to Postconditions:** explicit SENSOR-HEALTH CARVE-OUT statement per architecture-delta §8.20.2.
 > - v1.2 (2026-07-21): Pass-8 OBS-2 — Cyberint operator expectation note. Added "## Operational Notes" section with the pre-ASM-008 Cyberint operator expectation: conservative CRITICAL normalization (D-DEC-013) → 100% review escalation → REVIEW-REQUIRED ticket flood in org-b (if Cyberint-connected) until ASM-008 resolves. Expected behavior, not a defect. BC-10.01.001 cited for full context.
 > - v1.0 (2026-07-20): Initial authoring for prism-integration cycle (v0.10.0). Source: handoff brief §2.4 (metrics skill), architecture-delta.md §D-DEC-006 (skill naming: `sensor-metrics`, not `metrics`), artifact-mapping.md §1.4 (BC-8.02.001 slot). D-DEC-006 resolves naming conflict with existing `generate-metrics` skill.
@@ -147,7 +148,7 @@ Jira analytics query. The skill name is `sensor-metrics` per D-DEC-006.
 |-------|-------|
 | L2 Capability | CAP-METRICS-02 ("Query per-org sensor health telemetry from prism") per handoff brief §2.4 |
 | Capability Anchor Justification | CAP-METRICS-02 ("Query per-org sensor health telemetry from prism") per handoff brief §2.4 — this BC describes exactly the sensor-metrics skill that retrieves last-seen/row-counts/error-rate from prism_sensor_health, which is what CAP-METRICS-02 defines; distinct from CAP-METRICS-01 (Jira effort metrics, BC-8.01.001) |
-| L2 Domain Invariants | D-DEC-005 (org_slug scoping on all prism queries); D-DEC-006 (skill naming: sensor-metrics) |
+| L2 Domain Invariants | D-DEC-005 (org_slug scoping on raw per-tenant tables; prism_sensor_health carve-out per Invariant #2); D-DEC-006 (skill naming: sensor-metrics) |
 | Architecture Module | C-2 (skill-procedures), C-25 (prism-mcp — prism_sensor_health query target) |
 | Related BCs | BC-8.01.001 (related — same S=8 section, different data source: Jira vs prism); BC-10.01.001 (composes with — monitoring-loop Stage 0 consumes prism_sensor_health directly) |
 | Architecture Anchors | architecture-delta.md §D-DEC-006 (naming decision: sensor-metrics); architecture-delta.md §C-25 (prism-mcp: interfaces_provided includes prism_sensor_health) |

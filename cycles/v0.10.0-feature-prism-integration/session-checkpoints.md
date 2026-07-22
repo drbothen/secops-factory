@@ -10,6 +10,19 @@ Superseded checkpoints rotated out of STATE.md.
 
 ---
 
+## Checkpoint 4 — Pass-7 remediation COMPLETE, pass 8 pending (2026-07-21)
+
+**Superseded by:** Pass-8 COMPLETE checkpoint (2026-07-21)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-07-21 |
+| **Position** | Pass-7 remediation COMPLETE + committed. NEXT: adversarial pass 8 (fresh context). Clean streak 0/3. |
+| **Context** | Artifact versions: arch-delta v1.10, verif-delta v1.10, prd-delta v1.9, BC-3.01.001 v1.19, BC-3.03.001 v1.16, BC-10.01.001 v1.12, brief §3.9 non-pinned. D-008: DENY-THE-WRITE (marker-upgrade retired). P7-001..P7-009 REMEDIATED. SM-38/39/40 allocated. VP-HOOK-029 consumer-boundary FINALIZED P0. SM-ID sync complete. Version-coherence sweep complete. F-001 cosmetic §5.4 still open (minor, pass-5 residual). |
+| **Convergence counter** | 0/3 clean passes (pass 8 is next) |
+
+---
+
 ## Checkpoint 3 — Pass-5 remediation COMPLETE, pass 6 pending (2026-07-21)
 
 **Superseded by:** Pass-6 COMPLETE checkpoint (2026-07-21)

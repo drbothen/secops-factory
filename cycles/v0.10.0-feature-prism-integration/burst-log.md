@@ -276,3 +276,57 @@ v1.16.
 approach retired. Made by human on 2026-07-21.
 
 **Convergence counter:** 0/3 clean passes. Pass 8 is next (adversary fresh context required).
+
+---
+
+### Archived Current Phase Steps Row — 2026-07-21 (pass-8 displacement)
+
+The following row was archived from STATE.md when the pass-8 row was added (5-row limit enforced):
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-5 remediation | architect / product-owner / formal-verifier | DONE | arch-delta v1.8 (fail-loud STEP 5, hard_floor_applies() STEP 3 gate, schema v2.1 sync, O3 rule/D-DEC-012, Option A); BC-3.03.001 v1.14 (STEP 3+5 gates, EC-012, TV-SYNC); BC-10.01.001 v1.10 (Inv#10, VP-SKILL-061 sensor-silence fix); verif-delta v1.8 (VP-HOOK-029 re-scoped, SM-32a/32b, §7 Part F, ~238 tests); prd-delta v1.9 (§4/§6 12/15-field); brief §3.9 Option A confirmed 2026-07-21 |
+
+---
+
+## Burst 7: F2 Adversarial Pass 8 Persisted (2026-07-21)
+
+**Step added to STATE.md Current Phase Steps this burst:**
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 8 | adversary | DONE | 1C/2M/1m/2obs — decay begun. P8-001 (CRITICAL): STEP 3 correctly-labeled review verdict with null jira_project_key/ticket_id → silent allow-without-marker (last orthogonal silent-discard axis; contradicts D-DEC-012 clause 2 which already mandates deny+error). P8-002 (MAJOR): P7-005 structural_label_check split_on_whitespace not quote-aware — false-denies its own EC-024 example (verified against live hook source). P8-004 (MAJOR): prd-delta VP statuses inverted (VP-HOOK-029/VP-SKILL-065) + §5 versions stale by 2-3. P8-003 (MINOR): EC-023 step-5 defense-in-depth claim factually wrong — anti-fungibility rests solely on step 6a. P8-OBS-1 [process-gap]: superseded propagation ledger sections need forward-link banners. P8-OBS-2: Cyberint 100% mass-escalation pre-ASM-008 needs operator note. 8 confirmed-intact invariants listed for pass-9 accumulation. Report persisted. |
+
+**Narrative:**
+
+adversary (fresh context) ran pass 8 against the full F2 delta package (brief, architecture-delta v1.10,
+verification-delta v1.10, prd-delta v1.9, BC-3.01.001 v1.19, BC-3.03.001 v1.16, BC-10.01.001 v1.12,
+and live hook source). Traced the full verdict→marker→command lifecycle with decay-checking focus.
+
+**Findings (1C/2M/1m/2obs):**
+- P8-001 (CRITICAL): STEP 3 correctly-labeled review verdict (hard_floor_applies() true, label OK) with
+  null jira_project_key or ticket_id → silent allow-without-marker. Last orthogonal silent-discard axis;
+  contradicts D-DEC-012 clause 2 (mandates deny+error for any unbindable hard-floor verdict).
+- P8-002 (MAJOR): P7-005 structural_label_check uses split_on_whitespace tokenization — not quote-aware.
+  False-denies its own EC-024 example (command with --summary containing spaces) verified against live
+  hook source (hooks/disposition-guard.sh:45).
+- P8-004 (MAJOR): prd-delta §9 VP statuses inverted (VP-HOOK-029 marked PROPOSED, VP-SKILL-065 marked
+  FINALIZED — should be reversed per verif-delta v1.10); §5 version table stale by 2-3 BC versions.
+- P8-003 (MINOR): EC-023 step-5 defense-in-depth claim factually wrong — anti-fungibility rests solely
+  on step 6a; step 5 does not contribute to anti-fungibility.
+- P8-OBS-1 (OBSERVATION / process-gap): superseded propagation ledger sections in architecture-delta
+  need forward-link banners pointing to successor decisions.
+- P8-OBS-2 (OBSERVATION): Cyberint 100% mass-escalation pre-ASM-008 needs operator visibility note.
+
+**8 confirmed-intact invariants** listed in report for pass-9 accumulation (DENY-THE-WRITE semantics,
+marker-consumer seam, hard-floor coverage, severity normalization, anti-fungibility, VP-HOOK-029
+consumer boundary, loop --label Iron Law, SM-38/39/40 allocation).
+
+Report: `.factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass8.md` (135 lines).
+
+**Novelty: MEDIUM-HIGH.** P8-001 is a fresh orthogonal silent-discard axis on the CORRECTLY-LABELED
+path (all prior passes focused on under-label/over-label; this is the missing-binding sub-case of the
+happy path). P8-002 is a real implementation-vs-spec gap in the most recent fix (P7-005). Decay begun
+(1C/2M vs 2C/3M in passes 6-7). Package has NOT converged; P8-001/P8-002 are blocking.
+
+**Convergence counter:** 0/3 clean passes. Remediation burst 4 → pass 9 is next.

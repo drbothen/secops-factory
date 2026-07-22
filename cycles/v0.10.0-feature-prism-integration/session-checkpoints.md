@@ -59,3 +59,16 @@ Superseded checkpoints rotated out of STATE.md.
 | **Position** | F1 COMPLETE pending human gate approval; on approval → F2 spec evolution (9 D-DEC decisions queued + marker mechanism design) |
 | **Context** | F1 artifacts: impact-boundary.md, artifact-mapping.md v1.1, delta-analysis.md v1.1, affected-files.txt, f1-consistency-validation.md — all in `.factory/phase-f1-delta-analysis/`. Feature classification: backend / feature / standard. Regression baseline: main SHA d181ca2. BC slots: 6 MODIFIED + 5 NEW (BC-6.01.003/004, BC-8.02.001, BC-9.01.001, BC-10.01.001). HS-035..044 new subjects. VP-HOOK-024/025/026, VP-SKILL-050/051 new subjects. DI-013 marker mechanism (D-005) queued for F2. |
 | **Convergence counter** | n/a (F2 not yet started) |
+
+---
+
+## Checkpoint 3 — Pass-8 remediation complete, pass 9 pending (2026-07-21)
+
+**Superseded by:** Pass-9 complete checkpoint (2026-07-21)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-07-21 |
+| **Position** | Pass-8 remediation COMPLETE + committed. NEXT: adversarial pass 9 (fresh context; accumulate pass-8 confirmed-invariants list into prompt). Clean streak 0/3. |
+| **Context** | Artifact versions: arch-delta v1.11, verif-delta v1.11, prd-delta v1.10, BC-3.01.001 v1.20, BC-3.03.001 v1.17, BC-10.01.001 v1.13, BC-8.02.001 v1.2. SM-41 = STEP-3 unbindable-deny revert (VP-HOOK-029). SM-42 = quote-aware tokenizer revert (VP-HOOK-024/EC-024). F-001 cosmetic §5.4 still open. |
+| **Convergence counter** | 0/3 clean passes (pass-8 remediated → pass 9 next) |

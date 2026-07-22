@@ -396,3 +396,13 @@ per append-only convention.
 - `phase-f2-spec-evolution/prd-delta.md` v1.9 → v1.10: VP roster statuses corrected; §5 BC versions updated.
 
 **Convergence counter:** 0/3 clean passes. Pass 9 is next (adversary fresh context required).
+
+---
+
+## Archived Step Row — rotated from STATE.md Current Phase Steps (2026-07-21)
+
+The following row was displaced from the 5-row Current Phase Steps limit when pass-9 was added:
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-6 remediation burst 2 | architect / product-owner / formal-verifier | DONE | arch-delta v1.9 (P6-001..009: --label in create-review pattern + hook-side label enforcement D-DEC-012 ADOPTED; STEP 4/5 reorder; D-DEC-013 severity normalization; P6-008 ASM-009 BLOCKING; O3 extended to consumer+ordering+trust-boundary; VP-SKILL-074+SM-36/SM-37 namespace-corrected); BC-3.01.001 v1.18 (STEP 6a anti-fungibility both directions, EC-023, VP-HOOK-029 FINALIZED ref, SM-36/SM-37); BC-3.03.001 v1.15 (STEP 4/5 swap, labeled create-review pattern, Iron Law updated); BC-10.01.001 v1.11 (Inv#11 Option A carve-out, NORMALIZE_SEVERITY per D-DEC-013, VP-SKILL-065 re-scoped PROPOSED); verif-delta v1.9 (VP-HOOK-029 FINALIZED P0, VP-HOOK-024 anti-fungibility, VP-SKILL-073/074 new, 31VPs/31mutants; FV caught VP-SKILL-072+SM-33/34 collisions) |

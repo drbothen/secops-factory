@@ -4,7 +4,7 @@ level: ops
 version: "2.8"
 status: active
 producer: state-manager
-timestamp: 2026-07-22T00:00:00Z
+timestamp: 2026-07-22T04:00:00Z
 phase: F2
 pipeline: FEATURE-CYCLE
 inputs: []
@@ -12,8 +12,8 @@ input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "F2 adversarial convergence — pass-9 remediation COMPLETE, pass 10 pending"
-awaiting: "F2-adversarial-pass-10"
+current_step: "F2 adversarial convergence — pass 10 done (1C/2M), remediation pending — awaiting human direction on P10-001"
+awaiting: "F2-pass10-remediation (human-gate P10-001 approach)"
 current_cycle: v0.10.0-feature-prism-integration
 dtu_required: true
 dtu_assessment: "2026-07-20"
@@ -42,7 +42,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-22 |
 | **Current Phase** | F2: Spec Evolution (prism-integration cycle) |
-| **Current Step** | F2 adversarial convergence — pass-9 remediation COMPLETE, pass 10 pending |
+| **Current Step** | F2 adversarial convergence — pass 10 done (1C/2M), remediation pending — awaiting human direction on P10-001 |
 
 ## Phase Progress
 
@@ -51,7 +51,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | pre-0: Pre-pipeline | PASSED | 2026-07-19 | 2026-07-19 | PASS | — |
 | 0: Codebase Ingestion + Remediation | COMPLETE | 2026-07-19 | 2026-07-20 | PASS | 12→11→7→8(1FP)→6→6→6→6(CRITICAL)→4→5→2→1→0; ADV-R1-4 CLEAN |
 | F1: Delta Analysis | PASSED | 2026-07-19 | 2026-07-20 | PASS | consistency: 7→0 |
-| F2: Spec Evolution | in-progress — pass9 remediated, pass10 pending | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated |
+| F2: Spec Evolution | in-progress — pass10 done (1C/2M), remediation pending (human gate P10-001) | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated → pass10 1C/2M (remediation pending) |
 | F3: Incremental Stories | not-started | | | | |
 | F4: Delta Implementation | not-started | | | | |
 | F5: Scoped Adversarial | not-started | | | | |
@@ -64,11 +64,11 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| F2: pass-7 remediation burst 3 | architect / product-owner / formal-verifier | DONE | DENY-THE-WRITE redesign per human D-008 + O4 standing rule. arch-delta v1.10 (STEP-4 deny-the-Write, SM-38/39/40, O4 rule); BC-3.03.001 v1.16 (STEP 4 deny + UNDER-LABEL-DENIED audit, corrective-reason struct); BC-3.01.001 v1.19 (structural_label_check step-6a, EC-024, SM-40); BC-10.01.001 v1.12 (P7-002 6 stale ECs, P7-003 --label Iron Law, P7-006 Cyberint); verif-delta v1.10 (VP-HOOK-029 consumer-boundary re-scope+FINALIZED P0, SM-38/39/40, Cyberint partition); prd-delta v1.9 (non-pinned); SM-ID sync + version-coherence sweep applied. |
 | F2: adversarial pass 8 | adversary | DONE | 1C/2M/1m/2obs — decay begun. P8-001 (CRITICAL): STEP 3 correctly-labeled review verdict with null jira_project_key/ticket_id → silent allow-without-marker (last orthogonal silent-discard axis; contradicts D-DEC-012 clause 2 which already mandates deny+error). P8-002 (MAJOR): P7-005 structural_label_check split_on_whitespace not quote-aware — false-denies its own EC-024 example (verified against live hook source). P8-004 (MAJOR): prd-delta VP statuses inverted (VP-HOOK-029/VP-SKILL-065) + §5 versions stale by 2-3. P8-003 (MINOR): EC-023 step-5 defense-in-depth claim factually wrong — anti-fungibility rests solely on step 6a. P8-OBS-1 [process-gap]: superseded propagation ledger sections need forward-link banners. P8-OBS-2: Cyberint 100% mass-escalation pre-ASM-008 needs operator note. 8 confirmed-intact invariants listed for pass-9 accumulation. Report persisted. |
 | F2: pass-8 remediation burst 4 | architect / product-owner / formal-verifier | DONE | arch-delta v1.11 (P8-001 STEP-3 unbindable deny; P8-002 quote-aware tokenizer; P8-003 EC-023 step-5; §8.18/§8.19 propagation); BC-3.03.001 v1.17 (unbindable-deny branches + SM-41); BC-3.01.001 v1.20 (quote-aware tokenizer + SM-42); BC-10.01.001 v1.13 (VP-HOOK-029 re-FINALIZED P0 + loop re-doc P8-001); BC-8.02.001 v1.2 (Cyberint operator note); verif-delta v1.11 (SM-41/SM-42 + unbindable vectors + EC-023 correction); prd-delta v1.10 (VP roster + §5 versions) |
 | F2: adversarial pass 9 | adversary | DONE | 0C/2M/5m/2obs — FIRST zero-CRITICAL pass; silent-discard class exhausted. P9-001 (MAJOR): quote-aware tokenizer still misses backslash-escaped quotes + --label= form — defeats EC-023 dir-A (sole anti-fungibility gate post-P8-003, no backstop). P9-002 (MAJOR): asm-004-validation.md recommends forbidden --dangerously-skip-permissions + --bare (hook-disabling) with no supersession banner vs D-DEC-003/010. P9-003 prd-delta BC-10.01.001 double-counted (11→10). P9-004 verif-delta VP split mislabeled 8/23 vs 6/25 + FINALIZED/ACCEPTED drift. P9-005 D-DEC-005 org_slug absolute vs sensor-metrics cross-org health. P9-006 dtu-assessment omits C-29 marker-store + ASM-009. P9-007 comment-review fallback hint dup-ticket risk. P9-008/009 [process-gap] obs. Report persisted. |
 | F2: pass-9 remediation burst 5 | architect / product-owner / formal-verifier | DONE | P9-001 backslash-escape tokenizer extension + --label= form (MAJOR security fix; O5 rule codified — tokenizer must carry differential-vs-bash vector partition). P9-002 asm-004-validation SUPERSEDED/CORRECTION banners (D-DEC-003/010). P9-005 D-DEC-005 sensor-health cross-org carve-out. P9-007 dedup-before-create-review gate hint. P9-008 jira_project_key HARD Stage-0 precondition + HARD-FLOOR-LIVELOCK-ABORT re-doc cap. P9-009 O5 standing-rule codified. SM-43 allocated. arch-delta v1.12, verif-delta v1.12, prd-delta v1.11, BC-3.01.001 v1.21, BC-10.01.001 v1.14, BC-6.01.001 v1.6, BC-8.02.001 v1.3. First zero-CRITICAL pass; clean streak 0/3. |
+| F2: adversarial pass 10 | adversary | DONE | 1C/2M/6m — P10-001 (CRITICAL): hard_floor_applies() keys on LLM-supplied verdict.severity/asset_type with NO hook-side cross-validation vs source — O3 rule unapplied to the floor's own inputs; 'LLM cannot bypass' claim false. P10-002 (MAJOR)[process-gap]: cron wrapper gate never inspects audit.log fail-loud codes (HARD-FLOOR-LIVELOCK-ABORT/UNBINDABLE) + hook-deny→permission_denials unvalidated → livelock-abort run reports success. P10-003 (MAJOR): marker-write-failure allow-without-marker reintroduces silent-drop on hard-floor review path. P10-004..009 MINOR: fallback_hint dedup propagation, scan-threats structural-only VP, carve-out JOIN predicate, VP-SKILL-064 test-name, comment-review no --label (ASM-014), global jira_project_key vs multi-org. Report persisted; P10-001 approach at human gate. |
 
 ## Decisions Log
 
@@ -125,9 +125,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-22 |
-| **Position** | Pass-9 remediation COMPLETE + committed. NEXT: adversarial pass 10 (fresh context; carry forward the 12-item confirmed-invariants list from pass 9 into the prompt). Clean streak 0/3 — pass 9 was first zero-CRITICAL, decay strong; watch for a clean pass. |
-| **Context** | Artifact versions: arch-delta v1.12, verif-delta v1.12, prd-delta v1.11, asm-004-validation annotated, BC-3.01.001 v1.21, BC-3.03.001 v1.17, BC-10.01.001 v1.14, BC-6.01.001 v1.6, BC-8.02.001 v1.3. P9 report: adversarial-spec-delta-review-pass9.md. F-001 cosmetic §5.4 still open. |
-| **Convergence counter** | 0/3 clean passes (pass-9 first zero-CRITICAL — remediated; pass 10 next) |
+| **Position** | Pass 10 COMPLETE (1C/2M/6m, report persisted). BLOCKED on human decision: P10-001 remediation approach (hook-side re-normalization + cross-validation vs scoped-to-severity vs correct-the-claim). P10-002/003 clear fixes queued for burst 6. Clean streak 0/3. |
+| **Context** | Artifact versions: arch-delta v1.12, verif-delta v1.12, prd-delta v1.11, BC-3.01.001 v1.21, BC-3.03.001 v1.17, BC-10.01.001 v1.14, BC-6.01.001 v1.6, BC-8.02.001 v1.3. P10 report: adversarial-spec-delta-review-pass10.md. F-001 cosmetic §5.4 still open. Awaiting human gate on P10-001 approach before dispatching burst 6. |
+| **Convergence counter** | 0/3 clean passes (pass-10: 1C/2M — CRITICAL regresssion on hard_floor inputs; remediation pending human gate) |
 
 ## Historical Content
 

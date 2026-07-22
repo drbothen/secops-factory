@@ -476,3 +476,11 @@ append-only convention.
 
 **Convergence counter:** 0/3 clean passes. Pass 10 is next (adversary fresh context required; carry
 12-item confirmed-invariants list from pass 9).
+
+---
+
+## Archived from STATE.md Current Phase Steps (rotated at pass-10 entry)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-7 remediation burst 3 | architect / product-owner / formal-verifier | DONE | DENY-THE-WRITE redesign per human D-008 + O4 standing rule. arch-delta v1.10 (STEP-4 deny-the-Write, SM-38/39/40, O4 rule); BC-3.03.001 v1.16 (STEP 4 deny + UNDER-LABEL-DENIED audit, corrective-reason struct); BC-3.01.001 v1.19 (structural_label_check step-6a, EC-024, SM-40); BC-10.01.001 v1.12 (P7-002 6 stale ECs, P7-003 --label Iron Law, P7-006 Cyberint); verif-delta v1.10 (VP-HOOK-029 consumer-boundary re-scope+FINALIZED P0, SM-38/39/40, Cyberint partition); prd-delta v1.9 (non-pinned); SM-ID sync + version-coherence sweep applied. |

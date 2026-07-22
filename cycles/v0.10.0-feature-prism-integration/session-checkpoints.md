@@ -72,3 +72,16 @@ Superseded checkpoints rotated out of STATE.md.
 | **Position** | Pass-8 remediation COMPLETE + committed. NEXT: adversarial pass 9 (fresh context; accumulate pass-8 confirmed-invariants list into prompt). Clean streak 0/3. |
 | **Context** | Artifact versions: arch-delta v1.11, verif-delta v1.11, prd-delta v1.10, BC-3.01.001 v1.20, BC-3.03.001 v1.17, BC-10.01.001 v1.13, BC-8.02.001 v1.2. SM-41 = STEP-3 unbindable-deny revert (VP-HOOK-029). SM-42 = quote-aware tokenizer revert (VP-HOOK-024/EC-024). F-001 cosmetic §5.4 still open. |
 | **Convergence counter** | 0/3 clean passes (pass-8 remediated → pass 9 next) |
+
+---
+
+## Checkpoint 4 — Pass-9 remediation complete, pass 10 pending (2026-07-22)
+
+**Superseded by:** Pass-10 complete checkpoint (2026-07-22)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-07-22 |
+| **Position** | Pass-9 remediation COMPLETE + committed. NEXT: adversarial pass 10 (fresh context; carry forward the 12-item confirmed-invariants list from pass 9 into the prompt). Clean streak 0/3 — pass 9 was first zero-CRITICAL, decay strong; watch for a clean pass. |
+| **Context** | Artifact versions: arch-delta v1.12, verif-delta v1.12, prd-delta v1.11, asm-004-validation annotated, BC-3.01.001 v1.21, BC-3.03.001 v1.17, BC-10.01.001 v1.14, BC-6.01.001 v1.6, BC-8.02.001 v1.3. P9 report: adversarial-spec-delta-review-pass9.md. F-001 cosmetic §5.4 still open. |
+| **Convergence counter** | 0/3 clean passes (pass-9 first zero-CRITICAL — remediated; pass 10 next) |

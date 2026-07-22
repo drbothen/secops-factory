@@ -527,3 +527,60 @@ append-only convention.
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
 | F2: pass-8 remediation burst 4 | architect / product-owner / formal-verifier | DONE | arch-delta v1.11 (P8-001 STEP-3 unbindable deny; P8-002 quote-aware tokenizer; P8-003 EC-023 step-5; §8.18/§8.19 propagation); BC-3.03.001 v1.17 (unbindable-deny branches + SM-41); BC-3.01.001 v1.20 (quote-aware tokenizer + SM-42); BC-10.01.001 v1.13 (VP-HOOK-029 re-FINALIZED P0 + loop re-doc P8-001); BC-8.02.001 v1.2 (Cyberint operator note); verif-delta v1.11 (SM-41/SM-42 + unbindable vectors + EC-023 correction); prd-delta v1.10 (VP roster + §5 versions) |
+
+---
+
+## Archived from STATE.md Current Phase Steps (rotated at burst-7 entry)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-10 remediation burst 6 | architect / product-owner / formal-verifier | DONE | P10-001 (CRITICAL) hook-side severity re-normalization: STEP 1a SEVERITY-MISMATCH + 17-field schema (native_severity/sensor_family fields 16+17) + O6 rule codified; VP-HOOK-030 + SM-44 allocated. P10-002 (MAJOR) Gate 2 cron wrapper audit.log grep + VP-SKILL-075 + ASM-015 BLOCKING gate documented. P10-003 (MAJOR) WRITE_MARKER review-path fail-closed + SM-45. P10-004/P10-008/P10-009 MINOR. D-009/D-010 recorded. arch-delta v1.13, verif-delta v1.13, prd-delta v1.12, dtu-assessment v1.1, BC-3.03.001 v1.18, BC-10.01.001 v1.15, BC-6.01.003 v1.2. |
+
+---
+
+## Burst 7: F2 Pass-11 Remediation COMPLETE — Burst 7 (2026-07-22)
+
+**Steps rotated from STATE.md Current Phase Steps (5-row limit enforced):**
+
+See "Archived from STATE.md Current Phase Steps (rotated at burst-7 entry)" above.
+
+**Step added to STATE.md Current Phase Steps this burst:**
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-11 remediation burst 7 | architect / product-owner / formal-verifier | DONE | P11-001 STEP 1a consistency-only reframe: overstated "un-bypassable/independently-derived" language WITHDRAWN; native_severity trust reclassified as ASM-008-DEFERRED (symmetric with asset_type and scored_priority). P11-002 two-field severity model: verdict.severity = detector-native NORMALIZE_SEVERITY output (Stage 1 only); verdict.scored_priority (field 18 ∈{CRIT,HIGH,MED,LOW}) = Stage-5 assess-priority output; HIGH/CRIT floor keys on scored_priority NOT recomputed severity. P11-003 NVD/CVSS clean separation: sensor_family enum has no 'nvd' member; CVSS influences scored_priority not native_severity. P11-004 separate human-comment marker path: PC#2 in BC-3.03.001 routes 12-field investigation-markdown to a minimal comment-scoped marker path (no validate_enums()/STEP 1a; gated on 12-field completeness + markdown-evaluable hard floors). P11-005 BC-6.01.003 mis-anchor corrected. P11-006 prd-delta BC version table refreshed. VP-HOOK-031 + SM-46 + SM-47 allocated. D-011..D-014 recorded. arch-delta v1.14, verif-delta v1.14, prd-delta v1.13, BC-3.03.001 v1.19, BC-10.01.001 v1.16, BC-5.01.001 v1.9, BC-4.02.001 v1.9, BC-6.01.003 v1.3. |
+
+**Narrative:**
+
+Pass-11 remediation (burst 7) closed P11-001 through P11-007. Four structural improvements to the ICD-203 verification model were codified.
+
+**P11-001 fix (CRITICAL — STEP 1a reframe as consistency-only):** The pass-10 "un-bypassable / hook independently derives severity from raw sensor values / genuinely deterministic" language was overstated. `native_severity` (field 16) and `sensor_family` (field 17) are both written by the monitoring-loop LLM at Stage-1 INGEST. The network-free hook makes no prism call, so STEP 1a is a DETERMINISTIC CONSISTENCY CHECK between two LLM-supplied fields — not ground-truth enforcement. An adversarial LLM can supply a correlated false (native_severity, sensor_family) pair that passes the consistency check. This residual is classified as ASM-008-DEFERRED, symmetric with the existing asset_type residual. Overstated language corrected in arch-delta, BC-3.03.001, BC-10.01.001, and verification-delta. D-012 recorded.
+
+**P11-002 fix (MAJOR — two-field severity model):** `verdict.severity` is the detector-native NORMALIZE_SEVERITY output produced at Stage-1 INGEST. `verdict.scored_priority` (new field 18, ∈{CRIT,HIGH,MED,LOW}) is the Stage-5 assess-priority output. These two fields may legitimately differ: a LOW-severity alert escalated by KEV/exposure data to scored_priority=CRIT is correct; STEP 1a would have denied it under the old single-field model. The HIGH/CRIT hard floor now keys on `scored_priority` only (VP-HOOK-026, BC-10.01.001 §3.9). SM-46 (`high-severity-floor-rekeyed-to-recomputed-severity`) allocated as the kill target for the LOW-detector/CRIT-scored escalation path. D-011 recorded.
+
+**P11-003 fix (MAJOR — NVD/CVSS clean separation):** The `sensor_family` enum {crowdstrike,armis,claroty,cyberint} has no `nvd` member. CVSS/NVD enrichment is a Stage-5 scored_priority input, not a native_severity source. The pass-10 NVD/CVSS-float SEVERITY-MISMATCH vector (VP-HOOK-030 vector 5) was removed — routing a CVSS float as native_severity would produce a false SEVERITY-MISMATCH deny because no sensor_family maps to CVSS normalisation in the D-DEC-013 table. D-013 recorded.
+
+**P11-004 fix (MAJOR — separate human-comment marker path):** The 12-field ICD-203 investigation-markdown path (PC#2 dispatch in BC-3.03.001) does NOT enter the verdict emitter. A dedicated minimal path gates ONLY on 12-field completeness + markdown-evaluable hard floors (Indeterminate disposition, forbidden techniques T1003/T1068/T1021/T1041, degraded/silent sensor health). `validate_enums()` and STEP 1a are NOT called on this path — both reference verdict-only fields absent from a 12-field markdown (severity, asset_type, ticket_action_type, native_severity, sensor_family, scored_priority). Compliant analyst investigation saves now emit a comment-scoped marker and are NOT denied. VP-HOOK-031 (FINALIZED P0) + SM-47 (`markdown-routed-into-verdict-emitter`) allocated. D-014 recorded.
+
+**P11-005 fix (MINOR):** BC-6.01.003 had a stale cross-reference to BC-9.01.001 instead of the correct `assess-priority` skill. Corrected in BC-6.01.003 v1.3 along with SM-46/SM-47 citations from P11-002/P11-004 as applicable.
+
+**P11-006 fix (MINOR):** prd-delta §5 "New Version" column and §1 module table refreshed: BC-3.03.001 v1.18→v1.19, BC-10.01.001 v1.15→v1.16, BC-4.02.001 v1.8→v1.9, BC-5.01.001 v1.8→v1.9, BC-6.01.003 v1.2→v1.3. prd-delta v1.12→v1.13.
+
+**P11-007 fix (process-gap — false-closure language propagation):** The "hook independently derives severity from raw sensor values" language was copy-propagated to 4 documents (arch-delta, verif-delta VP-HOOK-030, BC-3.03.001, BC-10.01.001). All 4 corrected in this burst.
+
+**VP/SM ID sync (ID-sync per FV):** VP-HOOK-031 (separate human-comment marker path) and SM-46 (high-severity-floor-rekeyed-to-recomputed-severity) and SM-47 (markdown-routed-into-verdict-emitter) were allocated by the FV in verification-delta v1.14. All four BCs (BC-3.03.001, BC-10.01.001, BC-5.01.001, BC-4.02.001) now cite these IDs with [ID-sync per FV] annotations.
+
+**Version-coherence sweep (Task 2):** All verification-delta VP-row BC-anchor cells updated: BC-10.01.001 v1.14→v1.16 (12 occurrences), BC-3.03.001 v1.17→v1.19 (3 occurrences in VP rows + 1 in §7 module table), BC-4.02.001 v1.8→v1.9 (2 VP rows + §7), BC-5.01.001 v1.8→v1.9 (1 VP row + §7). Zero stale BC version references confirmed.
+
+**Artifacts produced by this burst:**
+
+- `phase-0-ingestion/behavioral-contracts/BC-3.03.001.md` v1.18 → v1.19 (P11-001: overstated STEP 1a claims corrected; P11-002: scored_priority floor + SM-46 citation; P11-004: VP-HOOK-031 separate human-comment marker path section + VP table row)
+- `phase-0-ingestion/behavioral-contracts/BC-10.01.001.md` v1.15 → v1.16 (P11-001: native_severity trust reclassified to ASM-008-DEFERRED; P11-002: field 18 scored_priority + floor re-key to scored_priority + SM-46 citation in §3.9)
+- `phase-0-ingestion/behavioral-contracts/BC-5.01.001.md` v1.8 → v1.9 (P11-004: VP-HOOK-031 consumer citation in Invariant #7)
+- `phase-0-ingestion/behavioral-contracts/BC-4.02.001.md` v1.8 → v1.9 (P11-004: VP-HOOK-031 consumer citation in PC#4)
+- `phase-0-ingestion/behavioral-contracts/BC-6.01.003.md` v1.2 → v1.3 (P11-005: stale BC-9.01.001 cross-reference corrected)
+- `phase-f2-spec-evolution/verification-delta.md` v1.13 → v1.14 (P11-001: VP-HOOK-030 DOWNGRADED to consistency-only; P11-002: field 18 scored_priority + SM-46 + VP-HOOK-026 floor legs; P11-003: CVSS-float vector removed from VP-HOOK-030; P11-004: VP-HOOK-031 NEW FINALIZED P0 + SM-47; version-coherence sweep: 19 BC-anchor cells updated across VP rows and §7 module table)
+- `phase-f2-spec-evolution/prd-delta.md` v1.12 → v1.13 (P11-006: §5 New Version column + §1 module table refreshed for all 5 burst-7 BCs)
+- `phase-f2-spec-evolution/architecture-delta.md` v1.13 → v1.14 (P11-001: STEP 1a reframed consistency-only; P11-002: scored_priority field 18; P11-003: NVD clean separation; P11-004: separate human-comment marker path)
+
+**Convergence counter:** 0/3 clean passes. Pass-11 REMEDIATED. Pass 12 is next (adversary fresh context; carry confirmed-invariants list).

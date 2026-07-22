@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.8"
+version: "1.9"
 status: draft
 producer: product-owner
 timestamp: 2026-07-20T00:00:00
@@ -15,7 +15,7 @@ subsystem: vulnerability-pipeline
 capability: CAP-VULN-02
 lifecycle_status: active
 introduced: v0.6.0
-modified: ["v0.9.x-PR13-2026-07-19", "v1.1-ADV-0-601-2026-07-19", "v1.2-ADV-0-706-2026-07-19", "v1.3-ADV-0-901-2026-07-19", "v1.4-DI-013-SEC-3.4-2026-07-20", "v1.5-ADV-F2-007-2026-07-20", "v1.6-FV-VP-ANCHOR-066-067-2026-07-20", "v1.7-P4-008-consistency-F1-F2-2026-07-21", "v1.8-version-coherence-sweep-2026-07-21"]
+modified: ["v0.9.x-PR13-2026-07-19", "v1.1-ADV-0-601-2026-07-19", "v1.2-ADV-0-706-2026-07-19", "v1.3-ADV-0-901-2026-07-19", "v1.4-DI-013-SEC-3.4-2026-07-20", "v1.5-ADV-F2-007-2026-07-20", "v1.6-FV-VP-ANCHOR-066-067-2026-07-20", "v1.7-P4-008-consistency-F1-F2-2026-07-21", "v1.8-version-coherence-sweep-2026-07-21", "v1.9-ADV-F2-P11-004-12field-hard-floor-reconcile-2026-07-22 [ID-sync per FV]"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -27,6 +27,7 @@ removal_reason: null
 # Behavioral Contract BC-4.02.001: update-jira Skill — Review-Gated Jira Field Update
 
 > **Revision history:**
+> - v1.9 (2026-07-22): Pass-11 adversarial remediation — P11-004 (MAJOR, investigation-markdown hard-floor reconciliation). **PC#4 hard-floor condition list corrected:** removed "HIGH/CRIT severity, critical assets" from the hard-floor conditions for the 12-field investigation-markdown comment-marker path. Those conditions reference verdict-only fields (scored_priority/asset_type) absent from a 12-field investigation markdown; they are not evaluable on this path. Correct markdown-evaluable set: Indeterminate disposition, forbidden techniques {T1003,T1068,T1021,T1041}, degraded/silent sensor. Also updated BC-3.03.001 version cross-reference from v1.13 → v1.19. ADV-F2-P11-004.
 > - v1.8 (2026-07-21): Version-coherence sweep only — zero semantic change. Updated live-body version cross-references to frozen cycle versions: BC-3.03.001 v1.11 → v1.13 (PC#1/PC#4/PC#5a); BC-3.01.001 v1.15 → v1.17 (PC#1/PC#4/PC#5a). Per IP-005 version-coherence discipline (verification-delta.md v1.5 §7 Part E / Job 2).
 > - v1.7 (2026-07-21): [P4-008/consistency-F1] Removed "cross-tenant" from PC#4 hard-floor disposition list — cross-tenant correlation is prism-side architecture (D-DEC-005/P3-011); sibling BCs BC-3.03.001 and BC-3.01.001 removed it at v1.10 and v1.15 respectively; BC-4.02.001 was not updated at that time. [consistency-F2] Fixed revision-history ordering: v1.4 entry was listed after v1.5 (chronologically wrong); corrected to v1.4 → v1.5 → v1.6 ascending. Completed v1.6 changelog entry to note that version cross-ref sweep updates to BC-3.03.001 and BC-3.01.001 version citations were applied (not just VP-anchor additions).
 > - v0.9.x / PR #13 (2026-07-19): Initial extraction from `update-jira/SKILL.md` at v0.9.0 HEAD (Step 0d). `modified:` was not populated at ingestion time — re-synced now.
@@ -54,7 +55,7 @@ removal_reason: null
 1. If no review-approval marker is found, the skill halts with the message "Review approval required before JIRA update. Run /review-enrichment first." and makes no JIRA mutations. Confidence: verified by code analysis (`skills/update-jira/SKILL.md:Step 1`).
 2. Invalid fields (outside stated ranges) are skipped with a warning; the skill continues updating valid fields (partial success is acceptable). Confidence: verified by code analysis (Step 2: "Skip invalid fields with warning").
 3. Priority is mapped to JIRA priority names: P1→Critical, P2→High, P3→Medium, P4→Low, P5→Trivial. Confidence: verified by code analysis (`skills/update-jira/SKILL.md:Step 3`).
-4. **[UPDATED v1.4]** After field updates, the enrichment summary is posted as a JIRA comment. The `jr issue comment` command is now **marker-gated** (DI-013 RESOLVED, D-DEC-001): disposition-guard (BC-3.03.001 v1.13) issues a marker to `${CLAUDE_PLUGIN_DATA}/markers/` after ICD-203 validation + hard-floor check; require-review (BC-3.01.001 v1.17) validates and consumes the marker to allow `jr issue comment`. For hard-floor dispositions (Indeterminate, HIGH/CRIT severity, critical assets, T1003/T1068/T1021/T1041, degraded/silent sensor), no marker is issued and the comment proceeds only via human permission-approval (Claude Code permission dialog).
+4. **[UPDATED v1.4; reconciled v1.9 P11-004]** After field updates, the enrichment summary is posted as a JIRA comment. The `jr issue comment` command is now **marker-gated** (DI-013 RESOLVED, D-DEC-001): disposition-guard (BC-3.03.001 v1.19) issues a comment-scoped marker to `${CLAUDE_PLUGIN_DATA}/markers/` via the Separate Human-Comment Marker Path (P11-004) after ICD-203 12-field validation + markdown-evaluable hard-floor check; require-review (BC-3.01.001 v1.17) validates and consumes the marker to allow `jr issue comment`. For hard-floor dispositions **evaluable from the 12-field investigation markdown** (Indeterminate disposition, forbidden techniques T1003/T1068/T1021/T1041, degraded/silent sensor), no marker is issued and a MARKDOWN-HARD-FLOOR deny is returned; the comment requires human permission-approval (Claude Code permission dialog). **NOTE (P11-004):** Verdict-only fields (`scored_priority ∈ {HIGH,CRIT}` and critical/unknown `asset_type`) are NOT present in a 12-field investigation markdown and are NOT checked on this path — those floors apply only to the verdict-class path (BC-3.03.001 v1.19 PC#1). See "Separate Human-Comment Marker Path" in BC-3.03.001 v1.19 Invariant #4 for the authoritative specification. **Verification property consumed: VP-HOOK-031 (FINALIZED P0 per verification-delta.md v1.14 [ID-sync per FV]) — this postcondition is a consumer of the Separate Human-Comment Marker Path property. Paired mutant SM-47 (markdown-routed-into-verdict-emitter) is the kill target for compliant-save-allowed and no-validate_enums-on-markdown vectors.**
 
    > **Previous (v1.3):** "After field updates, the enrichment summary is posted as a JIRA comment. The `jr issue comment` command hits the require-review write-block (evaluated before the allowlist; denies jr issue comment/edit/move/assign/create) as an unconditional deny — there is no marker-based override; the hook reads only stdin JSON and the deny path has no bypass mechanism. The comment posting step proceeds only via human permission-approval...Resolution options are tracked as **DI-013, PENDING HUMAN DECISION at the Phase 0 gate.**"
 
@@ -164,4 +165,4 @@ removal_reason: null
 
 Field validation (Step 2) is a pure function: given data values, apply range/enum checks. This is the natural unit for formal specification. The four §3.4 ticket-action dispatch (PC#7a–PC#7d) is also a pure function given (existing_ticket_status, root_cause_match) → action_type. The propose-reopen logic is a strict guard against the never-auto-reopen-closed invariant; formal verification of this invariant should assert that no code path from PC#7c or PC#7d results in a `jr issue move` call.
 
-**DI-013 RESOLVED (v1.4):** The comment path is now marker-gated via D-DEC-001. The three-way resolution path (marker-file mechanism) was selected. The remaining concern is hard-floor cases (Indeterminate, HIGH/CRIT) where no marker is issued and human approval is still required — this is correct behavior per §3.9 hard floors.
+**DI-013 RESOLVED (v1.4; reconciled v1.9):** The comment path is now marker-gated via D-DEC-001 using the Separate Human-Comment Marker Path (P11-004). The three-way resolution path (marker-file mechanism) was selected. The remaining concern is markdown-evaluable hard-floor cases (Indeterminate disposition, forbidden techniques, degraded/silent sensor) where no marker is issued and human approval is still required — this is correct behavior per §3.9 hard floors. Verdict-only hard floors (scored_priority HIGH/CRIT, critical/unknown asset_type) are not evaluated on this 12-field path.

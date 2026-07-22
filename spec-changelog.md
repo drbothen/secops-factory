@@ -11,6 +11,37 @@ Track all spec version changes. Most recent version first.
 
 ## [1.1.0] - 2026-07-20 (patch edits 2026-07-21/22 — not a version bump)
 
+### F2 Pass-11 Remediation Edits — Burst 7 (2026-07-22) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 7). Root findings:
+P11-001 (CRITICAL — STEP 1a re-normalizes from LLM-supplied native_severity/sensor_family;
+severity floor still LLM-bypassable; "un-bypassable/independently-derived" claims withdrawn;
+fix: reframe STEP 1a as consistency-only; reclassify native_severity as ASM-008-DEFERRED
+symmetric with asset_type + scored_priority), P11-002 (MAJOR — STEP 1a exact-equality denies
+legitimate Stage-5 recalibrations; HIGH/CRIT floor was keyed on recomputed_severity; fix:
+two-field model with scored_priority field 18 + floor re-keyed to scored_priority), P11-003
+(MAJOR — NVD/CVSS sensor_family absent from enum; CVSS influences scored_priority not
+native_severity; fix: NVD/CVSS clean separation + CVSS-float vector removed from VP-HOOK-030),
+P11-004 (MAJOR — 12-field investigation-markdown path contradictorily enters verdict emitter;
+validate_enums() would deny analyst saves; fix: separate human-comment marker path with no
+validate_enums()/STEP 1a on markdown), P11-005 (MINOR — BC-6.01.003 stale BC-9.01.001
+cross-reference), P11-006 (MINOR — prd-delta BC version table stale for burst-7 BCs),
+P11-007 (process-gap — false-closure language copy-propagated to 4 docs). VP-HOOK-031,
+SM-46, SM-47 allocated. D-011..D-014 recorded.
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.13 | v1.14 | P11-001: STEP 1a reframed consistency-only; "un-bypassable" language withdrawn; D-012; P11-002: scored_priority field 18 + floor re-keyed to scored_priority; D-011; P11-003: NVD/CVSS clean separation; D-013; P11-004: separate human-comment marker path (PC#2 dispatch) — no validate_enums()/STEP 1a on 12-field markdown; D-014 |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.18 | v1.19 [ID-sync per FV] | P11-001: overstated STEP 1a trust-basis corrected; native_severity reclassified ASM-008-DEFERRED; P11-002: scored_priority floor bullet + SM-46 citation + VP-HOOK-026 VP table row update; P11-004: VP-HOOK-031 verification property section + VP table row for separate human-comment marker path + SM-47 citation |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.15 | v1.16 [ID-sync per FV] | P11-001: native_severity trust reclassified to ASM-008-DEFERRED residual (symmetric with asset_type + scored_priority); P11-002: field 18 scored_priority added; §3.9 floor re-keyed to scored_priority + SM-46 citation |
+| phase-0-ingestion/behavioral-contracts/BC-5.01.001.md | v1.8 | v1.9 [ID-sync per FV] | P11-004: VP-HOOK-031 consumer citation added in Invariant #7 (investigate-event Stage 7 separate-path) |
+| phase-0-ingestion/behavioral-contracts/BC-4.02.001.md | v1.8 | v1.9 [ID-sync per FV] | P11-004: VP-HOOK-031 consumer citation added in PC#4 (update-jira Stage 7 human-comment marker path) |
+| phase-0-ingestion/behavioral-contracts/BC-6.01.003.md | v1.2 | v1.3 | P11-005: stale BC-9.01.001 cross-reference corrected; SM-46/SM-47 citations added as applicable |
+| phase-f2-spec-evolution/verification-delta.md | v1.13 | v1.14 | P11-001: VP-HOOK-030 DOWNGRADED to consistency-only; "independently derives" language corrected; P11-002: field 18 scored_priority + SM-46 + VP-HOOK-026 floor legs (DETECTOR-LOW/SCORED-CRIT escalation vector); P11-003: CVSS-float SEVERITY-MISMATCH vector removed from VP-HOOK-030; P11-004: VP-HOOK-031 NEW FINALIZED P0 (separate human-comment marker path) + SM-47; version-coherence sweep: 19 BC-anchor cells updated (BC-10.01.001 v1.14→v1.16, BC-3.03.001 v1.17→v1.19, BC-4.02.001 v1.8→v1.9, BC-5.01.001 v1.8→v1.9) |
+| phase-f2-spec-evolution/prd-delta.md | v1.12 | v1.13 | P11-006: §5 New Version column updated for all burst-7 BCs (BC-3.03.001 v1.18→v1.19, BC-10.01.001 v1.15→v1.16, BC-4.02.001 v1.8→v1.9, BC-5.01.001 v1.8→v1.9, BC-6.01.003 v1.2→v1.3); §1 module table BC version rows updated |
+
+---
+
 ### F2 Pass-10 Remediation Edits — Burst 6 (2026-07-22) — spec remains 1.1.0
 
 Remediation edits within the F2 adversarial convergence cycle (burst 6). Root findings: P10-001

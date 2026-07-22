@@ -1,10 +1,11 @@
 ---
 document_type: architecture-delta
 producer: architect
-version: "1.13"
+version: "1.14"
 date: 2026-07-22
 input-hash: COMPUTE-AT-COMMIT
 changelog:
+  - "1.14 (2026-07-22): Pass-11 adversarial remediation (P11-001..P11-007). A. P11-001 (CRITICAL — reframe): STEP 1a re-framed as a deterministic CONSISTENCY CHECK between verdict.severity and verdict.native_severity (both LLM-supplied Stage-1 fields) — NOT ground-truth enforcement; hook makes no prism call. Removed all 'genuinely un-bypassable / hook independently derives severity from raw sensor values / only remaining LLM-trust surface' language. Added native_severity ground-truth residual SYMMETRIC with asset_type ASM-008 residual (both: LLM-supplied; genuine enforcement requires prism-signed field or hook-fetched prism data; ASM-008-DEFERRED pre-production follow-up). VP-HOOK-030 downgraded to 'verdict.severity is consistent with verdict.native_severity.' O6 standing rule annotated: STEP 1a operationalizes O6 as a consistency check; O6 residual (LLM-supplied inputs) documented. Hard floor binding section rewritten (v2.2). PO/FV propagation in §8.24. B. P11-002 (MAJOR — two-field model): Added scored_priority (field 18, enum CRIT|HIGH|MED|LOW) = Stage-5 assess-priority output; verdict schema is now 18-field. hard_floor_applies() high-severity floor keys on scored_priority (IF verdict.scored_priority in {HIGH, CRIT}) per brief §3.9 'any alert scored HIGH/CRIT → human'; captures KEV/exposure/critical-asset escalations. STEP 1a now validates ONLY native_severity↔verdict.severity consistency; does NOT gate recalibration. scored_priority is also LLM-supplied (same ASM-008-class residual). All '17-field' references updated to 18-field. O3 schema-sync obligation applies. C. P11-003 (MAJOR — NVD/CVSS): CLEAN SEPARATION: native_severity + sensor_family always describe the ORIGINATING SENSOR's raw reading; NVD/CVSS enrichment from enrich_nvd() influences scored_priority (Stage-5) NOT native_severity. NVD/CVSS row REMOVED from D-DEC-013 STEP-1a normalization table. Note for PO: remove '8.5 for NVD CVSS' example from prd-delta field-16 definition. D. P11-004 (MAJOR — investigation-markdown emitter entry): Affirmed STEP 0 'investigation-markdown path does NOT reach this emitter' is CORRECT. Added SEPARATE MINIMAL MARKER-ISSUANCE PATH for the human investigation comment: comment-scoped marker bound to ticket_id from markdown, gated on (a) 12-field completeness + (b) markdown-evaluable hard floors only (Indeterminate disposition, forbidden techniques, degraded/silent sensor) — does NOT call validate_enums/STEP 1a. Analyst CAN save a complete investigation markdown without being denied. PO reconciliation notes for BC-3.03.001/BC-5.01.001/BC-4.02.001 in §8.24. E. P11-005 (MINOR): Note for PO — BC-6.01.003 Invariant #6 mis-anchor 'BC-9.01.001 Precondition #9' should be 'BC-6.01.001 Invariant #12 / EC-013'. F. P11-006 (MINOR): Note for PO — prd-delta '12/15-field split' stale; must be updated to '12/18-field'. G. P11-007 (OBS): D-DEC-013 UNRECOGNIZED_DEFAULT clarified: 'unrecognized FAMILY → CRITICAL' is UNREACHABLE at STEP-1a (STEP 1 enum-denies first); 'unrecognized VALUE within recognized family → CRITICAL' IS reachable. Both rules distinguished in D-DEC-013."
   - "1.13 (2026-07-22): Pass-10 adversarial remediation (P10-001..P10-009). A. D-DEC-008 FULL HOOK-SIDE RE-NORMALIZATION (P10-001 CRITICAL): native_severity + sensor_family added as REQUIRED verdict fields 16+17 (verdict schema is now 17-field: 12 ICD-203 + severity + asset_type + ticket_action_type + native_severity + sensor_family); emitter STEP 1a re-runs NORMALIZE_SEVERITY(native_severity, sensor_family) deterministically; mismatch with verdict.severity → SEVERITY-MISMATCH audit entry + deny; hard_floor_applies() now keys on hook-recomputed severity. asset_type: enum-membership enforced; prism_asset_class cross-validation is ASM-008-DEFERRED with explicit residual-risk note. Hard-floor binding section corrected: prior 'LLM cannot bypass / definitive enforcement surface' language removed. O6 standing rule added to D-DEC-012 O3 table: inputs to a hook-computed invariant must be hook-recomputable or hook-cross-validated, not LLM-supplied. D-DEC-008 Decision Summary + Artifact-Class table + field-count references updated to 17. O3 schema-sync obligation applies to this burst. B. P10-002 (MAJOR, process-gap): new ASM-015 added (BLOCKING for loop stories) to empirically validate whether a PreToolUse-hook permissionDecision:deny populates .permission_denials in the --allowedTools JSON envelope; cron wrapper extended to grep ${CLAUDE_PLUGIN_DATA}/markers/audit.log for HARD-FLOOR-LIVELOCK-ABORT|HARD-FLOOR-UNBINDABLE|UNDER-LABEL-DENIED|SEVERITY-MISMATCH entries newer than run-start and exit 1 if any present; LOG_DIR vs markers-dir path discrepancy resolved (LOG_DIR is for wrapper output logs; markers/audit.log is under ${CLAUDE_PLUGIN_DATA}/markers/); PO/FV propagation notes added. C. P10-003 (MAJOR): WRITE_MARKER failure on the hard-floor review path (STEP 3 create-review/comment-review) now fails closed: write MARKER-WRITE-FAILED audit entry + emit deny (mirrors HARD-FLOOR-UNBINDABLE); allow-without-marker retained ONLY for non-review regular marker paths. D. P10-004 (MINOR, note for PO): BC-3.03.001 emitter fallback_hint propagation gap documented in §8.22. E. P10-005 (MINOR, note for FV): VP-SKILL-059 upgrade to behavioral multi-org + static hunt-query library assertion documented in §8.23. F. P10-006 (MINOR): D-DEC-005 carve-out predicate tightened: exempt ONLY when prism_sensor_health is the SOLE table reference (no JOIN, no subquery against any raw per-tenant table). G. P10-007 (MINOR, note for FV): VP-SKILL-064 test-name qualification documented in §8.23. H. P10-008 (MINOR): ASM-014-pending residual documented: comment-review kill-switch exemption currently broader than 'review ticket only'; when ASM-014 resolves, comment-review MUST be bound to a review-labeled command; disposition-guard should confirm ticket_id corresponds to a review-labeled ticket. I. P10-009 (MINOR): per-org jira_project_key — CHOICE (a): BC-6.01.003 onboard-customer must capture per-org jira_project_key; verdict.jira_project_key sourced per-org with global-key fallback; multi-project binding claim is now technically grounded; PO propagation in §8.22. OBS: dtu-assessment BATS invocation drift noted in §8.22."
   - "1.12 (2026-07-21): Pass-9 adversarial remediation (P9-001/005/007/008/009). A. D-DEC-001 STEP 6a backslash-escape tokenizer extension (P9-001 MAJOR): quote-aware tokenizer extended to handle \\\" in IN_DOUBLE (literal \", stay IN_DOUBLE) and \\' in UNQUOTED (literal ', no state toggle), matching bash tokenization; index-based iteration replaces for-char-in-cmd loop; jr --label=VALUE equals form confirmed NOT supported by jr CLI (jr issue create --help, 2026-07-21) — equals-form vector scoped OUT; escaped-quote differential-vs-bash attack vectors + paired mutants added for FV. B. D-DEC-005 sensor-metrics carve-out (P9-005 MINOR): explicit exemption added for prism_sensor_health metadata queries from the per-tenant raw-data org_slug isolation rule; grounded in brief §2.4 (SELECT * FROM prism_sensor_health without org_slug) and §3.6 (health metadata is not raw per-tenant security records); PO to propagate to BC-8.02.001. No HUMAN-GATE-CONFIRM required — brief is unambiguous. C. D-DEC-008 STEP 3 dedup-before-fallback obligation (P9-007 MINOR): comment-review fallback hint conditioned on mandatory re-run of §3.4 BLIND-SPOT/REVIEW-REQUIRED dedup query before switching to create-review; null ticket_id may be a dedup-lookup miss, not absence of ticket; blind switch risks D-DEC-004 duplicate-ticket violation; PO to propagate to BC-10.01.001. D. D-DEC-008 jira_project_key Stage-0 precondition + re-doc cap (P9-008 OBS): activate/onboard MUST gate on jira_project_key presence as a hard Stage-0 precondition before the monitoring loop is permitted to run; re-doc attempt cap set at max 3 HARD-FLOOR-UNBINDABLE denies per-verdict per loop run before loop emits operator-facing failure and exits that verdict path; PO to propagate to BC-6.01.001 (Stage-0 gate) + BC-10.01.001 (cap). E. O5 standing rule added to D-DEC-012 O3 table (P9-009 OBS): any hook that re-implements shell tokenization to make a security decision MUST carry a differential-vs-bash vector partition covering all shell-quoting classes the downstream CLI honors."
   - "1.11 (2026-07-21): Pass-8 adversarial remediation (P8-001..P8-004 + OBS). A. D-DEC-008 STEP 3 DENY-THE-WRITE for missing binding fields (P8-001 CRITICAL): both silent-allow branches replaced with HARD-FLOOR-UNBINDABLE deny (create-review + null jira_project_key; comment-review + null ticket_id) per D-DEC-012 clause 2; comment-review corrective reason includes fallback hint when jira_project_key is present (suggests create-review, consistent with STEP 4 required_token logic); non-termination bounded — one HARD-FLOOR-UNBINDABLE audit entry + one deny per re-doc attempt, no Jira write, no silent loop; mirrors STEP 4 non-termination analysis. B. D-DEC-001 STEP 6a quote-aware tokenizer (P8-002 MAJOR): split_on_whitespace replaced with state-machine tokenizer (UNQUOTED/IN_SINGLE/IN_DOUBLE states); hook receives raw command string with literal quotes (jq -r, no shell expansion); EC-024 reconciled — label-literal-in-quoted-summary → has_review_label=false → ALLOW. C. Generation table and STEP 6a ( |$) boundary correction (P8-003 MINOR): explicit note that bash regex is NOT tail-anchored; regular create pattern DOES match review-labeled create at step 5; anti-fungibility direction A enforced EXCLUSIVELY at step 6a (single point of failure — raises step 6a criticality). D. §8.18/§8.19 added: pass-8 PO propagation (BC-3.03.001 STEP 3 deny branches + test vectors; BC-3.01.001 quote-aware tokenizer + EC-023/024 corrections; BC-10.01.001 VP-Anchors footer + Cyberint operator note; BC-8.02.001 Cyberint note; prd-delta §1 VP roster + §5 version catch-up + changelog) and FV propagation (VP-HOOK-029 unbindable-deny vectors; P8-002 quote-aware false-deny vector + revert mutant; EC-023 step-5 correction). P8-OBS-1: SUPERSEDED banners at §8.12.1 item 2 and §8.13 item 1 (retired marker-upgrade mechanism). P8-OBS-2: D-DEC-013 Cyberint operator note (pre-ASM-008: 100% CRITICAL → review queue flood; PO to propagate to BC-8.02.001/BC-10.01.001)."
@@ -57,7 +58,7 @@ asm_004_validation: .factory/phase-f2-spec-evolution/asm-004-validation.md
 | D-DEC-005 | **RESOLVED (F1)** | Cross-tenant correlation is prism-side architecture; plugin obligation = org_slug query scoping invariant in BC-10.01.001 only |
 | D-DEC-006 | **RESOLVED** | Skill named `sensor-metrics` (dir: `skills/sensor-metrics/`, command: `commands/sensor-metrics.md`) to avoid namespace confusion with existing `generate-metrics` |
 | D-DEC-007 | **RESOLVED** | Shell helper scripts co-located under `skills/<name>/` (e.g., `skills/activate/activate-mcp-config.sh`) |
-| D-DEC-008 | **RESOLVED** | Marker carries `authorized_operations: [string]` scope field; comment/create/assign each require a separately scoped marker; ticket-bound command_pattern for comment/assign; create scope has no ticket_id (bounded by org+single-use+TTL); emitter selects scope from verdict.ticket_action_type (field 15); hard floors (§3.9) unconditionally prevent marker issuance and key on **hook-recomputed severity** (via D-DEC-013 NORMALIZE_SEVERITY in disposition-guard STEP 1a) + verdict.asset_type (NOT confidence); verdict schema: **17 mandatory fields** (12 ICD-203 + severity + asset_type + ticket_action_type + native_severity + sensor_family); P10-001: disposition-guard STEP 1a re-runs NORMALIZE_SEVERITY(native_severity, sensor_family) → SEVERITY-MISMATCH deny on recomputed≠verdict.severity; asset_type cross-validation is ASM-008-DEFERRED (see D-DEC-008 Hard floor binding) |
+| D-DEC-008 | **RESOLVED** | Marker carries `authorized_operations: [string]` scope field; comment/create/assign each require a separately scoped marker; ticket-bound command_pattern for comment/assign; create scope has no ticket_id (bounded by org+single-use+TTL); emitter selects scope from verdict.ticket_action_type (field 15); hard floors (§3.9) unconditionally prevent marker issuance; **high-severity floor keys on scored_priority** (field 18 — Stage-5 assess-priority output, enum CRIT\|HIGH\|MED\|LOW) per brief §3.9 "any alert scored HIGH/CRIT → human"; verdict schema: **18 mandatory fields** (12 ICD-203 + severity + asset_type + ticket_action_type + native_severity + sensor_family + scored_priority); P10-001/P11-001: STEP 1a is a CONSISTENCY CHECK — NORMALIZE_SEVERITY(native_severity, sensor_family) must equal verdict.severity (both LLM-supplied Stage-1 fields; hook cannot cross-validate against ground truth); native_severity and asset_type ground-truth residuals are both ASM-008-DEFERRED (see D-DEC-008 Hard floor binding); P11-004: investigation-markdown (12-field) does NOT reach verdict emitter; separate minimal comment-scoped marker path for human investigation path |
 | D-DEC-009 | **RESOLVED** | Tavily MCP is `recommended` with explicit fallback to Perplexity-only enrichment; monitoring-loop does not fail if Tavily unavailable |
 | D-DEC-010 | **RESOLVED** | Unattended permission model: `--allowedTools` scoped allowlist (prism/tavily/perplexity MCP tools + Bash + Write + Read) — NOT `--dangerously-skip-permissions`; `--bare` explicitly forbidden (would disable require-review hook); require-review hook remains the Jira auth gate |
 | D-DEC-011 | **RESOLVED** | Confidence float→enum contract: assess-priority outputs BOTH a float posterior (0.0–1.0) AND a mapped enum `{high,medium,low}`; monitoring-loop uses the enum for verdict field #2; canonical thresholds: high ≥ 0.75, medium ≥ 0.40 and < 0.75, low < 0.40 |
@@ -1247,7 +1248,7 @@ A create marker authorizes exactly one ticket creation; any attempt to reuse it 
 >
 > **ADV-F2-P3-002 create-scope org-binding (updated ADV-F2-P6-004, P10-009):** The create pattern
 > embeds the Jira project key from `verdict.jira_project_key` (non-ICD-203 operational metadata
-> field; does NOT count against the 17 mandatory verdict fields; does NOT affect VP-HOOK-025 test count).
+> field; does NOT count against the 18 mandatory verdict fields; does NOT affect VP-HOOK-025 test count).
 >
 > **P10-009 resolution — CHOICE (a): per-org jira_project_key in onboard-customer.**
 > BC-6.01.003 (onboard-customer) MUST add a `jira_project_key` field to the `[[orgs]]` entry
@@ -1284,8 +1285,8 @@ The trailing space after the ticket_id in comment/assign patterns is intentional
 **ADV-F2-004: emitter scope selection — disposition-guard reads `verdict.ticket_action_type`:**
 
 The verdict file (monitoring-loop output) carries `ticket_action_type` (field 15 in the full
-17-field mandatory schema — see §D-DEC-001 schema v2.0/v2.1 and §5.3 updated field count;
-P10-001 adds native_severity (field 16) and sensor_family (field 17)). This field is set by
+18-field mandatory schema — see §D-DEC-001 schema v2.0/v2.1 and §5.3 updated field count;
+P10-001 adds native_severity (field 16) and sensor_family (field 17); P11-002 adds scored_priority (field 18)). This field is set by
 the monitoring-loop SKILL.md at Stage 7 (Ticket Action) and tells disposition-guard exactly
 which Jira action is authorized:
 
@@ -1307,11 +1308,15 @@ verdict.ticket_action_type values (v1.6 — D-DEC-012 additions):
 **Emitter branch pseudocode (disposition-guard — v1.6 revision with enum-validation, autonomy_enabled, and review-surfacing path):**
 
 ```
-# ── STEP 0: Dispatch precedence (ADV-F2-P4-001) ──────────────────────────────
+# ── STEP 0: Dispatch precedence (ADV-F2-P4-001 / P11-004) ──────────────────────
 # This pseudocode is entered AFTER the JSON-first dispatch routes the write to the
-# verdict-class path (17-field check — P10-001). The investigation-markdown path (12-field)
-# has its own separate pseudocode and does NOT reach this emitter.
-# See "Artifact-Class Field-Set Branching" above for canonical dispatch order.
+# verdict-class path (18-field check — P10-001/P11-002). The investigation-markdown path
+# (12-field) has its own separate pseudocode and does NOT reach this emitter (P11-004
+# affirms this is correct). See "Artifact-Class Field-Set Branching" above.
+# P11-004: the investigation-markdown (12-field) path uses a SEPARATE minimal
+# marker-issuance path — see "Separate Human-Comment Marker Path (P11-004)" block
+# below. That path does NOT call validate_enums / STEP 1a. An analyst CAN save a
+# complete 12-field investigation markdown without being denied by this emitter.
 
 # ── STEP 1: Enum-membership validation — fail-closed (ADV-F2-P4-006) ─────────
 # Key-presence check (jq has()) alone is insufficient: severity:"High" passes has()
@@ -1327,7 +1332,8 @@ FUNCTION validate_enums(verdict):
   SENSOR_ENUM         = {"healthy","degraded","silent"}
   ACTION_ENUM         = {"comment","create","assign","none","create-review","comment-review"}
   CONFIDENCE_ENUM     = {"high","medium","low"}
-  SENSOR_FAMILY_ENUM  = {"crowdstrike","armis","claroty","cyberint"}  # P10-001
+  SENSOR_FAMILY_ENUM   = {"crowdstrike","armis","claroty","cyberint"}  # P10-001
+  SCORED_PRIORITY_ENUM = {"CRIT","HIGH","MED","LOW"}                   # P11-002: field 18 (Stage-5 assess-priority output)
 
   IF verdict.severity NOT IN SEVERITY_ENUM:
     RETURN (False, "severity '" + verdict.severity + "' not in allowed set")
@@ -1346,6 +1352,9 @@ FUNCTION validate_enums(verdict):
     RETURN (False, "native_severity is absent or empty — required field 16 (P10-001)")
   IF verdict.sensor_family NOT IN SENSOR_FAMILY_ENUM:
     RETURN (False, "sensor_family '" + verdict.sensor_family + "' not in {crowdstrike,armis,claroty,cyberint} (P10-001)")
+  # P11-002: scored_priority is field 18 — Stage-5 assess-priority output
+  IF verdict.scored_priority NOT IN SCORED_PRIORITY_ENUM:
+    RETURN (False, "scored_priority '" + verdict.scored_priority + "' not in {CRIT,HIGH,MED,LOW} (P11-002)")
   RETURN (True, "")
 
 (enum_ok, enum_err) = validate_enums(verdict)
@@ -1353,16 +1362,26 @@ IF NOT enum_ok:
   emit deny("ICD-203 enum-membership validation failed: " + enum_err)
   RETURN
 
-# ── STEP 1a: Hook-side severity re-normalization — SEVERITY-MISMATCH check (P10-001) ──
-# O6 standing rule: the inputs to a hook-computed invariant (hard_floor_applies severity check)
-# must themselves be hook-recomputable or hook-cross-validated — not LLM-supplied.
-# NORMALIZE_SEVERITY is the D-DEC-013 deterministic table (no prism data dependency; pure
-# sensor-native-value + sensor-family lookup). Relocates trust from LLM to hook.
+# ── STEP 1a: Severity consistency check — SEVERITY-MISMATCH (P10-001 / P11-001 reframe) ──
+# This step is a DETERMINISTIC CONSISTENCY CHECK between verdict.severity (field 13)
+# and verdict.native_severity (field 16) — both written by the monitoring-loop LLM at
+# Stage 1 INGEST. It hardens against careless or buggy LLM severity under-reporting
+# but is NOT ground-truth enforcement.
 #
-# If the LLM wrote an under-reported verdict.severity (e.g., "LOW" for a CrowdStrike score 90
-# that the D-DEC-013 table maps to CRITICAL), this step detects the mismatch and DENIES the
-# verdict Write before any marker decision is made. hard_floor_applies() keys on the
-# hook-recomputed severity, not the raw verdict.severity field.
+# P11-001 TRUST-BASIS CORRECTION: native_severity (field 16) and sensor_family (field 17)
+# are LLM-supplied Stage-1 values carried verbatim into the verdict. The hook makes no
+# prism call (Invariant #2: network-free). Therefore NORMALIZE_SEVERITY(native_severity,
+# sensor_family) re-derives from LLM fields, not from independent sensor data.
+# The guarantee provided: "verdict.severity is CONSISTENT with verdict.native_severity
+# per the D-DEC-013 table" — it does NOT guarantee either field is correct relative to
+# ground truth. An adversarial or prism-injected LLM can supply false native_severity +
+# sensor_family; the hook cannot detect this. This residual is symmetric with asset_type.
+# VP-HOOK-030 asserts: consistency between verdict.severity and verdict.native_severity.
+# It does NOT assert un-bypassability relative to sensor ground truth.
+#
+# NOTE: the high-severity HARD FLOOR keys on verdict.scored_priority (field 18 — P11-002),
+# not on recomputed_severity. recomputed_severity is used here only for the consistency
+# deny, then passed to hard_floor_applies() for the other non-severity floors.
 #
 # Pseudocode for NORMALIZE_SEVERITY is the D-DEC-013 table (executed inline by the hook).
 recomputed_severity = NORMALIZE_SEVERITY(verdict.native_severity, verdict.sensor_family)
@@ -1381,8 +1400,10 @@ IF recomputed_severity != verdict.severity:
     "Correct verdict.severity to match the D-DEC-013 normalization table and re-issue."
   )
   RETURN
-# After STEP 1a: hard_floor_applies() uses recomputed_severity (not verdict.severity)
-# to prevent severity-underreporting bypass.
+# After STEP 1a: recomputed_severity is passed to hard_floor_applies() for the asset_type,
+# technique, and sensor-health floors only. The high-severity floor in hard_floor_applies()
+# keys on verdict.scored_priority (field 18 — P11-002), NOT on recomputed_severity.
+# verdict.severity and verdict.scored_priority may legitimately differ (recalibration).
 
 # ── STEP 2: Extract ticket_action_type ───────────────────────────────────────
 action = verdict.ticket_action_type   # "comment"|"create"|"assign"|"none"|"create-review"|"comment-review"
@@ -1588,7 +1609,7 @@ IF hard_floor_applies(verdict, recomputed_severity):
   # Identify the hard-floor trigger for the corrective reason
   hard_floor_trigger = identify_hard_floor_trigger(verdict)
   # identify_hard_floor_trigger() returns the first matching floor:
-  #   "Indeterminate" | "severity=<HIGH|CRITICAL>" | "asset_type=<val>" |
+  #   "Indeterminate" | "scored_priority=<HIGH|CRIT>" | "asset_type=<val>" |
   #   "technique=<T-NNN>" | "sensor_health_status=<degraded|silent>"
 
   WRITE audit entry:
@@ -1708,7 +1729,40 @@ Require-review validates the `command_pattern` with an anchored match. A marker 
 `authorized_operations: ["comment"]` CANNOT authorize a `jr issue create` command because
 `^jr (--output json )?issue comment SEC-123 ` does not match `jr issue create ...`.
 
-**Hard floor binding (§3.9 — unconditional code branches) [v2.0 — ADV-F2-001 fix; v2.1 — P10-001 trust-basis correction]:**
+**Separate Human-Comment Marker Path (P11-004 — investigation-markdown path):**
+
+The investigation-markdown (12-field) path does NOT enter the verdict emitter above. When
+`tool_input.file_path` matches `*investigation-*.md`, disposition-guard executes a SEPARATE,
+minimal comment-scoped marker path. This is the authoritative model; any BC text claiming
+the investigation-markdown path "reaches the same emitter" is an authoring error (see PO
+obligation in §8.24).
+
+**Gating conditions (all must pass):**
+1. **12-field completeness:** all 12 ICD-203 headings present (heading-anchored grep — same
+   check as the existing markdown validation).
+2. **Markdown-evaluable hard floors only:** check for (a) `Disposition: Indeterminate`, (b) any
+   forbidden technique from {T1003, T1068, T1021, T1041} in the Attack Techniques heading,
+   (c) `Sensor Health Status: degraded` or `Sensor Health Status: silent`. These three
+   conditions are evaluable directly from 12-field headings WITHOUT any verdict-only fields.
+3. **DO NOT execute:** validate_enums, STEP 1a (both reference fields absent in a 12-field
+   markdown); scored_priority floor; asset_type critical-asset floor (field not present in
+   the 12 ICD-203 headings).
+
+**If all floors pass:** parse `ticket_id` from the investigation markdown (standard heading
+or explicit "Jira Ticket:" field); emit a comment-scoped marker bound to ticket_id
+(`authorized_operations: ["comment"]`). The analyst's verdict Write succeeds.
+
+**If a markdown-evaluable floor fires:** deny with an explicit audit entry and reason
+(e.g., "MARKDOWN-HARD-FLOOR: Disposition=Indeterminate; human investigation cannot
+authorize autonomous comment; route to human review"). The analyst receives actionable
+feedback; the document Write is blocked only for the specific hard-floor condition.
+
+**Key guarantee:** An analyst who saves a complete 12-field investigation markdown with a
+non-Indeterminate disposition, no forbidden techniques, and a healthy/degraded sensor
+WILL receive a comment marker — the Write is NOT denied. This resolves the P11-004 defect
+where validate_enums was unreachable for a 12-field markdown.
+
+**Hard floor binding (§3.9 — unconditional code branches) [v2.0 — ADV-F2-001 fix; v2.1 — P10-001 trust-basis correction; v2.2 — P11-001/P11-002 two-field model]:**
 
 The monitoring-loop skill contains unconditional if-blocks for the hard floor categories.
 **Hard floors are enforced at BOTH layers:** (1) in the monitoring-loop SKILL.md (controls
@@ -1724,21 +1778,49 @@ return FALSE; the hard floor would be bypassed. The O3 standing rule (codified f
 `ticket_action_type`) applies equally here: the INPUTS to a hook-computed invariant must
 themselves be hook-recomputable, not LLM-supplied.
 
-**Post-P10-001 enforcement (genuinely deterministic):**
-- **Severity:** STEP 1a re-runs `NORMALIZE_SEVERITY(native_severity, sensor_family)` using the
-  D-DEC-013 deterministic table. If recomputed severity != verdict.severity → SEVERITY-MISMATCH
-  deny (Write refused). `hard_floor_applies()` keys on `recomputed_severity` — the hook-computed
-  value — never on raw `verdict.severity`. The LLM cannot bypass the severity floor by
-  under-reporting severity, because the hook independently derives it from raw sensor values.
-- **asset_type — ASM-008-DEFERRED:** Asset classification from prism data (what type is this
-  asset in practice?) cannot be independently verified until ASM-008 resolves the prism data
-  format. ENFORCED NOW: `verdict.asset_type` is validated for enum membership (fail-closed
-  on non-member) and checked against the hard-floor set. NOT yet enforced: cross-validation
-  against a prism-sourced classification. **Residual risk (explicit):** Until ASM-008 resolves,
-  the LLM could under-report asset_type (e.g., "standard" for a domain controller) to bypass
-  the asset_type hard floor. This is the only remaining LLM-trust surface in the hard floor.
-  **Follow-up gate:** ASM-008 resolution MUST include specifying the hook-side prism_asset_class
-  cross-validation mechanism before prism-integration reaches production.
+**P11-001 further correction (v2.2):** The "Post-P10-001 enforcement (genuinely deterministic)"
+language was also overstated. STEP 1a re-normalizes from `native_severity` and `sensor_family`,
+both written by the monitoring-loop LLM at Stage 1 INGEST. The hook makes no prism call. STEP 1a
+is a CONSISTENCY CHECK between two LLM-supplied fields — not ground-truth enforcement. See
+corrected model below.
+
+**P11-002 two-field model (v2.2):** The high-severity floor now keys on `verdict.scored_priority`
+(field 18, enum CRIT|HIGH|MED|LOW) — the Stage-5 assess-priority output — per brief §3.9
+"any alert scored HIGH/CRIT → human." This captures KEV/exposure/critical-asset escalations.
+`verdict.severity` carries the detector-native normalized reading; `verdict.scored_priority`
+carries the recalibrated decision; the two fields may legitimately differ.
+
+**Post-P11-001/P11-002 enforcement model (v2.2):**
+- **STEP 1a — consistency check (P11-001 reframe):** STEP 1a re-runs
+  `NORMALIZE_SEVERITY(native_severity, sensor_family)` and denies (SEVERITY-MISMATCH) if
+  the result does not equal `verdict.severity`. This is a DETERMINISTIC CONSISTENCY CHECK
+  between two LLM-supplied Stage-1 fields. It hardens against a careless or buggy LLM but
+  is NOT ground-truth enforcement. The guarantee: "verdict.severity is consistent with
+  verdict.native_severity per the D-DEC-013 table." The residual: an adversarial LLM can
+  supply false native_severity + sensor_family; the hook cannot detect this without an
+  independent source (prism-signed field or hook-fetched prism data).
+- **High-severity floor — scored_priority (P11-002):** `hard_floor_applies()` keys the
+  HIGH/CRIT floor on `verdict.scored_priority` (field 18). Verdict.severity and
+  scored_priority may differ; the floor applies if EITHER is HIGH/CRIT because scored_priority
+  represents the final recalibrated risk decision (brief §3.9 "any alert SCORED HIGH/CRIT").
+  Note: scored_priority is LLM-supplied (assess-priority is an LLM skill) — same ASM-008-class
+  residual as native_severity and asset_type. Do NOT overclaim.
+- **native_severity — ASM-008-class residual (P11-001, symmetric with asset_type):** Both
+  `native_severity` and `asset_type` are LLM-supplied Stage-1 fields the hook cannot verify
+  without a prism call. STEP 1a (consistency) and enum validation (asset_type) are checks on
+  LLM data — effective against careless LLMs, not adversarial ones. **The genuine ground-truth
+  enforcement mechanism requires hook-side prism cross-validation or a prism-signed field** —
+  both ASM-008-DEFERRED pre-production follow-ups.
+  **Residual risk (explicit, symmetric):** Until ASM-008 resolves:
+  (a) LLM could supply false native_severity/sensor_family → STEP 1a consistency bypass;
+  (b) LLM could under-report asset_type → asset_type hard-floor bypass;
+  (c) LLM could supply false scored_priority → high-severity floor bypass.
+  **Follow-up gate:** ASM-008 resolution MUST include hook-side prism cross-validation for
+  asset_type (prism_asset_class) AND native_severity/sensor_family before prism-integration
+  reaches production. The scored_priority ground-truth residual may require a separate gate
+  (e.g., signed assess-priority output) — defer to ASM-008 scope definition.
+- **asset_type — ASM-008-DEFERRED (unchanged):** ENFORCED NOW: enum membership (fail-closed
+  on non-member) + hard-floor set check. NOT yet enforced: prism_asset_class cross-validation.
 
 **ADV-F2-001 critical fix:** Hard floors key on severity and `verdict.asset_type`
 (mandatory fields 13 and 14), NOT on `verdict.confidence`. Severity and confidence are
@@ -1753,19 +1835,26 @@ would have escaped the hard floor if `confidence` had been used as the severity 
 # function — they bypass hard_floor_applies() entirely (see emitter Step 3 above). The
 # hard floor correctly blocks autonomous TRIAGE; it does NOT block human ESCALATION.
 
-# FUNCTION: hard_floor_applies(verdict) — called by emitter for regular (non-review) markers
-# P10-001: this function is called AFTER STEP 1a. The caller passes recomputed_severity
-# (hook-derived via NORMALIZE_SEVERITY) as the authoritative severity — the raw
-# verdict.severity field is not used for floor evaluation. Signature updated below.
+# FUNCTION: hard_floor_applies(verdict, recomputed_severity) — called by emitter for regular markers
+# P10-001: called AFTER STEP 1a. recomputed_severity is passed in for historical signature
+# compatibility and for potential non-severity floor use. P11-002 update: the HIGH/CRIT
+# floor now keys on verdict.scored_priority (field 18), NOT on recomputed_severity.
+# verdict.severity (detector-native) and verdict.scored_priority (recalibrated) may differ.
 hard_floor_applies(verdict, recomputed_severity):
 
   IF verdict.disposition == "Indeterminate":
     RETURN TRUE   # → NEVER issue marker; route to human; [REVIEW-REQUIRED]
 
-  # P10-001: key on hook-recomputed severity (STEP 1a), NOT raw verdict.severity
-  # ADV-F2-001: key on severity (field 13), NOT confidence
-  IF recomputed_severity in {"HIGH", "CRITICAL"}:
-    RETURN TRUE   # → NEVER issue marker; route to human
+  # P11-002: high-severity floor keys on verdict.scored_priority (field 18 — Stage-5
+  # assess-priority output, enum CRIT|HIGH|MED|LOW) per brief §3.9 "any alert scored
+  # HIGH/CRIT → human." This captures KEV/exposure/critical-asset escalations that
+  # move a detector-LOW alert to scored HIGH or CRIT regardless of native severity.
+  # ADV-F2-001: key on scored priority (NOT confidence).
+  # P11-002 NOTE: scored_priority is LLM-supplied (assess-priority is an LLM skill).
+  # The same ASM-008-class residual applies: hook cannot independently verify the score.
+  # See Hard floor binding (§D-DEC-008) for the explicit residual documentation.
+  IF verdict.scored_priority in {"HIGH", "CRIT"}:
+    RETURN TRUE   # → NEVER issue marker; route to human (§3.9 high-severity floor)
 
   # ADV-F2-001: key on verdict.asset_type (field 14)
   # ADV-F2-P3-001 CRITICAL FIX: asset_type=unknown is a conservative hard-floor member.
@@ -1795,7 +1884,7 @@ hard_floor_applies(verdict, recomputed_severity):
 # Note: create-review/comment-review bypass hard_floor_applies() — see D-DEC-012.
 # Note: autonomy_enabled is validated as a verdict field (not config) — see emitter STEP 5 (ADV-F2-P6-002 reorder).
 IF autonomy_enabled == true AND NOT hard_floor_applies(verdict, recomputed_severity):
-  → disposition-guard validates all 17 mandatory fields + enum-membership (ADV-F2-P4-006 + P10-001)
+  → disposition-guard validates all 18 mandatory fields + enum-membership (ADV-F2-P4-006 + P10-001/P11-002)
   → disposition-guard issues scoped marker per verdict.ticket_action_type
   → monitoring-loop proceeds with jr issue comment/create/assign as marker authorizes
 ```
@@ -1805,7 +1894,7 @@ NEVER removes a hard floor. This is the invariant the BATS tests must verify:
 
 ```bats
 @test "disposition-guard hard floor: Indeterminate verdict with create action → verdict Write DENIED, UNDER-LABEL-DENIED in audit.log, required_token=create-review (P7-001)"
-@test "disposition-guard hard floor: HIGH severity + create action → verdict Write DENIED, corrective reason specifies required_token=create-review (P7-001)"
+@test "disposition-guard hard floor: scored_priority=HIGH + create action → verdict Write DENIED, corrective reason specifies required_token=create-review (P11-002/P7-001)"
 @test "disposition-guard hard floor: degraded sensor + comment action → verdict Write DENIED, corrective reason specifies required_token=comment-review (P7-001)"
 @test "disposition-guard hard floor: Indeterminate + none action + ticket_id present → verdict Write DENIED, required_token=comment-review (P7-001)"
 @test "disposition-guard hard floor: Indeterminate + none action + ticket_id null + project_key absent → verdict Write DENIED, corrective reason includes missing project_key note (P7-001)"
@@ -1852,10 +1941,10 @@ This is the load-bearing sequencing invariant that makes the marker mechanism re
 
 ```
 Stage 7: DOCUMENT
-  monitoring-loop writes the ICD-203 verdict file (all 17 mandatory fields — P10-001:
-  includes native_severity + sensor_family; ticket_action_type set at Stage 6 DISPOSE)
+  monitoring-loop writes the ICD-203 verdict file (all 18 mandatory fields — P10-001/P11-002:
+  includes native_severity + sensor_family + scored_priority; ticket_action_type set at Stage 6 DISPOSE)
     → disposition-guard PreToolUse/Write event fires
-    → validates all 17 fields (P10-001: includes STEP 1a SEVERITY-MISMATCH check)
+    → validates all 18 fields (P10-001/P11-002: includes STEP 1a consistency check + scored_priority)
     → if no hard floor AND ticket_action_type != "none":
          atomically writes scoped marker to ${CLAUDE_PLUGIN_DATA}/markers/<uuid>.marker.json
 
@@ -1918,7 +2007,7 @@ resolves the collision.
 
 1. **JSON-content check (verdict-class):** If `tool_input.file_path` ends in `.json` OR
    `tool_input.content` parses as valid JSON (`jq empty 2>/dev/null` succeeds) → route to
-   **VERDICT JSON path** (17-field jq key-presence + type check — P10-001). This check takes
+   **VERDICT JSON path** (18-field jq key-presence + type check — P10-001/P11-002). This check takes
    absolute precedence regardless of any `investigation` substring in the path.
 2. **Investigation-markdown check:** Elif `tool_input.file_path` matches `*investigation-*.md`
    (must end in `.md`) → route to **INVESTIGATION MARKDOWN path** (12-field heading-anchored grep).
@@ -1927,7 +2016,7 @@ resolves the collision.
 
 | Artifact Class | Dispatch condition (evaluated in order) | Field-set enforced | Source |
 |----------------|----------------------------------------|--------------------|--------|
-| Verdict JSON | ends in `.json` OR content is valid JSON | **17 fields** (12 ICD-203 + severity + asset_type + ticket_action_type + native_severity + sensor_family) | Monitoring-loop (BC-10.01.001) |
+| Verdict JSON | ends in `.json` OR content is valid JSON | **18 fields** (12 ICD-203 + severity + asset_type + ticket_action_type + native_severity + sensor_family + scored_priority) | Monitoring-loop (BC-10.01.001) |
 | Investigation markdown | `*investigation-*.md` glob (`.md` required) | **12 ICD-203 fields** | Human investigate-event workflow (BC-5.01.001) |
 | Fast-path allow | neither condition above | None | — |
 
@@ -1940,7 +2029,7 @@ investigation-markdown branch.**
 Artifacts, Timeline Events, Hypotheses Considered, Alternatives Rejected, Uncertainty
 Explicit, Attack Techniques, Agent Actions, Human Actions, Tuning Signal.
 
-**Verdict 17-field set (P10-001):** Above 12 plus Severity (13), Asset Type (14), Ticket Action Type (15), Native Severity (16), Sensor Family (17). Fields 16-17 carry raw Stage-1 INGEST values verbatim into the verdict for hook-side re-normalization (STEP 1a SEVERITY-MISMATCH check).
+**Verdict 18-field set (P10-001/P11-002):** Above 12 plus Severity (13), Asset Type (14), Ticket Action Type (15), Native Severity (16), Sensor Family (17), Scored Priority (18). Fields 16-17 carry raw Stage-1 INGEST values verbatim. Field 18 (scored_priority, enum CRIT|HIGH|MED|LOW) carries the Stage-5 assess-priority output; the high-severity hard floor keys on field 18 per brief §3.9 "any alert scored HIGH/CRIT → human." STEP 1a checks consistency between field 16 (native_severity → D-DEC-013 normalization) and field 13 (verdict.severity); both fields are LLM-supplied — guarantee is consistency only (P11-001).
 
 **ERRATUM — BC-3.03.001 v1.11 PC#2 (investigation path) incorrectly states 15 mandatory
 field headings.** The three additional headings (Severity, Asset Type, Ticket Action Type)
@@ -2350,7 +2439,7 @@ cross-validated against a hook-computed invariant before the grant or bypass tak
 | **[P6-009 — trust boundary]** any marker consumption point; control-flow ordering involving security gates | unauthorized Jira writes; silent discard of security findings | O3 audit checklist MUST cover: (a) every marker CONSUMPTION point, (b) every control-flow ORDERING between kill switch and fail-loud paths, (c) every trust-boundary crossing — scope is NOT emitter-only; consumer rows (P6-001) and ordering row (P6-002) are now represented in this table |
 | **[P7-009 — O4 standing rule]** any "never silently discarded" claim verified only at the emitter (marker present in store) | hard-floor finding silently dropped when emitter artifact is unconsumable (wrong command pattern, loop ignores deny reason, Write↔Bash seam gap) | **O4 standing rule:** every "never silently discarded" claim MUST have a VP whose assertion is the downstream authorization/execution outcome at the consumer/Bash boundary — a jr write is authorized AND consumable — not an emitter-local artifact (marker file presence). An emitter-only VP CANNOT detect the Write→Bash seam gap. VP-HOOK-029 re-scope per §8.17 item 1 operationalizes this rule for the hard-floor fail-loud invariant. |
 | **[P9-009 — O5 standing rule]** hook re-implements shell tokenization without a differential-vs-bash test partition | tokenizer diverges from bash for a specific quoting class (e.g., backslash-escaped quotes) → false-allow or false-deny for commands that bash parses differently; security bypass or false-positive gate possible | **O5 standing rule:** any hook that re-implements shell tokenization to make a security decision MUST carry a differential-vs-bash vector partition covering all shell-quoting classes the downstream CLI honors. The partition MUST include: (a) vectors for each quoting class the CLI command surface uses (single-quoted, double-quoted, backslash-escaped, unquoted), (b) paired mutants demonstrating that divergence from bash tokenization is detectable and killable by the VP. The structural_label_check (P9-001 backslash-escape extension) operationalizes this rule for the escaped-quote class. Any future change to the tokenizer or to the set of CLI arguments the hook parses must extend the partition correspondingly. |
-| **[P10-001 — O6 standing rule]** hook-computed invariant inputs are LLM-supplied without independent recomputation | LLM writes under-reported value (e.g., severity="LOW" for a CRITICAL alert) → hook invariant computes from the manipulated LLM value → invariant is circumvented; hard floor or security control bypassed | **O6 standing rule:** the inputs to a hook-computed invariant MUST themselves be hook-recomputable or hook-cross-validated against a deterministic ground truth — not merely accepted from the LLM-written verdict. An invariant computed exclusively from LLM-supplied fields is NOT a deterministic enforcement surface. Remediation pattern: (a) carry the raw source data (native_severity, sensor_family) verbatim from Stage 1 INGEST into the verdict as required fields; (b) the hook re-runs the deterministic computation (NORMALIZE_SEVERITY table) and cross-checks the LLM-reported result; (c) mismatch → deny. This pattern (STEP 1a SEVERITY-MISMATCH) is the canonical operationalization of O6 for severity. Any future hook invariant whose inputs are LLM-derived MUST apply O6: either carry the raw source + recompute deterministically, or cross-validate against a hook-observable ground truth. |
+| **[P10-001 — O6 standing rule]** hook-computed invariant inputs are LLM-supplied without independent recomputation | LLM writes under-reported value (e.g., severity="LOW" for a CRITICAL alert) → hook invariant computes from the manipulated LLM value → invariant is circumvented; hard floor or security control bypassed | **O6 standing rule:** the inputs to a hook-computed invariant MUST themselves be hook-recomputable or hook-cross-validated against a deterministic ground truth — not merely accepted from the LLM-written verdict. An invariant computed exclusively from LLM-supplied fields is NOT a deterministic enforcement surface. Remediation pattern: (a) carry the raw source data (native_severity, sensor_family) verbatim from Stage 1 INGEST into the verdict as required fields; (b) the hook re-runs the deterministic computation (NORMALIZE_SEVERITY table) and cross-checks the LLM-reported result; (c) mismatch → deny. This pattern (STEP 1a SEVERITY-MISMATCH) is the canonical operationalization of O6 for severity. Any future hook invariant whose inputs are LLM-derived MUST apply O6: either carry the raw source + recompute deterministically, or cross-validate against a hook-observable ground truth. **P11-001 O6 annotation:** STEP 1a operationalizes O6 as far as the hook's input-visibility allows — it carries the raw source data (native_severity, sensor_family) and re-runs the deterministic computation. The remaining O6 residual is that native_severity and sensor_family are themselves LLM-supplied; a hook re-computation from LLM-supplied inputs is a CONSISTENCY CHECK, not ground-truth enforcement. Ground-truth enforcement requires a hook-observable independent source (prism-signed field or hook-fetched prism data — network-free hooks cannot provide this). This residual is ASM-008-DEFERRED. The high-severity hard floor is moved to scored_priority (P11-002), which has the same ASM-008-class LLM-trust residual but correctly captures the §3.9 "scored HIGH/CRIT" semantics. |
 
 P5-001 and P5-002 are the under-label and over-label duals of the single root cause: the hook
 trusted the LLM-supplied `ticket_action_type` token completely without verifying it against
@@ -2421,10 +2510,17 @@ feasibility). This residual is documented here and in §8.22 for PO awareness.
 
 BC-3.03.001 Invariant #4 `validate_enums()` requires `verdict.severity ∈ {LOW, MEDIUM, HIGH, CRITICAL}`
 (case-exact, fail-closed deny on non-member). Prism integrates four sensor families (CrowdStrike,
-Armis, Claroty, Cyberint) and NVD enrichment via UDFs. Each sensor family uses a different native
-severity representation: numeric 1-100 (CrowdStrike), risk bands (Armis, Claroty), CVSS floats
-(NVD). No prior spec defined the normalization mapping. Without a named normalization step, raw
-sensor severity values fail the enum gate, silently blocking the pipeline for that sensor family.
+Armis, Claroty, Cyberint). Each sensor family uses a different native severity representation:
+numeric 1-100 (CrowdStrike), risk bands (Armis, Claroty). No prior spec defined the normalization
+mapping. Without a named normalization step, raw sensor severity values fail the enum gate,
+silently blocking the pipeline for that sensor family.
+
+**P11-003 NVD/CVSS model (clean separation):** NVD/CVSS enrichment (enrich_nvd() UDF) is NOT
+a sensor family for `native_severity` purposes. `native_severity` and `sensor_family` always
+describe the ORIGINATING SENSOR's raw reading (one of the four sensor families). CVSS
+enrichment from enrich_nvd() feeds `scored_priority` (field 18) at Stage 5, NOT native_severity.
+This resolves the STEP 1a false-deny for CVSS-scored alerts (P11-003): there is no NVD sensor
+family to look up in NORMALIZE_SEVERITY; CVSS values never appear in native_severity.
 
 #### Decision
 
@@ -2436,9 +2532,14 @@ writing the verdict.
 **NORMALIZE_SEVERITY(native_severity, sensor_family) → {LOW, MEDIUM, HIGH, CRITICAL}:**
 
 ```
-# Conservative fallback for ANY unrecognized value:
+# Conservative fallback for ANY UNRECOGNIZED VALUE within a recognized sensor family:
 # → CRITICAL with uncertainty_explicit set (auditable; never a silent enum-deny)
-# Rationale: "unrecognized severity" ≠ "low risk"; conservative is always correct here.
+# Rationale: "unrecognized severity value" ≠ "low risk"; conservative is always correct.
+# P11-007 REACHABILITY: this rule applies only to unrecognized VALUES within a known family
+# (e.g., CrowdStrike native value 200, Armis band "Extreme") — NOT to an unrecognized FAMILY.
+# An unrecognized sensor_family is denied by validate_enums (STEP 1) before STEP 1a runs,
+# so UNRECOGNIZED_DEFAULT is UNREACHABLE for an unknown sensor family on the STEP-1a path.
+# The two cases are distinct; present only the value-within-family rule as STEP-1a behavior.
 UNRECOGNIZED_DEFAULT = "CRITICAL"
 ```
 
@@ -2449,8 +2550,13 @@ UNRECOGNIZED_DEFAULT = "CRITICAL"
 | CrowdStrike | Numeric 1-100 | ≥76 → CRITICAL; ≥51 and <76 → HIGH; ≥26 and <51 → MEDIUM; <26 → LOW |
 | Armis | Risk bands (Critical / High / Medium / Low / Informational) | 1:1 case-fold; Informational → LOW |
 | Claroty | Risk bands (Critical / High / Medium / Low) | 1:1 case-fold |
-| NVD/CVSS (via enrich_nvd()) | CVSS float 0.0-10.0 | ≥9.0 → CRITICAL; ≥7.0 → HIGH; ≥4.0 → MEDIUM; <4.0 → LOW |
-| Cyberint | **Conservative default — pre-ASM-008 (ADV-F2-P7-006)** | Default CRITICAL + `uncertainty_explicit` naming the unvalidated mapping: "Cyberint severity mapping unvalidated per ASM-008; conservative CRITICAL applied until validated." Mirrors the unrecognized-family rule: a recognized-but-unvalidated family receives the same conservative treatment as an unrecognized family. Enum-valid and auditable from first Cyberint contact. Upon ASM-008 resolution, replace with the validated per-band mapping. |
+| Cyberint | **Conservative default — pre-ASM-008 (ADV-F2-P7-006)** | Default CRITICAL + `uncertainty_explicit` naming the unvalidated mapping: "Cyberint severity mapping unvalidated per ASM-008; conservative CRITICAL applied until validated." Mirrors the unrecognized-value rule: a recognized-but-unvalidated family receives the same conservative treatment. Enum-valid and auditable from first Cyberint contact. Upon ASM-008 resolution, replace with the validated per-band mapping. |
+
+> **P11-003 — NVD/CVSS row REMOVED:** NVD/CVSS is not a sensor family; `native_severity` and
+> `sensor_family` always describe the originating sensor's raw reading. CVSS float values from
+> enrich_nvd() influence `scored_priority` (field 18) at Stage 5, NOT `native_severity`. There
+> is no NVD row in this table and no `nvd` member in SENSOR_FAMILY_ENUM. Note for PO: remove
+> the "8.5 for NVD CVSS" example from prd-delta field-16 definition (see §8.24 PO item 5).
 
 **Rule for unrecognized severity (any sensor family):**
 
@@ -2469,17 +2575,26 @@ IF native_severity NOT IN known_values_for(sensor_family):
 - **Stage 1 INGEST:** extract raw severity from OCSF event; call `NORMALIZE_SEVERITY(raw, family)`;
   store as `verdict.severity`. **P10-001 addition:** also store `native_severity` (raw value before
   normalization) and `sensor_family` (enum: crowdstrike|armis|claroty|cyberint) as REQUIRED fields
-  16+17 in the verdict JSON — these are carried verbatim from Stage 1 into the verdict for
-  disposition-guard's hook-side re-normalization (STEP 1a SEVERITY-MISMATCH check).
-- **Stage 5 SCORE:** if recalibration produces a non-enum value, re-apply `NORMALIZE_SEVERITY`
+  16+17 in the verdict JSON — carried verbatim from Stage 1 for disposition-guard STEP 1a.
+- **Stage 5 SCORE:** assess-priority produces `scored_priority` (field 18, enum CRIT|HIGH|MED|LOW) as
+  the recalibrated risk decision. **P11-003:** CVSS enrichment from enrich_nvd() influences
+  scored_priority at Stage 5, NOT native_severity. `verdict.severity` carries the detector-native
+  normalized reading; `scored_priority` carries the recalibrated decision. The two fields may
+  legitimately differ (recalibration can move in either direction). Normative text for PO:
+  BC-10.01.001 field 13 "recalibrated at Stage 5" annotation should be removed or corrected —
+  recalibration now lands in scored_priority (field 18), not severity (field 13).
 - **Stage 1 fast-path (known-FP):** `NORMALIZE_SEVERITY` is the ONLY severity transformation step;
-  the normalized value must be in the verdict before Stage 3 CATEGORIZE for hard-floor technique evaluation
-- **disposition-guard STEP 1a (P10-001):** the hook re-runs `NORMALIZE_SEVERITY(native_severity,
-  sensor_family)` from the verdict fields using the same D-DEC-013 table. Mismatch with
-  verdict.severity → SEVERITY-MISMATCH deny. This is NOT a second normalization step — it is a
-  cross-check: the LLM-reported severity must agree with what the deterministic table would produce
-  given the same inputs. Relocates severity trust from LLM to hook; makes the hard floor un-bypassable
-  for the severity dimension.
+  the normalized value must be in the verdict before Stage 3 CATEGORIZE for hard-floor technique
+  evaluation. scored_priority on the fast-path: because Stage 5 SCORE is bypassed, scored_priority
+  equals the normalized severity (no recalibration applied); write scored_priority from the same
+  NORMALIZE_SEVERITY result at Stage 1.
+- **disposition-guard STEP 1a (P10-001 / P11-001 reframe):** the hook re-runs
+  `NORMALIZE_SEVERITY(native_severity, sensor_family)` from the verdict fields using the same
+  D-DEC-013 table. Mismatch with verdict.severity → SEVERITY-MISMATCH deny. This is a
+  CONSISTENCY CHECK between two LLM-supplied Stage-1 fields — it hardens against a careless LLM
+  but is NOT ground-truth enforcement (both inputs are LLM-supplied; hook makes no prism call).
+  The high-severity hard floor is enforced via verdict.scored_priority (field 18), not via
+  recomputed_severity. See D-DEC-008 Hard floor binding for the complete residual model.
 
 #### Consequences
 
@@ -2811,17 +2926,17 @@ hook (C-14) validates ICD-203 fields and hard floors; only then does it write a 
 
 > **VP anchor clarification (ADV-F2-009 fix):**
 > - **VP-HOOK-025** = ICD-203 field completeness enforcement (disposition-guard validates all
->   **17 mandatory fields** including severity + asset_type + ticket_action_type + native_severity
->   + sensor_family — P10-001; dual-path heading-anchored markdown / jq key-presence JSON)
+>   **18 mandatory fields** including severity + asset_type + ticket_action_type + native_severity
+>   + sensor_family + scored_priority — P10-001/P11-002; dual-path heading-anchored markdown / jq key-presence JSON)
 > - **VP-HOOK-024** = marker soundness (require-review consumer: valid marker → allow + consume;
 >   invalid/expired/wrong-scope/replayed marker → deny; rename-fail → deny; audit log)
 
 | Property | Mechanism | VP subject |
 |----------|-----------|-----------|
-| Marker cannot be issued without all 17 mandatory verdict fields | disposition-guard validates all 17 fields (12 ICD-203 + severity + asset_type + ticket_action_type + native_severity + sensor_family — P10-001) BEFORE writing marker, including STEP 1a SEVERITY-MISMATCH check; validation failure → no marker written | **VP-HOOK-025** (field completeness) |
+| Marker cannot be issued without all 18 mandatory verdict fields | disposition-guard validates all 18 fields (12 ICD-203 + severity + asset_type + ticket_action_type + native_severity + sensor_family + scored_priority — P10-001/P11-002) BEFORE writing marker, including STEP 1a consistency check; validation failure → no marker written | **VP-HOOK-025** (field completeness) |
 | Marker is single-use (replay impossible) | Atomic `mv` rename before `emit_allow`; rename failure → explicit `emit_deny` (ADV-F2-014) | **VP-HOOK-024** (marker soundness) |
 | Marker TTL of 120s via absolute `expires_at_utc` prevents stale-marker attacks | `now() > expires_at_utc` check on every evaluation (absolute; no clock-skew arithmetic) | VP-HOOK-024 |
-| Hard floor categories cannot receive markers regardless of `autonomy_enabled` | Unconditional if-blocks keyed on hook-recomputed severity (STEP 1a NORMALIZE_SEVERITY) + `verdict.asset_type` (NOT confidence) in monitoring-loop skill + disposition-guard emitter gate (ADV-F2-001 + P10-001 fix); SEVERITY-MISMATCH deny prevents LLM under-reporting the severity floor | VP-HOOK-026 (hard floor enforcement) |
+| Hard floor categories cannot receive markers regardless of `autonomy_enabled` | Unconditional if-blocks keyed on `verdict.scored_priority` (field 18 — P11-002 high-severity floor, keys on scored assess-priority per §3.9) + `verdict.asset_type` (NOT confidence); STEP 1a SEVERITY-MISMATCH consistency check hardens against careless LLM under-reporting; scored_priority and asset_type have ASM-008-class LLM-trust residuals — see D-DEC-008 Hard floor binding | VP-HOOK-026 (hard floor enforcement) |
 | Ticket-bound command_pattern for comment/assign prevents cross-ticket marker reuse | `command_pattern` interpolates literal ticket_id; EC-022: wrong-ticket → deny; ADV-F2-002 fix | VP-HOOK-024 (EC-022 anchored match test) |
 | Marker directory is outside git repository and SEC-001 read-ticket surface | Path `${CLAUDE_PLUGIN_DATA}/markers/` is never committed; read-ticket reads Jira ticket bodies, not filesystem paths | Architectural constraint; tested indirectly by bypass-class BATS |
 | Enum-membership validation prevents field-mangling hard-floor bypass (ADV-F2-P4-006) | disposition-guard validates severity/asset_type/disposition/sensor_health_status/ticket_action_type/confidence against allowed-value sets (fail-closed deny) BEFORE hard-floor check; `severity:"High"` (wrong case) → deny, not allow-without-marker | **VP-HOOK-025** (field completeness — must add enum-membership BATS assertions) |
@@ -5023,3 +5138,206 @@ prd-delta, or STATE.md. v1.13 continues with convergence check.*
 
 *Pass-10 FV list (§8.23) complete. Architect does NOT edit BCs, verification-delta, prd-delta,
 or STATE.md. v1.13 is final for pass-10 adversarial remediation.*
+
+---
+
+## 8.24 PO PROPAGATION LIST (pass 11 — P11-001..P11-007)
+
+> **Owner:** Product owner. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md.
+> All items below are PO obligations — they document what must change in each BC.
+
+---
+
+### 8.24.1 BC-3.03.001 (disposition-guard) — six items
+
+1. **Field 18 (scored_priority) — validate_enums + STEP 1a consistency-only + hard_floor_applies floor:**
+   - Add `scored_priority` (field 18, enum CRIT|HIGH|MED|LOW) as a REQUIRED verdict field.
+   - Update validate_enums: add `SCORED_PRIORITY_ENUM = {"CRIT","HIGH","MED","LOW"}` check for
+     field 18; deny with "scored_priority not in allowed set" on non-member.
+   - Correct STEP 1a wording: STEP 1a is a CONSISTENCY CHECK between verdict.severity and
+     verdict.native_severity (both LLM-supplied Stage-1 fields). The guarantee is consistency,
+     NOT ground-truth enforcement. Remove any "un-bypassable / hook independently derives from
+     raw sensor values / only remaining LLM-trust surface" language.
+   - Update hard_floor_applies(): change `IF recomputed_severity in {"HIGH", "CRITICAL"}` to
+     `IF verdict.scored_priority in {"HIGH", "CRIT"}`. Note the scored_priority enum uses CRIT
+     (not CRITICAL) and MED (not MEDIUM) per BC-4.05.001 assess-priority output.
+
+2. **Corrected claims (P11-001 language fix):**
+   - Invariant #4 (EMITTER role) and STEP 1a: replace all instances of "genuinely un-bypassable",
+     "hook independently derives severity from raw sensor values", "only remaining LLM-trust
+     surface" with accurate language: "STEP 1a is a deterministic consistency cross-check
+     between verdict.severity and verdict.native_severity (both LLM-supplied); it hardens
+     against careless/buggy LLM severity under-reporting but does not enforce ground truth."
+   - Add native_severity ground-truth residual note symmetric with the existing asset_type
+     ASM-008 residual: both fields are LLM-supplied; genuine ground-truth enforcement requires
+     hook-side prism cross-validation or a prism-signed field; ASM-008-DEFERRED.
+
+3. **Investigation-markdown emitter-entry model (P11-004):**
+   - Correct the self-contradiction in Invariant #4 line 129 and PC#2:
+     The emitter is entered ONLY from the verdict-class (PC#1 JSON path). The investigation-
+     markdown path (PC#2) does NOT enter this emitter. Remove any claim that PC#2 "proceeds to
+     the EMITTER role" or "reaches here."
+   - Add a separate minimal marker-issuance path for the human investigation comment as described
+     in architecture-delta §D-DEC-008 "Separate Human-Comment Marker Path (P11-004)" block:
+     12-field completeness + markdown-evaluable hard floors only; does NOT call validate_enums
+     or STEP 1a. An analyst can save a complete investigation markdown without denial.
+
+4. **BC-5.01.001 Inv#7 and BC-4.02.001 PC#4 reconciliation (P11-004):**
+   - BC-5.01.001 Inv#7 and BC-4.02.001 PC#4 list "HIGH/CRIT severity" and "critical assets"
+     as hard-floor conditions for the human investigation path (jr issue comment). These fields
+     are absent from a 12-field investigation markdown; the correct floors for the 12-field path
+     are: (a) Indeterminate disposition, (b) forbidden techniques, (c) degraded/silent sensor.
+     Correct Inv#7 / PC#4 to the markdown-evaluable set; remove the verdict-only field references
+     from the 12-field path hard-floor list.
+
+5. **Field count: 17 → 18 throughout (P11-002):**
+   - Invariant #9 heading, PC#3 (postcondition), all inline "17-field", "17 mandatory fields"
+     references: update to 18. Add scored_priority (field 18) to all field enumeration lists.
+
+---
+
+### 8.24.2 BC-10.01.001 (monitoring-loop) — four items
+
+1. **Field 13 recalibration → scored_priority reconciliation (P11-002/P11-003):**
+   - Field 13 (severity) definition currently says "recalibrated at Stage 5 SCORE." This is now
+     INCORRECT. Field 13 carries the detector-native normalized reading (Stage-1 INGEST); it is
+     NOT overwritten at Stage 5. Recalibration lands in scored_priority (field 18).
+   - Remove "then recalibrated at Stage 5 SCORE" from field 13 definition.
+   - Add field 18 (scored_priority, enum CRIT|HIGH|MED|LOW): "produced by assess-priority at
+     Stage 5 SCORE; incorporates CVSS enrichment, KEV status, exposure, and asset criticality
+     weights per brief §3.2. Populated from NORMALIZE_SEVERITY(native, family) on the known-FP
+     fast-path (Stage 5 bypassed)."
+
+2. **§3.9 floor-on-scored_priority (P11-002):**
+   - Add statement: "Brief §3.9 'any alert scored HIGH or CRIT → human' is enforced
+     deterministically at disposition-guard via verdict.scored_priority (field 18). Any verdict
+     where scored_priority ∈ {HIGH, CRIT} routes to create-review or comment-review; no regular
+     autonomous marker is issued."
+   - Remove any claim that the §3.9 high-severity floor keys on verdict.severity or on
+     hook-recomputed severity.
+
+3. **Corrected claims (P11-001 language fix — same scope as BC-3.03.001 item 2):**
+   - In the Invariant block (lines ~434-437): remove "severity is sensor-provided and
+     hook-cross-validated" language if it implies ground-truth enforcement. Replace with:
+     "STEP 1a is a consistency cross-check between verdict.severity and verdict.native_severity
+     (both LLM-supplied Stage-1 fields); native_severity ground-truth is ASM-008-DEFERRED."
+   - Align with the symmetric asset_type residual already in the BC.
+
+4. **Field count: 17 → 18 (P11-002):**
+   - Invariant #9 field-count header, any "17 mandatory fields" references: update to 18.
+   - Add scored_priority to the mandatory field enumeration.
+
+---
+
+### 8.24.3 BC-5.01.001 Inv#7 and BC-4.02.001 PC#4 (P11-004)
+
+These are covered by §8.24.1 item 4 above. Summary:
+- Both documents list HIGH/CRIT severity + critical assets as hard-floor conditions for the
+  human investigation path. Those are verdict-only fields; the 12-field investigation markdown
+  path only evaluates the markdown-evaluable floors (Indeterminate, forbidden techniques,
+  degraded/silent sensor). Correct both to that set.
+
+---
+
+### 8.24.4 BC-6.01.003 — mis-anchor fix (P11-005)
+
+- **Invariant #6 cross-reference:** "BC-9.01.001 Precondition #9" does not exist (scan-threats
+  has 4 preconditions; no jira_project_key gate). The correct anchor is **BC-6.01.001 Invariant
+  #12 / EC-013** (the activate Stage-0 jira_project_key gate). Update the citation accordingly.
+
+---
+
+### 8.24.5 prd-delta — three items (P11-003, P11-006)
+
+1. **"8.5 for NVD CVSS" native_severity example (P11-003):** Remove this example from the
+   field-16 (native_severity) definition. CVSS floats are NOT valid native_severity values;
+   they never appear in native_severity (which always carries the originating sensor's raw
+   reading). CVSS influences scored_priority at Stage 5 only.
+
+2. **"12/15-field artifact-class split" stale references (P11-006):** Update prd-delta lines ~96
+   and ~134 from "12/15-field split" to "12/18-field split" (or annotate as historical
+   pass-3 context if that is the intended framing). These lines currently describe a 15-field
+   split post-P3 which is stale after P10-001 (17-field) and now P11-002 (18-field).
+
+3. **VP-HOOK-025 field count (P11-002 + P11-006):** If prd-delta references VP-HOOK-025's
+   enforcement of the artifact-class split, update the field count to 12/18.
+
+---
+
+## 8.25 FORMAL-VERIFIER LIST (pass 11 — P11-001..P11-007)
+
+> **Owner:** Formal verifier. Architect does NOT write VPs or allocate IDs.
+>
+> **IMPORTANT — ID collision prevention:** Do NOT mint new VP/SM IDs without occupancy
+> verification. Run `grep -rE "VP-SKILL-0[6-9][0-9]|VP-HOOK-03[0-9]|SM-4[0-9]" .factory/`
+> before allocating any new ID.
+
+---
+
+1. **VP-HOOK-030 downgrade — consistency-only (P11-001).**
+
+   VP-HOOK-030 currently asserts: "un-bypassable" severity floor / hook independently derives
+   from raw sensor values. Downgrade the asserted guarantee to:
+   "verdict.severity is consistent with verdict.native_severity per the D-DEC-013 NORMALIZE_SEVERITY
+   table (STEP 1a SEVERITY-MISMATCH check)."
+
+   This is what the BATS vectors can actually prove. Do NOT assert ground-truth enforcement —
+   that would require a prism-signed severity field or hook-fetched prism data (ASM-008-DEFERRED).
+
+   Update test descriptions accordingly:
+   ```bats
+   # OLD: "disposition-guard STEP 1a: CrowdStrike score 90 → un-bypassable CRITICAL floor"
+   # NEW: "disposition-guard STEP 1a: CrowdStrike score 90 (native_severity=90) with verdict.severity=LOW → SEVERITY-MISMATCH deny (consistency check)"
+   ```
+
+2. **New vectors for scored_priority floor (P11-002).**
+
+   Add to VP-HOOK-026 (hard floor enforcement — verify occupancy):
+   ```bats
+   @test "P11-002 scored_priority floor: scored_priority=HIGH + regular create action → hard floor applies, UNDER-LABEL-DENIED"
+   @test "P11-002 scored_priority floor: scored_priority=CRIT + regular comment action → hard floor applies"
+   @test "P11-002 scored_priority floor: scored_priority=MED + detector-CRITICAL native_severity + consistent severity=CRITICAL → hard floor does NOT apply via severity path; only scored_priority triggers"
+   @test "P11-002 scored_priority floor: scored_priority=LOW + all other floors pass → hard floor FALSE"
+   @test "P11-002 scored_priority divergence: verdict.severity=HIGH + scored_priority=LOW → hard floor FALSE (severity is detector-native; floor keys on scored_priority)"
+   @test "P11-002 scored_priority divergence: verdict.severity=LOW + scored_priority=HIGH → hard floor TRUE (recalibrated escalation triggers §3.9)"
+   ```
+
+   Paired mutant for scored_priority floor (allocate SM-ID with occupancy check):
+   - SM-P11-A: "revert P11-002 — key hard floor on recomputed_severity instead of scored_priority"
+     → inject verdict with native_severity=90 (crowdstrike, → CRITICAL), sensor_family=crowdstrike,
+     verdict.severity=CRITICAL (STEP 1a passes), but scored_priority=LOW (recalibrated down) →
+     assert hard floor DOES NOT apply (only applies via scored_priority) → security bypass confirmed.
+     Mutant dies when P11-002 fix correctly evaluates scored_priority, not recomputed_severity.
+
+3. **scored_priority validation vectors (P11-002).**
+
+   Add to VP-HOOK-025 (field completeness — verify occupancy):
+   ```bats
+   @test "P11-002 field 18 present: verdict with all 18 fields including scored_priority=HIGH → passes validate_enums"
+   @test "P11-002 missing scored_priority: 17-field verdict (no scored_priority) → enum-validation deny, field 18 absent"
+   @test "P11-002 invalid scored_priority: scored_priority='CRITICAL' (wrong enum — should be CRIT) → enum-validation deny"
+   @test "P11-002 invalid scored_priority: scored_priority='MEDIUM' (wrong enum — should be MED) → enum-validation deny"
+   @test "P11-002 scored_priority=CRIT: verdict with scored_priority=CRIT → passes enum validation; hard floor applies"
+   ```
+
+4. **Separate human-comment marker path vectors (P11-004).**
+
+   Add a new VP (verify occupancy for ID) for the separate investigation-markdown marker path:
+   ```bats
+   @test "P11-004 investigation-markdown: complete 12-field markdown, non-Indeterminate → comment marker issued (analyst not denied)"
+   @test "P11-004 investigation-markdown: Indeterminate disposition in 12-field markdown → MARKDOWN-HARD-FLOOR deny"
+   @test "P11-004 investigation-markdown: forbidden technique T1003 in Attack Techniques → MARKDOWN-HARD-FLOOR deny"
+   @test "P11-004 investigation-markdown: degraded sensor in Sensor Health Status → MARKDOWN-HARD-FLOOR deny"
+   @test "P11-004 investigation-markdown: missing one of 12 fields → 12-field completeness deny (not enum-validation)"
+   @test "P11-004 investigation-markdown does NOT reach verdict emitter: markdown write with missing scored_priority (verdict-only field) is NOT denied by validate_enums"
+   ```
+
+5. **17→18-field sweep (P11-002).**
+
+   Search verification-delta and all VP files for "17-field", "17 mandatory", "fields 16/17",
+   "field 17" in the context of the verdict schema (not field-16 narrative) and update to 18.
+   Do NOT update historical changelog entries or prior-pass context. Update only current-state
+   assertions about the verdict field count.
+
+*Pass-11 propagation lists (§8.24/§8.25) complete. Architect does NOT edit BCs, verification-delta,
+prd-delta, or STATE.md. v1.14 is final for pass-11 adversarial remediation.*

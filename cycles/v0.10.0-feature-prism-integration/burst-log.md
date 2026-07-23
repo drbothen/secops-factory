@@ -810,3 +810,11 @@ BC-10.01.001 v1.16/v1.17→v1.18). BC-10.01.001 canonical test vectors lines 648
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
 | F2: pass-15 remediation burst 11 | product-owner / state-manager | DONE | P13-001 markdown-comment elimination propagated to the two consumer BCs (BC-4.02.001/BC-5.01.001) — closes the last cross-document contradiction; 15→18-field residue fixed; prd-delta §1 VP-status refreshed; scan-threats presentation-note. BC-4.02.001 v1.10, BC-5.01.001 v1.10, BC-3.03.001 v1.23, BC-9.01.001 v1.2, prd-delta v1.16. Clean streak 0/3. |
+
+---
+
+## Archived Current Phase Step — F2: adversarial pass 16 (displaced 2026-07-23)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 16 | adversary | DONE | 0C/1M/2m — P16-001 (MAJOR, burst-11 regression): consumer-BC reconciliation dropped the Gate-1 autonomy_enabled kill-switch precondition — BC-4.02.001 PC#4 + BC-5.01.001 Inv#7 now describe review-marker/hard-floor-deny for human investigation saves, but the authoritative emitter fires Gate 1 FIRST → allow-without-marker for ALL dispositions on human saves (no autonomy_enabled); the FP/non-FP/hard-floor routing applies ONLY to the autonomy_enabled=true masquerade case. P16-002 (MINOR): spec-changelog burst-11 entry says '54 mutants' (SM-max-ID) vs authoritative 48. P16-003 (MINOR): stale 'verdict-class 15-field path' in BC-3.03.001 PC#1 VP-HOOK-028 note (survived every field sweep; adjacent normative text says 18). Report persisted. |

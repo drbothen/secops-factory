@@ -818,3 +818,46 @@ BC-10.01.001 v1.16/v1.17→v1.18). BC-10.01.001 canonical test vectors lines 648
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
 | F2: adversarial pass 16 | adversary | DONE | 0C/1M/2m — P16-001 (MAJOR, burst-11 regression): consumer-BC reconciliation dropped the Gate-1 autonomy_enabled kill-switch precondition — BC-4.02.001 PC#4 + BC-5.01.001 Inv#7 now describe review-marker/hard-floor-deny for human investigation saves, but the authoritative emitter fires Gate 1 FIRST → allow-without-marker for ALL dispositions on human saves (no autonomy_enabled); the FP/non-FP/hard-floor routing applies ONLY to the autonomy_enabled=true masquerade case. P16-002 (MINOR): spec-changelog burst-11 entry says '54 mutants' (SM-max-ID) vs authoritative 48. P16-003 (MINOR): stale 'verdict-class 15-field path' in BC-3.03.001 PC#1 VP-HOOK-028 note (survived every field sweep; adjacent normative text says 18). Report persisted. |
+
+---
+
+## Burst 15: F2 Pass-18 Remediation — §3.4 Action-Authorization Gap (2026-07-23)
+
+**Step added to STATE.md Current Phase Steps:**
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-18 remediation burst 15 | architect / product-owner×2 / formal-verifier / state-manager | DONE | §3.4 Jira-action authorization: D-020 (link=`jr issue link` scope, REGULAR, anti-fungible), D-021 (close=`jr issue move`, CLOSE_STATE_ALLOWLIST, HIGH/CRIT NEVER auto-close, REGULAR), D-022 (compound §3.4 = two sequential verdict Writes, anti-fungible). P18-001: `jr issue link` added to write-block + `["link"]` marker scope (BC-3.03.001 v1.27, BC-3.01.001 v1.23). P18-002: VP-HOOK-028 property-(1) synced to verif-delta v1.20. P18-003: compound two-Write model (BC-10.01.001 v1.21, BC-4.02.001 v1.13). P18-004/005 OBS addressed. VP-HOOK-033..036 + SM-57..65 allocated. BC-6.01.001 v1.8 (close gating). O7 now 8 sites. VP 41 / SM 58. arch-delta v1.20. Clean streak 0/3. |
+
+**Step displaced from STATE.md Current Phase Steps (5-row limit):**
+
+F2: pass-16 remediation burst 12 already archived at "Archived Current Phase Step — F2: pass-16 remediation burst 12 (2026-07-22)" above.
+
+**Narrative:**
+
+- Human approved §3.4 authorization decisions at the F2 pass-18 human gate: D-020 (link marker scope: `jr issue link KEY1 KEY2`, REGULAR scope, `link_target_ticket_id` new marker field), D-021 (close marker scope: `jr issue move KEY STATE`, CLOSE_STATE_ALLOWLIST, HIGH/CRIT NEVER auto-close, REGULAR scope), D-022 (compound §3.4 actions = two sequential verdict Writes, each single-use anti-fungible).
+- architect authored D-020/D-021/D-022 decision text, architecture-delta.md v1.19→v1.20: §3.4 action-authorization model extended with `["link"]` + `["close"]` scopes; `jr issue link` + `jr issue move` added to write-block; compound two-Write sequencing; CLOSE_STATE_ALLOWLIST={Done,Closed,Resolved}; `link_target_ticket_id` new marker schema field (v2.2).
+- product-owner authored emitter BC (BC-3.03.001 v1.26→v1.27): `["link"]` emitter scope with KEY1=ticket_id + KEY2=link_target_ticket_id both O7 charset-validated; `["close"]` emitter scope with CLOSE_STATE_ALLOWLIST gating; O7 site count now 8 (all 8 active interpolation sites enumerated and validated).
+- product-owner authored consumer BC (BC-3.01.001 v1.22→v1.23): `["link"]` + `["close"]` consumer invariants; anti-fungibility guards; CLOSE_STATE_ALLOWLIST re-validation at consume time.
+- product-owner authored loop BC (BC-10.01.001 v1.20→v1.21): authorized_operations extended; §3.4 action-marker mapping completed; Stage-8 compound two-Write sequencing model; P18-002 VP-HOOK-028 property-(1) "pending FV" banner removed and ID-sync applied.
+- product-owner authored correlation BC (BC-4.02.001 v1.12→v1.13): Inv#1 authorized_operations extended to include `["link"]` + `["close"]`; §3.4 rule 2 (comment+link) + rule 4 (create+link) annotated as two sequential verdict-Writes per D-022.
+- product-owner authored activate BC (BC-6.01.001 v1.7→v1.8): Postcondition added for CLOSE_STATE_ALLOWLIST config-time validation (non-allowlist STATE rejected at activation, not mid-run).
+- formal-verifier allocated VP-HOOK-033 (link auth+anti-fungibility), VP-HOOK-034 (link O7 charset both keys), VP-HOOK-035 (close auth+gating), VP-HOOK-036 (compound two-Write); SM-57..SM-65 allocated; verification-delta v1.19→v1.20.
+- prd-delta v1.18 burst-15 post-note added (all 5 BC bumps + dtu-assessment v1.2 documented); no version bump (already at v1.18 from burst-14).
+- dtu-assessment v1.1→v1.2: jr-mock DTU clone scope extended to cover `jr issue link` + `jr issue move`; CLOSE_STATE_ALLOWLIST fixture added.
+- state-manager: VP/SM-ID placeholder sync applied to BC-10.01.001 (3 locations: modified_array entry, v1.21 changelog, VP-HOOK-028 body); verification-delta version-coherence sweep applied (19 edits: 16 VP-table BC anchor updates + 4 §5 test-count table header bumps); STATE.md v2.17→v2.18 updated.
+
+**Files touched:**
+- `.factory/phase-f2-spec-evolution/architecture-delta.md` → v1.20
+- `.factory/phase-f2-spec-evolution/verification-delta.md` → v1.20
+- `.factory/phase-0-ingestion/behavioral-contracts/BC-3.03.001.md` → v1.27
+- `.factory/phase-0-ingestion/behavioral-contracts/BC-3.01.001.md` → v1.23
+- `.factory/phase-0-ingestion/behavioral-contracts/BC-10.01.001.md` → v1.21
+- `.factory/phase-0-ingestion/behavioral-contracts/BC-4.02.001.md` → v1.13
+- `.factory/phase-0-ingestion/behavioral-contracts/BC-6.01.001.md` → v1.8
+- `.factory/phase-f2-spec-evolution/prd-delta.md` → v1.18 (no bump; burst-15 post-note)
+- `.factory/phase-0-ingestion/dtu-assessment.md` → v1.2
+- `.factory/STATE.md` → v2.18
+- `.factory/spec-changelog.md` → burst-15 section added
+- `.factory/cycles/v0.10.0-feature-prism-integration/lessons.md` → Lesson 45 appended
+- `.factory/cycles/v0.10.0-feature-prism-integration/burst-log.md` → this entry

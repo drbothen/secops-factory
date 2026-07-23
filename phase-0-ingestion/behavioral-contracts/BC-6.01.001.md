@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.7"
+version: "1.8"
 status: draft
 producer: product-owner
 timestamp: 2026-07-20T00:00:00
@@ -15,7 +15,7 @@ subsystem: lifecycle-management
 capability: CAP-LIFECYCLE-01
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v1.1-D-DEC-003-PRISM-2026-07-20", "v1.2-FV-PROPOSED-DROP-2026-07-20", "v1.3-ADV-F2-P2-008-012-013-2026-07-20", "v1.4-ADV-F2-P3-010-2026-07-20", "v1.5-consistency-F3-changelog-correction-2026-07-21", "v1.6-ADV-F2-P9-008-2026-07-21", "v1.7-ADV-F2-P13-002-setup-time-charset-validation-2026-07-22"]
+modified: ["v1.1-D-DEC-003-PRISM-2026-07-20", "v1.2-FV-PROPOSED-DROP-2026-07-20", "v1.3-ADV-F2-P2-008-012-013-2026-07-20", "v1.4-ADV-F2-P3-010-2026-07-20", "v1.5-consistency-F3-changelog-correction-2026-07-21", "v1.6-ADV-F2-P9-008-2026-07-21", "v1.7-ADV-F2-P13-002-setup-time-charset-validation-2026-07-22", "v1.8-ADV-F2-P18-005-jira-close-state-config-D021-2026-07-23"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -27,6 +27,7 @@ removal_reason: null
 # Behavioral Contract BC-6.01.001: activate Skill — Per-Project Activation Lifecycle with Prism MCP Integration
 
 > **Revision history:**
+> - v1.8 (2026-07-23): Pass-18 adversarial remediation burst 15 — ADV-F2-P18-005 (D-021 close scope, `jira_close_state` setup-time config validation). **(1) Postcondition #13 added:** activate MUST prompt for and validate `jira_close_state` against `CLOSE_STATE_ALLOWLIST = {"Done", "Closed", "Resolved"}` at setup time; fail-early on any value outside the allowlist with an explicit user-facing error; rationale: `jira_close_state` is interpolated into the `["close"]` marker command_pattern at disposition-guard (`^jr (--output json )?issue move <ticket_id> <close_state>( |$)`) — an invalid value stored here causes CLOSE-STATE-DENY at every FP/BTP auto-close verdict; security note: `jira_close_state` is CONFIG-driven, NOT verdict-influenceable, no LLM-injection surface (D-021). **(2) EC-015 added:** invalid `jira_close_state` value (e.g., "Completed", lowercase "done", empty string) rejected at setup with explicit user-facing error; no partial state written. ADV-F2-P18-005; D-021; architecture-delta v1.20 §D-021 / §8.32.1.
 > - v1.7 (2026-07-22): Pass-13 adversarial remediation — P13-002 (CRITICAL, setup-time `jira_project_key` charset validation). (1) **Postcondition #12 updated — charset validation required:** activate MUST validate any configured `jira_project_key` against `^[A-Z][A-Z0-9]+$` at setup time. On mismatch (e.g., a key containing a hyphen such as `PRISM-DEMO`), activate MUST emit an explicit user-facing error ("Invalid Jira project key '<X>': Jira project keys must be uppercase alphanumeric with no hyphens or spaces — e.g., PRISMDEMO, SEC, SECOPS.") and refuse to complete activation. Fail-early rationale: a non-conformant key reaches the marker mechanism and causes PROJECT-KEY-CHARSET-DENY fail-closed drops on every comment/create/create-review marker issuance — validating at setup time prevents this class of livelock entirely. Cross-reference: D-DEC-008 architectural constraint (Jira project keys MUST be hyphen-free per `^[A-Z][A-Z0-9]+$`). (2) **EC-013 example updated:** example prompt text changed from `(e.g., SEC, PRISM-DEMO)` to `(e.g., SEC, PRISMDEMO, SECOPS)` to reflect valid hyphen-free examples only. (3) **EC-014 added:** hyphen-containing key rejected at setup time with explicit user-facing error. ADV-F2-P13-002.
 > - v1.6 (2026-07-21): Pass-9 adversarial remediation — ADV-F2-P9-008 (OBS) jira_project_key as HARD Stage-0 precondition. The monitoring loop requires `jira_project_key` to be configured before it may run. A missing `jira_project_key` causes HARD-FLOOR-UNBINDABLE livelock on every hard-floor `create-review` verdict (disposition-guard STEP 3 denies every review marker because `jira_project_key` is null). (1) **Postcondition #12 added:** activate MUST prompt for and validate `jira_project_key` (non-empty string, Jira project key format) before completing. The monitoring-loop MUST NOT be scheduled or run without a valid `jira_project_key` configured in plugin state. If `jira_project_key` is absent when the loop starts, the loop MUST emit a fatal `MISSING-JIRA-PROJECT-KEY` error and exit immediately before processing any alerts. (See also BC-10.01.001 Precondition #9 v1.14.) (2) **EC-013 added:** jira_project_key absent at activation time — activate prompts user, validates format, blocks completion until populated.
 > - v1.5 (2026-07-21): consistency-F3 changelog correction — v1.4 entry had identical left/right sides in the subcommand rename notation; corrected to `jr auth check` → `jr auth status` to accurately record the rename that was applied.
@@ -156,6 +157,39 @@ removal_reason: null
     The `jira_project_key` is persisted in plugin state (alongside other operational metadata)
     so that the cron wrapper can verify its presence at loop start time without user interaction.
 
+13. **[NEW v1.8 — D-021/P18-005] `jira_close_state` SETUP-TIME config validation:**
+
+    Activate MUST prompt for and validate `jira_close_state` (the Jira transition state used
+    for FP/BTP auto-close via the `["close"]` marker scope / `jr issue move <ticket_id> <close_state>`)
+    at setup time. The value MUST be validated against:
+
+    ```
+    CLOSE_STATE_ALLOWLIST = {"Done", "Closed", "Resolved"}
+    ```
+
+    On any value outside the allowlist (wrong value, wrong case, empty string), activate MUST
+    emit an explicit user-facing error and refuse to complete activation (fail-early):
+    ```
+    Invalid Jira close state '<X>': allowed values are Done, Closed, Resolved.
+    ```
+
+    **Rationale:** `jira_close_state` is interpolated into the `["close"]` marker command_pattern
+    by disposition-guard at runtime: `^jr (--output json )?issue move <ticket_id> <close_state>( |$)`.
+    If an invalid state is persisted, every FP/BTP auto-close marker will fail validation at the
+    disposition-guard layer (CLOSE-STATE-DENY fail-closed). Catching this at setup time prevents
+    a class of silent livelock where auto-close never fires without any visible error.
+
+    **Security constraint (D-021):** `jira_close_state` is CONFIG-side — validated here at
+    activation, NOT verdict-influenceable at runtime; there is NO LLM-injection surface for this
+    field. The LLM cannot alter `jira_close_state` through a verdict Write.
+
+    **Cross-reference:** architecture-delta v1.20 §D-021; CLOSE_STATE_ALLOWLIST mirrors the same
+    fail-early pattern as `jira_project_key` charset validation (Postcondition #12 / EC-014,
+    P13-002).
+
+    The `jira_close_state` value is persisted in plugin state alongside `jira_project_key` so the
+    disposition-guard emitter can read it at runtime without user interaction.
+
 ## Invariants
 
 1. **[Preserved v1.0]** Activation is always an explicit user action — the plugin being enabled never auto-activates. Confidence: verified by code analysis (Notes: "No hijack on enable" principle).
@@ -191,6 +225,7 @@ removal_reason: null
 | EC-012 | Idempotent re-run: `~/.claude/settings.json` already has `mcpServers.prism` key with RUST_LOG=off | Merge is a no-op; confirm "prism MCP already configured — settings unchanged"; still run `jr auth status` |
 | EC-013 | `jira_project_key` absent at activate time (user skips prompt or provides empty string) | Activate prompts user: "Enter your Jira project key (e.g., SEC, PRISMDEMO, SECOPS):"; validates non-empty + `^[A-Z][A-Z0-9]+$` charset; blocks completion until a valid value is provided or user explicitly cancels. If user cancels: activation halts with "jira_project_key is required before the monitoring-loop can run. Re-run /activate to complete setup." No partial state is written. |
 | EC-014 | User provides `jira_project_key` containing a hyphen (e.g., `PRISM-DEMO`) — non-conformant to `^[A-Z][A-Z0-9]+$` | Activate emits user-facing error: "Invalid Jira project key 'PRISM-DEMO': Jira project keys must be uppercase alphanumeric with no hyphens or spaces — e.g., PRISMDEMO, SEC, SECOPS." Activation refuses to complete; user must supply a conformant key. No partial state is written. **(P13-002 fail-early requirement: bad key must not reach marker mechanism)** |
+| EC-015 | **[NEW v1.8 — D-021/P18-005]** User provides a `jira_close_state` value outside `CLOSE_STATE_ALLOWLIST` (e.g., `"Completed"`, `"done"` (wrong case), `"DONE"`, empty string) | Activate emits user-facing error: "Invalid Jira close state 'Completed': allowed values are Done, Closed, Resolved." Activation refuses to complete; user must supply a valid allowlist value. No partial state is written. **(D-021 fail-early requirement: invalid close state must not reach the disposition-guard marker mechanism where it would cause CLOSE-STATE-DENY at every FP/BTP auto-close verdict)** |
 
 ## Canonical Test Vectors
 

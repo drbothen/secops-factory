@@ -273,6 +273,14 @@ They map directly to documented SOC practice [Q1 §"disposition — four verdict
 via Jira ticket (tagged `[REVIEW-REQUIRED]`) or draft for review. Auto-closing an
 Indeterminate verdict is a defect, not a feature. [Q1, Q6]
 
+> **D-021 security constraint (2026-07-23 human authorization, architecture-delta v1.20):** "Close
+> (if open)" for FP/BTP is now marker-authorized via `["close"]` scope — autonomous close is
+> literal. Security constraint: close marker is issued ONLY for non-hard-floor FP/BTP verdicts
+> when `autonomy_enabled=true`; HIGH/CRIT-scored FP/BTP route to `comment-review` (not auto-close)
+> per `hard_floor_applies()` STEP 4. The "narrow scope only" annotation above binds to these two
+> conditions. §3.9 hard floors (any HIGH/CRIT alert = mandatory human surface) remain in force
+> regardless of disposition label.
+
 ### 3.4 Jira-First: Append / Link / Reopen / New Rules (Research-Corrected)
 
 The loop checks Jira before creating any ticket. The decision sequence [Q3]:

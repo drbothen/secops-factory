@@ -1,10 +1,10 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "2.17"
+version: "2.18"
 status: active
 producer: state-manager
-timestamp: 2026-07-23T21:00:00Z
+timestamp: 2026-07-23T23:30:00Z
 phase: F2
 pipeline: FEATURE-CYCLE
 inputs: []
@@ -12,8 +12,8 @@ input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "F2 adversarial convergence — pass 18 done (0C/2M/1med), remediation pending — P18-001 cluster at human gate"
-awaiting: "F2-pass18-remediation (human-gate: §3.4 link/close authorization)"
+current_step: "F2 adversarial convergence — pass-18 remediation COMPLETE, pass 19 pending"
+awaiting: "F2-adversarial-pass-19"
 current_cycle: v0.10.0-feature-prism-integration
 dtu_required: true
 dtu_assessment: "2026-07-20"
@@ -42,7 +42,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-23 |
 | **Current Phase** | F2: Spec Evolution (prism-integration cycle) |
-| **Current Step** | F2 adversarial convergence — pass 18 done (0C/2M/1med), remediation pending — P18-001 cluster at human gate |
+| **Current Step** | F2 adversarial convergence — pass-18 remediation COMPLETE, pass 19 pending |
 
 ## Phase Progress
 
@@ -51,7 +51,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | pre-0: Pre-pipeline | PASSED | 2026-07-19 | 2026-07-19 | PASS | — |
 | 0: Codebase Ingestion + Remediation | COMPLETE | 2026-07-19 | 2026-07-20 | PASS | 12→11→7→8(1FP)→6→6→6→6(CRITICAL)→4→5→2→1→0; ADV-R1-4 CLEAN |
 | F1: Delta Analysis | PASSED | 2026-07-19 | 2026-07-20 | PASS | consistency: 7→0 |
-| F2: Spec Evolution | in-progress — pass18 done (0C/2M/1med), remediation pending; P18-001 cluster at human gate | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated → pass10 1C/2M → pass10 remediated → pass11 1C/3M → pass11 remediated → pass12 2C/2M → pass12 remediated → pass13 2C/1M → pass13 remediated → pass14 0C/2M/3m → pass14 remediated → pass15 0C/1M/2m → pass15 remediated → pass16 0C/1M/2m → pass16 remediated → consistency-audit remediated (12 findings, all coherence) → pass17 0C/3M → pass17 remediated → pass18 0C/2M/1med (remediation pending) |
+| F2: Spec Evolution | in-progress — pass18 remediated, pass19 pending | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated → pass10 1C/2M → pass10 remediated → pass11 1C/3M → pass11 remediated → pass12 2C/2M → pass12 remediated → pass13 2C/1M → pass13 remediated → pass14 0C/2M/3m → pass14 remediated → pass15 0C/1M/2m → pass15 remediated → pass16 0C/1M/2m → pass16 remediated → consistency-audit remediated (12 findings, all coherence) → pass17 0C/3M → pass17 remediated → pass18 0C/2M/1med → pass18 remediated |
 | F3: Incremental Stories | not-started | | | | |
 | F4: Delta Implementation | not-started | | | | |
 | F5: Scoped Adversarial | not-started | | | | |
@@ -64,11 +64,11 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| F2: pass-16 remediation burst 12 | product-owner / state-manager | DONE | P16-001 consumer-BC Gate-1-first correction (fixes the burst-11 kill-switch-precondition regression) + P16-002 changelog mutant-count 54→48 + P16-003 BC-3.03.001 PC#1 15→18. BC-4.02.001 v1.11, BC-5.01.001 v1.11, BC-3.03.001 v1.24. Version-coherence sweep: verif-delta v1.18 BC anchors updated; prd-delta §5 New Version + burst-12 post-note. Clean streak 0/3. |
 | F2: consistency-validator full sweep + burst 13 | consistency-validator / product-owner / architect / state-manager | DONE | 10-axis census: 7 axes PASS clean (field counts, enum tokens, demo key, NVD, markdown semantics, cross-BC coherence, deferrals); 12 findings all version-drift + 2 stale-description (0 blocking, 0 contract-logic) — ALL remediated (BC-4.02.001 v1.12, BC-5.01.001 v1.12, BC-10.01.001 v1.19, BC-3.03.001 v1.25, arch-delta v1.18, prd-delta v1.17); coherence backlog flushed in one shot. Consistency report persisted: consistency-audit-pass16.md (316 lines). |
 | F2: adversarial pass 17 | adversary | DONE | 0C/3M — substance-focused (coherence pre-swept). P17-001 (MAJOR, CRITICAL-if-mishandled): known-FP high-severity floor exemption (D-016/EC-009 'auto-close proceeds') has NO enforcement surface in disposition-guard hard_floor_applies() — the gate has no known-FP signal and DENIES the auto-close; naive LLM known_fp field would be a forgeable CRITICAL bypass; NOT covered by DI-015; arch-delta itself left it 'pending PO confirmation'. P17-002 (MAJOR): retired substring-dispatch residue — CV-009 fixed PC#8 to JSON-first but NOT Inv#14 Stage-7 + VP-HOOK-028(1) (now-dead 'verdict-substring fail-closed' VP). P17-003 (MAJOR): retired MARKDOWN_COMMENT_PATH residue — P13-001 elimination didn't reach BC-3.03.001 EC-005 + L814 test vector (contradicts sibling vector L835). Report persisted; P17-001 at human gate; P17-002/003 clear fixes queued. |
 | F2: pass-17 remediation burst 14 | architect / product-owner / formal-verifier | DONE | D-019 known-FP high-sev→review (scopes D-016 to LOW/MED; closes the loop-vs-gate contradiction + the would-be LLM-known_fp CRITICAL bypass; no gate change; SM-56 added). P17-002 Inv#14/VP-HOOK-028 JSON-first residue cleared (BC-10.01.001 Inv#14 Stage-7 + VP-HOOK-028 property-(1) rewritten to actual fail-closed boundary). P17-003 BC-3.03.001 EC-005/L814 markdown-comment residue cleared (consistent with L836). Version-coherence sweep: verif-delta v1.19 BC anchors v1.20/v1.26; prd-delta §5 v1.18; arch-delta v1.19. Clean streak 0/3. |
 | F2: adversarial pass 18 | adversary | DONE | 0C/2M/1med/2obs — substance pass; emitter/consumer/loop/D-019/JSON-first/tokenizer re-derived INTACT. NEW cluster (unmapped surface): P18-001 (MAJOR) jr issue link + jr issue move/close have NO authorization path — §3.4 correlation rules 2&4 require link autonomously (BC-4.02.001 PC#7b/d, BC-10.01.001 §3.4, DTU design asserts it called) but require-review has no write-block/allowlist/marker-scope for link → fail-closed DENY, no path; correlation links silently never form. P18-003 (MEDIUM) one-verdict-one-marker can't express compound comment+link / create+link. P18-002 (MAJOR) burst-14 propagation gap: verification-delta says VP-HOOK-028 property-(1) rewrite DONE but authoritative BC-10.01.001 L616 still has old property + 'pending FV' banner. P18-004/005 OBS (BC-4.02.001 Inv#1 omits link; FP 'Close (if open)' unauthorizable — autonomous-close scope ambiguous). Report persisted; link/close cluster at human gate; P18-002 clear fix. |
+| F2: pass-18 remediation burst 15 | architect / product-owner×2 / formal-verifier / state-manager | DONE | §3.4 Jira-action authorization: D-020 (link=`jr issue link` scope, REGULAR, anti-fungible), D-021 (close=`jr issue move`, CLOSE_STATE_ALLOWLIST, HIGH/CRIT NEVER auto-close, REGULAR), D-022 (compound §3.4 = two sequential verdict Writes, anti-fungible). P18-001: `jr issue link` added to write-block + `["link"]` marker scope (BC-3.03.001 v1.27, BC-3.01.001 v1.23). P18-002: VP-HOOK-028 property-(1) synced to verif-delta v1.20. P18-003: compound two-Write model (BC-10.01.001 v1.21, BC-4.02.001 v1.13). P18-004/005 OBS addressed. VP-HOOK-033..036 + SM-57..65 allocated. BC-6.01.001 v1.8 (close gating). O7 now 8 sites. VP 41 / SM 58. arch-delta v1.20. Clean streak 0/3. |
 
 ## Decisions Log
 
@@ -93,6 +93,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | D-017 | P13-001 MARKDOWN_COMMENT_PATH ELIMINATED: the 12-field ICD-203 investigation-markdown path NEVER issues an autonomous comment marker for any disposition. FP → allow-without-marker (Write succeeds; no Jira action authorized); non-FP/PARSE_FAIL → MARKDOWN_REVIEW_PATH. VP-HOOK-031 guarantee (c) rewritten. SM-52 (FP-comment-marker revert) allocated. | Recurring CRITICAL (P12-002 closed TP masquerade, P13-001 closes residual FP branch). Hook cannot evaluate scored_priority/asset_type from 12-field markdown; no known-FP store cross-check applies on this path. Any autonomous comment from this path bypasses all floors. P11-004 human-analyst intent preserved: Write is not denied; FP comment surfaces via review flow. | F2 | 2026-07-22 | human |
 | D-018 | P13-002 RC demo key corrected: PRISM-DEMO → PRISMDEMO throughout specs/test-vectors/brief. Jira project keys MUST be hyphen-free (^[A-Z][A-Z0-9]+$). Setup-time validation added to BC-6.01.001 (activate Postcondition #12) and BC-6.01.003 (onboard-customer Invariant #6) — non-conformant keys rejected with explicit user-facing error at configuration time, not fail-closed mid-run. | PRISM-DEMO is not a valid Jira project key: the P12-001 charset validation (correct-for-Jira) would reject it on every marker issuance. The RC live-demo could never issue any Jira write. Regex is correct; the example was wrong. Fail-early prevents the silent livelock class entirely. | F2 | 2026-07-22 | human |
 | D-019 | known-FP scored_priority floor exemption SCOPED to LOW/MED-severity only; HIGH/CRIT-native known-FPs route to comment-review (human review) via hard_floor_applies(), NOT auto-close; no deterministic-gate change (gate was already correct); LLM-known_fp-field rejected (forgeable CRITICAL bypass, O6). Revises D-016/P12-003b for the high-sev subset. | hard_floor_applies() fires unconditionally on scored_priority ∈ {HIGH,CRIT} — disposition-guard has no forgery-proof known-FP signal; an in-band LLM known_fp field would be a CRITICAL O6 bypass. Exempting HIGH/CRIT known-FPs from the floor would require a deterministic hook-recomputable signal that does not exist. LOW/MED exemption stands (those do not reach the floor). | F2 | 2026-07-23 | human |
+| D-020 | Link marker scope: `jr issue link KEY1 KEY2` (KEY1=marker.ticket_id, KEY2=marker.link_target_ticket_id); `["link"]` marker added as distinct anti-fungible scope; `jr issue link` added to write-block; default link-type "Relates"; REGULAR scope (hard-floor+kill-switch gated). | `jr issue link` had NO authorization path in any require-review rule — no write-block entry, no allowlist entry, no marker scope. §3.4 correlation rules 2 and 4 issue a link autonomously; fail-closed denied every link silently. P18-001. | F2 | 2026-07-23 | human |
+| D-021 | Close/move marker scope: `jr issue move KEY STATE` (STATE from CONFIG-driven CLOSE_STATE_ALLOWLIST={Done,Closed,Resolved}); HIGH/CRIT NEVER auto-closed (hard-floor unconditional); only FP/BTP + non-hard-floor + autonomy_enabled=true eligible; REGULAR scope (hard-floor+kill-switch gated). | `jr issue move/close` had no authorization path; "Close (if open)" in §3.4 rule 4 was ambiguous re autonomy scope. STATE must be CONFIG-driven (not verdict-influenceable) to prevent close-state injection. HIGH/CRIT auto-close violates human-oversight invariant. P18-005/P18-004. | F2 | 2026-07-23 | human |
+| D-022 | Compound §3.4 actions (rule 2: comment+link; rule 4: create+link) = two sequential verdict Writes, each with its own single-use anti-fungible marker; preserves one-verdict-one-marker invariant; SM-65 (single-marker compound attempt) validates the prohibition. | One-verdict-one-marker model cannot authorize two distinct Jira commands with a single marker without scope conflation. Two Writes, each authorized by its own marker, maintain anti-fungibility and allow each Write to be independently audited or denied. P18-003. | F2 | 2026-07-23 | human |
 
 ## Skip Log
 
@@ -140,8 +143,8 @@ dtu_services: [prism-demo-server, jr-mock]
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-23 |
-| **Position** | Pass 18 COMPLETE (0C/2M/1med, report persisted). Six consecutive 0-CRITICAL passes; heavily-attacked surfaces confirmed intact. BLOCKED on human decision: §3.4 Jira-action authorization — (1) how to authorize jr issue link (allowlist as low-risk metadata / new marker scope / review-gated); (2) is autonomous ticket-close (jr issue move) in scope or comment-only+human-transition (P18-005); (3) compound comment+link / create+link authorization (P18-003). P18-002 (VP-HOOK-028 BC-vs-verif-delta sync) is a clear fix queued regardless. Clean streak 0/3. |
-| **Context** | Artifact versions: arch-delta v1.19, verif-delta v1.19, prd-delta v1.18, BC-10.01.001 v1.20, BC-3.03.001 v1.26, BC-3.01.001 v1.22, BC-4.02.001 v1.12, BC-5.01.001 v1.12, BC-6.01.001 v1.7, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2, BC-6.01.004 v1.1. VPs 37 / SM 49 (SM-9..SM-56, SM-32=32a+32b+32-ext; SM-55 skipped). |
+| **Position** | Pass-18 remediation COMPLETE (burst 15 committed). §3.4 action-authorization gap closed: link+close marker scopes (D-020/D-021) + compound two-Write model (D-022). P18-001: `jr issue link` added to write-block + `["link"]` marker scope. P18-002: VP-HOOK-028 property-(1) synced. P18-003: compound two-Write model confirmed. P18-004/005 OBS addressed. VP-HOOK-033..036 + SM-57..65 allocated. O7 complete at 8 sites. VP 41 / SM 58. NEXT: adversarial pass 19. Clean streak 0/3. |
+| **Context** | Artifact versions: arch-delta v1.20, verif-delta v1.20, prd-delta v1.18, BC-3.03.001 v1.27, BC-3.01.001 v1.23, BC-10.01.001 v1.21, BC-4.02.001 v1.13, BC-6.01.001 v1.8, BC-5.01.001 v1.12, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2, dtu-assessment v1.2. VPs 41 / SM 58 (SM-9..SM-65, SM-32=32a+32b+32-ext; SM-55 skipped). |
 | **Convergence counter** | 0/3 clean passes |
 
 ## Historical Content

@@ -11,6 +11,41 @@ Track all spec version changes. Most recent version first.
 
 ## [1.1.0] - 2026-07-20 (patch edits 2026-07-21/22 — not a version bump)
 
+### F2 Pass-18 Remediation Edits — Burst 15 (2026-07-23) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 15). Root findings:
+P18-001 (MAJOR — §3.4 correlation rules 2+4 issue `jr issue link` autonomously but require-review had
+  no write-block entry, no marker scope, and no allowlist entry for this command → fail-closed DENY;
+  correlation links silently never formed; D-020: `["link"]` marker scope added, `jr issue link KEY1 KEY2`
+  added to write-block; KEY1=marker.ticket_id, KEY2=marker.link_target_ticket_id; O7 charset-validated
+  on both keys before command_pattern construction; VP-HOOK-033 + VP-HOOK-034),
+P18-002 (MAJOR — verification-delta v1.19 stated VP-HOOK-028 property-(1) rewrite DONE but
+  BC-10.01.001 L616 still had the old property + "pending FV" banner; sync applied, [ID-sync per FV]
+  annotation added throughout),
+P18-003 (MEDIUM — one-verdict-one-marker model could not express compound §3.4 actions (rule 2:
+  comment+link; rule 4: create+link) with a single marker without scope conflation; D-022: compound =
+  two sequential verdict Writes, each with its own single-use anti-fungible marker; SM-65 (single-marker
+  compound) validates the prohibition; VP-HOOK-036),
+P18-004/P18-005 (OBS — BC-4.02.001 Inv#1 omitted link/close from authorized_operations; "Close (if open)"
+  in §3.4 rule 4 was ambiguous re autonomous close; D-021: `jr issue move KEY STATE` with CONFIG-driven
+  CLOSE_STATE_ALLOWLIST={Done,Closed,Resolved}; HIGH/CRIT NEVER auto-close; REGULAR scope; VP-HOOK-035).
+41 VPs / 58 mutants (SM-9..SM-65, SM-32=32a+32b+32-ext; SM-55 skipped) / ~421 total test cases
+  (~303 BATS + ~118 parity). O7 standing rule now 8 active interpolation sites.
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.19 | v1.20 | D-020/D-021/D-022: §3.4 action-authorization surfaces: `["link"]` + `["close"]` marker scopes; `jr issue link` + `jr issue move` added to write-block; compound two-Write model; CLOSE_STATE_ALLOWLIST; HIGH/CRIT never auto-close; link_target_ticket_id new marker field |
+| phase-f2-spec-evolution/verification-delta.md | v1.19 | v1.20 | VP-HOOK-033 (link auth+anti-fungibility), VP-HOOK-034 (link O7 charset KEY1+KEY2), VP-HOOK-035 (close auth+gating), VP-HOOK-036 (compound two-Write); SM-57..65; §5 test-count table BC anchors bumped for all burst-15 BCs; VP count 41 / SM count 58 [ID-sync per FV] |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.26 | v1.27 | P18-001/D-020: `["link"]` emitter scope added; `jr issue link KEY1 KEY2` added to write-block; KEY2=link_target_ticket_id O7 charset-validated; P18-005/D-021: `["close"]` emitter scope added; `jr issue move KEY STATE` added to write-block; CLOSE_STATE_ALLOWLIST gating; O7 site count 8 |
+| phase-0-ingestion/behavioral-contracts/BC-3.01.001.md | v1.22 | v1.23 | P18-001/D-020: `["link"]` consumer invariant — KEY1=ticket_id + KEY2=link_target_ticket_id consumed; anti-fungibility guard; P18-005/D-021: `["close"]` consumer invariant — CLOSE_STATE_ALLOWLIST validation; hard-floor+kill-switch re-verified on close path |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.20 | v1.21 | P18-001/D-020: `["link"]` added to authorized_operations + §3.4 mapping; D-021: `["close"]` added; Stage-8 compound two-Write extension (D-022); P18-002: VP-HOOK-028 property-(1) "pending FV" banner RESOLVED [ID-sync per FV] |
+| phase-0-ingestion/behavioral-contracts/BC-4.02.001.md | v1.12 | v1.13 | P18-004: Inv#1 authorized_operations extended to include `["link"]` + `["close"]`; P18-003/D-022: §3.4 compound action steps annotated as two sequential verdict-Writes (rule 2: comment+link; rule 4: create+link) |
+| phase-0-ingestion/behavioral-contracts/BC-6.01.001.md | v1.7 | v1.8 | P18-005/D-021: activate Postcondition added — CLOSE_STATE_ALLOWLIST validated at plugin activation (non-allowlist close-state rejected at config-time, not mid-run); HIGH/CRIT autonomy-scope restriction noted |
+| phase-f2-spec-evolution/prd-delta.md | v1.18 | v1.18 (no bump) | Version-coherence: burst-15 post-note added (all 5 BC bumps + dtu-assessment v1.2); §5 already coherent; prd-delta remained at v1.18 from burst-14 |
+| phase-0-ingestion/dtu-assessment.md | v1.1 | v1.2 | DTU clone scope extended: jr-mock clone must handle `jr issue link` + `jr issue move`; CLOSE_STATE_ALLOWLIST fixture added to jr-mock config; new commands verified against DTU fidelity requirements |
+
+---
+
 ### F2 Pass-17 Remediation Edits — Burst 14 (2026-07-23) — spec remains 1.1.0
 
 Remediation edits within the F2 adversarial convergence cycle (burst 14). Root findings:

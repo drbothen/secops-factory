@@ -1,8 +1,8 @@
 ---
 document_type: dtu-assessment
 producer: architect
-version: "1.1"
-date: 2026-07-22
+version: "1.2"
+date: 2026-07-23
 feature: prism-integration
 feature_version: v0.10.0-feature-prism-integration
 status: draft
@@ -12,6 +12,14 @@ inputs:
 traces_to: .factory/phase-f1-delta-analysis/delta-analysis.md
 prior_assessment: ".factory/specs/dtu-assessment.md (Phase 0 — DTU_REQUIRED: false; no external service dependencies at that time)"
 ---
+
+> **v1.2 (2026-07-23) — Pass-18 adversarial remediation burst 15, P18-001/P18-005 / D-020/D-021/D-022:**
+> Dependency 2 (jr mock) annotated to reflect new marker-scope authorization paths. The mock must
+> accept `["link"]` (D-020) and `["close"]` (D-021) as valid `authorized_operations` values, and
+> must handle the D-022 two-sequential-Write compound sequences (comment+link for rule 2,
+> create+link for rule 4) as two independent marker-authorized calls. New `fp-auto-close` scenario
+> added for D-021 FP/BTP non-hard-floor auto-close via `jr issue move`. No mechanism redesign —
+> alignment of test design with the new authorization paths only.
 
 # DTU Re-Assessment — prism-integration (v0.10.0-feature-prism-integration)
 
@@ -284,16 +292,37 @@ Extend the existing BATS mock `jr` binary (located in BATS helpers) with:
 
 | Scenario | `jr issue search` returns | Expected monitoring-loop action |
 |----------|--------------------------|--------------------------------|
-| `duplicate-open` | 1 open ticket, same root cause | `jr issue comment` called |
-| `related-open` | 1 open ticket, different root cause | `jr issue link` called |
+| `duplicate-open` | 1 open ticket, same root cause | `jr issue comment` called (comment marker, D-DEC-001) |
+| `related-open` | 1 open ticket, different root cause | **Two sequential marker-authorized calls (D-022/D-020):** verdict-1 comment marker → `jr issue comment KEY1 "..."`; verdict-2 `["link"]` marker (ticket_id=KEY1, link_target_ticket_id=KEY2) → `jr issue link KEY1 KEY2` without `--type` flag (D-020 Iron Law). Mock asserts both calls in order; anti-fungibility: comment marker does NOT authorize link call. |
 | `resolved-same` | 1 resolved ticket, same root cause | Human-surface (propose-reopen, no auto-transition) |
-| `closed-same` | 1 closed ticket, same root cause | `jr issue create` + `jr issue link` called |
+| `closed-same` | 1 closed ticket, same root cause | **Two sequential marker-authorized calls (D-022/D-020):** verdict-1 create marker → `jr issue create --project <key>` → NEW_KEY returned; verdict-2 `["link"]` marker (ticket_id=NEW_KEY, link_target_ticket_id=CLOSED_KEY) → `jr issue link NEW_KEY CLOSED_KEY`. Mock records both calls; test asserts link_target_ticket_id equals the ticket_id returned from create (D-022 Iron Law). |
 | `no-match` | 0 tickets | `jr issue create` called (if TP disposition) |
 | `blind-spot-open` | 1 open BLIND-SPOT ticket | `jr issue comment` on existing (not new creation) |
 | `blind-spot-absent` | 0 BLIND-SPOT tickets | `jr issue create` with BLIND-SPOT label |
+| `fp-auto-close` | **[NEW v1.2 — D-021]** 1 open ticket, disposition=FP, non-hard-floor scored_priority (LOW/MED), autonomy_enabled=true | `["close"]` marker issued → `jr issue move <ticket_id> <jira_close_state>` called; `<jira_close_state>` is CONFIG-driven from plugin state (e.g., "Done"); mock asserts the close command matches `CLOSE_STATE_ALLOWLIST` member; test verifies NO `jr issue comment` or other action is called instead. Asserts kill-switch NOT engaged (autonomy_enabled=true) and hard_floor_applies()=false (non-HIGH/CRIT). |
 
 4. **Never-auto-reopen validation**: Test asserts `jr issue transition` is NOT
    called for the `resolved-same` and `closed-same` scenarios
+
+5. **[NEW v1.2 — D-020/D-021/D-022 marker-scope routing alignment (P18-001/P18-005)]:** The
+   mock `jr` binary must accept commands that arrive via the new `["link"]` (D-020), `["close"]`
+   (D-021), and D-022 two-sequential-Write compound sequences:
+   - `jr issue link KEY1 KEY2` — authorized via `["link"]` marker scope (D-020); mock records
+     both KEY1 and KEY2 in `$MOCK_JR_CALL_LOG`; test asserts the command includes NO `--type`
+     flag (D-020 Iron Law: `jr issue link` uses jr default "Relates"; `--type` is never
+     loop-influenceable).
+   - `jr issue move <ticket_id> <close_state>` — authorized via `["close"]` marker scope (D-021);
+     mock records the call; `<close_state>` is CONFIG-driven (test must inject `MOCK_JIRA_CLOSE_STATE`
+     from `CLOSE_STATE_ALLOWLIST = {"Done","Closed","Resolved"}`); test asserts the state value
+     is the configured allowlist member, NOT a verdict-supplied value.
+   - **D-022 compound sequences:** for `closed-same` (create+link) and `related-open` (comment+link),
+     the mock must accept the two marker-authorized calls as independent sequential invocations
+     (not a single call). The link call for `closed-same` MUST carry the `link_target_ticket_id`
+     returned from the immediately preceding `jr issue create`. The mock records the full call
+     sequence; test asserts order and argument correctness.
+   - **`close` scope anti-fungibility:** the mock asserts that when `["close"]` authorizes
+     `jr issue move`, no `jr issue comment`, `jr issue create`, or `jr issue link` is
+     authorized by that same marker invocation.
 
 ### Test Surfaces That Depend on This DTU
 
@@ -303,6 +332,9 @@ Extend the existing BATS mock `jr` binary (located in BATS helpers) with:
 | BATS tests for require-review D-005 marker mechanism | `jr issue comment` / `jr issue create` authorized via marker |
 | BATS tests for sensor-silence BLIND-SPOT dedup (R-006) | `blind-spot-open` and `blind-spot-absent` scenarios |
 | BATS tests for never-auto-reopen-closed invariant (§3.4 rule 4) | `closed-same` scenario: assert no `jr issue transition` call |
+| BATS tests for D-020 link scope anti-fungibility | `related-open` scenario: assert `["link"]` marker authorizes ONLY `jr issue link`; comment marker does NOT authorize link call |
+| **[NEW v1.2]** BATS tests for D-021 close scope (FP/BTP auto-close) | `fp-auto-close` scenario: assert `["close"]` marker → `jr issue move <ticket_id> <close_state>` with CONFIG-driven state from CLOSE_STATE_ALLOWLIST; hard_floor=false + autonomy_enabled=true guards exercised |
+| **[NEW v1.2]** BATS tests for D-022 compound-action sequence ordering | `closed-same` (create+link): assert link verdict carries NEW_KEY from create result; `related-open` (comment+link): assert comment precedes link in call log |
 | Holdout scenarios HS-036 (Jira-first correlation rules) | All §3.4 branches exercised end-to-end |
 
 ### Cost/Benefit

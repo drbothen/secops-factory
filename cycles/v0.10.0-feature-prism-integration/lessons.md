@@ -588,3 +588,31 @@ needing a human glance. D-019 instantiates this rule: HIGH/CRIT known-FPs route 
 comment-review (human review) rather than auto-close, because no forgery-proof known-FP
 signal exists in disposition-guard.
     _Discovered: pass-17 (P17-001 LLM-known_fp-field rejection as O6 bypass), burst-14, 2026-07-23_
+
+---
+
+### Lesson 45 — [process] Enumerate every action verb in the §3.4 correlation-rule set and verify each has an end-to-end authorization path before declaring the authorization model complete (pass-18, burst-15, 2026-07-23)
+
+Pass-18 found that `jr issue link` — the Jira link command autonomously issued by correlation
+rules 2 and 4 — had no authorization path whatsoever: no write-block entry, no marker scope,
+and no allowlist entry. Every correlation link silently failed via fail-closed DENY throughout
+the design. The §3.4 rules described the action, the architecture named it, the DTU asserted
+it would be called — but the authorization model was never extended to cover it.
+
+The lesson: when a spec section enumerates a set of agent-issued actions (§3.4 or any
+equivalent), that set is the authoritative checklist. For each verb, verify:
+(1) it appears in the write-block (requiring a marker), OR in the allowlist (permitting
+    without a marker), OR is explicitly excluded (not issued autonomously);
+(2) if write-blocked, a distinct marker scope exists for it (anti-fungibility prevents
+    scope conflation with sibling actions);
+(3) the marker scope carries every field the command needs (e.g., `link_target_ticket_id`
+    for a link command) and all fields are O7 charset-validated before command_pattern
+    construction;
+(4) the relevant consumer BC validates the anti-fungibility invariant (only the matching
+    scope executes the command).
+
+This cross-mapping should be run as an explicit checklist step at the end of every burst
+that adds a new action verb to a correlation rule set, not left as an adversary discovery.
+Pass-18 found the gap because the adversary enumerated §3.4 verbs and checked each against
+the require-review write-block — a mechanical cross-map that should have been a review step.
+    _Discovered: pass-18 (P18-001 `jr issue link` no authorization path), burst-15, 2026-07-23_

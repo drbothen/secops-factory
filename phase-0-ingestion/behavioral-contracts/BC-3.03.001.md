@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.26"
+version: "1.27"
 status: draft
 producer: product-owner
 timestamp: 2026-07-20T00:00:00
@@ -15,7 +15,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-03
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-501-ADV-0-507-2026-07-19", "v1.3-ADV-0-605-ADV-0-606-2026-07-19", "v1.4-ADV-0-B01-2026-07-19", "v1.5-RESYNC-PR17-2026-07-19", "v1.6-D-DEC-001-ICD-203-2026-07-20", "v1.7-FV-VP-HOOK-025-FINALIZED-2026-07-20", "v1.8-ADV-F2-001-003-004-016-2026-07-20", "v1.9-ADV-F2-P2-001-emitter-ordering-2026-07-20", "v1.10-ADV-F2-P3-001-002-003-011-2026-07-20", "v1.11-FV-VP-026-025-ANCHORS-2026-07-20", "v1.12-P4-001-P4-002-P4-005-P4-006-D-DEC-012-2026-07-21", "v1.13-FV-VP-028-025-026-029-ANCHORS-2026-07-21", "v1.14-ADV-F2-P5-001-P5-002-P5-003-2026-07-21", "v1.15-ADV-F2-P6-001-P6-002-2026-07-21", "v1.16-ADV-F2-P7-001-2026-07-21 [SM-ID-sync per FV]", "v1.17-ADV-F2-P8-001-OBS-2-2026-07-21", "v1.18-ADV-F2-P10-001-P10-003-P10-004-P10-008-2026-07-22 [ID-sync per FV]", "v1.19-ADV-F2-P11-001-P11-002-P11-003-P11-004-2026-07-22 [ID-sync per FV]", "v1.20-ADV-F2-P12-001-P12-002-P12-003-2026-07-22 [ID-sync per FV]", "v1.21-ADV-F2-P13-001-002-003-004-2026-07-22 [ID-sync per FV]", "v1.22-ADV-F2-P14-004-garbled-test-vector-parenthetical-2026-07-22", "v1.23-ADV-F2-P15-002-evidence-types-18field-2026-07-22", "v1.24-ADV-F2-P16-003-pc1-vphook028-18field-2026-07-22", "v1.25-CV-010-evidence-types-path-dispatch-annotation-2026-07-23", "v1.26-ADV-F2-P17-003-EC-005-L814-markdown-no-comment-marker-2026-07-23"]
+modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-501-ADV-0-507-2026-07-19", "v1.3-ADV-0-605-ADV-0-606-2026-07-19", "v1.4-ADV-0-B01-2026-07-19", "v1.5-RESYNC-PR17-2026-07-19", "v1.6-D-DEC-001-ICD-203-2026-07-20", "v1.7-FV-VP-HOOK-025-FINALIZED-2026-07-20", "v1.8-ADV-F2-001-003-004-016-2026-07-20", "v1.9-ADV-F2-P2-001-emitter-ordering-2026-07-20", "v1.10-ADV-F2-P3-001-002-003-011-2026-07-20", "v1.11-FV-VP-026-025-ANCHORS-2026-07-20", "v1.12-P4-001-P4-002-P4-005-P4-006-D-DEC-012-2026-07-21", "v1.13-FV-VP-028-025-026-029-ANCHORS-2026-07-21", "v1.14-ADV-F2-P5-001-P5-002-P5-003-2026-07-21", "v1.15-ADV-F2-P6-001-P6-002-2026-07-21", "v1.16-ADV-F2-P7-001-2026-07-21 [SM-ID-sync per FV]", "v1.17-ADV-F2-P8-001-OBS-2-2026-07-21", "v1.18-ADV-F2-P10-001-P10-003-P10-004-P10-008-2026-07-22 [ID-sync per FV]", "v1.19-ADV-F2-P11-001-P11-002-P11-003-P11-004-2026-07-22 [ID-sync per FV]", "v1.20-ADV-F2-P12-001-P12-002-P12-003-2026-07-22 [ID-sync per FV]", "v1.21-ADV-F2-P13-001-002-003-004-2026-07-22 [ID-sync per FV]", "v1.22-ADV-F2-P14-004-garbled-test-vector-parenthetical-2026-07-22", "v1.23-ADV-F2-P15-002-evidence-types-18field-2026-07-22", "v1.24-ADV-F2-P16-003-pc1-vphook028-18field-2026-07-22", "v1.25-CV-010-evidence-types-path-dispatch-annotation-2026-07-23", "v1.26-ADV-F2-P17-003-EC-005-L814-markdown-no-comment-marker-2026-07-23", "v1.27-ADV-F2-P18-001-003-005-D-020-021-022-link-close-scope-2026-07-23"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -27,6 +27,7 @@ removal_reason: null
 # Behavioral Contract BC-3.03.001: disposition-guard Hook — Alternatives-Required Gate and ICD-203 Validator / Marker Emitter
 
 > **Revision history:**
+> - v1.27 (2026-07-23): Pass-18 adversarial remediation — ADV-F2-P18-001 (MAJOR, link scope), ADV-F2-P18-003 (MAJOR, close scope), ADV-F2-P18-005 (MAJOR, O7 interpolation audit update). (1) **P18-001/D-020 — link scope added:** `"link"` added to `ACTION_ENUM` and `authorized_operations`; new STEP 6 link branch: validates `ticket_id` (KEY1) + `link_target_ticket_id` (KEY2) against `^[A-Z][A-Z0-9]+-[0-9]+$` (O7 sites 3+8); LINK-TARGET-MISSING deny if `link_target_ticket_id` absent; LINK-TARGET-CHARSET-DENY if KEY2 fails charset; pattern `^jr (--output json )?issue link <ticket_id> <link_target_ticket_id>( |$)` (no `--type` arg — default "Relates" per D-020; link_type is NOT loop-supplied). Marker schema v2.2: `link_target_ticket_id` field added (non-null for `["link"]` scope; null for all other scopes). (2) **P18-003/D-021 — close scope added:** `"close"` added to `ACTION_ENUM` and `authorized_operations`; new STEP 6 close branch: validates `ticket_id` against `^[A-Z][A-Z0-9]+-[0-9]+$` (O7 site 4); `jira_close_state` from CONFIG (CLOSE_STATE_ALLOWLIST={Done,Closed,Resolved}, validated at setup, NOT verdict-influenceable); pattern `^jr (--output json )?issue move <ticket_id> <jira_close_state>( |$)`. **CLOSE security gating (D-021):** close is REGULAR scope (not review-exempt); `hard_floor_applies()`=true (scored_priority ∈ {HIGH,CRIT}) → STEP 4 DENY-THE-WRITE fires before STEP 6 is reached; `autonomy_enabled=false` → STEP 5 kill switch. A HIGH/CRIT verdict is NEVER auto-closed. No known-FP/close bypass to `hard_floor_applies()`. (3) **P18-005/O7 — interpolation audit updated to 8 sites:** O7 site count updated from 5 to 8 in security note; sites 3 (link KEY1 ticket_id), 4 (close ticket_id), and 8 (link KEY2 link_target_ticket_id) added. ADV-F2-P18-001, ADV-F2-P18-003, ADV-F2-P18-005.
 > - v1.26 (2026-07-23): Pass-17 adversarial remediation — P17-003 (MAJOR, stale MARKDOWN_COMMENT_PATH residue in EC-005 and L814 canonical test vector). (1) **EC-005 rewritten (P17-003):** The pre-P13-001 text described "marker written … scope determined by ticket_action_type content if present; defaults to comment-scoped for investigation files" — two errors: (a) MARKDOWN_COMMENT_PATH was eliminated at P13-001 so no autonomous comment marker is ever issued from the markdown path; (b) `ticket_action_type` does not exist on the 12-field markdown path (verdict-only field, PC#1 path). Rewritten to post-P13-001 behavior: GATE 1 (autonomy_enabled absent/≠true — the common human-save case) → allow-without-marker for ALL dispositions; autonomy_enabled=true masquerade: FP → allow-without-marker (MARKDOWN_COMMENT_PATH eliminated, P13-001); non-FP/PARSE_FAIL → MARKDOWN_REVIEW_PATH (create-review/comment-review review marker, EXEMPT from kill switch); NO autonomous ["comment"] marker from the markdown path. (2) **Canonical test vector row at L814 rewritten (P17-003):** The "happy-path (v1.10 EMITTER)" row asserted "marker file written (comment-scoped, ticket-bound pattern)" for a TP investigation markdown — this contradicted the correct sibling vector at L835 (TP + autonomy=true → MARKDOWN_REVIEW_PATH comment-review marker) and asserted the retired comment-marker behavior. Rewritten: autonomy_enabled absent (common human-save case) + TP investigation markdown → allow-without-marker (NO marker), consistent with GATE 1 semantics. The two vectors (L814 autonomy-absent / L835 autonomy=true) now cover distinct, consistent cases. ADV-F2-P17-003.
 > - v1.25 (2026-07-23): CV-010 consistency-validator remediation — COSMETIC annotation in Evidence Types Used section. The original brownfield `guard clause` bullet describing "file path substring checks for `investigation` and `verdict` (path dispatch)" annotated with a [SUPERSEDED by P4-001/v1.12] note explaining the normative JSON-first dispatch introduced at v1.12. The historical description text is preserved unchanged; only a clarifying annotation is appended. No semantic change to emitter logic.
 > - v1.24 (2026-07-22): Pass-16 adversarial remediation — P16-003 (MINOR, PC#1 VP-HOOK-028 note stale field count). **PC#1 VP-HOOK-028 note corrected:** "verdict-class 15-field path" → "verdict-class 18-field path". The PC#1 normative body and adjacent dispatch check already correctly state 18-field (P10-001/P11-002); this was an internal inconsistency within the VP-HOOK-028 note only. Sweep of PC#1 current-body text: no other stale 15-field or 17-field field counts found. ADV-F2-P16-003.
@@ -167,7 +168,7 @@ removal_reason: null
      ASSET_TYPE_ENUM    = {"domain_controller","privileged_account","ot_safety_system","standard","unknown"}
      DISPOSITION_ENUM   = {"TP","FP","BTP","Indeterminate"}
      SENSOR_ENUM        = {"healthy","degraded","silent"}
-     ACTION_ENUM        = {"comment","create","assign","none","create-review","comment-review"}
+     ACTION_ENUM        = {"comment","create","assign","none","create-review","comment-review","link","close"}
      CONFIDENCE_ENUM    = {"high","medium","low"}
      SENSOR_FAMILY_ENUM    = {"crowdstrike","armis","claroty","cyberint"}  # P10-001: field 17
      SCORED_PRIORITY_ENUM  = {"CRIT","HIGH","MED","LOW"}                  # P11-002: field 18
@@ -470,6 +471,7 @@ removal_reason: null
      RETURN
 
    # ── STEP 6: Regular marker issuance (non-hard-floor, autonomy_enabled=true) ──
+   link_target = null   # schema v2.2: non-null only for ["link"] scope; initialized here so WRITE_MARKER always has this variable defined
    IF action == "comment":
      ticket_id = verdict.ticket_id
      IF ticket_id is null: emit allow without marker; RETURN
@@ -528,6 +530,65 @@ removal_reason: null
      pattern = "^jr (--output json )?issue assign " + ticket_id + " "
      ops = ["assign"]
 
+   ELIF action == "link":
+     ticket_id = verdict.ticket_id   # KEY1
+     IF ticket_id is null: emit allow without marker; RETURN
+     # P18-001/O7 site 3: charset-validation before interpolating ticket_id (KEY1) into link command_pattern
+     IF NOT regex_match("^[A-Z][A-Z0-9]+-[0-9]+$", ticket_id):
+       WRITE audit entry:
+         now_iso8601() + " TICKET-ID-CHARSET-DENY: link path ticket_id='" + ticket_id +
+         "' failed charset validation (P18-001/O7 site 3)"
+       emit deny(
+         "TICKET-ID-CHARSET-DENY: ticket_id='" + ticket_id + "' rejected before " +
+         "command_pattern interpolation. Required: ^[A-Z][A-Z0-9]+-[0-9]+$ (P18-001/O7 site 3)."
+       )
+       RETURN
+     ticket_id_b = verdict.link_target_ticket_id   # KEY2
+     IF ticket_id_b is null:
+       WRITE audit entry:
+         now_iso8601() + " LINK-TARGET-MISSING: link path link_target_ticket_id absent (P18-001/D-020)"
+       emit deny(
+         "LINK-TARGET-MISSING: link action requires link_target_ticket_id field in verdict (P18-001/D-020)."
+       )
+       RETURN
+     # P18-001/O7 site 8: charset-validation before interpolating link_target_ticket_id (KEY2) into command_pattern
+     IF NOT regex_match("^[A-Z][A-Z0-9]+-[0-9]+$", ticket_id_b):
+       WRITE audit entry:
+         now_iso8601() + " LINK-TARGET-CHARSET-DENY: link path link_target_ticket_id='" + ticket_id_b +
+         "' failed charset validation (P18-001/O7 site 8)"
+       emit deny(
+         "LINK-TARGET-CHARSET-DENY: link_target_ticket_id='" + ticket_id_b + "' rejected before " +
+         "command_pattern interpolation. Required: ^[A-Z][A-Z0-9]+-[0-9]+$ (P18-001/O7 site 8)."
+       )
+       RETURN
+     ticket_id   = regex_escape(ticket_id)    # defense-in-depth
+     ticket_id_b = regex_escape(ticket_id_b)  # defense-in-depth
+     # D-020: no --type arg; jr issue link defaults to "Relates"; link_type is NOT loop-supplied
+     pattern = "^jr (--output json )?issue link " + ticket_id + " " + ticket_id_b + "( |$)"
+     ops = ["link"]
+     link_target = ticket_id_b   # schema v2.2: stored in link_target_ticket_id marker field
+
+   ELIF action == "close":
+     ticket_id = verdict.ticket_id
+     IF ticket_id is null: emit allow without marker; RETURN
+     # P18-003/O7 site 4: charset-validation before interpolating ticket_id into close command_pattern
+     IF NOT regex_match("^[A-Z][A-Z0-9]+-[0-9]+$", ticket_id):
+       WRITE audit entry:
+         now_iso8601() + " TICKET-ID-CHARSET-DENY: close path ticket_id='" + ticket_id +
+         "' failed charset validation (P18-003/O7 site 4)"
+       emit deny(
+         "TICKET-ID-CHARSET-DENY: ticket_id='" + ticket_id + "' rejected before " +
+         "command_pattern interpolation. Required: ^[A-Z][A-Z0-9]+-[0-9]+$ (P18-003/O7 site 4)."
+       )
+       RETURN
+     # D-021: jira_close_state is CONFIG-driven from CLOSE_STATE_ALLOWLIST={Done,Closed,Resolved}
+     # validated at setup time; NOT derived from or influenceable by verdict fields
+     jira_close_state = get_jira_close_state_from_config()
+     ticket_id = regex_escape(ticket_id)   # defense-in-depth
+     pattern = "^jr (--output json )?issue move " + ticket_id + " " + jira_close_state + "( |$)"
+     ops = ["close"]
+     # link_target remains null (initialized above); schema v2.2: link_target_ticket_id=null for close scope
+
    # ── WRITE_MARKER: common path for all marker types ──────────────────────
    # P10-003: is_review_path flag gates fail-closed behavior on marker write failure.
    # Review-path marker failures must DENY (not allow-without-marker) because a review
@@ -546,6 +607,7 @@ removal_reason: null
      org_slug: verdict.org_slug,
      authorized_operations: ops,
      command_pattern: pattern,
+     link_target_ticket_id: link_target,  # schema v2.2: non-null only for ["link"] scope; null for all others
      disposition: {
        verdict: verdict.disposition,
        severity: recomputed_severity,  # P10-001: hook-recomputed severity, not LLM-supplied
@@ -586,7 +648,7 @@ removal_reason: null
 
    **P12-001/O7 security note — command_pattern inputs are content-derived (corrects implicit D-DEC-001/D-DEC-008 claim):** `ticket_id` IS derived from Jira/alert content on the verdict path (`verdict.ticket_id` is loop-written from ingested Jira/alert data at Stage 1 INGEST in BC-10.01.001) and from free-text markdown `content` on the Human-Comment path (`parse_ticket_id_from_markdown`). `jira_project_key` is derived from plugin state (prism.toml / verdict operational metadata), itself sourced from operator-configured data. Neither field is an intrinsic constant of the hook's logic — both are externally-influenced inputs. This corrects the prior implicit D-DEC-001/D-DEC-008 claim (echoed in earlier BC versions) that `command_pattern` was effectively "not derived from Jira ticket content." The accurate statement: `ticket_id` and `jira_project_key` ARE content-derived inputs; anchored matching (D-DEC-001 property (d)) alone is NOT sufficient when anchor components can contain regex metacharacters. A crafted `ticket_id=".*"` or `ticket_id="SEC-1|.*"` broadens the anchored pattern to authorize any `jr issue comment` command, defeating property (d). Metacharacter safety is now enforced by: (1) **charset-validation before interpolation** at all 5 sites (TICKET-ID-CHARSET-DENY / PROJECT-KEY-CHARSET-DENY — hard deny on mismatch); (2) **`regex_escape()` as defense-in-depth** applied after charset check. These two controls together preserve the anchored-match property (d) regardless of content-derived inputs. O7 standing rule: every value interpolated into a `command_pattern` MUST be charset-validated to a fixed grammar AND/OR regex-escaped; every interpolation site needs a covering VP with metacharacter-injection mutant. (P12-001/O7)
 
-   **Canonical Marker JSON schema v2.1 (D-DEC-001 — single source of truth — ADV-F2-P5-003 sync):**
+   **Canonical Marker JSON schema v2.2 (D-DEC-001 — single source of truth — P18-001/D-020 sync):**
 
    ```json
    {
@@ -596,8 +658,9 @@ removal_reason: null
      "issued_by": "disposition-guard",
      "ticket_id": "<jira-ticket-id-string | null>",
      "org_slug": "<org-slug-string>",
-     "authorized_operations": ["comment"] | ["create"] | ["assign"] | ["create-review"] | ["comment-review"],
+     "authorized_operations": ["comment"] | ["create"] | ["assign"] | ["create-review"] | ["comment-review"] | ["link"] | ["close"],
      "command_pattern": "<anchored regex — see D-DEC-008 generation table below>",
+     "link_target_ticket_id": "<jira-ticket-id-string | null>",
      "disposition": {
        "verdict": "TP|FP|BTP|Indeterminate",
        "severity": "LOW|MEDIUM|HIGH|CRITICAL",
@@ -625,6 +688,10 @@ removal_reason: null
    - `disposition.verdict` enum: formally includes `"Indeterminate"` (hard-floor condition; never auto-closed; routes to review-surfacing path at STEP 3 when `ticket_action_type` is correctly set).
    - `disposition.ticket_action_type` sub-field: present in `disposition` sub-object (provides audit trail for STEP 3 routing decision and STEP 4 UNDER-LABEL-DENIED deny path (ADV-F2-P7-001) — see D-DEC-008 pseudocode).
 
+   **Schema v2.2 additions (P18-001/D-020 + P18-003/D-021 sync — architecture-delta.md §D-DEC-001 v2.2):**
+   - `authorized_operations` enum: extended to include `"link"` (D-020 link scope — `jr issue link KEY1 KEY2`, no `--type` arg; default "Relates") and `"close"` (D-021 close scope — `jr issue move KEY STATE`; close is REGULAR scope, subject to STEP 4 hard-floor check and STEP 5 kill switch; never issued for scored_priority ∈ {HIGH,CRIT}).
+   - `link_target_ticket_id` field: non-null string (charset-validated Jira key `^[A-Z][A-Z0-9]+-[0-9]+$`) when `authorized_operations=["link"]`; `null` for all other scopes. Consumer MUST verify KEY2 in the command matches `marker.link_target_ticket_id` (structurally enforced by the command_pattern anchored match at consumer step 5 — the pattern encodes both KEY1 and KEY2).
+
    > **Previous (v1.6/v1.7):** Marker schema v1.0:
    > ```json
    > {
@@ -649,12 +716,14 @@ removal_reason: null
    | `"none"` | N/A | NO marker written. Hard-floor verdicts with `"none"`: STEP 4 DENY-THE-WRITE fires (ADV-F2-P7-001) — denied before reaching this row. Non-hard-floor `"none"`: autonomy_enabled=false → STEP 5 kill switch (allow, no marker); autonomy_enabled=true → explicit `none` branch after STEP 5 (allow, no marker). | N/A | STEP 4 deny (hard-floor) / STEP 5 kill switch (non-hard-floor, autonomy_enabled=false) / post-STEP-5 none-branch (non-hard-floor, autonomy_enabled=true) |
    | `"create-review"` | `null` | `^jr (--output json )?issue create --project <jira_project_key> --label (REVIEW-REQUIRED\|BLIND-SPOT)( \|$)` (**ADV-F2-P6-001**: `--label (REVIEW-REQUIRED\|BLIND-SPOT)` in FIXED second position after `--project <key>`; structurally distinct from `["create"]` pattern; consumer STEP 6a enforces anti-fungibility in both directions; D-DEC-012 restricted marker; REQUIRES `hard_floor_applies()`=true — STEP 3 O3 gate (P5-002); over-labeled non-hard-floor verdict → emit allow without marker; exempt from kill switch; if `jira_project_key` null/absent → **HARD-FLOOR-UNBINDABLE deny (P8-001/D-DEC-012 clause 2: explicit error + deny; NEVER silent allow-without-marker)**) | `["create-review"]` | Step 3 |
    | `"comment-review"` | from verdict (non-null) | `^jr (--output json )?issue comment <ticket_id> ` (D-DEC-012: restricted human-surfacing marker; REQUIRES `hard_floor_applies()`=true — STEP 3 O3 gate (P5-002); over-labeled non-hard-floor verdict → emit allow without marker; exempt from kill switch; if `ticket_id` null → **HARD-FLOOR-UNBINDABLE deny (P8-001/D-DEC-012 clause 2: if jira_project_key present, fallback hint suggests create-review; NEVER silent allow-without-marker)**) | `["comment-review"]` | Step 3 |
+   | `"link"` | KEY1 from verdict.ticket_id (non-null); KEY2 from verdict.link_target_ticket_id (required non-null — LINK-TARGET-MISSING deny if absent) | `^jr (--output json )?issue link <ticket_id> <link_target_ticket_id>( |$)` (D-020: no `--type` arg; default "Relates"; link_type NOT loop-supplied; both keys charset-validated `^[A-Z][A-Z0-9]+-[0-9]+$` + regex-escaped; O7 sites 3+8) | `["link"]` | Step 6 |
+   | `"close"` | from verdict.ticket_id (non-null) | `^jr (--output json )?issue move <ticket_id> <jira_close_state>( |$)` (D-021: `jira_close_state` is CONFIG-driven from CLOSE_STATE_ALLOWLIST={Done,Closed,Resolved}; NOT verdict-influenceable; validated at setup; O7 site 4; REGULAR scope: hard_floor_applies()=true (scored_priority ∈ {HIGH,CRIT}) → STEP 4 DENY-THE-WRITE fires first; autonomy_enabled=false → STEP 5 kill switch; never issued for HIGH/CRIT scored_priority) | `["close"]` | Step 6 |
 
    > **Previous (v1.10) create pattern:** `^jr (--output json )?issue create .*--project <jira_project_key>` (unbounded `.*` before `--project` allowed injection; no trailing boundary). **Previous (v1.10) table:** No `create-review` or `comment-review` rows; `"none"` had no semantic qualification.
 
    Trailing space after ticket_id in comment/assign/comment-review patterns is intentional: prevents `SEC-1234` matching a pattern anchored to `SEC-123 `.
 
-   **P12-001/O7 charset-validation at all interpolation sites:** Before any `ticket_id` or `jira_project_key` value is interpolated into a `command_pattern`, it is validated against a fixed charset (`ticket_id` → `^[A-Z][A-Z0-9]+-[0-9]+$`; `jira_project_key` → `^[A-Z][A-Z0-9]+$`) with hard deny on mismatch (TICKET-ID-CHARSET-DENY / PROJECT-KEY-CHARSET-DENY). `regex_escape()` applied as defense-in-depth after the charset check. This applies to all 5 rows that construct a `command_pattern` (comment, comment-review, assign, create, create-review) — see STEP 3 and STEP 6 pseudocode above.
+   **P12-001/P18-001/O7 charset-validation at all interpolation sites:** Before any `ticket_id`, `jira_project_key`, or `link_target_ticket_id` value is interpolated into a `command_pattern`, it is validated against a fixed charset (`ticket_id` / `link_target_ticket_id` → `^[A-Z][A-Z0-9]+-[0-9]+$`; `jira_project_key` → `^[A-Z][A-Z0-9]+$`) with hard deny on mismatch (TICKET-ID-CHARSET-DENY / LINK-TARGET-CHARSET-DENY / PROJECT-KEY-CHARSET-DENY). `regex_escape()` applied as defense-in-depth after the charset check. **8 active O7 sites total (P18-005):** site 1 (STEP 3 comment-review ticket_id), site 2 (STEP 3 create-review jira_project_key), site 3 (STEP 6 link ticket_id KEY1), site 4 (STEP 6 close ticket_id), site 5 (STEP 6 comment ticket_id), site 6 (STEP 6 create jira_project_key), site 7 (STEP 6 assign ticket_id), site 8 (STEP 6 link link_target_ticket_id KEY2). This applies to all 7 rows that construct a `command_pattern` (comment, comment-review, assign, create, create-review, link, close) — see STEP 3 and STEP 6 pseudocode above.
 
    **Hard-floor check (D-DEC-008 — Step 4 [reordered BEFORE kill switch per ADV-F2-P6-002; DENY-THE-WRITE redesigned per ADV-F2-P7-001] — for REGULAR markers only; review path exempt):** The following conditions unconditionally trigger the FAIL-LOUD deny-the-Write path. When ANY hard-floor applies and the verdict is under-labeled (non-review `ticket_action_type`), STEP 4 DENIES the verdict Write and writes an `UNDER-LABEL-DENIED` audit entry. `autonomy_enabled` is irrelevant — deny fires regardless. D-DEC-012: correctly-labeled create-review and comment-review markers bypass this function entirely (see Step 3). **P10-001/P11-002: `hard_floor_applies()` keys the HIGH/CRIT severity floor on `verdict.scored_priority` (field 18 — Stage-5 assess-priority output), NOT on `recomputed_severity`; `recomputed_severity` (STEP 1a consistency check result) is still computed and compared but no longer drives the severity floor:**
    - `disposition` is `Indeterminate` (hard floor — never auto-close)
@@ -840,6 +909,11 @@ removal_reason: null
 | `investigation-ALERT-001.md` → all 12 mandatory headings, Disposition=FP, Sensor Health Status=healthy, `autonomy_enabled: true` token appearing **inside a code fence or evidence block** (not in dedicated structured field), no dedicated Autonomy Enabled structured field | Separate Human-Comment Marker Path (P13-003): `parse_autonomy_enabled_from_markdown` reads ONLY dedicated structured field — embedded token in code fence/evidence block does NOT match; returns false; Gate 1 fires → **allow-without-marker** (kill-switch parity; embedded token cannot open the gate); NO Jira action authorized; Write succeeds | **edge-case (P13-003 — autonomy_enabled token in code fence → Gate 1 stays closed; allow-without-marker)** |
 | `verdict-ALERT-001.json` → JSON with all 18 keys, disposition=TP, **ticket_id=".*"** (metacharacter injection), ticket_action_type=comment, severity=LOW, scored_priority=LOW, non-hard-floor, autonomy_enabled=true | `permissionDecision: deny`; audit.log: `TICKET-ID-CHARSET-DENY: comment path ticket_id='.*' failed charset validation (P12-001/O7)`; deny reason: "TICKET-ID-CHARSET-DENY: ticket_id='.*' rejected before command_pattern interpolation (P12-001/O7)"; NO marker written | **error (P12-001 — TICKET-ID-CHARSET-DENY)** |
 | `verdict-ALERT-001.json` → JSON with all 18 keys, disposition=FP, **jira_project_key="SEC\|.*"** (metacharacter injection), ticket_action_type=create, severity=LOW, scored_priority=LOW, non-hard-floor, autonomy_enabled=true | `permissionDecision: deny`; audit.log: `PROJECT-KEY-CHARSET-DENY: create path jira_project_key='SEC\|.*' failed charset validation (P12-001/O7)`; deny reason: "PROJECT-KEY-CHARSET-DENY: jira_project_key='SEC\|.*' rejected before command_pattern interpolation (P12-001/O7)"; NO marker written | **error (P12-001 — PROJECT-KEY-CHARSET-DENY)** |
+| `verdict-ALERT-001.json` → JSON with all 18 keys, disposition=FP, **ticket_id="SEC-42"**, **link_target_ticket_id="SEC-99"**, ticket_action_type=link, severity=LOW, scored_priority=LOW, asset_type=standard, autonomy_enabled=true, non-hard-floor | `permissionDecision: allow`; link-scoped marker written (authorized_operations=["link"], command_pattern `^jr (--output json )?issue link SEC-42 SEC-99( \|$)`, link_target_ticket_id="SEC-99", ticket_id="SEC-42"); both KEY1/KEY2 charset-validated + regex-escaped (P18-001/O7 sites 3+8) | **happy-path (D-020 link scope — P18-001)** |
+| `verdict-ALERT-001.json` → JSON with all 18 keys, disposition=FP, **link_target_ticket_id=".*"** (metacharacter injection in KEY2), ticket_id="SEC-42", ticket_action_type=link, severity=LOW, scored_priority=LOW, autonomy_enabled=true | `permissionDecision: deny`; audit.log: `LINK-TARGET-CHARSET-DENY: link path link_target_ticket_id='.*' failed charset validation (P18-001/O7 site 8)`; deny reason: "LINK-TARGET-CHARSET-DENY: link_target_ticket_id='.*' rejected before command_pattern interpolation (P18-001/O7 site 8)"; NO marker written | **error (P18-001 — LINK-TARGET-CHARSET-DENY)** |
+| `verdict-ALERT-001.json` → JSON with all 18 keys, disposition=FP, ticket_action_type=close, **ticket_id="SEC-42"**, severity=LOW, scored_priority=LOW, asset_type=standard, autonomy_enabled=true, non-hard-floor | `permissionDecision: allow`; close-scoped marker written (authorized_operations=["close"], command_pattern `^jr (--output json )?issue move SEC-42 Done( \|$)` where Done is from CLOSE_STATE_ALLOWLIST config, link_target_ticket_id=null, ticket_id="SEC-42") | **happy-path (D-021 close scope — FP non-hard-floor, autonomy=true)** |
+| `verdict-ALERT-001.json` → JSON with all 18 keys, disposition=FP, ticket_action_type=close, ticket_id="SEC-42", severity=HIGH, **scored_priority=HIGH**, asset_type=standard, autonomy_enabled=true | `permissionDecision: deny`; STEP 4 DENY-THE-WRITE fires (scored_priority=HIGH → hard_floor_applies()=true; close is not a review token → HARD-FLOOR-UNDER-LABEL; required_token="comment-review"); `UNDER-LABEL-DENIED` audit entry written; NO marker; loop MUST re-issue verdict Write with ticket_action_type=comment-review. **HIGH/CRIT verdict NEVER auto-closed (D-021 security gating).** | **edge-case (D-021 CLOSE security gating — STEP 4 denies HIGH/CRIT close)** |
+| `verdict-ALERT-001.json` → JSON with all 18 keys, disposition=FP, ticket_action_type=close, ticket_id="SEC-42", severity=LOW, scored_priority=LOW, asset_type=standard, **autonomy_enabled=false** | `permissionDecision: allow` (allow-without-marker); STEP 5 kill switch fires — autonomy_enabled=false; no marker written; Stage-8 `jr issue move` will be denied by require-review (no marker to consume) | **edge-case (D-021 CLOSE kill switch — autonomy=false → allow-without-marker)** |
 
 ## Verification Properties
 

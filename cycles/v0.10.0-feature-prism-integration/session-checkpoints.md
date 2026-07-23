@@ -98,3 +98,14 @@ Superseded checkpoints rotated out of STATE.md.
 | **Position** | Pass-10 remediation COMPLETE + committed. NEXT: adversarial pass 11 (carry confirmed-invariants list including VP-HOOK-030/STEP-1a; mark ASM-008/ASM-015 as KNOWN-DEFERRED). Clean streak 0/3; decay strong (2C→2C→1C→0C→1C). |
 | **Context** | Artifact versions: arch-delta v1.13, verif-delta v1.13, prd-delta v1.12, dtu-assessment v1.1, BC-3.03.001 v1.18, BC-10.01.001 v1.15, BC-6.01.003 v1.2, BC-3.01.001 v1.21, BC-8.02.001 v1.3, BC-6.01.001 v1.6. D-009/D-010 recorded. VP-HOOK-030 + VP-SKILL-075 FINALIZED P0. O6 rule codified. |
 | **Convergence counter** | 0/3 clean passes (pass-10: 1C/2M — REMEDIATED. Pass-11 needed for clean streak. ASM-008/ASM-015 KNOWN-DEFERRED — carry to pass-11 as confirmed scope exclusions.) |
+
+---
+
+## Checkpoint archived 2026-07-22 (displaced by pass-14 complete)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-07-22 |
+| **Position** | Pass 13 REMEDIATED — awaiting pass 14. P13-001 CRITICAL MARKDOWN_COMMENT_PATH ELIMINATED (FP→allow-without-marker; recurring 2-pass CRITICAL closed). P13-002 CRITICAL PRISMDEMO key correction (setup-time validation added). P13-003 MAJOR strict parse grammar. P13-004 MINOR PC#2 prose. D-017/D-018 recorded. SM-52+SM-53 allocated. Clean streak 0/3; trajectory ...→2C(pass12)→2C(pass13)→pass13 remediated. |
+| **Context** | Artifact versions: arch-delta v1.16, verif-delta v1.16, prd-delta v1.15, BC-3.03.001 v1.21, BC-6.01.001 v1.7, BC-6.01.003 v1.5, BC-10.01.001 v1.17, BC-4.05.001 v1.4, BC-3.01.001 v1.21, BC-5.01.001 v1.9, BC-4.02.001 v1.9, BC-8.02.001 v1.4. VP-HOOK-032 + SM-48/49/50/51/52/53 allocated. 35 VPs / 47 mutants / ~360 test vectors for cycle. D-017/D-018 recorded. Pass-14 dispatch pending; adversary fresh context; carry confirmed-invariants. |
+| **Convergence counter** | 0/3 clean passes (pass-13 REMEDIATED; pass-14 pending) |

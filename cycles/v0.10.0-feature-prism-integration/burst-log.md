@@ -652,3 +652,11 @@ Pass-13 remediation (burst 9) closed P13-001 through P13-004. The recurring CRIT
 - `feature/prism-integration-handoff-brief.md` (PRISMDEMO rename §3.5/§4.1, human-authorized)
 
 **Convergence counter:** 0/3 clean passes. Pass-13 REMEDIATED. Pass 14 is next (adversary fresh context; carry confirmed-invariants list).
+
+---
+
+## Archived Current Phase Step — F2: pass-11 remediation burst 7 (displaced 2026-07-22)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-11 remediation burst 7 | architect / product-owner / formal-verifier | DONE | P11-001 STEP 1a consistency-only reframe: overstated "un-bypassable/independently-derived" language WITHDRAWN; native_severity trust reclassified as ASM-008-DEFERRED (symmetric with asset_type and scored_priority). P11-002 two-field severity model: verdict.severity = detector-native NORMALIZE_SEVERITY output (Stage 1 only); verdict.scored_priority (field 18 ∈{CRIT,HIGH,MED,LOW}) = Stage-5 assess-priority output; HIGH/CRIT floor keys on scored_priority NOT recomputed severity. P11-003 NVD/CVSS clean separation: sensor_family enum has no 'nvd' member; CVSS influences scored_priority not native_severity. P11-004 separate human-comment marker path: PC#2 in BC-3.03.001 routes 12-field investigation-markdown to a minimal comment-scoped marker path (no validate_enums()/STEP 1a; gated on 12-field completeness + markdown-evaluable hard floors). P11-005 BC-6.01.003 mis-anchor corrected. P11-006 prd-delta BC version table refreshed. VP-HOOK-031 + SM-46 + SM-47 allocated. D-011..D-014 recorded. arch-delta v1.14, verif-delta v1.14, prd-delta v1.13, BC-3.03.001 v1.19, BC-10.01.001 v1.16, BC-5.01.001 v1.9, BC-4.02.001 v1.9, BC-6.01.003 v1.3. |

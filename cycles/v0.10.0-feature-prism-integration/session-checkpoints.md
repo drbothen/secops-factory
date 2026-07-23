@@ -109,3 +109,14 @@ Superseded checkpoints rotated out of STATE.md.
 | **Position** | Pass 13 REMEDIATED — awaiting pass 14. P13-001 CRITICAL MARKDOWN_COMMENT_PATH ELIMINATED (FP→allow-without-marker; recurring 2-pass CRITICAL closed). P13-002 CRITICAL PRISMDEMO key correction (setup-time validation added). P13-003 MAJOR strict parse grammar. P13-004 MINOR PC#2 prose. D-017/D-018 recorded. SM-52+SM-53 allocated. Clean streak 0/3; trajectory ...→2C(pass12)→2C(pass13)→pass13 remediated. |
 | **Context** | Artifact versions: arch-delta v1.16, verif-delta v1.16, prd-delta v1.15, BC-3.03.001 v1.21, BC-6.01.001 v1.7, BC-6.01.003 v1.5, BC-10.01.001 v1.17, BC-4.05.001 v1.4, BC-3.01.001 v1.21, BC-5.01.001 v1.9, BC-4.02.001 v1.9, BC-8.02.001 v1.4. VP-HOOK-032 + SM-48/49/50/51/52/53 allocated. 35 VPs / 47 mutants / ~360 test vectors for cycle. D-017/D-018 recorded. Pass-14 dispatch pending; adversary fresh context; carry confirmed-invariants. |
 | **Convergence counter** | 0/3 clean passes (pass-13 REMEDIATED; pass-14 pending) |
+
+---
+
+## Checkpoint archived 2026-07-22 (displaced by pass-16 complete)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-07-22 |
+| **Position** | Pass-15 remediation COMPLETE + committed (burst 11): P13-001 markdown-comment-marker elimination propagated to BC-4.02.001 (v1.10) + BC-5.01.001 (v1.10); BC-3.03.001 (v1.23) 15→18-field residue fixed; BC-9.01.001 (v1.2) scan-threats presentation-note; prd-delta (v1.16) §1 VP-status refreshed. VPs 37 / SM 54. Clean streak 0/3. Next: dispatch F2 adversarial pass 16. |
+| **Context** | Artifact versions (post-burst-11): arch-delta v1.17, verif-delta v1.18 (anchor sweep only), prd-delta v1.16, BC-10.01.001 v1.18, BC-3.03.001 v1.23, BC-3.01.001 v1.22, BC-6.01.003 v1.7, BC-6.01.001 v1.7, BC-4.05.001 v1.4, BC-5.01.001 v1.10, BC-4.02.001 v1.10, BC-9.01.001 v1.2, BC-8.02.001 v1.4. VPs 37 / SM 54. |
+| **Convergence counter** | 0/3 clean passes (pass-15 remediated — burst 11 committed; pass 16 pending) |

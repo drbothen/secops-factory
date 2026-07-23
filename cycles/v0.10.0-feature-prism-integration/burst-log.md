@@ -762,3 +762,11 @@ BC-10.01.001 v1.16/v1.17→v1.18). BC-10.01.001 canonical test vectors lines 648
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
 | F2: adversarial pass 13 | adversary | DONE | 2C/1M/1m — markdown-comment path CRITICAL for 2nd consecutive pass. P13-001 (CRITICAL): MARKDOWN_COMMENT_PATH FP branch issues autonomous comment marker with NO scored_priority/asset_type floor (not in 12-field markdown) and NO known-FP store backing → unbounded exemption; P12-002 fix closed TP case, left FP branch open; NOT covered by DI-015. P13-002 (CRITICAL/RC-gate): brief canonical demo key PRISM-DEMO / PRISM-DEMO-42 is NOT a valid Jira key (hyphens disallowed in project keys) → P12-001 charset (correct-for-Jira) fails-closed on every demo marker → RC live-demo cannot issue any Jira write; regex right, brief example wrong. P13-003 (MAJOR): markdown disposition/autonomy_enabled parse grammar unspecified (FP mis-parse → floor bypass; no fail-closed-to-review rule). P13-004 (MINOR): PC#2 prose stale vs P12-002. Report persisted; P13-001/002 at human gate. |
+
+---
+
+## Archived Current Phase Step — F2: pass-13 remediation burst 9 (displaced 2026-07-22)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-13 remediation burst 9 | architect / product-owner / formal-verifier | DONE | P13-001 CRITICAL MARKDOWN_COMMENT_PATH ELIMINATED (FP→allow-without-marker; hook cannot eval scored_priority/asset_type from 12-field markdown; recurring 2-pass CRITICAL closed). P13-002 CRITICAL PRISMDEMO key correction (PRISM-DEMO invalid hyphen; ^[A-Z][A-Z0-9]+$ charset unchanged; setup-time validation added to BC-6.01.001 + BC-6.01.003). P13-003 MAJOR strict parse grammar (canonical-heading-only; exact allowlist; PARSE_FAIL→review; no full-doc scan). P13-004 MINOR PC#2 prose updated (P11-004/P12-002/P13-001 cross-ref). SM-52 (FP-comment-marker revert) + SM-53 (disposition-scan revert) allocated. D-017/D-018 recorded. arch-delta v1.16, verif-delta v1.16, prd-delta v1.15, BC-3.03.001 v1.21, BC-6.01.001 v1.7, BC-6.01.003 v1.5, BC-10.01.001 v1.17, BC-4.05.001 v1.4, BC-3.01.001 v1.21, BC-5.01.001 v1.9, BC-4.02.001 v1.9, BC-8.02.001 v1.4. Clean streak 0/3. |

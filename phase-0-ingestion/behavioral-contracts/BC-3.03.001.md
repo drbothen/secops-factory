@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.24"
+version: "1.25"
 status: draft
 producer: product-owner
 timestamp: 2026-07-20T00:00:00
@@ -15,7 +15,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-03
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-501-ADV-0-507-2026-07-19", "v1.3-ADV-0-605-ADV-0-606-2026-07-19", "v1.4-ADV-0-B01-2026-07-19", "v1.5-RESYNC-PR17-2026-07-19", "v1.6-D-DEC-001-ICD-203-2026-07-20", "v1.7-FV-VP-HOOK-025-FINALIZED-2026-07-20", "v1.8-ADV-F2-001-003-004-016-2026-07-20", "v1.9-ADV-F2-P2-001-emitter-ordering-2026-07-20", "v1.10-ADV-F2-P3-001-002-003-011-2026-07-20", "v1.11-FV-VP-026-025-ANCHORS-2026-07-20", "v1.12-P4-001-P4-002-P4-005-P4-006-D-DEC-012-2026-07-21", "v1.13-FV-VP-028-025-026-029-ANCHORS-2026-07-21", "v1.14-ADV-F2-P5-001-P5-002-P5-003-2026-07-21", "v1.15-ADV-F2-P6-001-P6-002-2026-07-21", "v1.16-ADV-F2-P7-001-2026-07-21 [SM-ID-sync per FV]", "v1.17-ADV-F2-P8-001-OBS-2-2026-07-21", "v1.18-ADV-F2-P10-001-P10-003-P10-004-P10-008-2026-07-22 [ID-sync per FV]", "v1.19-ADV-F2-P11-001-P11-002-P11-003-P11-004-2026-07-22 [ID-sync per FV]", "v1.20-ADV-F2-P12-001-P12-002-P12-003-2026-07-22 [ID-sync per FV]", "v1.21-ADV-F2-P13-001-002-003-004-2026-07-22 [ID-sync per FV]", "v1.22-ADV-F2-P14-004-garbled-test-vector-parenthetical-2026-07-22", "v1.23-ADV-F2-P15-002-evidence-types-18field-2026-07-22", "v1.24-ADV-F2-P16-003-pc1-vphook028-18field-2026-07-22"]
+modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-501-ADV-0-507-2026-07-19", "v1.3-ADV-0-605-ADV-0-606-2026-07-19", "v1.4-ADV-0-B01-2026-07-19", "v1.5-RESYNC-PR17-2026-07-19", "v1.6-D-DEC-001-ICD-203-2026-07-20", "v1.7-FV-VP-HOOK-025-FINALIZED-2026-07-20", "v1.8-ADV-F2-001-003-004-016-2026-07-20", "v1.9-ADV-F2-P2-001-emitter-ordering-2026-07-20", "v1.10-ADV-F2-P3-001-002-003-011-2026-07-20", "v1.11-FV-VP-026-025-ANCHORS-2026-07-20", "v1.12-P4-001-P4-002-P4-005-P4-006-D-DEC-012-2026-07-21", "v1.13-FV-VP-028-025-026-029-ANCHORS-2026-07-21", "v1.14-ADV-F2-P5-001-P5-002-P5-003-2026-07-21", "v1.15-ADV-F2-P6-001-P6-002-2026-07-21", "v1.16-ADV-F2-P7-001-2026-07-21 [SM-ID-sync per FV]", "v1.17-ADV-F2-P8-001-OBS-2-2026-07-21", "v1.18-ADV-F2-P10-001-P10-003-P10-004-P10-008-2026-07-22 [ID-sync per FV]", "v1.19-ADV-F2-P11-001-P11-002-P11-003-P11-004-2026-07-22 [ID-sync per FV]", "v1.20-ADV-F2-P12-001-P12-002-P12-003-2026-07-22 [ID-sync per FV]", "v1.21-ADV-F2-P13-001-002-003-004-2026-07-22 [ID-sync per FV]", "v1.22-ADV-F2-P14-004-garbled-test-vector-parenthetical-2026-07-22", "v1.23-ADV-F2-P15-002-evidence-types-18field-2026-07-22", "v1.24-ADV-F2-P16-003-pc1-vphook028-18field-2026-07-22", "v1.25-CV-010-evidence-types-path-dispatch-annotation-2026-07-23"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -27,6 +27,7 @@ removal_reason: null
 # Behavioral Contract BC-3.03.001: disposition-guard Hook — Alternatives-Required Gate and ICD-203 Validator / Marker Emitter
 
 > **Revision history:**
+> - v1.25 (2026-07-23): CV-010 consistency-validator remediation — COSMETIC annotation in Evidence Types Used section. The original brownfield `guard clause` bullet describing "file path substring checks for `investigation` and `verdict` (path dispatch)" annotated with a [SUPERSEDED by P4-001/v1.12] note explaining the normative JSON-first dispatch introduced at v1.12. The historical description text is preserved unchanged; only a clarifying annotation is appended. No semantic change to emitter logic.
 > - v1.24 (2026-07-22): Pass-16 adversarial remediation — P16-003 (MINOR, PC#1 VP-HOOK-028 note stale field count). **PC#1 VP-HOOK-028 note corrected:** "verdict-class 15-field path" → "verdict-class 18-field path". The PC#1 normative body and adjacent dispatch check already correctly state 18-field (P10-001/P11-002); this was an internal inconsistency within the VP-HOOK-028 note only. Sweep of PC#1 current-body text: no other stale 15-field or 17-field field counts found. ADV-F2-P16-003.
 > - v1.23 (2026-07-22): Pass-15 adversarial remediation — P15-002 (MINOR, Evidence Types section stale field count). **Evidence Types corrected:** "guard clause (v1.6/v1.8)" bullet updated from "15-key JSON key-presence validation" (stale since P10-001/P11-002) to "18-key JSON key-presence validation" with full version progression: 15 fields at v1.8 (after addition of severity/asset_type/ticket_action_type) → 17 fields at v1.18/P10-001 (after addition of native_severity/sensor_family) → 18 fields at v1.19/P11-002 (after addition of scored_priority). No semantic change to emitter logic. ADV-F2-P15-002.
 > - v1.22 (2026-07-22): Pass-14 adversarial remediation — P14-004 (MINOR, stale field-count parenthetical). **Canonical test vector L825 corrected (P14-004):** Input description parenthetical "(17-field verdict missing field 16 of 18)" was garbled — the verdict schema is 18-field (P11-002); the correct phrasing is "(field 16 of the 18-field verdict schema)". Also corrected "same deny path as EC-010 for fields 1-17" → "fields 1-18" in the same row (P10-001/P11-002 18-field validation covers all 18 fields). ADV-F2-P14-004.
@@ -873,7 +874,7 @@ removal_reason: null
 
 #### Evidence Types Used
 
-- **guard clause**: file path substring checks for `investigation` and `verdict` (path dispatch)
+- **guard clause**: file path substring checks for `investigation` and `verdict` (path dispatch) [SUPERSEDED by P4-001/v1.12 — normative dispatch is now JSON-first per PC#1: .json extension OR jq empty succeeds → verdict-class; else investigation-markdown. This brownfield description reflects the original hook before JSON-first dispatch.]
 - **guard clause**: case-insensitive content check for "Disposition" presence (lines 48-51)
 - **guard clause**: heading-anchored case-insensitive content check for "Alternatives Considered" absence (`grep -qiE "^#{1,6}[[:space:]]+Alternatives Considered"`, line 57 — DI-004 RESOLVED, PR #17)
 - **guard clause (v1.6/v1.10)**: 12-field ICD-203 heading-anchored check for investigation files (markdown path — 12 fields; v1.10 artifact-class branching)

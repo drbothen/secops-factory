@@ -11,6 +11,44 @@ Track all spec version changes. Most recent version first.
 
 ## [1.1.0] - 2026-07-20 (patch edits 2026-07-21/22 — not a version bump)
 
+### F2 Consistency-Validator Full Sweep + Remediation — Burst 13 (2026-07-23) — spec remains 1.1.0
+
+Consistency-validator exhaustive 10-axis cross-document census + remediation. 12 findings (0 blocking,
+2 MAJOR, 7 MINOR, 1 COSMETIC; all version-drift or stale-description). 7 of 10 axes confirmed CLEAN
+(field counts, enum tokens, demo key, NVD/CVSS separation, markdown-path semantics, cross-BC contract
+coherence, tracked deferrals). Root findings:
+CV-001 (MAJOR — BC-4.02.001 PC#1 cites BC-3.03.001 v1.13 / BC-3.01.001 v1.17; 11+5 versions stale),
+CV-002 (MAJOR — BC-4.02.001 PC#5 same stale cites),
+CV-003 (MINOR — BC-4.02.001 PC#4 confidence cite BC-3.03.001 v1.23 / BC-3.01.001 v1.17; 1+5 stale),
+CV-004 (MINOR — BC-5.01.001 Inv#7 confidence cite BC-3.01.001 v1.17; 5 stale),
+CV-005 (MINOR — BC-5.01.001 Inv#7 three occurrences BC-3.03.001 v1.23; 1 stale),
+CV-006 (MINOR — prd-delta §5 BC-3.01.001 "New Version" cell shows v1.21; actual v1.22),
+CV-007 (MINOR — prd-delta §1 BC-10.01.001 VP Refs missing VP-SKILL-075),
+CV-008 (MINOR — architecture-delta §8.29 + v1.16 changelog: "current total … / 35 VPs" language stale;
+  actual current 37 VPs; both occurrences annotated [SUPERSEDED → current total per verif-delta v1.18: 37 VPs]),
+CV-009 (MINOR — BC-10.01.001 PC#8 describes pre-P4-001 substring dispatch; VP-HOOK-028 same BC correct;
+  PC#8 rewritten to JSON-first dispatch with [UPDATED P4-001] tag),
+CV-010 (COSMETIC — BC-3.03.001 Evidence Types brownfield note describes pre-P4-001 dispatch;
+  superseded annotation added),
+CV-011 (MINOR — prd-delta §5 BC-10.01.001 "New Version" cell shows v1.17; actual v1.18),
+CV-012 (MINOR — prd-delta §5 BC-6.01.001 "New Version" cell shows v1.6; actual v1.7; burst-9 post-note
+  records v1.7; spec-changelog v1.15 entry also claimed v1.7 (contradicted — see CV-012c reconciliation
+  note at prd-delta v1.15 row below); corrected to v1.7 at prd-delta v1.17).
+Consistency report persisted: phase-f2-spec-evolution/consistency-audit-pass16.md.
+37 VPs / 48 mutants (SM-9..SM-54, SM-32=32a+32b+32-ext; SM-55 skipped) / ~367 test vectors (no VP/SM additions this burst).
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.17 | v1.18 | CV-008: §8.29 "current grand total: 35 VPs" annotated [SUPERSEDED → current total per verification-delta v1.18: 37 VPs = 9 VP-HOOK + 28 VP-SKILL]; v1.16 changelog "current total … / 35 VPs" annotated [SUPERSEDED]; no normative content changes |
+| phase-0-ingestion/behavioral-contracts/BC-4.02.001.md | v1.11 | v1.12 | CV-001/002: PC#1+PC#5 cross-ref cites updated BC-3.03.001 v1.13→v1.24 and BC-3.01.001 v1.17→v1.22; CV-003: PC#4 confidence footnote updated BC-3.03.001 v1.23→v1.24 and BC-3.01.001 v1.17→v1.22 |
+| phase-0-ingestion/behavioral-contracts/BC-5.01.001.md | v1.11 | v1.12 | CV-004: Inv#7 confidence footnote BC-3.01.001 v1.17→v1.22; CV-005: three BC-3.03.001 v1.23→v1.24 occurrences in Inv#7 and DI-013-RESOLVED footer |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.18 | v1.19 | CV-009: PC#8 body rewritten to JSON-first dispatch (file_path ends in .json OR jq empty succeeds → verdict-class 18-field path; otherwise investigation-markdown 12-field path); [UPDATED P4-001] tag added; "[NEW v1.6]" tag retained |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.24 | v1.25 | CV-010: Evidence Types brownfield extraction note annotated [SUPERSEDED by P4-001/v1.12 — normative dispatch is now JSON-first per PC#1] |
+| phase-f2-spec-evolution/prd-delta.md | v1.16 | v1.17 | CV-006: §5 BC-3.01.001 "New Version" v1.21→v1.22 + P14-003 change summary; CV-007: §1 BC-10.01.001 VP Refs column — VP-SKILL-075 added (FINALIZED P0); CV-011: §5 BC-10.01.001 "New Version" v1.17→v1.18 + P14-001/P14-004 summary; CV-012: §5 BC-6.01.001 "New Version" v1.6→v1.7 + P13-002 setup-time charset validation summary |
+| phase-f2-spec-evolution/verification-delta.md | v1.18 | v1.18 | anchor-version sweep only (BC-4.02.001→v1.12, BC-5.01.001→v1.12, BC-10.01.001→v1.19, BC-3.03.001→v1.25 in VP table + §5 sizing table; no VP definition changes; version stays v1.18) |
+
+---
+
 ### F2 Pass-16 Remediation Edits — Burst 12 (2026-07-22) — spec remains 1.1.0
 
 Remediation edits within the F2 adversarial convergence cycle (burst 12). Root findings:
@@ -141,7 +179,7 @@ SM-52/SM-53 allocated. D-017/D-018 recorded. 35 VPs / 47 mutants / ~360 test vec
 |------|-------------|-------------|--------------|
 | phase-f2-spec-evolution/architecture-delta.md | v1.15 | v1.16 | P13-001: MARKDOWN_COMMENT_PATH ELIMINATED (§8.29 item 1; VP-HOOK-031 guarantee c rewritten; SM-P13-A → SM-52 [ID-sync per FV]); P13-002: PRISMDEMO rename + D-DEC-008 hyphen-free constraint + setup-time validation requirement (§8.28); P13-003: strict parse grammar spec (§8.29 item 3); P13-004: PO note for BC-3.03.001 PC#2 (§8.28) |
 | phase-f2-spec-evolution/verification-delta.md | v1.15 | v1.16 | P13-001: VP-HOOK-031 guarantee (c) REWRITTEN (FP→allow-without-marker; SM-52 kill target; prior FP→comment vector RETIRED); SM-52 allocated; P13-002: 17 current-body PRISM-DEMO references → PRISMDEMO; P13-003: strict parse grammar adversarial vectors + SM-53 allocated; version-coherence sweep: BC-3.03.001 v1.20→v1.21 in §5, BC-6.01.001 v1.6→v1.7 in VP table |
-| phase-f2-spec-evolution/prd-delta.md | v1.14 | v1.15 | P13-002: PRISMDEMO rename in RC demo key references; BC-3.03.001 v1.20→v1.21, BC-6.01.001 v1.6→v1.7, BC-6.01.003 v1.4→v1.5 in §5 BC version table |
+| phase-f2-spec-evolution/prd-delta.md | v1.14 | v1.15 | P13-002: PRISMDEMO rename in RC demo key references; BC-3.03.001 v1.20→v1.21, BC-6.01.001 v1.6→v1.7, BC-6.01.003 v1.4→v1.5 in §5 BC version table [reconciled burst-13/CV-012: the §5 BC-6.01.001 cell was not actually updated at prd-delta v1.15 as this entry stated; corrected to v1.7 at prd-delta v1.17/burst-13] |
 | phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.20 | v1.21 [ID-sync per FV] | P13-001: MARKDOWN_COMMENT_PATH ELIMINATED (Trust basis + VP-HOOK-031 property + test vectors updated; SM-52 kill target); P13-002: PRISMDEMO rename in test vectors and fallback hint; P13-003: strict parse grammar for parse_disposition_from_markdown + parse_autonomy_enabled_from_markdown; P13-004: PC#2 outcome prose updated (P11-004/P12-002/P13-001 cross-ref); SM-P13-A → SM-52 [ID-sync per FV] |
 | phase-0-ingestion/behavioral-contracts/BC-6.01.001.md | v1.6 | v1.7 | P13-002: setup-time jira_project_key charset validation (^[A-Z][A-Z0-9]+$) added to Postcondition #12; non-conformant key rejected with explicit user-facing error at activation; EC-013 example updated to PRISMDEMO; EC-014 added (hyphen-containing key rejected) |
 | phase-0-ingestion/behavioral-contracts/BC-6.01.003.md | v1.4 | v1.5 | P13-002: per-org jira_project_key charset validation added to Invariant #6; non-conformant key refused with explicit error and not stored at onboard-customer; EC-010 added |

@@ -528,3 +528,16 @@ control flow from the TOP, not from the branch the finding concerned. Motivates 
 consistency-validator full sweep now scheduled to flush the coherence tail rather than
 discovering gaps one adversarial pass at a time.
     _Discovered: pass-16 (P16-001 — burst-11 regression), remediated burst-12, 2026-07-22_
+
+---
+
+### Lesson 41 — [process-gap] Use a dedicated consistency census to flush the coherence tail, not adversarial passes (burst-13, consistency-validator, 2026-07-23)
+
+Running a fresh-context consistency-validator FULL 10-axis sweep after a run of coherence-only
+adversarial passes flushed the entire drift backlog in ONE census (12 findings, 0 blocking,
+7 axes already clean) instead of discovering them one-per-adversarial-pass. Lesson: when
+2-3 consecutive adversarial passes yield only propagation/coherence findings, switch tools —
+a dedicated consistency census is the right instrument for the coherence tail, reserving
+adversarial passes for logic/security. Also: version-cross-reference drift is the dominant
+coherence-tail class; a version-coherence sweep must re-run after EVERY BC bump, not once.
+    _Discovered: burst-13 (consistency-validator full 10-axis sweep), flushed in one shot, 2026-07-23_

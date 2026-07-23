@@ -773,6 +773,14 @@ BC-10.01.001 v1.16/v1.17→v1.18). BC-10.01.001 canonical test vectors lines 648
 
 ---
 
+## Archived Current Phase Step — F2: pass-14 remediation burst 10 + follow-up (displaced 2026-07-23)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-14 remediation burst 10 + follow-up | architect / product-owner / formal-verifier / state-manager | DONE | P14-001..P14-005 CLOSED (see burst-log). Burst-10 follow-up (orchestrator-caught conflation): VP-SKILL-076/077 disentangled — VP-SKILL-077 allocated for onboard-customer AD-017 credential-decline (P14-005; B-STR; SM-55 skipped); VP-SKILL-076 scoped strictly to P14-002 charset gate. verif-delta v1.18 / BC-6.01.003 v1.7 / spec-changelog VP-SKILL-053 annotation corrected. VPs 37 / SM 54 (SM-55 skipped). Clean streak 0/3. |
+
+---
+
 ## Archived Current Phase Step — F2: adversarial pass 14 (displaced 2026-07-22)
 
 | Step | Agent | Status | Output |

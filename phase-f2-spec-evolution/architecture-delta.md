@@ -1,10 +1,11 @@
 ---
 document_type: architecture-delta
 producer: architect
-version: "1.20"
+version: "1.21"
 date: 2026-07-23
 input-hash: COMPUTE-AT-COMMIT
 changelog:
+  - "1.21 (2026-07-23): Pass-19 adversarial remediation burst 16. D-023 (P19-001 CRITICAL): disposition↔action coherence gate added to emitter close branch — hook MUST cross-validate verdict.disposition∈{FP,BTP} before issuing a close marker, regardless of autonomy_enabled. A TP/Indeterminate verdict with ticket_action_type=close previously flowed through STEP 4 (no floor) → STEP 5 (kill switch passes) → close branch unguarded; CLOSE-DISPOSITION-DENY gate now fires as FIRST check in the close branch (before ticket_id null check), analogous to STEP 3 gating review-surfacing on hard_floor_applies() entry. Gate fires regardless of autonomy_enabled — a TP/Indeterminate close is wrong even with kill switch ON. NOT covered by ASM-008 (disposition↔action coherence, not value-truthfulness). EC-013 constraint restored to full 3-condition AND: disposition∈{FP,BTP} AND hard_floor_applies()=false AND autonomy_enabled=true. O3 table extended with P19-001/D-023 row. Emitter pseudocode bumped to v1.8. P19-002 (MINOR): D-022 partial-failure orphan-link reconciliation spec added — if verdict-1 (create or comment) succeeds but verdict-2 (link) never lands (process interruption or denied Write), a ticket/comment may exist unlinked to its companion ticket; idempotent reconciliation: on subsequent loop run, when §3.4 dedup finds open ticket lacking expected Relates link to matching closed/related ticket, loop re-issues the link verdict only; FV obligation to extend VP-HOOK-036 or allocate new VP in §8.33. P19-003 (OBS): emit-time CLOSE_STATE_ALLOWLIST re-check and regex_escape(close_state) added to close branch as belt-and-suspenders per O7; missing-config default explicitly set to 'Done' (documented decision). P19-004 (OBS): HUMAN-GATE-CONFIRM — brief §3.4 rule 2 is genuinely ambiguous on whether the current alert needs a CREATE before linking; see §8.33.2 item 3 for specific question; rule 2 left as-is (comment+link) pending human confirmation. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.20 (2026-07-23): Pass-18 adversarial remediation burst 15 — human decisions 2026-07-23. D-020 (P18-001 MAJOR): new `link` authorized_operations token + ticket_action_type value + emitter command_pattern + consumer acceptance. Command: `jr issue link <ticket_id_a> <ticket_id_b>` (jr issue link help confirmed; default link-type 'Relates'; no --type arg in Iron Law — uses default). O7: ticket_id_a and ticket_id_b are TWO new interpolation sites — both charset-validated against ^[A-Z][A-Z0-9]+-[0-9]+$ + regex-escaped before pattern interpolation. New marker schema field: `link_target_ticket_id` (optional, non-ICD-203 operational metadata; required when ticket_action_type=link; null for all other marker types). Consumer: `link` added to write-block list; accepts a `[\"link\"]` marker for `jr issue link` commands; anti-fungibility: link marker authorizes ONLY a link command; comment/create/assign/close markers do NOT authorize link, and vice versa. D-021 (P18-005 OBS→RESOLVED): new `close` authorized_operations token + ticket_action_type value for FP/BTP auto-close. Command: `jr issue move <ticket_id> <close_state>` (jr issue move help confirmed; single-key legacy form). `jr issue move` already in write-block; `close` is a new authorized_operations token authorizing it. O7: ticket_id charset-validated + escaped (same ^[A-Z][A-Z0-9]+-[0-9]+$ as comment/assign); jira_close_state is CONFIG-side (set at onboard time), validated at setup against CLOSE_STATE_ALLOWLIST={Done,Closed,Resolved} — NOT verdict-influenceable; no LLM-injection surface. SECURITY: close is a REGULAR scope action (NOT exempt from kill switch); hard_floor_applies()=true (HIGH/CRIT scored_priority) → STEP 4 DENY-THE-WRITE fires → routes to comment-review instead of auto-close; autonomy_enabled=false → STEP 5 kill switch fires; close ONLY authorized for FP/BTP + non-hard-floor + autonomy_enabled=true. D-022 (P18-003 MEDIUM): compound §3.4 actions (comment+link for rule 2; create+link for rule 4) authorized via TWO SEQUENTIAL Stage-7 verdict Writes (option b). Rationale: preserves the proven one-verdict-one-marker invariant; each marker is single-use + single-element; anti-fungibility is preserved; audit trail records each action separately; for rule 4 (create+link), the link verdict MUST carry the ticket_id returned from the preceding jr issue create (loop obligation). No change to 'never multi-element' invariant — compound actions ARE two verdicts, not one. P18-002 (MAJOR): propagation gap only — VP-HOOK-028 property-(1) rewrite in BC-10.01.001 L616/L618 is a PO obligation recorded in §8.32. No architecture-delta change beyond noting it. P18-004 (OBS): BC-4.02.001 Inv#1 gated-mutation enumeration update is a PO obligation recorded in §8.32. Schema bump to v2.2. O7 interpolation audit updated (P12-007 sites + 3 new sites: 2 for link, 1 for close). Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.19 (2026-07-23): Pass-17 adversarial remediation burst 14 — human decision 2026-07-23. P17-001 (MAJOR — D-019): D-016/P12-003b floor-exemption REVISED — known-FP scored_priority floor exemption is SCOPED to LOW/MED-severity known-FPs only. HIGH/CRIT-native known-FPs are NOT exempt from hard_floor_applies(); they route to comment-review (human review) exactly as the deterministic gate already enforces. Rationale: disposition-guard has no forgery-proof known-FP signal (verdict is LLM-authored; an LLM known_fp field would be a CRITICAL bypass violating O6); routing high-sev known-FPs to human review is the secure posture and aligns with DI-015 (poisoned HIGH-sev known-FP entry cannot silently suppress a real high-severity alert). LOW/MED known-FPs retain auto-close (no floor fires). NO change to hard_floor_applies() itself — it was already correct. D-DEC-008 known-FP exemption note, §8.26.2 item 2 / P12-003b instruction, and the §8.27 FV hold-note all updated to reflect D-019. FV hold-note CLOSED (RESOLVED — D-019). LLM-known_fp-field approach REJECTED (forgeable CRITICAL bypass, violates O6). PO + FV propagation in §8.31. P17-002 (MAJOR): Partial-fix propagation residue — CV-009 fixed BC-10.01.001 PC#8 to JSON-first but did NOT propagate to Invariant #14 Stage-7 (still mandates 'verdict' substring, cites retired PC#8) or VP-HOOK-028 property (1) (still asserts now-tautological 'non-verdict-path Write → fast-path-allow' under JSON-first). PO + FV remediation in §8.31. P17-003 (MAJOR): Partial-fix propagation residue — P13-001 eliminated MARKDOWN_COMMENT_PATH but did NOT propagate to BC-3.03.001 EC-005 (L798) or the L814 canonical test vector, which still assert comment-scoped marker + non-existent ticket_action_type field for investigation markdown. PO remediation in §8.31. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.18 (2026-07-23): CV-008 (MINOR) — VP-count historical-annotation correction. Two historical sections used present-tense 'current total ... 35 VPs' language now superseded by verification-delta v1.18 (authoritative VP count: 37 VPs = 9 VP-HOOK 024-032 + 28 VP-SKILL 001-077). Annotated: (a) v1.16 changelog D.P13-004 coverage note 'current total is' → 'total as of v1.16:' with [SUPERSEDED] pointer; (b) §8.29 pass-13 propagation item 4 two occurrences — 'current grand total' → 'grand total as of pass-13' and stale FV instruction '35 VPs' — both annotated [SUPERSEDED — 37 VPs current per verification-delta v1.18]. verification-delta remains the authoritative VP-count source. Architect does NOT edit BCs, verification-delta, prd-delta, spec-changelog, or the brief."
@@ -69,6 +70,7 @@ asm_004_validation: .factory/phase-f2-spec-evolution/asm-004-validation.md
 | D-DEC-010 | **RESOLVED** | Unattended permission model: `--allowedTools` scoped allowlist (prism/tavily/perplexity MCP tools + Bash + Write + Read) — NOT `--dangerously-skip-permissions`; `--bare` explicitly forbidden (would disable require-review hook); require-review hook remains the Jira auth gate |
 | D-DEC-011 | **RESOLVED** | Confidence float→enum contract: assess-priority outputs BOTH a float posterior (0.0–1.0) AND a mapped enum `{high,medium,low}`; monitoring-loop uses the enum for verdict field #2; canonical thresholds: high ≥ 0.75, medium ≥ 0.40 and < 0.75, low < 0.40 |
 | D-DEC-012 | **RESOLVED** | Review-ticket surfacing path for hard-floor verdicts: `create-review` and `comment-review` restricted marker types; exempt from hard-floor no-marker rule and autonomy_enabled kill switch; fail-loud invariant — hard-floor verdicts never silently dropped; BC-10.01.001 Inv#10 must be narrowed (PO); BC-3.01.001 must map create-review/comment-review to authorized operations (PO) |
+| D-023 | **RESOLVED** | Disposition↔action coherence gate: emitter close branch MUST cross-validate verdict.disposition∈{FP,BTP} as FIRST check (before ticket_id null check), regardless of autonomy_enabled; CLOSE-DISPOSITION-DENY fires for TP/Indeterminate; O3 annotated — ticket_action_type=close is LLM-supplied routing granting a state-change control that MUST be cross-validated against hook-computed disposition invariant (P19-001) |
 
 ---
 
@@ -1356,19 +1358,24 @@ verdict.ticket_action_type values (v1.7 — D-020/D-021/P18-001/P18-005 addition
                      just-completed preceding Jira action (for rule 4: ticket_id returned by
                      jr issue create; for rule 2: the existing related ticket_id).
   "close"          → disposition-guard issues close marker (ticket_id from verdict)
-                     (D-021/P18-005) REGULAR scope: gated by hard_floor_applies() (STEP 4) +
-                     autonomy_enabled kill switch (STEP 5).
+                     (D-021/D-023/P18-005/P19-001) REGULAR scope: gated by 3-condition AND:
+                     (1) STEP 6 disposition gate (D-023): verdict.disposition∈{FP,BTP} — FIRST
+                         check in close branch, fires regardless of autonomy_enabled;
+                     (2) hard_floor_applies()=false (STEP 4);
+                     (3) autonomy_enabled=true (STEP 5 kill switch).
                      Used for: FP + non-hard-floor + autonomy_enabled=true → auto-close (§3.3).
                                BTP + non-hard-floor + autonomy_enabled=true → auto-close (§3.3).
-                     SECURITY: if hard_floor_applies()=true (scored_priority ∈ {HIGH,CRIT}),
-                               STEP 4 DENY-THE-WRITE fires BEFORE issuance → loop re-documents
-                               with required_token=comment-review; HIGH/CRIT alert is NEVER
-                               auto-closed regardless of FP/BTP disposition.
+                     SECURITY: disposition gate (D-023) fires FIRST in close branch —
+                               IF disposition∉{FP,BTP}: CLOSE-DISPOSITION-DENY, regardless of
+                               autonomy_enabled. A TP/Indeterminate MUST NOT be auto-closed.
+                               hard_floor_applies()=true (scored_priority ∈ {HIGH,CRIT}) →
+                               STEP 4 DENY-THE-WRITE fires BEFORE this branch (required_token=
+                               comment-review); HIGH/CRIT alert NEVER auto-closed.
                                autonomy_enabled=false → STEP 5 kill switch fires; allow without
                                marker; no jr move authorized.
 ```
 
-**Emitter branch pseudocode (disposition-guard — v1.7 revision: link/close scopes added — D-020/D-021/D-022/P18-001/P18-005):**
+**Emitter branch pseudocode (disposition-guard — v1.8 revision: D-023 disposition gate + emit-time close-state validation — D-020/D-021/D-022/D-023/P18-001/P18-005/P19-001/P19-003):**
 
 ```
 # ── STEP 0: Dispatch precedence (ADV-F2-P4-001 / P11-004) ──────────────────────
@@ -1834,17 +1841,47 @@ ELIF action == "close":
   # that authorizes it for the specific FP/BTP auto-close use case.
   #
   # SECURITY RECAP (close reaches STEP 6 ONLY when STEP 4 hard-floor did NOT fire,
-  # AND STEP 5 autonomy_enabled was true):
+  # AND STEP 5 autonomy_enabled was true; AND — enforced here — disposition∈{FP,BTP}):
   #   - HIGH/CRIT scored_priority → STEP 4 DENY-THE-WRITE fires BEFORE this point
   #     → loop re-documents with required_token=comment-review (routes to human review)
   #     → HIGH/CRIT alert is NEVER auto-closed (P18-005 human decision confirmed)
   #   - autonomy_enabled=false → STEP 5 kill switch fires BEFORE this point → no marker
-  #   - This branch executes ONLY for: non-hard-floor + autonomy_enabled=true
-  #     (i.e., LOW/MED scored_priority FP/BTP with kill switch ON)
+  #   - disposition∉{FP,BTP} → D-023 gate DENIES here regardless of autonomy_enabled
+  #   - This branch issues a close marker ONLY for: non-hard-floor + autonomy_enabled=true
+  #     + disposition∈{FP,BTP} (all three conditions required — full 3-condition AND)
+  #
+  # ── D-023 (P19-001): DISPOSITION GATE — close ONLY for FP/BTP ────────────────
+  # D-021 mandates close ONLY for FP/BTP disposition. D-023 adds the hook-side enforcement:
+  # the LLM-supplied ticket_action_type=close is a routing field that grants a state-change
+  # control and MUST be cross-validated against the hook-computed verdict.disposition∈{FP,BTP}
+  # invariant before any marker issuance.
+  # Gate placement: FIRST check in this branch (before ticket_id null check), analogous to
+  # STEP 3 gating review-surfacing on hard_floor_applies() entry.
+  # Gate fires REGARDLESS of autonomy_enabled — a TP/Indeterminate close is wrong even
+  # with the kill switch ON.
+  # NOT covered by ASM-008 (this is a disposition↔action coherence check, not a
+  # value-truthfulness issue).
+  # O3 standing rule annotation: ticket_action_type=close is LLM-supplied routing that grants
+  # a state-change write; it MUST be cross-validated against hook-computed
+  # verdict.disposition∈{FP,BTP} before taking effect (parallel to how review-surfacing
+  # tokens are cross-validated against hook-computed hard_floor_applies()).
+  IF verdict.disposition NOT IN {"FP", "BTP"}:
+    WRITE audit entry:
+      "CLOSE-DISPOSITION-DENY: close authorized only for FP/BTP disposition, got '" +
+      verdict.disposition + "'; verdict Write denied by disposition-guard (D-023/P19-001)"
+    emit deny(
+      "CLOSE-DISPOSITION-DENY: ticket_action_type=close is an LLM-supplied routing field " +
+      "granting a state-change control; hook-computed invariant requires " +
+      "verdict.disposition ∈ {FP, BTP}. Got disposition='" + verdict.disposition + "'. " +
+      "A TP or Indeterminate verdict MUST NOT be auto-closed. " +
+      "Re-issue with a non-close ticket_action_type appropriate for this disposition."
+    )
+    RETURN
   #
   # close_state: CONFIG-driven, determined from jira_close_state (set at onboard);
-  # NOT a verdict field — NOT LLM-influenceable; no metacharacter injection surface.
+  # NOT a verdict field — NOT LLM-influenceable.
   # Validated against CLOSE_STATE_ALLOWLIST={"Done","Closed","Resolved"} at setup time.
+  # P19-003/D-023: ALSO validated at emit time as belt-and-suspenders (see below).
   ticket_id = verdict.ticket_id
   IF ticket_id is null: emit allow without marker; RETURN
   # O7 FIX (D-021) — CHARSET VALIDATE ticket_id BEFORE interpolation into regex
@@ -1855,10 +1892,24 @@ ELIF action == "close":
     emit deny("TICKET-ID-CHARSET-DENY: ticket_id must match ^[A-Z][A-Z0-9]+-[0-9]+$. Re-issue with valid ticket_id.")
     RETURN
   ticket_id_safe = regex_escape(ticket_id)   # defense-in-depth per O7
-  # close_state is a CONFIG-side fixed literal; validated at setup — NOT interpolated from verdict
+  # P19-003/D-023: explicit default "Done" — documented decision (fail-safe; "Done" is in
+  # CLOSE_STATE_ALLOWLIST and is the standard Jira close state).
   close_state = read_config("jira_close_state", default="Done")   # e.g., "Done" | "Closed" | "Resolved"
-  # (close_state is config-validated at onboard against CLOSE_STATE_ALLOWLIST; safe for interpolation)
-  pattern = "^jr (--output json )?issue move " + ticket_id_safe + " " + close_state + "( |$)"
+  # P19-003/D-023 EMIT-TIME CLOSE_STATE_ALLOWLIST CHECK — belt-and-suspenders against
+  # config drift and future allowlist additions (setup-time validation is temporally distant).
+  CLOSE_STATE_ALLOWLIST = {"Done", "Closed", "Resolved"}
+  IF close_state NOT IN CLOSE_STATE_ALLOWLIST:
+    WRITE audit entry:
+      "CLOSE-STATE-DENY: jira_close_state '" + close_state + "' not in CLOSE_STATE_ALLOWLIST; " +
+      "verdict Write denied by disposition-guard (P19-003/D-023)"
+    emit deny(
+      "CLOSE-STATE-DENY: jira_close_state config value '" + close_state + "' is not allowlisted. " +
+      "CLOSE_STATE_ALLOWLIST = {Done, Closed, Resolved}. " +
+      "Reconfigure jira_close_state at setup time to a valid allowlisted value."
+    )
+    RETURN
+  close_state_safe = regex_escape(close_state)   # P19-003/D-023 belt-and-suspenders per O7
+  pattern = "^jr (--output json )?issue move " + ticket_id_safe + " " + close_state_safe + "( |$)"
   ops = ["close"]
 
 # ── WRITE_MARKER: common path for all marker types ───────────────────────────
@@ -2758,7 +2809,8 @@ cross-validated against a hook-computed invariant before the grant or bypass tak
 | **[P7-009 — O4 standing rule]** any "never silently discarded" claim verified only at the emitter (marker present in store) | hard-floor finding silently dropped when emitter artifact is unconsumable (wrong command pattern, loop ignores deny reason, Write↔Bash seam gap) | **O4 standing rule:** every "never silently discarded" claim MUST have a VP whose assertion is the downstream authorization/execution outcome at the consumer/Bash boundary — a jr write is authorized AND consumable — not an emitter-local artifact (marker file presence). An emitter-only VP CANNOT detect the Write→Bash seam gap. VP-HOOK-029 re-scope per §8.17 item 1 operationalizes this rule for the hard-floor fail-loud invariant. |
 | **[P9-009 — O5 standing rule]** hook re-implements shell tokenization without a differential-vs-bash test partition | tokenizer diverges from bash for a specific quoting class (e.g., backslash-escaped quotes) → false-allow or false-deny for commands that bash parses differently; security bypass or false-positive gate possible | **O5 standing rule:** any hook that re-implements shell tokenization to make a security decision MUST carry a differential-vs-bash vector partition covering all shell-quoting classes the downstream CLI honors. The partition MUST include: (a) vectors for each quoting class the CLI command surface uses (single-quoted, double-quoted, backslash-escaped, unquoted), (b) paired mutants demonstrating that divergence from bash tokenization is detectable and killable by the VP. The structural_label_check (P9-001 backslash-escape extension) operationalizes this rule for the escaped-quote class. Any future change to the tokenizer or to the set of CLI arguments the hook parses must extend the partition correspondingly. |
 | **[P10-001 — O6 standing rule]** hook-computed invariant inputs are LLM-supplied without independent recomputation | LLM writes under-reported value (e.g., severity="LOW" for a CRITICAL alert) → hook invariant computes from the manipulated LLM value → invariant is circumvented; hard floor or security control bypassed | **O6 standing rule:** the inputs to a hook-computed invariant MUST themselves be hook-recomputable or hook-cross-validated against a deterministic ground truth — not merely accepted from the LLM-written verdict. An invariant computed exclusively from LLM-supplied fields is NOT a deterministic enforcement surface. Remediation pattern: (a) carry the raw source data (native_severity, sensor_family) verbatim from Stage 1 INGEST into the verdict as required fields; (b) the hook re-runs the deterministic computation (NORMALIZE_SEVERITY table) and cross-checks the LLM-reported result; (c) mismatch → deny. This pattern (STEP 1a SEVERITY-MISMATCH) is the canonical operationalization of O6 for severity. Any future hook invariant whose inputs are LLM-derived MUST apply O6: either carry the raw source + recompute deterministically, or cross-validate against a hook-observable ground truth. **P11-001 O6 annotation:** STEP 1a operationalizes O6 as far as the hook's input-visibility allows — it carries the raw source data (native_severity, sensor_family) and re-runs the deterministic computation. The remaining O6 residual is that native_severity and sensor_family are themselves LLM-supplied; a hook re-computation from LLM-supplied inputs is a CONSISTENCY CHECK, not ground-truth enforcement. Ground-truth enforcement requires a hook-observable independent source (prism-signed field or hook-fetched prism data — network-free hooks cannot provide this). This residual is ASM-008-DEFERRED. The high-severity hard floor is moved to scored_priority (P11-002), which has the same ASM-008-class LLM-trust residual but correctly captures the §3.9 "scored HIGH/CRIT" semantics. |
-| **[P12-007 — O7 standing rule]** any value interpolated into a `command_pattern` (or any authorization regex evaluated by a security hook) without prior charset-validation and/or regex-escaping | LLM or attacker-controlled field value contains regex metacharacters (`.`, `*`, `\|`, `(`, `)`, `[`, `]`, `^`, `$`, `+`, `?`) → interpolated metacharacters broaden or alter the anchored pattern → `[[ =~ ]]` matches commands outside the intended scope → `require-review` authorizes unrelated Jira operations (SEC-009-class bypass via regex injection). Example: `ticket_id=".*"` → pattern becomes `^jr (--output json )?issue comment .* ` → matches ANY `jr issue comment` command. | **O7 standing rule:** any value interpolated into a `command_pattern` (or any authorization regex) MUST be: **(a) charset-validated** against a fixed grammar specific to that field type BEFORE interpolation — fail-closed deny on mismatch; AND **(b) regex-escaped** as defense-in-depth. Every interpolation site MUST have a covering VP with a **metacharacter-injection mutant** (mutant removes validation → assert a `.*`- or `\|`-containing value authorizes an unrelated command → mutant dies when validation is present). O7 applies to ALL interpolation sites, current and future — any change that introduces a new field interpolation into a pattern MUST include O7 compliance before the feature is considered architecturally complete. **Current interpolation audit (updated D-020/D-021/P18-001/P18-005):** `ticket_id` (5 sites: STEP 3 comment-review, STEP 6 comment/assign, STEP 6 link KEY1, STEP 6 close, Human-Comment markdown path) — validated against `^[A-Z][A-Z0-9]+-[0-9]+$` + escaped (P12-001 fix + D-020/D-021 new sites); `jira_project_key` (2 sites: STEP 3 create-review, STEP 6 create) — validated against `^[A-Z][A-Z0-9]+$` + escaped (P12-007 fix); `link_target_ticket_id` (1 site: STEP 6 link KEY2) — validated against `^[A-Z][A-Z0-9]+-[0-9]+$` + escaped (D-020/P18-001 new site); `jira_close_state` — CONFIG-side fixed literal validated against `CLOSE_STATE_ALLOWLIST={"Done","Closed","Resolved"}` at onboard time — NOT verdict-influenceable, NOT a runtime interpolation injection surface — SAFE per O7 (no LLM path to this field); `org_slug` — NOT interpolated into `command_pattern` (P4-010 control-char-strip sufficient) — SAFE. **Total active O7 sites: 8** (5 ticket_id + 2 jira_project_key + 1 link_target_ticket_id). Every site has a covering VP obligation with a metacharacter-injection mutant (see §8.32 FV section for new VP obligations on the link/close sites). |
+| **[P12-007 — O7 standing rule]** any value interpolated into a `command_pattern` (or any authorization regex evaluated by a security hook) without prior charset-validation and/or regex-escaping | LLM or attacker-controlled field value contains regex metacharacters (`.`, `*`, `\|`, `(`, `)`, `[`, `]`, `^`, `$`, `+`, `?`) → interpolated metacharacters broaden or alter the anchored pattern → `[[ =~ ]]` matches commands outside the intended scope → `require-review` authorizes unrelated Jira operations (SEC-009-class bypass via regex injection). Example: `ticket_id=".*"` → pattern becomes `^jr (--output json )?issue comment .* ` → matches ANY `jr issue comment` command. | **O7 standing rule:** any value interpolated into a `command_pattern` (or any authorization regex) MUST be: **(a) charset-validated** against a fixed grammar specific to that field type BEFORE interpolation — fail-closed deny on mismatch; AND **(b) regex-escaped** as defense-in-depth. Every interpolation site MUST have a covering VP with a **metacharacter-injection mutant** (mutant removes validation → assert a `.*`- or `\|`-containing value authorizes an unrelated command → mutant dies when validation is present). O7 applies to ALL interpolation sites, current and future — any change that introduces a new field interpolation into a pattern MUST include O7 compliance before the feature is considered architecturally complete. **Current interpolation audit (updated D-020/D-021/D-023/P18-001/P18-005/P19-003):** `ticket_id` (5 sites: STEP 3 comment-review, STEP 6 comment/assign, STEP 6 link KEY1, STEP 6 close, Human-Comment markdown path) — validated against `^[A-Z][A-Z0-9]+-[0-9]+$` + escaped (P12-001 fix + D-020/D-021 new sites); `jira_project_key` (2 sites: STEP 3 create-review, STEP 6 create) — validated against `^[A-Z][A-Z0-9]+$` + escaped (P12-007 fix); `link_target_ticket_id` (1 site: STEP 6 link KEY2) — validated against `^[A-Z][A-Z0-9]+-[0-9]+$` + escaped (D-020/P18-001 new site); `jira_close_state` — CONFIG-side fixed literal; setup-time validated against `CLOSE_STATE_ALLOWLIST={"Done","Closed","Resolved"}`; **P19-003/D-023 upgrade: ALSO emit-time re-checked against CLOSE_STATE_ALLOWLIST + regex_escape(close_state) applied at interpolation (belt-and-suspenders, guards against config drift)**; NOT verdict-influenceable; SAFE per O7 (no LLM path to this field; belt-and-suspenders protects against future allowlist additions or config drift); `org_slug` — NOT interpolated into `command_pattern` (P4-010 control-char-strip sufficient) — SAFE. **Total active O7 sites: 8** (5 ticket_id + 2 jira_project_key + 1 link_target_ticket_id); jira_close_state is CONFIG-side (not an active injection site) but now has belt-and-suspenders emit-time validation + escape. Every active site has a covering VP obligation with a metacharacter-injection mutant (see §8.32 FV section for new VP obligations on the link/close sites). |
+| **[P19-001/D-023 — close disposition gate]** `ticket_action_type=close` is LLM-supplied routing field granting a state-change control; hook-side never cross-validated against `verdict.disposition` (O3 regression since D-021) | TP/Indeterminate verdict with `ticket_action_type=close`, `scored_priority=LOW/MED`, standard asset, healthy sensor, `autonomy_enabled=true` flows through STEP 4 (no floor fires) → STEP 5 (kill switch passes) → STEP 6 close branch → issues `["close"]` marker → `jr issue move <ticket> Done` → confirmed-malicious ticket auto-closed. Not covered by ASM-008 (this is disposition↔action coherence, not value-truthfulness). | **D-023 disposition gate:** FIRST check in `ELIF action=="close"` branch — `IF verdict.disposition NOT IN {"FP","BTP"}: WRITE audit "CLOSE-DISPOSITION-DENY: got <disposition>"; emit deny(structured corrective: close requires FP/BTP; TP/Indeterminate MUST NOT be auto-closed); RETURN.` Gate fires **regardless of autonomy_enabled**; placement mirrors STEP 3 hard_floor gate on review-surfacing entry. Mutant SM-66 (allocate with occupancy check, next-free after SM-65): remove disposition gate → assert TP verdict with ticket_action_type=close, scored_priority=LOW, autonomy_enabled=true issues a close marker → mutant dies when gate is present. |
 
 P5-001 and P5-002 are the under-label and over-label duals of the single root cause: the hook
 trusted the LLM-supplied `ticket_action_type` token completely without verifying it against
@@ -6693,9 +6745,11 @@ or STATE.md. hard_floor_applies() requires NO implementation change — it was c
 
 5. **EC-011** (link to closed ticket as related): confirm authorized via compound D-022 model (rule 4: create then link). Update accordingly.
 
-6. **EC-013** (close FP/BTP ticket): confirm now authorized via `["close"]` scope (D-021). Update with the security constraint: close marker is issued ONLY when hard_floor_applies()=false AND autonomy_enabled=true.
+6. **EC-013** (close FP/BTP ticket): confirm now authorized via `["close"]` scope (D-021/D-023). Update with the FULL 3-condition security constraint (restored per P19-001): close marker is issued ONLY when **disposition∈{FP,BTP}** AND hard_floor_applies()=false AND autonomy_enabled=true. The prior statement "close issued ONLY when hard_floor_applies()=false AND autonomy_enabled=true" omitted the disposition leg; restore it. The disposition gate (D-023/P19-001) is the hook-side enforcement of the first condition; it fires as the first check in the ELIF action=="close" branch, regardless of autonomy_enabled. Note: hard_floor_applies() itself is unchanged — Indeterminate verdicts already trigger STEP 4 DENY-THE-WRITE before reaching the close branch; the disposition gate adds the explicit FP/BTP coherence check for non-floor verdicts where a TP could otherwise slip through.
 
 7. **VP-HOOK-028 property-(1) (P18-002 propagation)**: in BC-10.01.001 at approximately L616, replace the retired VP-HOOK-028 property-(1) ("a Stage-7 Write to a path NOT containing the `verdict` substring causes disposition-guard to fast-path-allow ... the downstream Stage-8 jr write is DENIED") with the current JSON-first residual fail-closed boundary property: "a Write with neither `.json` extension nor JSON-parseable content nor `*investigation-*.md` glob → fast-path-allow → Stage-8 jr write denied (no marker in store)." Preserve the old text in a `Previous` block for auditability. **DELETE the L618 "pending FV / IDs allocated by FV" banner** — verification-delta (burst-14, P17-002) confirmed the rewrite is DONE and no new SM/VP IDs are pending.
+
+8. **D-022 partial-failure orphan-link reconciliation (P19-002 MINOR)**: for compound §3.4 actions, specify an idempotent reconciliation in §3.4/Stage-7 for the case where verdict-1 (create for rule 4; comment for rule 2) succeeds but verdict-2 (link) never lands (process interruption, loop crash, or a subsequently denied Write). Failure mode: a NEW ticket (rule 4) or comment (rule 2) exists in Jira but lacks the expected "Relates" link to its companion ticket. Reconciliation spec: on a subsequent loop run, when the §3.4 dedup check finds an open ticket for the current alert root-cause that lacks the expected "Relates" link to the matching closed/related ticket, the loop MUST re-issue the link verdict only (not re-create the ticket or re-comment). This is non-security (the finding exists; only the link is missing), but is required for audit and operational integrity. Idempotency note: `jr issue link KEY1 KEY2` is idempotent when the link already exists (duplicate link is a no-op or benign warning in standard Jira CLI; confirm with DTU mock scenario and add assertion). FV obligation: extend VP-HOOK-036 to assert orphan-link reconciliation behavior, or allocate a new VP in verification-delta with occupancy check (next-free after VP-HOOK-036).
 
 ---
 
@@ -6755,3 +6809,88 @@ remediation burst 15. D-020 (link scope), D-021 (close scope + hard-floor/kill-s
 D-022 (compound-action sequential-Write model — option b chosen: cleanest preservation of
 one-verdict-one-marker invariant with full anti-fungibility and audit trail). Architect does NOT
 edit BCs, verification-delta, prd-delta, spec-changelog, or STATE.md.*
+
+---
+
+## 8.33 PROPAGATION LIST (pass 19 — P19-001..P19-004 / D-023)
+
+> **Owner (§8.33 items 1–4):** Product owner and formal verifier as marked. Architect does NOT
+> edit BCs, verification-delta, prd-delta, spec-changelog, or STATE.md. All changes below are
+> the sole responsibility of the product owner (PO) and formal verifier (FV).
+>
+> **Architectural decisions recorded here:** D-023 (close branch disposition↔action coherence
+> gate — P19-001 CRITICAL). D-022 orphan-link reconciliation requirement extended (P19-002
+> MINOR). Close-state emit-time validation (P19-003 OBS, belt-and-suspenders). Rule-2
+> adjudication HUMAN-GATE-CONFIRM (P19-004 OBS).
+
+---
+
+### 8.33.1 PO — BC-3.03.001 (emitter close branch): disposition gate + emit-time close-state validation
+
+1. **Disposition gate (D-023/P19-001)**: in the emitter `ELIF action=="close"` branch, add as the FIRST check (before ticket_id null check):
+   ```
+   IF verdict.disposition NOT IN {"FP", "BTP"}:
+     WRITE audit "CLOSE-DISPOSITION-DENY: close authorized only for FP/BTP disposition,
+       got '<disposition>'; verdict Write denied by disposition-guard (D-023/P19-001)"
+     emit deny(structured corrective reason: ticket_action_type=close requires
+       verdict.disposition ∈ {FP, BTP}; a TP or Indeterminate MUST NOT be auto-closed;
+       re-issue with a non-close ticket_action_type appropriate for this disposition)
+     RETURN
+   ```
+   Gate fires regardless of `autonomy_enabled`. Reference: D-023/P19-001.
+
+2. **EC-013 security invariant update**: update any BC-3.03.001 security invariant describing the close gate conditions. The full 3-condition AND is: **disposition∈{FP,BTP}** AND hard_floor_applies()=false AND autonomy_enabled=true. Prior statement "close ONLY when hard_floor_applies()=false AND autonomy_enabled=true" was the 2-condition form; restore the disposition leg.
+
+3. **Emit-time close-state validation (P19-003)**: in the close branch, AFTER reading `jira_close_state` config, add:
+   - Re-check `jira_close_state` against `CLOSE_STATE_ALLOWLIST={"Done","Closed","Resolved"}` at emit time; emit CLOSE-STATE-DENY on mismatch.
+   - Apply `regex_escape(close_state)` before interpolation into `command_pattern` (belt-and-suspenders per O7).
+   - Missing-config default: `default="Done"` — explicit decision (D-023): "Done" is in CLOSE_STATE_ALLOWLIST and is the standard Jira close state; fail-safe behavior.
+
+4. **O7 interpolation audit update**: update the O7 audit note for `jira_close_state` to reflect the P19-003/D-023 upgrade from "setup-time-validated-only" to "setup-time + emit-time validated + emit-time escaped (belt-and-suspenders)." jira_close_state remains CONFIG-side (not an active injection site), but now satisfies full O7 protocol at the interpolation point.
+
+---
+
+### 8.33.2 PO — BC-10.01.001 (§3.4 EC-013 + orphan-link reconciliation)
+
+1. **EC-013 constraint restoration**: update EC-013 or any §3.4 auto-close invariant to the full 3-condition AND: disposition∈{FP,BTP} AND hard_floor_applies()=false AND autonomy_enabled=true. Any BC-10.01.001 text stating "close issued when autonomy_enabled=true and not hard-floor" must add "AND disposition∈{FP,BTP}" as the first condition.
+
+2. **D-022 orphan-link reconciliation (P19-002 MINOR)**: specify in §3.4/Stage-7 an idempotent reconciliation for D-022 compound-action partial failures:
+   - **Failure mode**: verdict-1 (create for rule 4; comment for rule 2) lands successfully, but verdict-2 (link) never lands due to process interruption or a subsequently denied Write. A ticket or comment exists unlinked to its companion.
+   - **Reconciliation**: on a subsequent loop run, when the §3.4 dedup check finds an open ticket for the alert root-cause that lacks the expected "Relates" link to the matching closed/related ticket, the loop MUST re-issue the link verdict only (not re-create the ticket or re-comment). Emit verdict with ticket_action_type=link, ticket_id=<existing ticket>, link_target_ticket_id=<companion ticket>.
+   - **Idempotency**: `jr issue link KEY1 KEY2` when a "Relates" link already exists is a no-op or benign warning; confirm with DTU mock scenario and add assertion to the `related-open` DTU scenario.
+   - **Non-security**: finding exists; only the link is absent. Operational/audit integrity issue, not a security regression.
+
+3. **§3.4 rule-2 adjudication — HUMAN-GATE-CONFIRM** (P19-004 OBS): The brief §3.4 rule 2 states: "Related (same asset/IOC, open ticket, different root cause): Link as related (Jira 'is related to' link type). Keep tickets separate; link at the case level." Two interpretations are equally plausible from the brief text alone:
+   - **(a) comment+link (no create — current model)**: the current alert either already has a ticket from a prior run or is expected to; the compound action is to comment on the related ticket and link the two existing tickets together. "Keep separate" means do not merge them.
+   - **(b) create+link (create for current alert, then link)**: "keep separate" means the current alert should get its OWN new ticket first; the action is create (for the current alert) + link to the related one. Parallel to rule 4 (create+link for closed tickets).
+   - **HUMAN-GATE-CONFIRM REQUIRED**: "In §3.4 rule 2, when processing an alert that has no prior ticket and dedup finds a related-but-different-root-cause open ticket, does 'keep tickets separate' mean (a) comment on the related ticket and link (no new ticket created for this alert — current model), or (b) create a NEW ticket for the current alert and link it to the related one? If (b), PC#7b must be updated to the create+link model (parallel to PC#7d)." Leave rule 2 as-is (comment+link) until human confirms. Do NOT change PC#7b until HUMAN-GATE-CONFIRM resolves.
+
+---
+
+### 8.33.3 PO — BC-4.02.001 (PC#7b/d: defer until rule-2 adjudication)
+
+No change required until the HUMAN-GATE-CONFIRM on P19-004 rule-2 adjudication resolves. If human confirms interpretation (b) (create+link for rule 2), PO must update PC#7b to reference the create+link model, symmetric with PC#7d (D-022). If human confirms interpretation (a) (comment+link, no create), PC#7b remains unchanged from the §8.32.3 update.
+
+---
+
+### 8.33.4 FV — VP obligations (P19-001/P19-002/P19-003)
+
+> **Do NOT mint VP or SM IDs here.** FV allocates IDs with occupancy verification in
+> verification-delta. Next-free: SM-66 (after SM-65); VP-HOOK next-free after VP-HOOK-036.
+> Verify occupancy before allocating.
+
+1. **Close disposition gate VP (P19-001/D-023)**: extend VP-HOOK-035 OR allocate a new VP (next-free after VP-HOOK-036, occupancy-check). Property: a verdict with ticket_action_type=close AND disposition∉{FP,BTP} is DENIED with CLOSE-DISPOSITION-DENY audit entry; no close marker is issued; denial fires regardless of autonomy_enabled (assert both autonomy_enabled=true and =false variants). Paired mutant **SM-66** (next-free, occupancy-check after SM-65): "remove disposition gate from ELIF action==\"close\" branch" → assert a TP verdict with ticket_action_type=close, scored_priority=LOW, autonomy_enabled=true issues a close marker and `jr issue move` is authorized → mutant dies when D-023 disposition gate is present.
+
+2. **Orphan-link reconciliation VP (P19-002)**: allocate a new VP (next-free after VP-HOOK-036, occupancy-check), OR extend VP-HOOK-036 if it covers D-022 compound action. Property: when §3.4 dedup on a subsequent loop run finds an open ticket for the alert root-cause that lacks the expected "Relates" link to its companion ticket, the loop re-issues the link verdict (idempotent reconciliation). Paired mutant: "remove orphan-link reconciliation check from Stage-7 loop" → assert unlinked ticket remains unlinked after a second loop run → mutant dies when reconciliation is implemented.
+
+3. **Emit-time close-state validation VP (P19-003)**: allocate a new VP (next-free, occupancy-check) OR extend an existing VP covering jira_close_state. Property: a jira_close_state config value not in CLOSE_STATE_ALLOWLIST at emit time (e.g., "Wontfix") causes CLOSE-STATE-DENY audit entry + deny; no close marker is issued. Paired mutant: "remove emit-time CLOSE_STATE_ALLOWLIST check from close branch" → assert out-of-allowlist close_state is interpolated into command_pattern and a close marker is issued → mutant dies when P19-003/D-023 emit-time check is present.
+
+---
+
+*Pass-19 propagation list (§8.33) complete. Architecture-delta v1.21 is final for pass-19
+remediation burst 16. D-023 (close disposition gate — P19-001 CRITICAL): gate enforced.
+D-022 orphan-link reconciliation (P19-002 MINOR): spec added to §8.32.4 item 8 and §8.33.2
+item 2. Close-state emit-time validation (P19-003 OBS): pseudocode and O7 audit updated.
+P19-004 (OBS): HUMAN-GATE-CONFIRM flagged for §3.4 rule-2 adjudication; rule 2 left as-is
+(comment+link) pending human confirmation. Architect does NOT edit BCs, verification-delta,
+prd-delta, spec-changelog, or STATE.md.*

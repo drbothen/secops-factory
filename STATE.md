@@ -1,10 +1,10 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "2.18"
+version: "2.19"
 status: active
 producer: state-manager
-timestamp: 2026-07-23T23:55:00Z
+timestamp: 2026-07-23T23:59:00Z
 phase: F2
 pipeline: FEATURE-CYCLE
 inputs: []
@@ -12,8 +12,8 @@ input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "F2 adversarial convergence — pass 19 done (1C/0M/1m), remediation pending"
-awaiting: "F2-pass19-remediation"
+current_step: "F2 adversarial convergence — pass-19 remediation COMPLETE (burst 16), pass 20 pending"
+awaiting: "F2-adversarial-pass-20"
 current_cycle: v0.10.0-feature-prism-integration
 dtu_required: true
 dtu_assessment: "2026-07-20"
@@ -42,7 +42,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-23 |
 | **Current Phase** | F2: Spec Evolution (prism-integration cycle) |
-| **Current Step** | F2 adversarial convergence — pass 19 done (1C/0M/1m), remediation pending |
+| **Current Step** | F2 adversarial convergence — pass-19 remediation COMPLETE (burst 16), pass 20 pending |
 
 ## Phase Progress
 
@@ -51,7 +51,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | pre-0: Pre-pipeline | PASSED | 2026-07-19 | 2026-07-19 | PASS | — |
 | 0: Codebase Ingestion + Remediation | COMPLETE | 2026-07-19 | 2026-07-20 | PASS | 12→11→7→8(1FP)→6→6→6→6(CRITICAL)→4→5→2→1→0; ADV-R1-4 CLEAN |
 | F1: Delta Analysis | PASSED | 2026-07-19 | 2026-07-20 | PASS | consistency: 7→0 |
-| F2: Spec Evolution | in-progress — pass19 done, remediation pending | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated → pass10 1C/2M → pass10 remediated → pass11 1C/3M → pass11 remediated → pass12 2C/2M → pass12 remediated → pass13 2C/1M → pass13 remediated → pass14 0C/2M/3m → pass14 remediated → pass15 0C/1M/2m → pass15 remediated → pass16 0C/1M/2m → pass16 remediated → consistency-audit remediated (12 findings, all coherence) → pass17 0C/3M → pass17 remediated → pass18 0C/2M/1med → pass18 remediated → pass19 1C/1m (remediation pending — new close surface) |
+| F2: Spec Evolution | in-progress — pass19 remediated, pass20 pending | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated → pass10 1C/2M → pass10 remediated → pass11 1C/3M → pass11 remediated → pass12 2C/2M → pass12 remediated → pass13 2C/1M → pass13 remediated → pass14 0C/2M/3m → pass14 remediated → pass15 0C/1M/2m → pass15 remediated → pass16 0C/1M/2m → pass16 remediated → consistency-audit remediated (12 findings, all coherence) → pass17 0C/3M → pass17 remediated → pass18 0C/2M/1med → pass18 remediated → pass19 1C/1m → pass19 remediated |
 | F3: Incremental Stories | not-started | | | | |
 | F4: Delta Implementation | not-started | | | | |
 | F5: Scoped Adversarial | not-started | | | | |
@@ -64,11 +64,11 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| F2: adversarial pass 17 | adversary | DONE | 0C/3M — substance-focused (coherence pre-swept). P17-001 (MAJOR, CRITICAL-if-mishandled): known-FP high-severity floor exemption (D-016/EC-009 'auto-close proceeds') has NO enforcement surface in disposition-guard hard_floor_applies() — the gate has no known-FP signal and DENIES the auto-close; naive LLM known_fp field would be a forgeable CRITICAL bypass; NOT covered by DI-015; arch-delta itself left it 'pending PO confirmation'. P17-002 (MAJOR): retired substring-dispatch residue — CV-009 fixed PC#8 to JSON-first but NOT Inv#14 Stage-7 + VP-HOOK-028(1) (now-dead 'verdict-substring fail-closed' VP). P17-003 (MAJOR): retired MARKDOWN_COMMENT_PATH residue — P13-001 elimination didn't reach BC-3.03.001 EC-005 + L814 test vector (contradicts sibling vector L835). Report persisted; P17-001 at human gate; P17-002/003 clear fixes queued. |
 | F2: pass-17 remediation burst 14 | architect / product-owner / formal-verifier | DONE | D-019 known-FP high-sev→review (scopes D-016 to LOW/MED; closes the loop-vs-gate contradiction + the would-be LLM-known_fp CRITICAL bypass; no gate change; SM-56 added). P17-002 Inv#14/VP-HOOK-028 JSON-first residue cleared (BC-10.01.001 Inv#14 Stage-7 + VP-HOOK-028 property-(1) rewritten to actual fail-closed boundary). P17-003 BC-3.03.001 EC-005/L814 markdown-comment residue cleared (consistent with L836). Version-coherence sweep: verif-delta v1.19 BC anchors v1.20/v1.26; prd-delta §5 v1.18; arch-delta v1.19. Clean streak 0/3. |
 | F2: adversarial pass 18 | adversary | DONE | 0C/2M/1med/2obs — substance pass; emitter/consumer/loop/D-019/JSON-first/tokenizer re-derived INTACT. NEW cluster (unmapped surface): P18-001 (MAJOR) jr issue link + jr issue move/close have NO authorization path — §3.4 correlation rules 2&4 require link autonomously (BC-4.02.001 PC#7b/d, BC-10.01.001 §3.4, DTU design asserts it called) but require-review has no write-block/allowlist/marker-scope for link → fail-closed DENY, no path; correlation links silently never form. P18-003 (MEDIUM) one-verdict-one-marker can't express compound comment+link / create+link. P18-002 (MAJOR) burst-14 propagation gap: verification-delta says VP-HOOK-028 property-(1) rewrite DONE but authoritative BC-10.01.001 L616 still has old property + 'pending FV' banner. P18-004/005 OBS (BC-4.02.001 Inv#1 omits link; FP 'Close (if open)' unauthorizable — autonomous-close scope ambiguous). Report persisted; link/close cluster at human gate; P18-002 clear fix. |
 | F2: pass-18 remediation burst 15 | architect / product-owner×2 / formal-verifier / state-manager | DONE | §3.4 Jira-action authorization: D-020 (link=`jr issue link` scope, REGULAR, anti-fungible), D-021 (close=`jr issue move`, CLOSE_STATE_ALLOWLIST, HIGH/CRIT NEVER auto-close, REGULAR), D-022 (compound §3.4 = two sequential verdict Writes, anti-fungible). P18-001: `jr issue link` added to write-block + `["link"]` marker scope (BC-3.03.001 v1.27, BC-3.01.001 v1.23). P18-002: VP-HOOK-028 property-(1) synced to verif-delta v1.20. P18-003: compound two-Write model (BC-10.01.001 v1.21, BC-4.02.001 v1.13). P18-004/005 OBS addressed. VP-HOOK-033..036 + SM-57..65 allocated. BC-6.01.001 v1.8 (close gating). O7 now 8 sites. VP 41 / SM 58. arch-delta v1.20. Clean streak 0/3. |
 | F2: adversarial pass 19 | adversary | DONE | 1C/1m/2obs — attacked the burst-15 link/close/compound surfaces. P19-001 (CRITICAL): D-021 close emitter branch enforces hard-floor (STEP4) + kill-switch (STEP5) but NOT the disposition∈{FP,BTP} leg — a TP verdict scored LOW/MED with ticket_action_type=close auto-closes a confirmed-malicious ticket (O3 regression: LLM ticket_action_type=close trusted without cross-checking verdict.disposition); clear fix (enforce the FP/BTP leg D-021 already mandates). P19-002 (MINOR): D-022 compound has no partial-failure/orphan-link recovery spec (create succeeds, link verdict never lands → orphaned unlinked ticket); no covering VP. P19-003 (OBS): jira_close_state lacks emit-time re-validation/regex_escape (config-side, allowlist-safe now; defense-in-depth). P19-004 (OBS, low-conf): §3.4 rule-2 comment+link vs 'keep tickets separate' — provenance ambiguity (architect to adjudicate from brief). LINK + COMPOUND surfaces re-derived otherwise sound; burst-15 broke no prior invariant. Report persisted. |
+| F2: pass-19 remediation burst 16 | architect / product-owner / formal-verifier / state-manager | DONE | D-023 close disposition gate: `disposition∈{FP,BTP}` FIRST check in close branch; fires regardless of `autonomy_enabled`; TP MUST NOT be auto-closed; EC-013 3-condition AND restored. D-024 §3.4 rule-2 = create+link (HUMAN DECISION 2026-07-23; parallel to rule 4). Orphan-link reconciliation spec (SM-68 [ID-sync per FV] / VP-HOOK-036 extended). BC-3.03.001 v1.27→v1.28, BC-10.01.001 v1.21→v1.22, BC-4.02.001 v1.13→v1.14. arch-delta v1.21, verif-delta v1.21, prd-delta v1.18→v1.19. SM-66/SM-67/SM-68 allocated [ID-sync per FV]. VP count 41 / SM count 61. Clean streak 0/3. |
 
 ## Decisions Log
 
@@ -96,6 +96,8 @@ dtu_services: [prism-demo-server, jr-mock]
 | D-020 | Link marker scope: `jr issue link KEY1 KEY2` (KEY1=marker.ticket_id, KEY2=marker.link_target_ticket_id); `["link"]` marker added as distinct anti-fungible scope; `jr issue link` added to write-block; default link-type "Relates"; REGULAR scope (hard-floor+kill-switch gated). | `jr issue link` had NO authorization path in any require-review rule — no write-block entry, no allowlist entry, no marker scope. §3.4 correlation rules 2 and 4 issue a link autonomously; fail-closed denied every link silently. P18-001. | F2 | 2026-07-23 | human |
 | D-021 | Close/move marker scope: `jr issue move KEY STATE` (STATE from CONFIG-driven CLOSE_STATE_ALLOWLIST={Done,Closed,Resolved}); HIGH/CRIT NEVER auto-closed (hard-floor unconditional); only FP/BTP + non-hard-floor + autonomy_enabled=true eligible; REGULAR scope (hard-floor+kill-switch gated). | `jr issue move/close` had no authorization path; "Close (if open)" in §3.4 rule 4 was ambiguous re autonomy scope. STATE must be CONFIG-driven (not verdict-influenceable) to prevent close-state injection. HIGH/CRIT auto-close violates human-oversight invariant. P18-005/P18-004. | F2 | 2026-07-23 | human |
 | D-022 | Compound §3.4 actions (rule 2: comment+link; rule 4: create+link) = two sequential verdict Writes, each with its own single-use anti-fungible marker; preserves one-verdict-one-marker invariant; SM-65 (single-marker compound attempt) validates the prohibition. | One-verdict-one-marker model cannot authorize two distinct Jira commands with a single marker without scope conflation. Two Writes, each authorized by its own marker, maintain anti-fungibility and allow each Write to be independently audited or denied. P18-003. | F2 | 2026-07-23 | human |
+| D-023 | Close disposition gate: `ticket_action_type=close` MUST cross-validate `verdict.disposition∈{FP,BTP}` as the FIRST check in the close branch before issuing close marker; TP MUST NOT be auto-closed; gate fires regardless of `autonomy_enabled`; EC-013 3-condition AND = `disposition∈{FP,BTP}` AND `hard_floor_applies()=false` AND `autonomy_enabled=true`. | P19-001 CRITICAL (O3 regression — D-021 stated the disposition gate but burst-15 implementation omitted it; TP verdict scored LOW/MED with `ticket_action_type=close` would auto-close a confirmed-malicious ticket without checking disposition). | F2 | 2026-07-23 | human |
+| D-024 | §3.4 rule-2 = create+link (not comment+link): rule 2 (same asset/IOC, different root cause, open ticket exists) uses create+link two-Write model, parallel to rule 4; "keep tickets separate" — each root cause has its own ticket; verdict-1 (create new ticket) → verdict-2 (link new ticket to existing related ticket) per D-022 model. | P19-004 OBS → architect adjudicated from brief: "keep tickets separate" semantics mandate a new ticket per root cause; rule-2 comment+link was incorrect (a comment on an existing ticket conflates root causes); rule-2 create+link is consistent with rule-4 and the "Relates" link establishes the provenance. | F2 | 2026-07-23 | human |
 
 ## Skip Log
 
@@ -143,8 +145,8 @@ dtu_services: [prism-demo-server, jr-mock]
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-23 |
-| **Position** | Pass 19 COMPLETE (1C/1m/2obs, report persisted). CRITICAL P19-001 is a CLEAR fix (enforce the already-decided D-021 FP/BTP close leg — no human gate). Burst 16 in flight: P19-001 add hook-computed disposition∈{FP,BTP} gate to the close branch (emitter + consumer + VP-HOOK-035 + new mutant); P19-002 compound orphan-link reconciliation; P19-003 close-state emit-time defense-in-depth; P19-004 architect adjudicates rule-2 provenance from brief. Then pass 20. Clean streak 0/3 (reset by the new-surface CRITICAL). |
-| **Context** | Artifact versions: arch-delta v1.20, verif-delta v1.20, prd-delta v1.18, BC-3.03.001 v1.27, BC-3.01.001 v1.23, BC-10.01.001 v1.21, BC-4.02.001 v1.13, BC-6.01.001 v1.8, BC-5.01.001 v1.12, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2, dtu-assessment v1.2. VPs 41 / SM 58 (SM-9..SM-65, SM-32=32a+32b+32-ext; SM-55 skipped). Pass-19 report: .factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass19.md (142 lines). |
+| **Position** | Pass-19 remediation COMPLETE (burst 16 — D-023 close disposition gate + D-024 rule-2 create+link + orphan-link reconciliation SM-68). VPs 41 / SM 61. NEXT: adversarial pass 20 (fresh context — do NOT reuse prior pass context; carry D-023/D-024 as confirmed new invariants). Clean streak 0/3. |
+| **Context** | Artifact versions: arch-delta v1.21, verif-delta v1.21, prd-delta v1.19, BC-3.03.001 v1.28, BC-3.01.001 v1.23, BC-10.01.001 v1.22, BC-4.02.001 v1.14, BC-6.01.001 v1.8, BC-5.01.001 v1.12, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2, dtu-assessment v1.2. VPs 41 / SM 61 (SM-9..SM-68, SM-32=32a+32b+32-ext; SM-55 skipped). NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. |
 | **Convergence counter** | 0/3 clean passes |
 
 ## Historical Content

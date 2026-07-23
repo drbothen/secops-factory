@@ -11,6 +11,26 @@ Track all spec version changes. Most recent version first.
 
 ## [1.1.0] - 2026-07-20 (patch edits 2026-07-21/22 — not a version bump)
 
+### F2 Pass-19 Remediation Edits — Burst 16 (2026-07-23) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 16). Root findings:
+P19-001 (CRITICAL, D-023): close emitter branch trusted `ticket_action_type=close` without cross-checking `verdict.disposition∈{FP,BTP}` — a TP verdict scored LOW/MED with `ticket_action_type=close` would auto-close a confirmed-malicious ticket (O3 regression); fixed by adding `disposition∈{FP,BTP}` gate as the FIRST check in the close branch (fires regardless of `autonomy_enabled`); EC-013 3-condition AND restored (D-023 gate + hard_floor_applies()=false + autonomy_enabled=true),
+P19-002 (MINOR, D-022 extension): compound create+link had no partial-failure/orphan-link recovery — if verdict-1 (create) succeeds but verdict-2 (link) never lands, subsequent loop run MUST idempotently re-issue link verdict ONLY (not re-create); SM-68 / VP-HOOK-036 extended [ID-sync per FV],
+P19-004 (OBS → HUMAN DECISION 2026-07-23, D-024): §3.4 rule 2 = create+link (not comment+link); "keep tickets separate" — each root cause has its own ticket; rule 2 now parallel to rule 4,
+P19-003 (OBS): `jira_close_state` emit-time regex-escape defense-in-depth; config-side / allowlist-safe; no additional VP required.
+41 VPs (unchanged) / 61 mutants (SM-9..SM-68, SM-32=32a+32b+32-ext; SM-55 skipped; +SM-66/SM-67/SM-68 [ID-sync per FV]) / ~429 test cases (~311 BATS + ~118 parity; unchanged from verif-delta v1.21).
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.20 | v1.21 | P19-001/D-023: close disposition gate (§8.33); D-024: §3.4 rule-2 = create+link (HUMAN DECISION); orphan-link reconciliation spec; EC-013 3-condition AND restored; emit-time close-state defense-in-depth |
+| phase-f2-spec-evolution/verification-delta.md | v1.20 | v1.21 | SM-66 (close-disposition-gate-removed), SM-67 (emit-time-close-state-recheck-removed), SM-68 (orphan-link-reconciliation-removed) allocated; VP-HOOK-035 extended (D-023 disposition gate + emit-time close-state); VP-HOOK-036 extended (orphan-link reconciliation SM-68); VP count unchanged at 41; SM count 58→61; Live-BC version-coherence sweep: BC-3.03.001 v1.28, BC-10.01.001 v1.22, BC-4.02.001 v1.14 [ID-sync per FV] |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.27 | v1.28 | P19-001/D-023: `disposition∈{FP,BTP}` gate added as first check in close branch; VP-HOOK-035 extended; emit-time `jira_close_state` defense-in-depth (regex-escape + allowlist re-validate); SM-66 (gate-removed) + SM-67 (recheck-removed) [ID-sync per FV] |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.21 | v1.22 | P19-004/D-024: §3.4 rule 2 = create+link (HUMAN DECISION 2026-07-23); P19-002/D-022: orphan-link reconciliation spec; P19-001/D-023 propagation: close branch description updated; SM-68 [ID-sync per FV] |
+| phase-0-ingestion/behavioral-contracts/BC-4.02.001.md | v1.13 | v1.14 | P19-004/D-024: PC#7b rule-2 updated to create+link two-Write model, parallel to PC#7d |
+| phase-f2-spec-evolution/prd-delta.md | v1.18 | v1.19 | Version-coherence: burst-16 post-note added; BC-3.03.001 v1.27→v1.28, BC-10.01.001 v1.21→v1.22, BC-4.02.001 v1.13→v1.14; §5 Live-BC version anchors updated |
+
+---
+
 ### F2 Pass-18 Remediation Edits — Burst 15 (2026-07-23) — spec remains 1.1.0
 
 Remediation edits within the F2 adversarial convergence cycle (burst 15). Root findings:

@@ -616,3 +616,31 @@ that adds a new action verb to a correlation rule set, not left as an adversary 
 Pass-18 found the gap because the adversary enumerated §3.4 verbs and checked each against
 the require-review write-block — a mechanical cross-map that should have been a review step.
     _Discovered: pass-18 (P18-001 `jr issue link` no authorization path), burst-15, 2026-07-23_
+
+---
+
+### Lesson 46 — [design] Each new action scope added to a security gate must be re-derived from first principles — do not inherit the gate sequence from a sibling scope (pass-19, burst-16, 2026-07-23)
+
+Pass-19 found P19-001 (CRITICAL): the close emitter branch in disposition-guard correctly enforced
+the hard-floor (STEP 4) and kill-switch (STEP 5) but trusted `ticket_action_type=close` WITHOUT
+checking `verdict.disposition∈{FP,BTP}` first. D-021 had already stated the full 3-condition AND
+(`disposition∈{FP,BTP}` AND `hard_floor_applies()=false` AND `autonomy_enabled=true`). But burst-15
+which IMPLEMENTED the close scope assembled the gate from the closest sibling (the REGULAR scope
+hard-floor+kill-switch sequence) and omitted the disposition-specific precondition. A TP verdict
+scored LOW/MED with `ticket_action_type=close` would pass STEP 4 (floor not triggered) and STEP 5
+(autonomy allows) — and auto-close a confirmed-malicious ticket (O3 regression: LLM ticket_action_type
+trusted without cross-checking disposition).
+
+The lesson: when implementing a new action scope in a security gate, the ENTIRE gate sequence must be
+re-derived from the specification (D-XXX decision text + EC-NNN), not assembled from the nearest
+sibling scope by copy-paste. The close scope has an action-specific disposition precondition
+(`disposition∈{FP,BTP}`) that link/create/comment scopes do not share — because only FP/BTP verdicts
+should trigger auto-close. Each new scope's gate sequence is unique; the shared STEP 4 (hard-floor)
+and STEP 5 (kill-switch) are necessary but not sufficient.
+
+O3 standing rule re-instantiated for close scope: `ticket_action_type=close` is an LLM-supplied
+field that grants a security-relevant capability. It MUST be cross-validated against `verdict.disposition`
+(FIRST, before hard-floor and kill-switch) so that the most-action-specific constraint fires first
+and the gate cannot be reached by a TP verdict regardless of how autonomy_enabled or scored_priority
+are set. D-023 codifies this as a permanent gate invariant.
+    _Discovered: F2 adversarial pass 19 (P19-001 CRITICAL, D-023), burst-16, 2026-07-23_

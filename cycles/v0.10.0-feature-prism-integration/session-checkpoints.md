@@ -123,6 +123,19 @@ Superseded checkpoints rotated out of STATE.md.
 
 ---
 
+## Checkpoint archived 2026-07-23 (displaced by burst-16 complete)
+
+**Superseded by:** Burst-16 complete checkpoint (2026-07-23)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-07-23 |
+| **Position** | Pass 19 COMPLETE (1C/1m/2obs, report persisted). CRITICAL P19-001 is a CLEAR fix (enforce the already-decided D-021 FP/BTP close leg — no human gate). Burst 16 in flight: P19-001 add hook-computed disposition∈{FP,BTP} gate to the close branch (emitter + consumer + VP-HOOK-035 + new mutant); P19-002 compound orphan-link reconciliation; P19-003 close-state emit-time defense-in-depth; P19-004 architect adjudicates rule-2 provenance from brief. Then pass 20. Clean streak 0/3 (reset by the new-surface CRITICAL). |
+| **Context** | Artifact versions: arch-delta v1.20, verif-delta v1.20, prd-delta v1.18, BC-3.03.001 v1.27, BC-3.01.001 v1.23, BC-10.01.001 v1.21, BC-4.02.001 v1.13, BC-6.01.001 v1.8, BC-5.01.001 v1.12, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2, dtu-assessment v1.2. VPs 41 / SM 58 (SM-9..SM-65, SM-32=32a+32b+32-ext; SM-55 skipped). Pass-19 report: .factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass19.md (142 lines). |
+| **Convergence counter** | 0/3 clean passes |
+
+---
+
 ## Checkpoint archived 2026-07-23 (displaced by pass-17 remediation complete)
 
 | Field | Value |

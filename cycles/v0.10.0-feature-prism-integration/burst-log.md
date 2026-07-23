@@ -864,6 +864,46 @@ F2: pass-16 remediation burst 12 already archived at "Archived Current Phase Ste
 
 ---
 
+## Burst 16: F2 Pass-19 Remediation — D-023 close disposition gate + D-024 rule-2 create+link + orphan-link reconciliation (2026-07-23)
+
+**Agents dispatched:** architect (architecture-delta v1.21), product-owner (BC-3.03.001 v1.28, BC-10.01.001 v1.22, BC-4.02.001 v1.14), formal-verifier (verification-delta v1.21), state-manager (STATE.md + prd-delta + spec-changelog + cycle files)
+
+**Root findings addressed (from pass-19 report):**
+- **P19-001 (CRITICAL, D-023)** — close disposition gate: `ticket_action_type=close` trusted without cross-checking `verdict.disposition∈{FP,BTP}`; TP verdict scored LOW/MED with close action could auto-close a confirmed-malicious ticket; O3 regression (burst-15 assembled close gate from sibling scope, omitting the action-specific disposition precondition).
+- **P19-002 (MINOR, D-022 extension)** — compound create+link partial-failure/orphan-link recovery spec missing; no VP covering idempotent link-verdict re-issue after partial failure.
+- **P19-003 (OBS)** — `jira_close_state` emit-time defense-in-depth (regex-escape + allowlist re-validate at emit time); config-side, allowlist-safe.
+- **P19-004 (OBS → HUMAN DECISION, D-024)** — §3.4 rule-2 provenance: architect adjudicated from brief that create+link is correct (each root cause has its own ticket); rule-2 now parallel to rule 4.
+
+**Burst narrative:**
+- architect produced architecture-delta v1.20→v1.21: §8.33 added — D-023 (close disposition gate, EC-013 3-condition AND restored), D-024 (rule-2 = create+link, HUMAN DECISION 2026-07-23), orphan-link reconciliation spec, emit-time close-state defense-in-depth.
+- product-owner updated BC-3.03.001 v1.27→v1.28: `disposition∈{FP,BTP}` gate added as FIRST check in close emitter branch; EC-013 3-condition AND restored; emit-time `jira_close_state` regex-escape defense-in-depth; VP-HOOK-035 extended; SM-66/SM-67 allocated [ID-sync per FV].
+- product-owner updated BC-10.01.001 v1.21→v1.22: §3.4 rule-2 updated to create+link (HUMAN DECISION D-024); orphan-link reconciliation spec (P19-002/D-022); close branch descriptions updated with D-023 gate (disposition∈{FP,BTP} FIRST); SM-68 FV VP obligation synced [ID-sync per FV].
+- product-owner updated BC-4.02.001 v1.13→v1.14: PC#7b rule-2 updated to create+link two-Write model, parallel to PC#7d.
+- formal-verifier allocated SM-66 (close-disposition-gate-removed), SM-67 (emit-time-close-state-recheck-removed), SM-68 (orphan-link-reconciliation-removed); VP-HOOK-035 extended (D-023 disposition gate + emit-time close-state + SM-66/SM-67); VP-HOOK-036 extended (orphan-link reconciliation + SM-68); verification-delta v1.20→v1.21; SM-ID placeholder sync [ID-sync per FV] applied; Live-BC version-coherence sweep (BC-3.03.001 v1.28, BC-10.01.001 v1.22, BC-4.02.001 v1.14).
+- state-manager: SM-ID placeholder sync applied to BC-10.01.001 (body line 635 + v1.22 changelog inline + v1.22 changelog end); verification-delta Live-BC version-coherence sweep applied (v1.28/v1.22/v1.14); prd-delta v1.18→v1.19 (burst-16 §5 post-note + version bump); STATE.md v2.18→v2.19 (D-023/D-024 Decisions Log + burst-16 Current Phase Steps + pass-19 remediated); spec-changelog burst-16 section added; lessons.md lesson 46 appended.
+
+**Files touched:**
+- `.factory/phase-f2-spec-evolution/architecture-delta.md` → v1.21
+- `.factory/phase-f2-spec-evolution/verification-delta.md` → v1.21
+- `.factory/phase-0-ingestion/behavioral-contracts/BC-3.03.001.md` → v1.28
+- `.factory/phase-0-ingestion/behavioral-contracts/BC-10.01.001.md` → v1.22
+- `.factory/phase-0-ingestion/behavioral-contracts/BC-4.02.001.md` → v1.14
+- `.factory/phase-f2-spec-evolution/prd-delta.md` → v1.19
+- `.factory/STATE.md` → v2.19
+- `.factory/spec-changelog.md` → burst-16 section added
+- `.factory/cycles/v0.10.0-feature-prism-integration/lessons.md` → Lesson 46 appended
+- `.factory/cycles/v0.10.0-feature-prism-integration/burst-log.md` → this entry
+
+---
+
+## Archived Phase Step — F2 adversarial pass 17 (archived from STATE.md Current Phase Steps to make room for burst-16 row)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 17 | adversary | DONE | 0C/3M — substance-focused (coherence pre-swept). P17-001 (MAJOR, CRITICAL-if-mishandled): known-FP high-severity floor exemption (D-016/EC-009 'auto-close proceeds') has NO enforcement surface in disposition-guard hard_floor_applies() — the gate has no known-FP signal and DENIES the auto-close; naive LLM known_fp field would be a forgeable CRITICAL bypass; NOT covered by DI-015; arch-delta itself left it 'pending PO confirmation'. P17-002 (MAJOR): retired substring-dispatch residue — CV-009 fixed PC#8 to JSON-first but NOT Inv#14 Stage-7 + VP-HOOK-028(1) (now-dead 'verdict-substring fail-closed' VP). P17-003 (MAJOR): retired MARKDOWN_COMMENT_PATH residue — P13-001 elimination didn't reach BC-3.03.001 EC-005 + L814 test vector (contradicts sibling vector L835). Report persisted; P17-001 at human gate; P17-002/003 clear fixes queued. |
+
+---
+
 ## Archived Phase Step — F2 consistency-validator full sweep + burst 13 (archived from STATE.md Current Phase Steps to make room for pass-19 row)
 
 | Step | Agent | Status | Output |

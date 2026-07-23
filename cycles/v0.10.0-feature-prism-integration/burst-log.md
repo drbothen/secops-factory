@@ -861,3 +861,11 @@ F2: pass-16 remediation burst 12 already archived at "Archived Current Phase Ste
 - `.factory/spec-changelog.md` → burst-15 section added
 - `.factory/cycles/v0.10.0-feature-prism-integration/lessons.md` → Lesson 45 appended
 - `.factory/cycles/v0.10.0-feature-prism-integration/burst-log.md` → this entry
+
+---
+
+## Archived Phase Step — F2 consistency-validator full sweep + burst 13 (archived from STATE.md Current Phase Steps to make room for pass-19 row)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: consistency-validator full sweep + burst 13 | consistency-validator / product-owner / architect / state-manager | DONE | 10-axis census: 7 axes PASS clean (field counts, enum tokens, demo key, NVD, markdown semantics, cross-BC coherence, deferrals); 12 findings all version-drift + 2 stale-description (0 blocking, 0 contract-logic) — ALL remediated (BC-4.02.001 v1.12, BC-5.01.001 v1.12, BC-10.01.001 v1.19, BC-3.03.001 v1.25, arch-delta v1.18, prd-delta v1.17); coherence backlog flushed in one shot. Consistency report persisted: consistency-audit-pass16.md (316 lines). |

@@ -11,6 +11,32 @@ Track all spec version changes. Most recent version first.
 
 ## [1.1.0] - 2026-07-20 (patch edits 2026-07-21/22 — not a version bump)
 
+### F2 Pass-17 Remediation Edits — Burst 14 (2026-07-23) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 14). Root findings:
+P17-001 (MAJOR — D-019 human decision: known-FP scored_priority floor exemption SCOPED to
+  LOW/MED only; HIGH/CRIT-native known-FPs route to comment-review (human review), NOT
+  auto-close — disposition-guard has no forgery-proof known-FP signal; LLM known_fp field
+  rejected as CRITICAL O6 bypass; no gate change; D-016 revised for high-sev subset),
+P17-002 (MAJOR — retired substring-dispatch residue: BC-10.01.001 Inv#14 Stage-7 still
+  described the dead 'verdict-substring fast-path'; VP-HOOK-028 property-(1) asserted the
+  dead 'non-verdict-substring fail-closed' vector false under JSON-first dispatch; corrected
+  to JSON-first boundary; SM-56 mutant + 4 D-019 vectors added),
+P17-003 (MAJOR — retired MARKDOWN_COMMENT_PATH residue: BC-3.03.001 EC-005 + L814 canonical
+  test vector still referenced autonomous-comment-marker mechanism eliminated at P13-001;
+  corrected to post-P13-001 semantics; consistent with sibling L836 vector).
+37 VPs / 49 mutants (SM-9..SM-56, SM-32=32a+32b+32-ext; SM-55 skipped) / ~371 test vectors (+4 BATS on BC-10.01.001: +2 P17-001 D-019 vectors, +2 P17-002 VP-HOOK-028 rewrite; +1 SM-56; prd-delta bump to v1.18).
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.18 | v1.19 | P17-001 §8.31.1/8.31.4: D-019 recorded — known-FP floor exemption SCOPED to LOW/MED; HIGH/CRIT known-FPs fire hard_floor_applies()=TRUE → DENY-THE-WRITE → comment-review; LLM known_fp field rejected (O6); no gate change; §8.26.2/P12-003b superseded banner + FV hold-note RESOLVED; P17-001/002/003 §8.31 propagation |
+| phase-f2-spec-evolution/verification-delta.md | v1.18 | v1.19 | P17-001/D-019: VP-HOOK-026 known-FP floor EXEMPTION RETIRED/INVERTED (+SM-56; 2 exemption vectors replaced by 4 D-019 vectors [LOW/MED auto-close + HIGH/CRIT floor-fires→comment-review], net +2 BATS); P17-002: VP-HOOK-028 property-(1) rewritten to JSON-first fail-closed residual boundary (dead non-verdict-substring vector retired, 3 added, net +2 BATS); VPs 37 (unchanged) / SM 49 (+SM-56); version-coherence sweep: BC-10.01.001 v1.19→v1.20, BC-3.03.001 v1.25→v1.26 in §5 table |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.19 | v1.20 | P17-001/D-019: EC-009 floor-exemption annotation corrected (HIGH/CRIT known-FPs → comment-review, NOT auto-close; LOW/MED still auto-close); field-18 fast-path note updated; store-integrity invariants retained; P17-002: Inv#14 Stage-7 corrected to JSON-first dispatch (dead verdict-substring reference removed); VP-HOOK-028 inline note flags property-(1) re-scope |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.25 | v1.26 | P17-003: EC-005 + L814 canonical test vector corrected to post-P13-001 semantics (autonomous-comment-marker language removed; consistent with sibling L836 vector; no emitter pseudocode change) |
+| phase-f2-spec-evolution/prd-delta.md | v1.17 | v1.18 | Version-coherence sweep: §5 BC-10.01.001 "New Version" v1.19→v1.20 + P17-001/002 description; §5 BC-3.03.001 "New Version" v1.25→v1.26 + P17-003 description; burst-14 post-note added |
+
+---
+
 ### F2 Consistency-Validator Full Sweep + Remediation — Burst 13 (2026-07-23) — spec remains 1.1.0
 
 Consistency-validator exhaustive 10-axis cross-document census + remediation. 12 findings (0 blocking,

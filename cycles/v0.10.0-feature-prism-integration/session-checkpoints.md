@@ -120,3 +120,14 @@ Superseded checkpoints rotated out of STATE.md.
 | **Position** | Pass-15 remediation COMPLETE + committed (burst 11): P13-001 markdown-comment-marker elimination propagated to BC-4.02.001 (v1.10) + BC-5.01.001 (v1.10); BC-3.03.001 (v1.23) 15→18-field residue fixed; BC-9.01.001 (v1.2) scan-threats presentation-note; prd-delta (v1.16) §1 VP-status refreshed. VPs 37 / SM 54. Clean streak 0/3. Next: dispatch F2 adversarial pass 16. |
 | **Context** | Artifact versions (post-burst-11): arch-delta v1.17, verif-delta v1.18 (anchor sweep only), prd-delta v1.16, BC-10.01.001 v1.18, BC-3.03.001 v1.23, BC-3.01.001 v1.22, BC-6.01.003 v1.7, BC-6.01.001 v1.7, BC-4.05.001 v1.4, BC-5.01.001 v1.10, BC-4.02.001 v1.10, BC-9.01.001 v1.2, BC-8.02.001 v1.4. VPs 37 / SM 54. |
 | **Convergence counter** | 0/3 clean passes (pass-15 remediated — burst 11 committed; pass 16 pending) |
+
+---
+
+## Checkpoint archived 2026-07-23 (displaced by pass-17 remediation complete)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-07-23 |
+| **Position** | Pass 17 COMPLETE (0C/3M, report persisted). Substance pass (coherence pre-swept clean by the census). BLOCKED on human decision: P17-001 known-FP high-severity auto-close — route-to-review (Option A, no gate change, most secure) vs deterministic store-hash exemption in disposition-guard (Option B). P17-002/003 clear retired-mechanism-residue fixes queued for burst 14. NOTE: P17-001 traces to D-016; both prior human decisions D-016 and the census's axis-7/8 PASS did not catch it — census scans drift, adversary re-derives semantics (run both). Clean streak 0/3. |
+| **Context** | Artifact versions: arch-delta v1.18, verif-delta v1.18, prd-delta v1.17, BC-3.03.001 v1.25, BC-4.02.001 v1.12, BC-5.01.001 v1.12, BC-10.01.001 v1.19, BC-3.01.001 v1.22, BC-6.01.003 v1.7, BC-6.01.001 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2, BC-6.01.004 v1.1. VPs 37 / SM 48 (SM-9..SM-54, SM-32=32a+32b+32-ext; SM-55 skipped). Pass-17 report: phase-f2-spec-evolution/adversarial-spec-delta-review-pass17.md (141 lines). |
+| **Convergence counter** | 0/3 clean passes |

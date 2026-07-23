@@ -1,10 +1,11 @@
 ---
 document_type: architecture-delta
 producer: architect
-version: "1.18"
+version: "1.19"
 date: 2026-07-23
 input-hash: COMPUTE-AT-COMMIT
 changelog:
+  - "1.19 (2026-07-23): Pass-17 adversarial remediation burst 14 — human decision 2026-07-23. P17-001 (MAJOR — D-019): D-016/P12-003b floor-exemption REVISED — known-FP scored_priority floor exemption is SCOPED to LOW/MED-severity known-FPs only. HIGH/CRIT-native known-FPs are NOT exempt from hard_floor_applies(); they route to comment-review (human review) exactly as the deterministic gate already enforces. Rationale: disposition-guard has no forgery-proof known-FP signal (verdict is LLM-authored; an LLM known_fp field would be a CRITICAL bypass violating O6); routing high-sev known-FPs to human review is the secure posture and aligns with DI-015 (poisoned HIGH-sev known-FP entry cannot silently suppress a real high-severity alert). LOW/MED known-FPs retain auto-close (no floor fires). NO change to hard_floor_applies() itself — it was already correct. D-DEC-008 known-FP exemption note, §8.26.2 item 2 / P12-003b instruction, and the §8.27 FV hold-note all updated to reflect D-019. FV hold-note CLOSED (RESOLVED — D-019). LLM-known_fp-field approach REJECTED (forgeable CRITICAL bypass, violates O6). PO + FV propagation in §8.31. P17-002 (MAJOR): Partial-fix propagation residue — CV-009 fixed BC-10.01.001 PC#8 to JSON-first but did NOT propagate to Invariant #14 Stage-7 (still mandates 'verdict' substring, cites retired PC#8) or VP-HOOK-028 property (1) (still asserts now-tautological 'non-verdict-path Write → fast-path-allow' under JSON-first). PO + FV remediation in §8.31. P17-003 (MAJOR): Partial-fix propagation residue — P13-001 eliminated MARKDOWN_COMMENT_PATH but did NOT propagate to BC-3.03.001 EC-005 (L798) or the L814 canonical test vector, which still assert comment-scoped marker + non-existent ticket_action_type field for investigation markdown. PO remediation in §8.31. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.18 (2026-07-23): CV-008 (MINOR) — VP-count historical-annotation correction. Two historical sections used present-tense 'current total ... 35 VPs' language now superseded by verification-delta v1.18 (authoritative VP count: 37 VPs = 9 VP-HOOK 024-032 + 28 VP-SKILL 001-077). Annotated: (a) v1.16 changelog D.P13-004 coverage note 'current total is' → 'total as of v1.16:' with [SUPERSEDED] pointer; (b) §8.29 pass-13 propagation item 4 two occurrences — 'current grand total' → 'grand total as of pass-13' and stale FV instruction '35 VPs' — both annotated [SUPERSEDED — 37 VPs current per verification-delta v1.18]. verification-delta remains the authoritative VP-count source. Architect does NOT edit BCs, verification-delta, prd-delta, spec-changelog, or the brief."
   - "1.17 (2026-07-22): Pass-14 adversarial remediation doc-hygiene (P14-001..P14-005). P14-001 (MAJOR): stale pass-6 PO-instruction ledger block (§8.14 item 3) bannered [SUPERSEDED — P7-006 (Cyberint) / P11-003 (NVD removed)] — historical text preserved, must not be applied; NORMALIZE_SEVERITY architectural invariant reaffirmed near §D-DEC-013: authoritative ONLY over sensor_family ∈ {crowdstrike, armis, claroty, cyberint}; NVD/CVSS is NOT a sensor_family and MUST NOT appear as a NORMALIZE_SEVERITY row or native_severity example in ANY artifact; CVSS feeds scored_priority (field 18) at Stage 5. P14-002 (MAJOR, no-covering-VP): setup-time jira_project_key charset validation (BC-6.01.001 PC#12/EC-014; BC-6.01.003 Inv#6/EC-010) has no VP — FV must add a VP-SKILL setup-time-validation VP + mutant per §8.30. P14-003 (MINOR, PRISM-DEMO residue): PO-owned (BC-3.01.001 tokenizer test vectors) per §8.30. P14-004 (MINOR, stale 17-field): PO-owned (BC-10.01.001 Inv#9 L249; BC-3.03.001 L825) per §8.30. P14-005 (MINOR, VP repurposing): VP-SKILL-053/057 meaning changed — FV annotates verification-delta roster; state-manager annotates spec-changelog [1.1.0]; PO anchors BC-6.01.003 AD-017 per §8.30. Architect does NOT edit BCs, verification-delta, prd-delta, spec-changelog, or the pass-14 report."
   - "1.16 (2026-07-22): Pass-13 adversarial remediation (P13-001..P13-004). A. P13-001 (CRITICAL — per human decision 2026-07-22): MARKDOWN_COMMENT_PATH ELIMINATED. The markdown path NEVER issues an autonomous comment marker for any disposition (including FP). Rationale: the hook cannot evaluate scored_priority (field 18) or asset_type (field 14) from a 12-field markdown; no known-FP store cross-check applies on this path. P12-002's GATE 1 closed the TP/BTP masquerade but left a residual FP-branch that granted an autonomous comment marker with no scored_priority/asset_type floor enforcement — P13-001 closes it. New routing after floors pass: FP → allow-without-marker (Write succeeds; no Jira action authorized; analyst may surface an FP comment via the review path or normal 18-field verdict flow); non-FP/PARSE_FAIL → MARKDOWN_REVIEW_PATH (create-review/comment-review, same STEP 3 semantics, EXEMPT from kill switch). VP-HOOK-031 guarantee (c) rewritten: 'no disposition yields an autonomous comment marker from the markdown path' (prior 'FP+floors-pass → comment marker' is eliminated). P11-004 human-analyst intent preserved: the analyst's Write is NOT denied; the FP comment now surfaces through the review flow rather than autonomous action. FV: add mutant SM-52 ('FP markdown issues autonomous comment marker') → assert FP markdown with autonomy_enabled=true does NOT emit a [\"comment\"] marker; correct behavior is allow-without-marker. This mutant is distinct from SM-51 which covered route-to-review rule removal. SM-52 allocated by FV in verification-delta v1.16 [ID-sync per FV]. Full FV obligations in §8.29. B. P13-002 (CRITICAL — per human decision 2026-07-22): Canonical demo key corrected from PRISM-DEMO → PRISMDEMO throughout (test vectors, examples, table notes, code comment blocks, historical changelog reference). Rationale: Jira project keys are hyphen-free by spec; ^[A-Z][A-Z0-9]+$ / ^[A-Z][A-Z0-9]+-[0-9]+$ is correct-for-Jira; PRISM-DEMO was invalid and would cause PROJECT-KEY-CHARSET-DENY fail-closed drops on every demo marker issuance. Architectural constraint added to D-DEC-008: any Jira project key used with the marker mechanism MUST be hyphen-free (match ^[A-Z][A-Z0-9]+$). Setup-time validation requirement added: onboard-customer and activate MUST validate any configured jira_project_key against ^[A-Z][A-Z0-9]+$ at setup time and refuse non-conformant keys with an explicit user-facing error (fail-early, not fail-closed mid-run). PO: propagate PRISMDEMO rename to brief §3.5/§4.1/§4.5 (human-authorized — invalid-key example only), BC-3.03.001 test vectors/fallback hint, and add setup-time key validation to BC-6.01.001 (activate) and BC-6.01.003 (onboard-customer). Note: brief edit is AUTHORIZED for the PRISMDEMO rename ONLY. C. P13-003 (MAJOR): Strict parse grammar specified for parse_disposition_from_markdown and parse_autonomy_enabled_from_markdown. Disposition: reads ONLY the canonical 'Disposition' heading value; exact allowlist {TP, FP, BTP, Indeterminate} + canonical long forms; PARSE_FAIL on ambiguous/multi-valued/missing/unrecognized → treated as non-FP (fail-closed to review route, never allow-without-marker). Never scans full document. Autonomy: reads ONLY a dedicated structured field; return true only on explicit boolean-true in that field; return false for absent, false, ambiguous, or token inside code fence/evidence block. Since P13-001 eliminates MARKDOWN_COMMENT_PATH, parse_disposition now only decides review-vs-allow-without-marker (all dispositions converge on non-autonomous-comment marker), reducing blast radius; grammar remains required for correct routing. FV adversarial vectors in §8.29 item 3. D. P13-004 (MINOR): Note for PO — BC-3.03.001 Postcondition #2 prose stale; must be updated to reflect GATE 1 kill-switch + no-autonomous-comment routing (post-P13-001); cross-ref updated from '(P11-004)' to '(P11-004 / P12-002 / P13-001)'. Coverage note for FV: verification-delta line ~244 historical blockquote ('6 VP-HOOK (024–029) … grand total 31') is from an earlier pass and must not be read as the current total; total as of v1.16: VP-HOOK 024–032 (9 hooks) / 35 VPs [SUPERSEDED — current total per verification-delta v1.18: 37 VPs = 9 VP-HOOK (024-032) + 28 VP-SKILL (001-077)]. Full PO/FV propagation in §8.28/§8.29."
@@ -2811,29 +2812,44 @@ IF native_severity NOT IN known_values_for(sensor_family):
   | `MEDIUM`                 | `MED`                                |
   | `LOW`                    | `LOW`                                |
 
-  **Fast-path scored_priority floor exemption (P12-003b architectural decision):**
-  A documented known-FP with a `CRIT` or `HIGH` fast-path scored_priority would trip the
-  §3.9 scored_priority floor (IF verdict.scored_priority in {HIGH, CRIT}) → forced to
-  create-review/comment-review → cannot auto-close as FP, contradicting EC-009.
-  **DECISION: the known-FP fast-path is EXEMPT from the scored_priority floor**, provided:
-  (a) sensor is healthy (sensor_health_status NOT in {degraded, silent}),
-  (b) no forbidden technique fires from Stage 3 CATEGORIZE,
-  (c) disposition is FP (not Indeterminate).
-  **Rationale:** the known-FP store constitutes human pre-authorization for these specific
-  alert patterns (the human explicitly registered this rule_id + pattern as a false positive
-  at store-registration time). EC-009 auto-close semantics are preserved; a high native-severity
-  known-FP does not require a human-review ticket because the human already decided at
-  registration time. **Residual risk (explicit):** a poisoned known-FP store entry (e.g.,
-  attacker inserts a high-severity TP pattern into the store via a compromised admin account)
-  could suppress a real high-severity alert. This residual is bounded by known-FP store
-  integrity controls — **PO MUST add the following to BC-10.01.001 EC-009:**
+  **Fast-path scored_priority floor exemption — D-019 (REVISION of P12-003b / D-016):**
+
+  > **[D-019 — 2026-07-23, human decision]** The P12-003b "known-FP exempt from
+  > scored_priority floor" decision is REVISED and SCOPED. The exemption applies only to
+  > LOW- and MED-severity known-FPs (scored_priority ∈ {LOW, MED}), for which hard_floor_applies()
+  > does NOT fire regardless of known-FP status. HIGH/CRIT-native known-FPs (scored_priority ∈
+  > {HIGH, CRIT}) are NOT exempt — hard_floor_applies() fires on those verdicts exactly as
+  > specified in BC-3.03.001 STEP 4, routing them to comment-review (human review). This is
+  > the CORRECT and SECURE behavior; hard_floor_applies() needed NO change — it was already
+  > right. The prior "EXEMPT" language in EC-009 / field-18 note / §8.26.2 was incorrect
+  > documentation that must be corrected (see §8.31 PO propagation).
+  >
+  > **Rationale (D-019):** Disposition-guard has no forgery-proof known-FP signal. The 18-field
+  > verdict is LLM-authored; adding an LLM-written `known_fp` field to signal exemption would
+  > create a CRITICAL bypass — an adversarial or buggy LLM could set `known_fp: true` on any
+  > HIGH/CRIT verdict to skip the highest-severity floor, violating O6. DI-015 bounds store
+  > poisoning (store is not LLM-writable, access-controlled, audited, periodically reviewed)
+  > but does NOT protect a verdict field from LLM authorship. Routing high-sev known-FPs to
+  > human review is the secure posture and aligns with DI-015's intent: a poisoned HIGH-sev
+  > known-FP entry cannot silently suppress a real high-severity alert because a human still
+  > reviews it.
+  >
+  > **Volume impact:** LOW/MED known-FPs — the bulk of known-FP volume — still auto-close (no
+  > floor fires on scored_priority ∈ {LOW, MED}). The 30–40% suppression benefit is preserved
+  > for the low-severity majority. Only the high-sev subset now routes to review.
+  >
+  > **O6 annotation:** the known-FP exemption was a would-be LLM-trust surface. D-019 eliminates
+  > it by NOT exempting high-sev verdicts — the gate keys only on hook-computed
+  > hard_floor_applies(scored_priority), which derives from the LLM-supplied scored_priority
+  > field (same ASM-008 residual as before); no NEW trust surface is introduced, and no
+  > forgery-proof mechanism is required because the gate already fires correctly.
+
+  **Known-FP store integrity (unchanged):**
   - Known-FP store entries require privileged write access (access-controlled, not LLM-writable).
   - Known-FP store changes must be audited and periodically reviewed.
   - A known-FP store integrity VP (verify occupancy for ID) must assert the store cannot be
     written by the monitoring-loop LLM (only by authenticated admin operations).
-  The floor-exempt rule MUST NOT apply if any of conditions (a)/(b)/(c) above fails — those
-  conditions are markdown-evaluable on the fast-path and there is no "pre-authorization" for
-  a forbidden-technique or degraded-sensor known-FP.
+    (DI-015 bounds these; PO must anchor them in BC-10.01.001 EC-009 per §8.31 item 1.)
 - **disposition-guard STEP 1a (P10-001 / P11-001 reframe):** the hook re-runs
   `NORMALIZE_SEVERITY(native_severity, sensor_family)` from the verdict fields using the same
   D-DEC-013 table. Mismatch with verdict.severity → SEVERITY-MISMATCH deny. This is a
@@ -5669,16 +5685,29 @@ prd-delta, or STATE.md. v1.14 is final for pass-11 adversarial remediation.*
    - Add to field 18 definition: "On the known-FP fast-path (Stage 5 bypassed), scored_priority
      is set from NORMALIZE_SEVERITY mapped through SEVERITY_TO_SCORED_PRIORITY_MAP."
 
-2. **Known-FP floor-exemption + store integrity (P12-003b):**
-   - EC-009 (known-FP auto-close) must explicitly state: the known-FP fast-path is EXEMPT from
-     the §3.9 scored_priority floor (IF verdict.scored_priority in {HIGH, CRIT}) when: (a) sensor
-     is healthy, (b) no forbidden technique fires, (c) disposition=FP. Rationale: the known-FP
-     store constitutes human pre-authorization.
-   - Add known-FP store integrity invariants to EC-009 or a new Invariant:
+2. **Known-FP floor-exemption — CORRECTED per D-019 (P17-001 / 2026-07-23):**
+
+   > **[SUPERSEDED — do NOT apply the original P12-003b instruction]** The original P12-003b
+   > instruction ("EC-009 must explicitly state: the known-FP fast-path is EXEMPT from the
+   > scored_priority floor for HIGH/CRIT") is INCORRECT and must NOT be applied to BCs.
+   > See §8.31 item 1 for the correct D-019 PO instruction.
+
+   **D-019 corrected instruction (apply via §8.31 item 1):** EC-009 and the field-18 note
+   must state that HIGH/CRIT-native known-FPs are NOT exempt — hard_floor_applies() fires on
+   scored_priority ∈ {HIGH, CRIT} regardless of known-FP status, routing them to comment-review
+   (human review). LOW/MED-native known-FPs (scored_priority ∈ {LOW, MED}) continue to
+   auto-close (no floor fires). The "EXEMPT from the scored_priority floor" language must be
+   removed from EC-009 and the field-18 note. Full PO propagation in §8.31 item 1.
+
+   - Add known-FP store integrity invariants to EC-009 or a new Invariant (unchanged from
+     P12-003b original):
      (a) the known-FP store is NOT writable by the monitoring-loop LLM;
      (b) known-FP store changes require privileged admin access + audit log entry;
      (c) known-FP store entries should be periodically reviewed for staleness.
-   - Cross-reference residual risk: a poisoned store entry suppresses a real high-severity alert.
+   - Residual risk REDUCED (relative to P12-003b): HIGH/CRIT known-FP entries now route to
+     human review rather than auto-close, so a poisoned high-sev entry no longer silently
+     suppresses a real high-severity alert. DI-015 store-integrity controls remain applicable
+     and required.
 
 3. **BC-4.05.001 producer contract backfill (P12-004):**
    - Stage 5 description: clarify that assess-priority produces a field named `priority` that IS
@@ -5850,10 +5879,13 @@ prd-delta, or STATE.md. v1.15 continues with §8.27 FV obligations.*
    @test "P12-003a validate_enums: fast-path verdict with scored_priority=MEDIUM (raw unmapped) → validate_enums DENY"
    ```
 
-   Note: do NOT mint a scored_priority floor exemption VP for known-FP without first confirming
-   with PO that BC-10.01.001 EC-009 has been updated with the floor-exempt annotation and known-FP
-   store integrity invariants (§8.26.2 items 2 + 3). The exemption is architectural policy; FV
-   verifies the ENUM MAP only until PO confirms the floor-exempt annotation is in place.
+   > **[RESOLVED — D-019, 2026-07-23]** The prior hold ("do NOT mint a floor-exemption VP
+   > until PO confirms floor-exempt annotation") is CLOSED. D-019 (§8.31 item 1) establishes
+   > that there is NO floor exemption for HIGH/CRIT known-FPs — hard_floor_applies() fires
+   > correctly and routes them to comment-review. No special floor-exemption VP for known-FP
+   > is required or should be minted. LOW/MED known-FPs auto-close without floor-exemption
+   > logic (no floor fires). FV must NOT add a "known-FP exempt from floor" VP or mutant.
+   > See §8.31 item 2 for the corrected VP-HOOK-028 / VP-HOOK-026 FV obligations.
 
 4. **O7 VP class — metacharacter-injection coverage across all interpolation sites (P12-007).**
 
@@ -6293,3 +6325,173 @@ discrepancy is a traceability hazard.
 *Pass-14 propagation list (§8.30) complete. Architecture-delta v1.17 is final for pass-14
 doc-hygiene. Architect does NOT edit BCs, verification-delta, prd-delta, spec-changelog,
 or STATE.md.*
+
+---
+
+## 8.31 PROPAGATION LIST (pass 17 — P17-001..P17-003)
+
+> **Owner (§8.31 items 1–4):** Product owner and formal verifier as marked. Architect does NOT
+> edit BCs, verification-delta, prd-delta, or STATE.md. All items are owner obligations that
+> document what must change and why.
+>
+> **ID collision prevention:** Do NOT mint new VP/SM IDs without occupancy verification.
+> Run `grep -rE "VP-HOOK-03[0-9]|VP-SKILL-0[7-9][0-9]|SM-[56][0-9]" .factory/` before
+> allocating any new ID.
+
+---
+
+### 8.31.1 [PO] — BC-10.01.001 — D-019 correction: HIGH/CRIT known-FPs route to review (P17-001)
+
+**Finding (P17-001):** BC-10.01.001 EC-009 and the field-18 note assert that HIGH/CRIT-native
+known-FPs are EXEMPT from the scored_priority floor and auto-close. This contradicts
+BC-3.03.001 hard_floor_applies(), which fires unconditionally on scored_priority ∈ {HIGH, CRIT}
+with no known-FP branch. D-019 (2026-07-23) resolves the contradiction by accepting the gate
+behavior as correct and correcting the loop's documentation.
+
+**Required changes (PO — same BC version bump):**
+
+1. **EC-009 (known-FP auto-close):** Remove all "EXEMPT from the scored_priority floor" and
+   "auto-close proceeds" language for HIGH/CRIT-native known-FPs. Replace with:
+   - LOW/MED-native known-FPs (scored_priority ∈ {LOW, MED}): no floor fires →
+     auto-close proceeds (ticket_action_type=comment; Write succeeds; no review required).
+   - HIGH/CRIT-native known-FPs (scored_priority ∈ {HIGH, CRIT}): hard_floor_applies()
+     fires → DENY-THE-WRITE with HARD-FLOOR-UNDER-LABEL; loop re-issues as comment-review →
+     routes to human review. This is correct and secure behavior per D-019.
+   - Add D-019 cross-reference: "Per D-019 (arch-delta §8.31.1), HIGH/CRIT known-FPs route
+     to human review — disposition-guard has no forgery-proof known-FP signal (verdict is
+     LLM-authored; an LLM-supplied known_fp field would violate O6); DI-015 bounds store
+     integrity but does not protect a verdict field."
+   - Retain known-FP store integrity invariants (store not LLM-writable, privileged-write-only,
+     audit log, periodic review) — unchanged from P12-003b.
+
+2. **Field-18 note (scored_priority, fast-path source):** Remove the "EXEMPT from the
+   scored_priority hard floor" clause from the fast-path annotation. Replace with: "On the
+   known-FP fast-path, scored_priority is set via SEVERITY_TO_SCORED_PRIORITY_MAP. LOW/MED
+   known-FPs auto-close (floor does not fire); HIGH/CRIT known-FPs route to comment-review
+   per hard_floor_applies() (D-019)."
+
+3. **Inv#14 Stage-7 (P17-002 — JSON-first propagation gap):** The Stage-7 text still mandates
+   the "verdict" substring in the file path and cites retired PC#8 as the routing trigger.
+   CV-009 (v1.19) rewrote PC#8 to JSON-first but did NOT propagate here.
+   - Update Invariant #14 Stage-7 to JSON-first trigger: "disposition-guard fires ICD-203
+     validation when the Write target has a .json extension OR the content parses as JSON
+     (PC#8 JSON-first dispatch; the 'verdict' substring is no longer the routing trigger —
+     see PC#8 Previous block)."
+   - Remove or inline-annotate the "MUST contain the substring `verdict`" rule as SUPERSEDED.
+   - Remove the stale PC#8 citation for the substring rule; cite PC#8 for JSON-first instead.
+
+---
+
+### 8.31.2 [FV] — VP-HOOK-028 property (1) rewrite + self-contradiction resolution (P17-002)
+
+**Finding (P17-002):** VP-HOOK-028 property (1) asserts "a Stage-7 Write to a path NOT
+containing the 'verdict' substring causes disposition-guard to fast-path-allow WITHOUT
+ICD-203 validation." Under JSON-first dispatch (BC-3.03.001 PC#1: .json extension OR
+JSON content → verdict-class, absolute precedence), a monitoring-loop verdict written to
+any .json path — regardless of "verdict" substring — routes to the verdict-class 18-field
+path and emits a marker. Property (1)'s premise is false for any real verdict; the
+"mis-named verdict path is fail-closed" property no longer exists under JSON-first.
+VP-HOOK-028 property (2) correctly acknowledges JSON-first precedence, making the VP
+internally self-contradictory.
+
+**Required changes (FV — verification-delta):**
+
+1. **VP-HOOK-028 property (1) — REWRITE:** Replace the now-dead "non-verdict-path
+   Write → fast-path-allow" property with the actual JSON-first fail-closed boundary:
+   > "A Stage-7 Write whose path has neither a `.json` extension NOR JSON-parseable content
+   > NOR matches the `*investigation-*.md` glob → disposition-guard fast-path-allows WITHOUT
+   > ICD-203 validation → Stage-8 require-review: jr command denied (no marker issued).
+   > This is the residual fail-closed boundary under JSON-first dispatch."
+
+2. **VP-HOOK-028 BATS vectors — REWRITE:** Replace "non-verdict-path Write: no marker
+   emitted, Stage-8 jr denied" with vectors exercising the actual boundary:
+   ```bats
+   @test "VP-HOOK-028 P17-002: Write to path with no .json ext, non-JSON content, non-investigation-md glob → fast-path-allow → no marker → Stage-8 denied"
+   @test "VP-HOOK-028 P17-002: Write to .json path (no 'verdict' substring) with valid 18-field JSON content → JSON-first dispatch fires → ICD-203 validation → marker emitted (NOT fast-path-allow)"
+   @test "VP-HOOK-028 P17-002: Write to non-.json path with JSON-parseable content → JSON-first dispatch fires → ICD-203 validation path entered"
+   ```
+
+3. **VP-HOOK-028 property (2):** Confirm property (2) already correctly states JSON-first
+   precedence. After rewriting property (1), the VP must be internally consistent — property
+   (2) is the authoritative dispatch rule; property (1) now states the fast-path-allow
+   residual boundary (non-.json, non-JSON-content, non-investigation-md). Remove any
+   language in property (1) that contradicts property (2).
+
+4. **Do NOT retire VP-HOOK-028** — the fail-closed boundary it tests is real and P0-relevant;
+   only the specific path-name-based premise is dead. Rewrite, do not withdraw.
+
+---
+
+### 8.31.3 [PO] — BC-3.03.001 EC-005 + L814 canonical test vector (P17-003)
+
+**Finding (P17-003):** P13-001 eliminated MARKDOWN_COMMENT_PATH but did NOT propagate to
+EC-005 (L798) or the L814 happy-path test vector. Both still assert a comment-scoped marker
+for investigation markdown, contradicting the post-P13-001 behavior (allow-without-marker
+for FP; comment-review marker for non-FP/PARSE_FAIL under autonomy=true). EC-005 additionally
+references `ticket_action_type` as a routing input — a verdict-only field (PC#1 path) that
+does not exist on the 12-field investigation-markdown path.
+
+**Required changes (PO — same BC version bump):**
+
+1. **EC-005 (L798 — non-hard-floor disposition | Allow):** Rewrite to post-P13-001 model:
+   - GATE 1 (autonomy_enabled absent or ≠ true): allow-without-marker for ALL dispositions
+     (the common human-save case). No marker file is written.
+   - FP + autonomy_enabled=true: allow-without-marker (P13-001; hook cannot evaluate
+     scored_priority/asset_type from 12-field markdown; no autonomous comment marker).
+   - non-FP/PARSE_FAIL + autonomy_enabled=true: MARKDOWN_REVIEW_PATH → comment-review or
+     create-review marker (STEP 3 semantics, EXEMPT from kill switch per P11-004/P12-002).
+   - Remove "scope determined by ticket_action_type content if present" — there is no
+     ticket_action_type field on the 12-field investigation-markdown path.
+   - Remove "defaults to comment-scoped for investigation files" — no autonomous comment
+     marker is ever issued on this path.
+   - Add P13-001 cross-reference in EC-005.
+
+2. **L814 canonical test vector:** Rewrite to post-P13-001 behavior. Replace the
+   "investigation-ALERT-001.md → … permissionDecision: allow; marker file written
+   (comment-scoped, ticket-bound pattern) | happy-path (v1.10 EMITTER)" vector with:
+   - Happy-path human save (autonomy absent): `investigation-ALERT-001.md` → all 12
+     mandatory headings present, disposition=FP, autonomy_enabled absent →
+     permissionDecision: allow; NO marker file written. (Post-P13-001 / GATE 1 fast-exit.)
+   - Reconcile with the correct sibling vector at L835 (TP → MARKDOWN_REVIEW_PATH →
+     comment-review marker) — both vectors must be mutually consistent.
+
+3. **Confirm no other canonical test vectors** in BC-3.03.001 assert comment-scoped marker
+   for investigation markdown. The correct vectors are L834 (FP+autonomy=true →
+   allow-without-marker) and L835 (TP+autonomy=true → MARKDOWN_REVIEW_PATH). L814 is the
+   only stale one identified.
+
+---
+
+### 8.31.4 [FV] — VP-HOOK-026 / known-FP floor-exemption vector correction (P17-001)
+
+**Finding (P17-001 FV leg):** Any existing FV vector asserting "HIGH/CRIT known-FP → floor
+does NOT fire → auto-close" is now a dead/incorrect assertion under D-019. Check
+VP-HOOK-026 (or wherever a known-FP floor-exemption test vector lives) and invert/retire it.
+
+**Required changes (FV — verification-delta):**
+
+1. **Locate** any VP or BATS vector asserting "known-FP with scored_priority=CRIT/HIGH →
+   hard_floor_applies()=false / auto-close proceeds / no review routing."
+
+2. **If such a vector exists:** RETIRE or INVERT it. Replace with:
+   ```bats
+   @test "D-019 HIGH-sev known-FP: scored_priority=HIGH + known-FP store match + disposition=FP → hard_floor_applies()=true → DENY-THE-WRITE (HARD-FLOOR-UNDER-LABEL) → routes to comment-review (NOT auto-close)"
+   @test "D-019 CRIT-sev known-FP: scored_priority=CRIT + known-FP store match + disposition=FP → hard_floor_applies()=true → DENY-THE-WRITE → comment-review"
+   @test "D-019 LOW-sev known-FP: scored_priority=LOW + known-FP store match + disposition=FP → hard_floor_applies()=false → auto-close (comment action succeeds)"
+   @test "D-019 MED-sev known-FP: scored_priority=MED + known-FP store match + disposition=FP → hard_floor_applies()=false → auto-close"
+   ```
+
+3. **Do NOT mint a "known-FP floor-exemption" VP** — D-019 establishes there is no
+   exemption for high-sev; the gate behavior is correct as-is; no exemption mechanism
+   exists or should exist.
+
+4. **Confirm hard_floor_applies() definition in verification-delta** matches BC-3.03.001
+   L658-666: fires on scored_priority ∈ {HIGH, CRIT} unconditionally (no known-FP branch).
+   If any verification artifact has a known-FP carve-out in the hard_floor_applies() spec,
+   remove it.
+
+---
+
+*Pass-17 propagation list (§8.31) complete. Architecture-delta v1.19 is final for pass-17
+remediation burst 14. Architect does NOT edit BCs, verification-delta, prd-delta, spec-changelog,
+or STATE.md. hard_floor_applies() requires NO implementation change — it was correct.*

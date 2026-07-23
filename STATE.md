@@ -1,10 +1,10 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "2.16"
+version: "2.17"
 status: active
 producer: state-manager
-timestamp: 2026-07-23T14:00:00Z
+timestamp: 2026-07-23T18:00:00Z
 phase: F2
 pipeline: FEATURE-CYCLE
 inputs: []
@@ -12,8 +12,8 @@ input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "F2 adversarial convergence — pass 17 done (0C/3M), remediation pending — P17-001 at human gate"
-awaiting: "F2-pass17-remediation (human-gate P17-001)"
+current_step: "F2 adversarial convergence — pass-17 remediation COMPLETE, pass 18 pending"
+awaiting: "F2-adversarial-pass-18"
 current_cycle: v0.10.0-feature-prism-integration
 dtu_required: true
 dtu_assessment: "2026-07-20"
@@ -42,7 +42,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-23 |
 | **Current Phase** | F2: Spec Evolution (prism-integration cycle) |
-| **Current Step** | F2 adversarial convergence — pass 17 done (0C/3M), remediation pending — P17-001 at human gate |
+| **Current Step** | F2 adversarial convergence — pass-17 remediation COMPLETE, pass 18 pending |
 
 ## Phase Progress
 
@@ -51,7 +51,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | pre-0: Pre-pipeline | PASSED | 2026-07-19 | 2026-07-19 | PASS | — |
 | 0: Codebase Ingestion + Remediation | COMPLETE | 2026-07-19 | 2026-07-20 | PASS | 12→11→7→8(1FP)→6→6→6→6(CRITICAL)→4→5→2→1→0; ADV-R1-4 CLEAN |
 | F1: Delta Analysis | PASSED | 2026-07-19 | 2026-07-20 | PASS | consistency: 7→0 |
-| F2: Spec Evolution | in-progress — pass 17 done (0C/3M, remediation pending; P17-001 at human gate) | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated → pass10 1C/2M → pass10 remediated → pass11 1C/3M → pass11 remediated → pass12 2C/2M → pass12 remediated → pass13 2C/1M → pass13 remediated → pass14 0C/2M/3m → pass14 remediated → pass15 0C/1M/2m → pass15 remediated → pass16 0C/1M/2m → pass16 remediated → consistency-audit remediated (12 findings, all coherence) → pass17 0C/3M (remediation pending) |
+| F2: Spec Evolution | in-progress — pass17 remediated (D-019 + JSON-first residue + markdown-comment residue); pass 18 pending | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated → pass10 1C/2M → pass10 remediated → pass11 1C/3M → pass11 remediated → pass12 2C/2M → pass12 remediated → pass13 2C/1M → pass13 remediated → pass14 0C/2M/3m → pass14 remediated → pass15 0C/1M/2m → pass15 remediated → pass16 0C/1M/2m → pass16 remediated → consistency-audit remediated (12 findings, all coherence) → pass17 0C/3M → pass17 remediated |
 | F3: Incremental Stories | not-started | | | | |
 | F4: Delta Implementation | not-started | | | | |
 | F5: Scoped Adversarial | not-started | | | | |
@@ -64,11 +64,11 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| F2: pass-15 remediation burst 11 | product-owner / state-manager | DONE | P13-001 markdown-comment elimination propagated to the two consumer BCs (BC-4.02.001/BC-5.01.001) — closes the last cross-document contradiction; 15→18-field residue fixed; prd-delta §1 VP-status refreshed; scan-threats presentation-note. BC-4.02.001 v1.10, BC-5.01.001 v1.10, BC-3.03.001 v1.23, BC-9.01.001 v1.2, prd-delta v1.16. Clean streak 0/3. |
 | F2: adversarial pass 16 | adversary | DONE | 0C/1M/2m — P16-001 (MAJOR, burst-11 regression): consumer-BC reconciliation dropped the Gate-1 autonomy_enabled kill-switch precondition — BC-4.02.001 PC#4 + BC-5.01.001 Inv#7 now describe review-marker/hard-floor-deny for human investigation saves, but the authoritative emitter fires Gate 1 FIRST → allow-without-marker for ALL dispositions on human saves (no autonomy_enabled); the FP/non-FP/hard-floor routing applies ONLY to the autonomy_enabled=true masquerade case. P16-002 (MINOR): spec-changelog burst-11 entry says '54 mutants' (SM-max-ID) vs authoritative 48. P16-003 (MINOR): stale 'verdict-class 15-field path' in BC-3.03.001 PC#1 VP-HOOK-028 note (survived every field sweep; adjacent normative text says 18). Report persisted. |
 | F2: pass-16 remediation burst 12 | product-owner / state-manager | DONE | P16-001 consumer-BC Gate-1-first correction (fixes the burst-11 kill-switch-precondition regression) + P16-002 changelog mutant-count 54→48 + P16-003 BC-3.03.001 PC#1 15→18. BC-4.02.001 v1.11, BC-5.01.001 v1.11, BC-3.03.001 v1.24. Version-coherence sweep: verif-delta v1.18 BC anchors updated; prd-delta §5 New Version + burst-12 post-note. Clean streak 0/3. |
 | F2: consistency-validator full sweep + burst 13 | consistency-validator / product-owner / architect / state-manager | DONE | 10-axis census: 7 axes PASS clean (field counts, enum tokens, demo key, NVD, markdown semantics, cross-BC coherence, deferrals); 12 findings all version-drift + 2 stale-description (0 blocking, 0 contract-logic) — ALL remediated (BC-4.02.001 v1.12, BC-5.01.001 v1.12, BC-10.01.001 v1.19, BC-3.03.001 v1.25, arch-delta v1.18, prd-delta v1.17); coherence backlog flushed in one shot. Consistency report persisted: consistency-audit-pass16.md (316 lines). |
 | F2: adversarial pass 17 | adversary | DONE | 0C/3M — substance-focused (coherence pre-swept). P17-001 (MAJOR, CRITICAL-if-mishandled): known-FP high-severity floor exemption (D-016/EC-009 'auto-close proceeds') has NO enforcement surface in disposition-guard hard_floor_applies() — the gate has no known-FP signal and DENIES the auto-close; naive LLM known_fp field would be a forgeable CRITICAL bypass; NOT covered by DI-015; arch-delta itself left it 'pending PO confirmation'. P17-002 (MAJOR): retired substring-dispatch residue — CV-009 fixed PC#8 to JSON-first but NOT Inv#14 Stage-7 + VP-HOOK-028(1) (now-dead 'verdict-substring fail-closed' VP). P17-003 (MAJOR): retired MARKDOWN_COMMENT_PATH residue — P13-001 elimination didn't reach BC-3.03.001 EC-005 + L814 test vector (contradicts sibling vector L835). Report persisted; P17-001 at human gate; P17-002/003 clear fixes queued. |
+| F2: pass-17 remediation burst 14 | architect / product-owner / formal-verifier | DONE | D-019 known-FP high-sev→review (scopes D-016 to LOW/MED; closes the loop-vs-gate contradiction + the would-be LLM-known_fp CRITICAL bypass; no gate change; SM-56 added). P17-002 Inv#14/VP-HOOK-028 JSON-first residue cleared (BC-10.01.001 Inv#14 Stage-7 + VP-HOOK-028 property-(1) rewritten to actual fail-closed boundary). P17-003 BC-3.03.001 EC-005/L814 markdown-comment residue cleared (consistent with L836). Version-coherence sweep: verif-delta v1.19 BC anchors v1.20/v1.26; prd-delta §5 v1.18; arch-delta v1.19. Clean streak 0/3. |
 
 ## Decisions Log
 
@@ -92,6 +92,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | D-016 | P12-003 known-FP fast-path (Stage 5 bypassed) is EXEMPT from the scored_priority HIGH/CRIT hard floor (BC-10.01.001 EC-009): a documented known-FP + healthy sensor + non-forbidden technique + disposition=FP → auto-close even at high native severity. Residual bounded by known-FP store integrity invariants (store is not LLM-writable, audited at each use, subject to periodic operator review). See DI-015 for the residual risk tracking. | Known-FP store constitutes human pre-authorization for fast-path dismissal. Score re-escalation cannot occur if the store is clean; false-positive risk is bounded by store integrity — a distinct and bounded residual class from the ASM-008 LLM-supplied-field class. | F2 | 2026-07-22 | human |
 | D-017 | P13-001 MARKDOWN_COMMENT_PATH ELIMINATED: the 12-field ICD-203 investigation-markdown path NEVER issues an autonomous comment marker for any disposition. FP → allow-without-marker (Write succeeds; no Jira action authorized); non-FP/PARSE_FAIL → MARKDOWN_REVIEW_PATH. VP-HOOK-031 guarantee (c) rewritten. SM-52 (FP-comment-marker revert) allocated. | Recurring CRITICAL (P12-002 closed TP masquerade, P13-001 closes residual FP branch). Hook cannot evaluate scored_priority/asset_type from 12-field markdown; no known-FP store cross-check applies on this path. Any autonomous comment from this path bypasses all floors. P11-004 human-analyst intent preserved: Write is not denied; FP comment surfaces via review flow. | F2 | 2026-07-22 | human |
 | D-018 | P13-002 RC demo key corrected: PRISM-DEMO → PRISMDEMO throughout specs/test-vectors/brief. Jira project keys MUST be hyphen-free (^[A-Z][A-Z0-9]+$). Setup-time validation added to BC-6.01.001 (activate Postcondition #12) and BC-6.01.003 (onboard-customer Invariant #6) — non-conformant keys rejected with explicit user-facing error at configuration time, not fail-closed mid-run. | PRISM-DEMO is not a valid Jira project key: the P12-001 charset validation (correct-for-Jira) would reject it on every marker issuance. The RC live-demo could never issue any Jira write. Regex is correct; the example was wrong. Fail-early prevents the silent livelock class entirely. | F2 | 2026-07-22 | human |
+| D-019 | known-FP scored_priority floor exemption SCOPED to LOW/MED-severity only; HIGH/CRIT-native known-FPs route to comment-review (human review) via hard_floor_applies(), NOT auto-close; no deterministic-gate change (gate was already correct); LLM-known_fp-field rejected (forgeable CRITICAL bypass, O6). Revises D-016/P12-003b for the high-sev subset. | hard_floor_applies() fires unconditionally on scored_priority ∈ {HIGH,CRIT} — disposition-guard has no forgery-proof known-FP signal; an in-band LLM known_fp field would be a CRITICAL O6 bypass. Exempting HIGH/CRIT known-FPs from the floor would require a deterministic hook-recomputable signal that does not exist. LOW/MED exemption stands (those do not reach the floor). | F2 | 2026-07-23 | human |
 
 ## Skip Log
 
@@ -125,7 +126,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | ASM-008-DEFERRED | LLM-supplied field cross-validation deferred (SYMMETRIC across three fields): (1) native_severity — LLM-written at Stage 1 INGEST; hook re-normalizes for STEP 1a consistency check but cannot verify ground-truth against sensor source without network access; (2) asset_type — sensor-specific asset taxonomy (CrowdStrike asset categories, Armis/Claroty device types) not empirically validated; (3) scored_priority — Stage-5 assess-priority output written by LLM; hook applies the HIGH/CRIT floor but cannot independently verify the scoring. All three require prism-side cross-validation (network-free hooks cannot provide ground-truth for any). Genuine hook-side enforcement deferred to ASM-008 resolution or pre-production. Known residual after P10-001 (severity) + P11-001/D-012 (native_severity/scored_priority symmetry explicit). | MEDIUM | ASM-008 resolution / pre-production | ADV-F2-P10-001 / ADV-F2-P11-001 | OPEN — KNOWN-DEFERRED |
 | ASM-015 | BLOCKING pre-Wave-3 loop stories: empirical validation needed that permissionDecision:deny from a PreToolUse hook populates `.permission_denials[]` in --allowedTools JSON envelope; Gate 1 check on permission_denials > 0 is unvalidated until ASM-015 resolves; is_error=true is the only proven reliable exit-1 trigger for Gate 1. | BLOCKING | pre-Wave-3 | ADV-F2-P10-002 | OPEN — BLOCKING |
 | ASM-014 | comment-review --label binding pending: the comment-review kill-switch exemption is currently broader than "review ticket only" — restricting it to review-labeled tickets is deferred until empirical validation that `jr issue comment --label` is supported. | LOW | pre-Wave-3 (wave-stories touching comment-review path) | ADV-F2-P10-008 | OPEN — DEFERRED |
-| DI-015 | Known-FP store integrity residual (P12-003 / D-016): a poisoned known-FP store entry could suppress a real high-severity alert via the fast-path floor exemption. Mitigations in place: store is not LLM-writable, is audited at every use, and is subject to periodic operator review. Risk accepted per D-016; bounded by store governance, not LLM trust model. | MEDIUM | pre-production / store-governance | ADV-F2-P12-003 | OPEN — KNOWN-DEFERRED |
+| DI-015 | Known-FP store integrity residual (P12-003 / D-016 / D-019): a poisoned known-FP store entry could suppress a real LOW/MED-severity alert via the fast-path floor exemption. Mitigations in place: store is not LLM-writable, is audited at every use, and is subject to periodic operator review. D-019 further bounds this residual: HIGH/CRIT-native known-FPs now route to human review (comment-review) rather than auto-close — a poisoned high-sev store entry gets a human glance, NOT silent auto-close. Risk accepted per D-016/D-019; bounded by store governance, not LLM trust model. | MEDIUM | pre-production / store-governance | ADV-F2-P12-003 | OPEN — KNOWN-DEFERRED |
 
 ## Blocking Issues
 
@@ -139,8 +140,8 @@ dtu_services: [prism-demo-server, jr-mock]
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-23 |
-| **Position** | Pass 17 COMPLETE (0C/3M, report persisted). Substance pass (coherence pre-swept clean by the census). BLOCKED on human decision: P17-001 known-FP high-severity auto-close — route-to-review (Option A, no gate change, most secure) vs deterministic store-hash exemption in disposition-guard (Option B). P17-002/003 clear retired-mechanism-residue fixes queued for burst 14. NOTE: P17-001 traces to D-016; both prior human decisions D-016 and the census's axis-7/8 PASS did not catch it — census scans drift, adversary re-derives semantics (run both). Clean streak 0/3. |
-| **Context** | Artifact versions: arch-delta v1.18, verif-delta v1.18, prd-delta v1.17, BC-3.03.001 v1.25, BC-4.02.001 v1.12, BC-5.01.001 v1.12, BC-10.01.001 v1.19, BC-3.01.001 v1.22, BC-6.01.003 v1.7, BC-6.01.001 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2, BC-6.01.004 v1.1. VPs 37 / SM 48 (SM-9..SM-54, SM-32=32a+32b+32-ext; SM-55 skipped). Pass-17 report: phase-f2-spec-evolution/adversarial-spec-delta-review-pass17.md (141 lines). |
+| **Position** | Pass-17 remediation COMPLETE + committed. All 3 MAJORs closed: D-019 (known-FP high-sev→review, gate unchanged), Inv#14/VP-HOOK-028 JSON-first residue, BC-3.03.001 markdown-comment residue. NEXT: adversarial pass 18 (substance-focused; coherence swept clean by the census + this burst). Strong clean-pass candidate. Clean streak 0/3. |
+| **Context** | Artifact versions: arch-delta v1.19, verif-delta v1.19, prd-delta v1.18, BC-10.01.001 v1.20, BC-3.03.001 v1.26, BC-3.01.001 v1.22, BC-4.02.001 v1.12, BC-5.01.001 v1.12, BC-6.01.001 v1.7, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2, BC-6.01.004 v1.1. VPs 37 / SM 49 (SM-9..SM-56, SM-32=32a+32b+32-ext; SM-55 skipped). |
 | **Convergence counter** | 0/3 clean passes |
 
 ## Historical Content

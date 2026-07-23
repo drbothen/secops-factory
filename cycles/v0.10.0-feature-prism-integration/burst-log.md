@@ -802,3 +802,11 @@ BC-10.01.001 v1.16/v1.17→v1.18). BC-10.01.001 canonical test vectors lines 648
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
 | F2: adversarial pass 15 | adversary | DONE | 0C/1M/2m/2obs — convergence candidate; 11/12 coherence axes PASS. P15-001 (MAJOR): P13-001 markdown-comment-marker elimination NOT propagated to the two CONSUMER BCs — BC-4.02.001 PC#4 + BC-5.01.001 Inv#7 still describe the eliminated comment-scoped-marker mechanism as their jr-comment authorization path (spec-vs-spec contradiction; 'MUST NOT be denied' postcondition now literally wrong). P15-002 (MINOR): stale '15-field' JSON-path count in BC-3.03.001 Evidence Types L878 (older than P14-004 sweep scope). P15-003 (MINOR): prd-delta §1 VP-status snapshot inconsistent (4 skill-BC rows frozen at PROPOSED + omit VP-SKILL-076/077 while BC-10.01.001 row was updated to FINALIZED). P15-004/005 OBS: scan-threats severity-grouping normalization; stale VP-HOOK-031 v1.14 citation in consumer BCs. Report persisted. |
+
+---
+
+## Archived Current Phase Step — F2: pass-15 remediation burst 11 (displaced 2026-07-23)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-15 remediation burst 11 | product-owner / state-manager | DONE | P13-001 markdown-comment elimination propagated to the two consumer BCs (BC-4.02.001/BC-5.01.001) — closes the last cross-document contradiction; 15→18-field residue fixed; prd-delta §1 VP-status refreshed; scan-threats presentation-note. BC-4.02.001 v1.10, BC-5.01.001 v1.10, BC-3.03.001 v1.23, BC-9.01.001 v1.2, prd-delta v1.16. Clean streak 0/3. |

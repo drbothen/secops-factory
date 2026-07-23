@@ -541,3 +541,50 @@ a dedicated consistency census is the right instrument for the coherence tail, r
 adversarial passes for logic/security. Also: version-cross-reference drift is the dominant
 coherence-tail class; a version-coherence sweep must re-run after EVERY BC bump, not once.
     _Discovered: burst-13 (consistency-validator full 10-axis sweep), flushed in one shot, 2026-07-23_
+
+---
+
+### Lesson 42 — [process-gap] A coherence census and an adversarial pass are COMPLEMENTARY, not substitutes; after a census, run a substance-focused adversarial pass (pass-17, burst-14, 2026-07-23)
+
+The census at burst-13 passed axes 7/8 (markdown semantics, cross-BC coherence) YET pass-17
+found P17-001/P17-002/P17-003 in exactly those areas. Why: the census verified that the
+authoritative pseudocode and existing vectors were internally correct, without RE-DERIVING
+the cross-BC interaction from scratch or checking every EC/vector/VP against the authoritative
+pseudocode for retired-mechanism residue. The adversary re-derives semantics cold; the census
+checks that what is written is consistent. These are different checks. After a census, always
+follow with a substance-focused adversarial pass — the census is not a substitute, it is a
+prerequisite that lets the adversary focus on logic rather than coherence noise.
+    _Discovered: pass-17 (P17-001/002/003 found after census passed axes 7/8), burst-14, 2026-07-23_
+
+---
+
+### Lesson 43 — [design] Cross-component enforcement-surface analysis must accompany any "exempt from a deterministic control" decision (pass-17, burst-14, 2026-07-23)
+
+D-016 encoded a behavior (known-FP auto-close) in one component (the monitoring loop) whose
+enforcement LIVED in another (the disposition-guard / hard_floor_applies()). The gate was
+correct — it fires unconditionally on HIGH/CRIT scored_priority — but the exemption decision
+was made without checking whether the component that would enforce it had access to a
+forgery-proof known-FP signal. It did not. The result was a decision that said "this passes
+the floor" in a component that could not implement that pass. D-019 corrects it by scoping
+the exemption to LOW/MED where the gate genuinely does NOT fire, and routing HIGH/CRIT
+known-FPs through the gate as normal. Rule: whenever you declare something "exempt from a
+deterministic control", enumerate the component(s) that enforce that control, verify they
+have access to the signal that establishes exemption, and verify they can enforce it
+deterministically without a forgeable in-band field.
+    _Discovered: pass-17 (P17-001 D-019 loop-vs-gate contradiction), burst-14, 2026-07-23_
+
+---
+
+### Lesson 44 — [design] An "exempt from a hard floor" clause is a latent LLM-trust surface; prefer routing to human review over inventing a forgeable bypass field (pass-17, burst-14, 2026-07-23)
+
+When an exemption from a deterministic security control (the hard floor) cannot be
+established via a hook-recomputable signal, the temptation is to add an in-band LLM-supplied
+field (e.g., known_fp: true) that the hook checks. This is a CRITICAL bypass: the LLM that
+writes the verdict can set that field, turning an O6-class forgeable field into a gate bypass.
+The correct choice is to NOT exempt — route the case to human review instead. Human review
+is cheap relative to the cost of a bypassed hard floor. Only exempt when you have a
+forgery-proof, hook-recomputable signal. When that signal does not exist, treat the case as
+needing a human glance. D-019 instantiates this rule: HIGH/CRIT known-FPs route to
+comment-review (human review) rather than auto-close, because no forgery-proof known-FP
+signal exists in disposition-guard.
+    _Discovered: pass-17 (P17-001 LLM-known_fp-field rejection as O6 bypass), burst-14, 2026-07-23_

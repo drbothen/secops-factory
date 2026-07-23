@@ -1,10 +1,10 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "2.12"
+version: "2.13"
 status: active
 producer: state-manager
-timestamp: 2026-07-22T23:00:00Z
+timestamp: 2026-07-22T23:45:00Z
 phase: F2
 pipeline: FEATURE-CYCLE
 inputs: []
@@ -12,8 +12,8 @@ input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "F2 adversarial convergence — pass 13 done (2C/1M), remediation pending — P13-001/P13-002 at human gate"
-awaiting: "F2-pass13-remediation (human-gate)"
+current_step: "F2 adversarial convergence — pass-13 remediation COMPLETE, pass 14 pending"
+awaiting: "F2-adversarial-pass-14"
 current_cycle: v0.10.0-feature-prism-integration
 dtu_required: true
 dtu_assessment: "2026-07-20"
@@ -42,7 +42,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-22 |
 | **Current Phase** | F2: Spec Evolution (prism-integration cycle) |
-| **Current Step** | F2 adversarial convergence — pass 13 done (2C/1M), remediation pending — P13-001/P13-002 at human gate |
+| **Current Step** | F2 adversarial convergence — pass-13 remediation COMPLETE, pass 14 pending |
 
 ## Phase Progress
 
@@ -51,7 +51,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | pre-0: Pre-pipeline | PASSED | 2026-07-19 | 2026-07-19 | PASS | — |
 | 0: Codebase Ingestion + Remediation | COMPLETE | 2026-07-19 | 2026-07-20 | PASS | 12→11→7→8(1FP)→6→6→6→6(CRITICAL)→4→5→2→1→0; ADV-R1-4 CLEAN |
 | F1: Delta Analysis | PASSED | 2026-07-19 | 2026-07-20 | PASS | consistency: 7→0 |
-| F2: Spec Evolution | in-progress — pass13 done (2C/1M), remediation pending | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated → pass10 1C/2M → pass10 remediated → pass11 1C/3M → pass11 remediated → pass12 2C/2M → pass12 remediated → pass13 2C/1M (remediation pending) |
+| F2: Spec Evolution | in-progress — pass13 remediated, pass14 pending | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated → pass10 1C/2M → pass10 remediated → pass11 1C/3M → pass11 remediated → pass12 2C/2M → pass12 remediated → pass13 2C/1M → pass13 remediated |
 | F3: Incremental Stories | not-started | | | | |
 | F4: Delta Implementation | not-started | | | | |
 | F5: Scoped Adversarial | not-started | | | | |
@@ -64,11 +64,11 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| F2: adversarial pass 11 | adversary | DONE | 1C/3M/2m — P11-001 (CRITICAL): STEP-1a re-normalizes from LLM-supplied native_severity/sensor_family (hook makes no prism call) → severity floor still LLM-bypassable; 'un-bypassable/independently-derived' claim FALSE; native_severity trust is an ASM-008 residual identical to asset_type (understated). P11-002 (MAJOR): STEP-1a exact-equality contradicts Stage-5 severity recalibration (BC-10.01.001 field 13 + brief §3.9) — recalibrated verdicts denied; scored-priority escalations invisible to the floor. P11-003 (MAJOR): NVD/CVSS severity source but sensor_family enum lacks 'nvd' → false SEVERITY-MISMATCH. P11-004 (MAJOR): 12-field investigation-markdown emitter-entry contradictory BC-3.03.001 vs arch-delta; validate_enums would deny an analyst's investigation save. P11-005 mis-anchor (BC-6.01.003 → wrong BC-9.01.001 ref). P11-006 prd-delta stale 12/15. [process-gap]: false-closure claim copy-propagated to 4 docs. Report persisted; at human gate. |
 | F2: pass-11 remediation burst 7 | architect / product-owner / formal-verifier | DONE | P11-001 STEP 1a consistency-only reframe: overstated "un-bypassable/independently-derived" language WITHDRAWN; native_severity trust reclassified as ASM-008-DEFERRED (symmetric with asset_type and scored_priority). P11-002 two-field severity model: verdict.severity = detector-native NORMALIZE_SEVERITY output (Stage 1 only); verdict.scored_priority (field 18 ∈{CRIT,HIGH,MED,LOW}) = Stage-5 assess-priority output; HIGH/CRIT floor keys on scored_priority NOT recomputed severity. P11-003 NVD/CVSS clean separation: sensor_family enum has no 'nvd' member; CVSS influences scored_priority not native_severity. P11-004 separate human-comment marker path: PC#2 in BC-3.03.001 routes 12-field investigation-markdown to a minimal comment-scoped marker path (no validate_enums()/STEP 1a; gated on 12-field completeness + markdown-evaluable hard floors). P11-005 BC-6.01.003 mis-anchor corrected. P11-006 prd-delta BC version table refreshed. VP-HOOK-031 + SM-46 + SM-47 allocated. D-011..D-014 recorded. arch-delta v1.14, verif-delta v1.14, prd-delta v1.13, BC-3.03.001 v1.19, BC-10.01.001 v1.16, BC-5.01.001 v1.9, BC-4.02.001 v1.9, BC-6.01.003 v1.3. |
 | F2: adversarial pass 12 | adversary | DONE | 2C/2M/2m — trust-basis class CLOSED (ASM-008 reframe held, not re-derived). NEW-surface CRITICALs: P12-001 ticket_id concatenated UNESCAPED into command_pattern regex → regex-injection (ticket_id='.*' broadens match) — LATENT since original marker design, defeats anchored-match property, NOT ASM-008-covered; clear fix (Jira-key charset validate + regex-escape). P12-002 human-comment markdown path (P11-004) selectable by autonomous loop → bypasses kill switch + scored_priority/asset_type floors, issues live comment marker (intent-dependent). P12-003 (MAJOR) CRIT-vs-CRITICAL enum mismatch on fast-path → fail-closed deny 30-40% volume + floor-vs-autoclose contradiction. P12-004 (MAJOR) BC-4.05.001 producer never emits/maps scored_priority (field 18). P12-005 mis-anchor (P11-005 fix wrong: Invariant#12 nonexistent → Postcondition#12). P12-006 stale Traceability. P12-007 [process-gap] no regex-escape standing rule. Report persisted; P12-002 at human gate. |
 | F2: pass-12 remediation burst 8 | architect / product-owner / formal-verifier | DONE | P12-001 CRITICAL regex-injection closed at 5 command_pattern interpolation sites (ticket_id charset-validate ^[A-Z][A-Z0-9]+-[0-9]+$ + regex-escape; jira_project_key ^[A-Z][A-Z0-9]+$; fail-closed CHARSET-DENY; latent since original marker design). P12-002 CRITICAL markdown-path four-guarantee redesign: kill-switch gate (autonomy_enabled absent/≠true → allow-without-marker) + route-to-review rule (disposition≠FP → create-review/comment-review). P12-003 MAJOR fast-path scored_priority enum map (SEVERITY_TO_SCORED_PRIORITY_MAP: CRITICAL→CRIT, MEDIUM→MED; D-016: known-FP floor exemption). P12-004 MAJOR BC-4.05.001 producer/consumer gap closed (priority output IS scored_priority field 18). P12-005 BC-6.01.003 Invariant#12→Postcondition#12 mis-anchor. P12-006 BC-8.02.001 traceability label. P12-007 O7 standing rule codified. VP-HOOK-032 + SM-48/49/50/51 allocated. D-015/D-016 recorded. arch-delta v1.15, verif-delta v1.15, prd-delta v1.14, BC-3.03.001 v1.20, BC-10.01.001 v1.17, BC-4.05.001 v1.4, BC-6.01.003 v1.4, BC-8.02.001 v1.4. Clean streak 0/3. |
 | F2: adversarial pass 13 | adversary | DONE | 2C/1M/1m — markdown-comment path CRITICAL for 2nd consecutive pass. P13-001 (CRITICAL): MARKDOWN_COMMENT_PATH FP branch issues autonomous comment marker with NO scored_priority/asset_type floor (not in 12-field markdown) and NO known-FP store backing → unbounded exemption; P12-002 fix closed TP case, left FP branch open; NOT covered by DI-015. P13-002 (CRITICAL/RC-gate): brief canonical demo key PRISM-DEMO / PRISM-DEMO-42 is NOT a valid Jira key (hyphens disallowed in project keys) → P12-001 charset (correct-for-Jira) fails-closed on every demo marker → RC live-demo cannot issue any Jira write; regex right, brief example wrong. P13-003 (MAJOR): markdown disposition/autonomy_enabled parse grammar unspecified (FP mis-parse → floor bypass; no fail-closed-to-review rule). P13-004 (MINOR): PC#2 prose stale vs P12-002. Report persisted; P13-001/002 at human gate. |
+| F2: pass-13 remediation burst 9 | architect / product-owner / formal-verifier | DONE | P13-001 CRITICAL MARKDOWN_COMMENT_PATH ELIMINATED (FP→allow-without-marker; hook cannot eval scored_priority/asset_type from 12-field markdown; recurring 2-pass CRITICAL closed). P13-002 CRITICAL PRISMDEMO key correction (PRISM-DEMO invalid hyphen; ^[A-Z][A-Z0-9]+$ charset unchanged; setup-time validation added to BC-6.01.001 + BC-6.01.003). P13-003 MAJOR strict parse grammar (canonical-heading-only; exact allowlist; PARSE_FAIL→review; no full-doc scan). P13-004 MINOR PC#2 prose updated (P11-004/P12-002/P13-001 cross-ref). SM-52 (FP-comment-marker revert) + SM-53 (disposition-scan revert) allocated. D-017/D-018 recorded. arch-delta v1.16, verif-delta v1.16, prd-delta v1.15, BC-3.03.001 v1.21, BC-6.01.001 v1.7, BC-6.01.003 v1.5, BC-10.01.001 v1.17, BC-4.05.001 v1.4, BC-3.01.001 v1.21, BC-5.01.001 v1.9, BC-4.02.001 v1.9, BC-8.02.001 v1.4. Clean streak 0/3. |
 
 ## Decisions Log
 
@@ -90,6 +90,8 @@ dtu_services: [prism-demo-server, jr-mock]
 | D-014 | P11-004 separate human-comment marker path: the 12-field ICD-203 investigation-markdown path (PC#2 dispatch in BC-3.03.001) does NOT enter the verdict emitter. It uses a SEPARATE minimal comment-scoped marker path gated ONLY on 12-field completeness + markdown-evaluable hard floors (Indeterminate disposition, forbidden techniques, degraded/silent sensor). validate_enums() and STEP 1a are NOT called on this path (both reference verdict-only fields absent from a 12-field markdown). VP-HOOK-031 + SM-47 allocated for this path. | Eliminates the P11-004 MAJOR impossibility: the pass-10 emitter's validate_enums() would deny a complete, valid 12-field investigation save because verdict-only fields (severity, asset_type, scored_priority, etc.) are absent from a markdown investigation. | F2 | 2026-07-22 | human |
 | D-015 | P12-002 markdown-comment path four-guarantee redesign: (a) autonomy_enabled absent/≠true → allow-without-marker (kill switch, matching STEP-5 semantics — no autonomous comment marker under kill switch); (b) disposition≠FP → route to create-review/comment-review (TP/BTP surfaces to human review; hook cannot evaluate scored_priority/asset_type from 12-field markdown); (c) disposition=FP + all markdown-evaluable floors pass → comment marker; (d) ticket_id charset-validated on markdown path per O7. Architecture-delta v1.15 §8.26.1. SM-50 (kill-switch gate removed) + SM-51 (route-to-review removed) allocated. | Closes autonomous-loop-masquerade bypass: the loop gains nothing by writing a TP as investigation-*.md because the kill switch is enforced AND non-FP verdicts are routed to human review unconditionally. | F2 | 2026-07-22 | human |
 | D-016 | P12-003 known-FP fast-path (Stage 5 bypassed) is EXEMPT from the scored_priority HIGH/CRIT hard floor (BC-10.01.001 EC-009): a documented known-FP + healthy sensor + non-forbidden technique + disposition=FP → auto-close even at high native severity. Residual bounded by known-FP store integrity invariants (store is not LLM-writable, audited at each use, subject to periodic operator review). See DI-015 for the residual risk tracking. | Known-FP store constitutes human pre-authorization for fast-path dismissal. Score re-escalation cannot occur if the store is clean; false-positive risk is bounded by store integrity — a distinct and bounded residual class from the ASM-008 LLM-supplied-field class. | F2 | 2026-07-22 | human |
+| D-017 | P13-001 MARKDOWN_COMMENT_PATH ELIMINATED: the 12-field ICD-203 investigation-markdown path NEVER issues an autonomous comment marker for any disposition. FP → allow-without-marker (Write succeeds; no Jira action authorized); non-FP/PARSE_FAIL → MARKDOWN_REVIEW_PATH. VP-HOOK-031 guarantee (c) rewritten. SM-52 (FP-comment-marker revert) allocated. | Recurring CRITICAL (P12-002 closed TP masquerade, P13-001 closes residual FP branch). Hook cannot evaluate scored_priority/asset_type from 12-field markdown; no known-FP store cross-check applies on this path. Any autonomous comment from this path bypasses all floors. P11-004 human-analyst intent preserved: Write is not denied; FP comment surfaces via review flow. | F2 | 2026-07-22 | human |
+| D-018 | P13-002 RC demo key corrected: PRISM-DEMO → PRISMDEMO throughout specs/test-vectors/brief. Jira project keys MUST be hyphen-free (^[A-Z][A-Z0-9]+$). Setup-time validation added to BC-6.01.001 (activate Postcondition #12) and BC-6.01.003 (onboard-customer Invariant #6) — non-conformant keys rejected with explicit user-facing error at configuration time, not fail-closed mid-run. | PRISM-DEMO is not a valid Jira project key: the P12-001 charset validation (correct-for-Jira) would reject it on every marker issuance. The RC live-demo could never issue any Jira write. Regex is correct; the example was wrong. Fail-early prevents the silent livelock class entirely. | F2 | 2026-07-22 | human |
 
 ## Skip Log
 
@@ -137,9 +139,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-22 |
-| **Position** | Pass 13 COMPLETE (2C/1M/1m, report persisted). BLOCKED on human decisions: (1) P13-001 markdown-comment-path FP-branch trust model (route to review / allow-without-marker / provenance-gate / redesign human-comment path — recurring CRITICAL surface, 2 passes); (2) P13-002 correct the invalid RC demo key PRISM-DEMO → valid hyphen-free Jira key across brief + specs. Clear fixes queued: P13-003 parse grammar, P13-004 PC#2 prose. Clean streak 0/3; trajectory ...→2C→2C(new-surface, markdown path recurring). |
-| **Context** | Artifact versions: arch-delta v1.15, verif-delta v1.15, prd-delta v1.14, BC-3.03.001 v1.20, BC-10.01.001 v1.17, BC-4.05.001 v1.4, BC-6.01.003 v1.4, BC-8.02.001 v1.4, BC-3.01.001 v1.21, BC-5.01.001 v1.9, BC-4.02.001 v1.9, BC-6.01.001 v1.6. VP-HOOK-032 + SM-48/49/50/51 allocated (O7 charset-validation + markdown-path four guarantees). 35 VPs / 45 mutants / ~342 test vectors for cycle. D-015/D-016 recorded. Pass-13 report: phase-f2-spec-evolution/adversarial-spec-delta-review-pass13.md. |
-| **Convergence counter** | 0/3 clean passes (pass-13 done 2C/1M — remediation at human gate) |
+| **Position** | Pass 13 REMEDIATED — awaiting pass 14. P13-001 CRITICAL MARKDOWN_COMMENT_PATH ELIMINATED (FP→allow-without-marker; recurring 2-pass CRITICAL closed). P13-002 CRITICAL PRISMDEMO key correction (setup-time validation added). P13-003 MAJOR strict parse grammar. P13-004 MINOR PC#2 prose. D-017/D-018 recorded. SM-52+SM-53 allocated. Clean streak 0/3; trajectory ...→2C(pass12)→2C(pass13)→pass13 remediated. |
+| **Context** | Artifact versions: arch-delta v1.16, verif-delta v1.16, prd-delta v1.15, BC-3.03.001 v1.21, BC-6.01.001 v1.7, BC-6.01.003 v1.5, BC-10.01.001 v1.17, BC-4.05.001 v1.4, BC-3.01.001 v1.21, BC-5.01.001 v1.9, BC-4.02.001 v1.9, BC-8.02.001 v1.4. VP-HOOK-032 + SM-48/49/50/51/52/53 allocated. 35 VPs / 47 mutants / ~360 test vectors for cycle. D-017/D-018 recorded. Pass-14 dispatch pending; adversary fresh context; carry confirmed-invariants. |
+| **Convergence counter** | 0/3 clean passes (pass-13 REMEDIATED; pass-14 pending) |
 
 ## Historical Content
 

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.5"
 status: draft
 producer: product-owner
 timestamp: 2026-07-20T00:00:00
@@ -17,7 +17,7 @@ subsystem: lifecycle-management
 capability: CAP-LIFECYCLE-03
 lifecycle_status: active
 introduced: v0.10.0-feature-prism-integration
-modified: ["v1.1-FV-PROPOSED-DROP-2026-07-20", "v1.2-ADV-F2-P10-009-per-org-jira-project-key-2026-07-22", "v1.3-ADV-F2-P11-005-mis-anchor-fix-2026-07-22", "v1.4-ADV-F2-P12-005-postcondition-anchor-fix-2026-07-22"]
+modified: ["v1.1-FV-PROPOSED-DROP-2026-07-20", "v1.2-ADV-F2-P10-009-per-org-jira-project-key-2026-07-22", "v1.3-ADV-F2-P11-005-mis-anchor-fix-2026-07-22", "v1.4-ADV-F2-P12-005-postcondition-anchor-fix-2026-07-22", "v1.5-ADV-F2-P13-002-per-org-key-charset-validation-2026-07-22"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -29,6 +29,7 @@ removal_reason: null
 # Behavioral Contract BC-6.01.003: onboard-customer Skill — Org Slug / UUID Provisioning and prism.toml Registration
 
 > **Revision history:**
+> - v1.5 (2026-07-22): Pass-13 adversarial remediation — P13-002 (CRITICAL, per-org `jira_project_key` charset validation). (1) **Invariant #6 updated — charset validation required:** when the user supplies a per-org `jira_project_key` during `onboard-customer`, the skill MUST validate the value against `^[A-Z][A-Z0-9]+$` before persisting it. On mismatch, refuse the onboarding with an explicit user-facing error ("Invalid Jira project key '<X>': Jira project keys must be uppercase alphanumeric with no hyphens or spaces — e.g., PRISMDEMO, SEC, SECOPS.") and do NOT store the invalid key. Rationale: a per-org key with a hyphen would cause PROJECT-KEY-CHARSET-DENY fail-closed drops on every disposition-guard marker issuance for that org. Cross-reference: D-DEC-008 architectural constraint (Jira project keys MUST be hyphen-free per `^[A-Z][A-Z0-9]+$`; architecture-delta.md v1.16 §D-DEC-008). Note: activate-level validation (BC-6.01.001 Postcondition #12 / EC-014) covers the global key set at activation; per-org keys captured here are independently validated since onboard-customer may be invoked after initial activation. (2) **EC-010 added:** hyphen-containing per-org `jira_project_key` rejected during onboard-customer. ADV-F2-P13-002.
 > - v1.4 (2026-07-22): Pass-12 adversarial remediation — P12-005 (MINOR, mis-anchor correction). **Invariant #6 cross-reference corrected again:** the v1.3 fix introduced a secondary error — "BC-6.01.001 Invariant #12 / EC-013" is incorrect because BC-6.01.001 (activate-skill) has only 6 invariants; the jira_project_key Stage-0 gate is a **Postcondition** (#12), not an Invariant. Corrected to "BC-6.01.001 Postcondition #12 / EC-013" in both Invariant #6 body and the v1.3 revision history entry. ADV-F2-P12-005.
 > - v1.3 (2026-07-22): Pass-11 adversarial remediation — P11-005 (MINOR, mis-anchor fix). **Invariant #6 cross-reference corrected:** replaced the dead reference "BC-9.01.001 Precondition #9" (no such precondition exists — scan-threats has 4 preconditions, none related to jira_project_key) with the correct anchor "BC-6.01.001 Postcondition #12 / EC-013" (activate skill's jira_project_key Stage-0 gate, which controls what happens when neither per-org nor global jira_project_key is present). ADV-F2-P11-005.
 > - v1.2 (2026-07-22): Pass-10 adversarial remediation — P10-009 (MINOR) per-org `jira_project_key`. (1) **Postcondition #1:** `[[orgs]]` entry now optionally includes `jira_project_key` (string, overrides global `jira_project_key` for this org). The onboard-customer skill prompts for it optionally during org creation. (2) **Invariant #6 added (P10-009):** Per-org lookup order for `jira_project_key`: check `[[orgs]].jira_project_key` first (per-org override); if absent or empty, fall back to global `jira_project_key` from `[plugin_config]` or plugin state. This allows multi-tenant deployments where different orgs use different Jira projects. (3) **EC-009 added:** canonical behavior when user supplies a per-org `jira_project_key` during onboard-customer.
@@ -95,7 +96,7 @@ into chat (AD-017 invariant).
    before reading `prism.toml` or performing any file operation.
 5. **No destructive writes.** Appending to `prism.toml` must not truncate or
    overwrite existing entries. The write is strictly additive (append TOML block).
-6. **[NEW v1.2 — P10-009] Per-org `jira_project_key` lookup order.** The `[[orgs]]` entry
+6. **[NEW v1.2 — P10-009; UPDATED v1.5 — P13-002] Per-org `jira_project_key` lookup order with charset validation.** The `[[orgs]]` entry
    MAY include an optional `jira_project_key` field that overrides the global key for that
    org. When disposition-guard (BC-3.03.001) builds a `create-review` or `create` command_pattern
    for a verdict from this org, the lookup order is:
@@ -105,9 +106,15 @@ into chat (AD-017 invariant).
       (set at activate time, BC-6.01.001)
    If neither is present, disposition-guard emits HARD-FLOOR-UNBINDABLE (per Invariant #10 of
    BC-10.01.001 and BC-6.01.001 Postcondition #12 / EC-013). The onboard-customer skill MUST communicate
-   this optional field to the user without requiring it. If the user provides a per-org key,
-   the skill validates it is non-empty and contains only Jira-project-key safe characters
-   (uppercase alphanumeric, hyphens) before writing it to the `[[orgs]]` entry.
+   this optional field to the user without requiring it. **Charset validation (P13-002 CRITICAL):**
+   If the user provides a per-org key, the skill MUST validate it against `^[A-Z][A-Z0-9]+$`
+   (hyphen-free; Jira project keys MUST be uppercase alphanumeric with no hyphens or spaces)
+   before writing it to the `[[orgs]]` entry. On mismatch, refuse the onboarding with an explicit
+   user-facing error and do NOT store the invalid key (see EC-010). Cross-reference: D-DEC-008
+   architectural constraint (architecture-delta.md v1.16 §D-DEC-008); BC-6.01.001 Postcondition
+   #12 / EC-014 (activate-level global key validation).
+
+   > **Previous (v1.2–v1.4):** "If the user provides a per-org key, the skill validates it is non-empty and contains only Jira-project-key safe characters (uppercase alphanumeric, hyphens) before writing it to the `[[orgs]]` entry." The v1.5 correction: hyphens are NOT permitted — the validation must be `^[A-Z][A-Z0-9]+$` (hyphen-free), not "uppercase alphanumeric, hyphens". The prior text incorrectly allowed hyphens, which would cause PROJECT-KEY-CHARSET-DENY at every marker issuance in disposition-guard.
 
 ## Edge Cases
 
@@ -122,6 +129,7 @@ into chat (AD-017 invariant).
 | EC-007 | org_slug contains characters that are not filesystem-safe (spaces, slashes, special chars) | Skill rejects with message specifying allowed characters (lowercase alphanumeric, hyphens, underscores); re-prompts |
 | EC-008 | User attempts to enter a credential value during this skill | Skill explicitly declines: "Credential setup happens via onboard-sensor. I will not accept credentials here." |
 | EC-009 | **[NEW v1.2 — P10-009]** User supplies `jira_project_key = "ACME"` for per-org override during onboard-customer | Skill appends `[[orgs]]` entry with `jira_project_key = "ACME"` alongside `org_slug`, `uuid`. Printed confirmation states: "Per-org Jira project key 'ACME' stored for org 'acme-corp'. This overrides the global jira_project_key for all disposition-guard create-review/create operations on this org. Global key is still used for orgs without a per-org override." |
+| EC-010 | **[NEW v1.5 — P13-002]** User supplies a per-org `jira_project_key` containing a hyphen (e.g., `ACME-CORP`) — non-conformant to `^[A-Z][A-Z0-9]+$` | Skill emits user-facing error: "Invalid Jira project key 'ACME-CORP': Jira project keys must be uppercase alphanumeric with no hyphens or spaces — e.g., PRISMDEMO, SEC, ACMECORP." Skill does NOT append the `[[orgs]]` entry with the invalid key. Re-prompts user for a valid key or cancels. **(P13-002 fail-early requirement: a hyphen-containing key stored in prism.toml would cause PROJECT-KEY-CHARSET-DENY at every disposition-guard marker issuance for this org)** |
 
 ## Canonical Test Vectors
 

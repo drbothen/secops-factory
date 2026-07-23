@@ -370,3 +370,50 @@ traces_to: STATE.md
     reference to a nonexistent anchor is functionally equivalent to the original stale
     reference — it just points nowhere within a different file.
     _Discovered: F2 adversarial pass 12 (P12-005 MINOR), 2026-07-22_
+
+31. **A fix that ADDS a capability to a security-gated surface may be UNFIXABLE by
+    point-patching if the gate cannot see the data it needs [P13-001 recurring CRITICAL]** —
+    Pass 12 remediation (P12-002) redesigned the human-comment markdown path to gate
+    non-FP dispositions toward review. This correctly closed the TP/BTP masquerade
+    but left a residual FP branch that granted an autonomous comment marker with no
+    scored_priority/asset_type floor and no known-FP store cross-check. The gate cannot
+    evaluate those fields because they are not present in a 12-field ICD-203 investigation
+    markdown. The recurring CRITICAL was caused by attempting to add capability (conditional
+    comment-marker issuance) to a path where the prerequisite data is structurally absent.
+    The correct fix was to eliminate the capability from that path entirely
+    (MARKDOWN_COMMENT_PATH ELIMINATED, P13-001), not to add another conditional branch.
+    Rule: before adding a capability to a security gate that depends on data X, verify
+    that data X is structurally present in every input that can reach the gate. If it is
+    not, eliminate the capability from that code path — it is safer to fail-toward-review
+    than to permit a partial guard.
+    _Discovered: F2 adversarial pass 13 (P13-001 CRITICAL — 2nd consecutive pass), 2026-07-22_
+
+32. **Spec EXAMPLES must be validated against the real target's grammar — an invalid
+    example corrupts end-to-end testing [P13-002]** — the canonical RC demo Jira project
+    key `PRISM-DEMO` was used throughout specs, test vectors, and BATS fixtures from the
+    original brief. The P12-001 charset regex `^[A-Z][A-Z0-9]+$` is correct-for-Jira:
+    Jira project keys are hyphen-free by spec. `PRISM-DEMO` would fail this regex on every
+    marker issuance — the live RC demo could never issue any Jira write, and the failure
+    would be silent (the fail-closed CHARSET-DENY would quietly discard every marker).
+    The regex was right; only the example was wrong. Rule: when writing spec examples
+    for external system identifiers (Jira keys, project keys, UUIDs, etc.), validate each
+    example against the target system's documented grammar before committing. A bad example
+    in a spec propagates into all test vectors, fixtures, and downstream BCs that inherit
+    from the spec — catching it requires a full sweep of all dependent documents.
+    _Discovered: F2 adversarial pass 13 (P13-002 CRITICAL/RC-gate), 2026-07-22_
+
+33. **Free-text parse helpers feeding a security decision need an explicit grammar and a
+    fail-closed direction [P13-003]** — the markdown path relied on `parse_disposition_from_markdown`
+    and `parse_autonomy_enabled_from_markdown` as opaque helpers with no published grammar.
+    An adversarial probe can craft inputs like `Disposition: not a false positive` or
+    embed `autonomy_enabled: true` inside a code fence. Without an explicit grammar specifying
+    (a) which document section is canonical, (b) the exact value allowlist, and (c) the
+    safe direction for PARSE_FAIL (fail toward review, not toward allow-without-marker),
+    the implementation is free to interpret ambiguous inputs in an unsafe direction.
+    Requiring the grammar in the spec ensures testability: each adversarial parse vector
+    can be added as a BATS test case, and the correct behavior is unambiguous. Rule: any
+    parse function whose output is used in a security-relevant routing decision (allow vs.
+    deny, autonomous vs. review) must have a fully specified grammar in the spec, with
+    an explicit fail-closed direction — PARSE_FAIL must map to the more restrictive
+    outcome (review, deny), not the permissive one (allow-without-marker, autonomous).
+    _Discovered: F2 adversarial pass 13 (P13-003 MAJOR), 2026-07-22_

@@ -11,6 +11,41 @@ Track all spec version changes. Most recent version first.
 
 ## [1.1.0] - 2026-07-20 (patch edits 2026-07-21/22 — not a version bump)
 
+### F2 Pass-13 Remediation Edits — Burst 9 (2026-07-22) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 9). Root findings:
+P13-001 (CRITICAL — MARKDOWN_COMMENT_PATH ELIMINATED: the markdown path NEVER issues an
+autonomous comment marker for any disposition; FP → allow-without-marker (hook cannot evaluate
+scored_priority/asset_type from 12-field markdown; no known-FP store cross-check applies);
+non-FP/PARSE_FAIL → MARKDOWN_REVIEW_PATH; VP-HOOK-031 guarantee (c) rewritten;
+SM-52 (FP-comment-marker revert) allocated; D-017; recurring CRITICAL — P12-002 closed TP
+masquerade, P13-001 closes residual FP branch),
+P13-002 (CRITICAL — PRISMDEMO key correction: canonical RC demo key PRISM-DEMO is NOT a
+valid Jira project key (hyphens disallowed; ^[A-Z][A-Z0-9]+$ correct-for-Jira; regex correct —
+only example wrong); corrected to PRISMDEMO throughout; setup-time validation added to
+BC-6.01.001 (activate Postcondition #12) + BC-6.01.003 (onboard-customer Invariant #6);
+non-conformant key rejected with explicit user-facing error at setup; D-018),
+P13-003 (MAJOR — strict parse grammar: parse_disposition_from_markdown reads ONLY canonical
+Disposition heading value; exact allowlist {TP,FP,BTP,Indeterminate}+canonical long forms;
+PARSE_FAIL → non-FP → MARKDOWN_REVIEW_PATH (never allow-without-marker); no full-doc scan;
+parse_autonomy_enabled_from_markdown reads ONLY dedicated structured field; explicit-true-only;
+embedded-in-code-fence → false; SM-53 (disposition-scan revert) allocated),
+P13-004 (MINOR — BC-3.03.001 PC#2 prose updated to reflect post-P13-001 routing;
+cross-ref updated from (P11-004) to (P11-004 / P12-002 / P13-001)).
+SM-52/SM-53 allocated. D-017/D-018 recorded. 35 VPs / 47 mutants / ~360 test vectors.
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.15 | v1.16 | P13-001: MARKDOWN_COMMENT_PATH ELIMINATED (§8.29 item 1; VP-HOOK-031 guarantee c rewritten; SM-P13-A → SM-52 [ID-sync per FV]); P13-002: PRISMDEMO rename + D-DEC-008 hyphen-free constraint + setup-time validation requirement (§8.28); P13-003: strict parse grammar spec (§8.29 item 3); P13-004: PO note for BC-3.03.001 PC#2 (§8.28) |
+| phase-f2-spec-evolution/verification-delta.md | v1.15 | v1.16 | P13-001: VP-HOOK-031 guarantee (c) REWRITTEN (FP→allow-without-marker; SM-52 kill target; prior FP→comment vector RETIRED); SM-52 allocated; P13-002: 17 current-body PRISM-DEMO references → PRISMDEMO; P13-003: strict parse grammar adversarial vectors + SM-53 allocated; version-coherence sweep: BC-3.03.001 v1.20→v1.21 in §5, BC-6.01.001 v1.6→v1.7 in VP table |
+| phase-f2-spec-evolution/prd-delta.md | v1.14 | v1.15 | P13-002: PRISMDEMO rename in RC demo key references; BC-3.03.001 v1.20→v1.21, BC-6.01.001 v1.6→v1.7, BC-6.01.003 v1.4→v1.5 in §5 BC version table |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.20 | v1.21 [ID-sync per FV] | P13-001: MARKDOWN_COMMENT_PATH ELIMINATED (Trust basis + VP-HOOK-031 property + test vectors updated; SM-52 kill target); P13-002: PRISMDEMO rename in test vectors and fallback hint; P13-003: strict parse grammar for parse_disposition_from_markdown + parse_autonomy_enabled_from_markdown; P13-004: PC#2 outcome prose updated (P11-004/P12-002/P13-001 cross-ref); SM-P13-A → SM-52 [ID-sync per FV] |
+| phase-0-ingestion/behavioral-contracts/BC-6.01.001.md | v1.6 | v1.7 | P13-002: setup-time jira_project_key charset validation (^[A-Z][A-Z0-9]+$) added to Postcondition #12; non-conformant key rejected with explicit user-facing error at activation; EC-013 example updated to PRISMDEMO; EC-014 added (hyphen-containing key rejected) |
+| phase-0-ingestion/behavioral-contracts/BC-6.01.003.md | v1.4 | v1.5 | P13-002: per-org jira_project_key charset validation added to Invariant #6; non-conformant key refused with explicit error and not stored at onboard-customer; EC-010 added |
+| feature/prism-integration-handoff-brief.md | (no version) | (no version) | P13-002 (human-authorized): PRISMDEMO rename in §3.5/§4.1 demo key examples only |
+
+---
+
 ### F2 Pass-12 Remediation Edits — Burst 8 (2026-07-22) — spec remains 1.1.0
 
 Remediation edits within the F2 adversarial convergence cycle (burst 8). Root findings:

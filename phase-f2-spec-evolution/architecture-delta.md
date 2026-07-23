@@ -1,17 +1,18 @@
 ---
 document_type: architecture-delta
 producer: architect
-version: "1.15"
+version: "1.16"
 date: 2026-07-22
 input-hash: COMPUTE-AT-COMMIT
 changelog:
+  - "1.16 (2026-07-22): Pass-13 adversarial remediation (P13-001..P13-004). A. P13-001 (CRITICAL — per human decision 2026-07-22): MARKDOWN_COMMENT_PATH ELIMINATED. The markdown path NEVER issues an autonomous comment marker for any disposition (including FP). Rationale: the hook cannot evaluate scored_priority (field 18) or asset_type (field 14) from a 12-field markdown; no known-FP store cross-check applies on this path. P12-002's GATE 1 closed the TP/BTP masquerade but left a residual FP-branch that granted an autonomous comment marker with no scored_priority/asset_type floor enforcement — P13-001 closes it. New routing after floors pass: FP → allow-without-marker (Write succeeds; no Jira action authorized; analyst may surface an FP comment via the review path or normal 18-field verdict flow); non-FP/PARSE_FAIL → MARKDOWN_REVIEW_PATH (create-review/comment-review, same STEP 3 semantics, EXEMPT from kill switch). VP-HOOK-031 guarantee (c) rewritten: 'no disposition yields an autonomous comment marker from the markdown path' (prior 'FP+floors-pass → comment marker' is eliminated). P11-004 human-analyst intent preserved: the analyst's Write is NOT denied; the FP comment now surfaces through the review flow rather than autonomous action. FV: add mutant SM-52 ('FP markdown issues autonomous comment marker') → assert FP markdown with autonomy_enabled=true does NOT emit a [\"comment\"] marker; correct behavior is allow-without-marker. This mutant is distinct from SM-51 which covered route-to-review rule removal. SM-52 allocated by FV in verification-delta v1.16 [ID-sync per FV]. Full FV obligations in §8.29. B. P13-002 (CRITICAL — per human decision 2026-07-22): Canonical demo key corrected from PRISM-DEMO → PRISMDEMO throughout (test vectors, examples, table notes, code comment blocks, historical changelog reference). Rationale: Jira project keys are hyphen-free by spec; ^[A-Z][A-Z0-9]+$ / ^[A-Z][A-Z0-9]+-[0-9]+$ is correct-for-Jira; PRISM-DEMO was invalid and would cause PROJECT-KEY-CHARSET-DENY fail-closed drops on every demo marker issuance. Architectural constraint added to D-DEC-008: any Jira project key used with the marker mechanism MUST be hyphen-free (match ^[A-Z][A-Z0-9]+$). Setup-time validation requirement added: onboard-customer and activate MUST validate any configured jira_project_key against ^[A-Z][A-Z0-9]+$ at setup time and refuse non-conformant keys with an explicit user-facing error (fail-early, not fail-closed mid-run). PO: propagate PRISMDEMO rename to brief §3.5/§4.1/§4.5 (human-authorized — invalid-key example only), BC-3.03.001 test vectors/fallback hint, and add setup-time key validation to BC-6.01.001 (activate) and BC-6.01.003 (onboard-customer). Note: brief edit is AUTHORIZED for the PRISMDEMO rename ONLY. C. P13-003 (MAJOR): Strict parse grammar specified for parse_disposition_from_markdown and parse_autonomy_enabled_from_markdown. Disposition: reads ONLY the canonical 'Disposition' heading value; exact allowlist {TP, FP, BTP, Indeterminate} + canonical long forms; PARSE_FAIL on ambiguous/multi-valued/missing/unrecognized → treated as non-FP (fail-closed to review route, never allow-without-marker). Never scans full document. Autonomy: reads ONLY a dedicated structured field; return true only on explicit boolean-true in that field; return false for absent, false, ambiguous, or token inside code fence/evidence block. Since P13-001 eliminates MARKDOWN_COMMENT_PATH, parse_disposition now only decides review-vs-allow-without-marker (all dispositions converge on non-autonomous-comment marker), reducing blast radius; grammar remains required for correct routing. FV adversarial vectors in §8.29 item 3. D. P13-004 (MINOR): Note for PO — BC-3.03.001 Postcondition #2 prose stale; must be updated to reflect GATE 1 kill-switch + no-autonomous-comment routing (post-P13-001); cross-ref updated from '(P11-004)' to '(P11-004 / P12-002 / P13-001)'. Coverage note for FV: verification-delta line ~244 historical blockquote ('6 VP-HOOK (024–029) … grand total 31') is from an earlier pass and must not be read as the current total; current total is VP-HOOK 024–032 (9 hooks) / 35 VPs. Full PO/FV propagation in §8.28/§8.29."
   - "1.15 (2026-07-22): Pass-12 adversarial remediation (P12-001..P12-007). A. P12-001 (CRITICAL — regex injection): ticket_id was interpolated unescaped into command_pattern anchored regex at all three construction sites — STEP 6 (comment/assign), STEP 3 (comment-review), and the Human-Comment markdown path — allowing metacharacter injection (e.g., ticket_id='.*') to broaden the pattern and authorize unrelated Jira commands. Fix: BEFORE interpolating ticket_id, VALIDATE against ^[A-Z][A-Z0-9]+-[0-9]+$ (Jira-key charset) and DENY on mismatch; additionally regex-escape as defense-in-depth. Same O7 fix applied to jira_project_key (interpolated in STEP 3 create-review and STEP 6 create patterns): validated against ^[A-Z][A-Z0-9]+$ before interpolation. Corrected false D-DEC-001/D-DEC-008 claim that ticket_id was 'never derived from Jira ticket content' — it IS (loop-written from Jira/alert content on the verdict path; from free-text markdown on the Human-Comment path); the accurate statement is that ticket_id is charset-validated + escaped so it cannot alter the pattern's metacharacter structure. NOT ASM-008-covered — a regex-safety bug latent since the original marker design. Note for FV: VP asserting metacharacter-laden ticket_id cannot broaden pattern + paired mutant (remove validation → '.*' ticket_id authorizes an unrelated command); O7 VP class covers all interpolation sites. B. P12-002 (CRITICAL — per human decision 2026-07-22): Human-Comment Marker Path fully redesigned. (1) Now reads autonomy_enabled first — if absent or not exactly true, emit allow-without-marker (matching kill-switch semantics), closing the autonomous-loop-masquerade bypass. (2) Applies all markdown-evaluable floors (Indeterminate, forbidden techniques, degraded/silent sensor — unchanged). (3) NEW route-to-review rule: because the hook cannot evaluate scored_priority/asset_type from a 12-field markdown, any disposition != FP routes to create-review/comment-review rather than an autonomous comment marker. Benign FP investigations (human analysts) still receive a comment marker. Escalation-worthy findings (TP/BTP) surface to review instead of silently auto-commenting. Deterministic routing rule, ticket_id charset-validation, and VP-HOOK-031 scope update all in D-DEC-008 Separate Human-Comment Marker Path block. C. P12-003 (MAJOR — enum mismatch + floor precedence): (a) Fast-path scored_priority: NORMALIZE_SEVERITY yields {LOW,MEDIUM,HIGH,CRITICAL}; SCORED_PRIORITY_ENUM is {CRIT,HIGH,MED,LOW}; raw assignment set scored_priority='CRITICAL'/'MEDIUM' (non-members) → validate_enums fail-closed deny of 30-40% of known-FP volume. Fix: canonical SEVERITY_TO_SCORED_PRIORITY_MAP (CRITICAL→CRIT, MEDIUM→MED, HIGH→HIGH, LOW→LOW) added to D-DEC-008/D-DEC-013; fast-path MUST map through this table before writing scored_priority. (b) Floor-vs-autoclose precedence: ARCHITECTURAL DECISION — known-FP fast-path is EXEMPT from the scored_priority floor when sensor is healthy + no forbidden technique + disposition=FP. Rationale: the known-FP store constitutes human pre-authorization; EC-009 auto-close semantics preserved. Residual: poisoned known-FP store entry could suppress a real high-severity alert; cross-referenced to known-FP store integrity invariants (PO must add to BC-10.01.001 EC-009). Note for PO: update BC-10.01.001 field 18 fast-path source + floor-exempt annotation; note for BC-4.05.001 P12-004 below. D. P12-004 (MAJOR — producer contract): Note for PO — BC-4.05.001 (assess-priority, declared producer of scored_priority field 18 per BC-10.01.001 Stage 5) predates P11-002 and emits a field named 'priority' with no mapping to 'scored_priority'. PO must bump BC-4.05.001: add postcondition/invariant that assess-priority output 'priority' IS verdict field 18 scored_priority (enum {CRIT,HIGH,MED,LOW}), cite P11-002 + BC-10.01.001 Inv#9 field 18, note fast-path source when Stage 5 bypassed. Full PO propagation in §8.26. E. P12-005 (MINOR — P11-005 re-anchor): P11-005's own fix introduced new mis-anchor 'BC-6.01.001 Invariant #12' — BC-6.01.001 has only 6 invariants; the jira_project_key Stage-0 gate is Postcondition #12. Corrected to 'BC-6.01.001 Postcondition #12 / EC-013' in this changelog (P11-005 item E below) and in §8.24.4. Note for PO to fix BC-6.01.003 Inv#6 + revision history. F. P12-006 (MINOR): Note for PO — BC-8.02.001 Traceability 'org_slug scoping on all prism queries' contradicts v1.3 sensor-health carve-out; update to 'org_slug scoping on raw per-tenant tables; prism_sensor_health carve-out per Invariant #2'. Full PO note in §8.26. G. P12-007 (OBS — process-gap): O7 standing rule added to D-DEC-012 O3 table: any value interpolated into a command_pattern (or any authorization regex) MUST be charset-validated to a fixed grammar AND/OR regex-escaped; every such interpolation site needs a covering VP with a metacharacter-injection mutant. O7 interpolation audit: ticket_id (3 sites) — FIXED (P12-001); jira_project_key (2 sites: STEP 3 create-review + STEP 6 create) — FIXED (P12-007); org_slug — NOT interpolated into command_pattern (only audit log entries; P4-010 control-char-strip is sufficient) — SAFE. FV VP class obligations in §8.27."
   - "1.14 (2026-07-22): Pass-11 adversarial remediation (P11-001..P11-007). A. P11-001 (CRITICAL — reframe): STEP 1a re-framed as a deterministic CONSISTENCY CHECK between verdict.severity and verdict.native_severity (both LLM-supplied Stage-1 fields) — NOT ground-truth enforcement; hook makes no prism call. Removed all 'genuinely un-bypassable / hook independently derives severity from raw sensor values / only remaining LLM-trust surface' language. Added native_severity ground-truth residual SYMMETRIC with asset_type ASM-008 residual (both: LLM-supplied; genuine enforcement requires prism-signed field or hook-fetched prism data; ASM-008-DEFERRED pre-production follow-up). VP-HOOK-030 downgraded to 'verdict.severity is consistent with verdict.native_severity.' O6 standing rule annotated: STEP 1a operationalizes O6 as a consistency check; O6 residual (LLM-supplied inputs) documented. Hard floor binding section rewritten (v2.2). PO/FV propagation in §8.24. B. P11-002 (MAJOR — two-field model): Added scored_priority (field 18, enum CRIT|HIGH|MED|LOW) = Stage-5 assess-priority output; verdict schema is now 18-field. hard_floor_applies() high-severity floor keys on scored_priority (IF verdict.scored_priority in {HIGH, CRIT}) per brief §3.9 'any alert scored HIGH/CRIT → human'; captures KEV/exposure/critical-asset escalations. STEP 1a now validates ONLY native_severity↔verdict.severity consistency; does NOT gate recalibration. scored_priority is also LLM-supplied (same ASM-008-class residual). All '17-field' references updated to 18-field. O3 schema-sync obligation applies. C. P11-003 (MAJOR — NVD/CVSS): CLEAN SEPARATION: native_severity + sensor_family always describe the ORIGINATING SENSOR's raw reading; NVD/CVSS enrichment from enrich_nvd() influences scored_priority (Stage-5) NOT native_severity. NVD/CVSS row REMOVED from D-DEC-013 STEP-1a normalization table. Note for PO: remove '8.5 for NVD CVSS' example from prd-delta field-16 definition. D. P11-004 (MAJOR — investigation-markdown emitter entry): Affirmed STEP 0 'investigation-markdown path does NOT reach this emitter' is CORRECT. Added SEPARATE MINIMAL MARKER-ISSUANCE PATH for the human investigation comment: comment-scoped marker bound to ticket_id from markdown, gated on (a) 12-field completeness + (b) markdown-evaluable hard floors only (Indeterminate disposition, forbidden techniques, degraded/silent sensor) — does NOT call validate_enums/STEP 1a. Analyst CAN save a complete investigation markdown without being denied. PO reconciliation notes for BC-3.03.001/BC-5.01.001/BC-4.02.001 in §8.24. E. P11-005 (MINOR): Note for PO — BC-6.01.003 Invariant #6 mis-anchor 'BC-9.01.001 Precondition #9' should be 'BC-6.01.001 Postcondition #12 / EC-013'. F. P11-006 (MINOR): Note for PO — prd-delta '12/15-field split' stale; must be updated to '12/18-field'. G. P11-007 (OBS): D-DEC-013 UNRECOGNIZED_DEFAULT clarified: 'unrecognized FAMILY → CRITICAL' is UNREACHABLE at STEP-1a (STEP 1 enum-denies first); 'unrecognized VALUE within recognized family → CRITICAL' IS reachable. Both rules distinguished in D-DEC-013."
   - "1.13 (2026-07-22): Pass-10 adversarial remediation (P10-001..P10-009). A. D-DEC-008 FULL HOOK-SIDE RE-NORMALIZATION (P10-001 CRITICAL): native_severity + sensor_family added as REQUIRED verdict fields 16+17 (verdict schema is now 17-field: 12 ICD-203 + severity + asset_type + ticket_action_type + native_severity + sensor_family); emitter STEP 1a re-runs NORMALIZE_SEVERITY(native_severity, sensor_family) deterministically; mismatch with verdict.severity → SEVERITY-MISMATCH audit entry + deny; hard_floor_applies() now keys on hook-recomputed severity. asset_type: enum-membership enforced; prism_asset_class cross-validation is ASM-008-DEFERRED with explicit residual-risk note. Hard-floor binding section corrected: prior 'LLM cannot bypass / definitive enforcement surface' language removed. O6 standing rule added to D-DEC-012 O3 table: inputs to a hook-computed invariant must be hook-recomputable or hook-cross-validated, not LLM-supplied. D-DEC-008 Decision Summary + Artifact-Class table + field-count references updated to 17. O3 schema-sync obligation applies to this burst. B. P10-002 (MAJOR, process-gap): new ASM-015 added (BLOCKING for loop stories) to empirically validate whether a PreToolUse-hook permissionDecision:deny populates .permission_denials in the --allowedTools JSON envelope; cron wrapper extended to grep ${CLAUDE_PLUGIN_DATA}/markers/audit.log for HARD-FLOOR-LIVELOCK-ABORT|HARD-FLOOR-UNBINDABLE|UNDER-LABEL-DENIED|SEVERITY-MISMATCH entries newer than run-start and exit 1 if any present; LOG_DIR vs markers-dir path discrepancy resolved (LOG_DIR is for wrapper output logs; markers/audit.log is under ${CLAUDE_PLUGIN_DATA}/markers/); PO/FV propagation notes added. C. P10-003 (MAJOR): WRITE_MARKER failure on the hard-floor review path (STEP 3 create-review/comment-review) now fails closed: write MARKER-WRITE-FAILED audit entry + emit deny (mirrors HARD-FLOOR-UNBINDABLE); allow-without-marker retained ONLY for non-review regular marker paths. D. P10-004 (MINOR, note for PO): BC-3.03.001 emitter fallback_hint propagation gap documented in §8.22. E. P10-005 (MINOR, note for FV): VP-SKILL-059 upgrade to behavioral multi-org + static hunt-query library assertion documented in §8.23. F. P10-006 (MINOR): D-DEC-005 carve-out predicate tightened: exempt ONLY when prism_sensor_health is the SOLE table reference (no JOIN, no subquery against any raw per-tenant table). G. P10-007 (MINOR, note for FV): VP-SKILL-064 test-name qualification documented in §8.23. H. P10-008 (MINOR): ASM-014-pending residual documented: comment-review kill-switch exemption currently broader than 'review ticket only'; when ASM-014 resolves, comment-review MUST be bound to a review-labeled command; disposition-guard should confirm ticket_id corresponds to a review-labeled ticket. I. P10-009 (MINOR): per-org jira_project_key — CHOICE (a): BC-6.01.003 onboard-customer must capture per-org jira_project_key; verdict.jira_project_key sourced per-org with global-key fallback; multi-project binding claim is now technically grounded; PO propagation in §8.22. OBS: dtu-assessment BATS invocation drift noted in §8.22."
   - "1.12 (2026-07-21): Pass-9 adversarial remediation (P9-001/005/007/008/009). A. D-DEC-001 STEP 6a backslash-escape tokenizer extension (P9-001 MAJOR): quote-aware tokenizer extended to handle \\\" in IN_DOUBLE (literal \", stay IN_DOUBLE) and \\' in UNQUOTED (literal ', no state toggle), matching bash tokenization; index-based iteration replaces for-char-in-cmd loop; jr --label=VALUE equals form confirmed NOT supported by jr CLI (jr issue create --help, 2026-07-21) — equals-form vector scoped OUT; escaped-quote differential-vs-bash attack vectors + paired mutants added for FV. B. D-DEC-005 sensor-metrics carve-out (P9-005 MINOR): explicit exemption added for prism_sensor_health metadata queries from the per-tenant raw-data org_slug isolation rule; grounded in brief §2.4 (SELECT * FROM prism_sensor_health without org_slug) and §3.6 (health metadata is not raw per-tenant security records); PO to propagate to BC-8.02.001. No HUMAN-GATE-CONFIRM required — brief is unambiguous. C. D-DEC-008 STEP 3 dedup-before-fallback obligation (P9-007 MINOR): comment-review fallback hint conditioned on mandatory re-run of §3.4 BLIND-SPOT/REVIEW-REQUIRED dedup query before switching to create-review; null ticket_id may be a dedup-lookup miss, not absence of ticket; blind switch risks D-DEC-004 duplicate-ticket violation; PO to propagate to BC-10.01.001. D. D-DEC-008 jira_project_key Stage-0 precondition + re-doc cap (P9-008 OBS): activate/onboard MUST gate on jira_project_key presence as a hard Stage-0 precondition before the monitoring loop is permitted to run; re-doc attempt cap set at max 3 HARD-FLOOR-UNBINDABLE denies per-verdict per loop run before loop emits operator-facing failure and exits that verdict path; PO to propagate to BC-6.01.001 (Stage-0 gate) + BC-10.01.001 (cap). E. O5 standing rule added to D-DEC-012 O3 table (P9-009 OBS): any hook that re-implements shell tokenization to make a security decision MUST carry a differential-vs-bash vector partition covering all shell-quoting classes the downstream CLI honors."
   - "1.11 (2026-07-21): Pass-8 adversarial remediation (P8-001..P8-004 + OBS). A. D-DEC-008 STEP 3 DENY-THE-WRITE for missing binding fields (P8-001 CRITICAL): both silent-allow branches replaced with HARD-FLOOR-UNBINDABLE deny (create-review + null jira_project_key; comment-review + null ticket_id) per D-DEC-012 clause 2; comment-review corrective reason includes fallback hint when jira_project_key is present (suggests create-review, consistent with STEP 4 required_token logic); non-termination bounded — one HARD-FLOOR-UNBINDABLE audit entry + one deny per re-doc attempt, no Jira write, no silent loop; mirrors STEP 4 non-termination analysis. B. D-DEC-001 STEP 6a quote-aware tokenizer (P8-002 MAJOR): split_on_whitespace replaced with state-machine tokenizer (UNQUOTED/IN_SINGLE/IN_DOUBLE states); hook receives raw command string with literal quotes (jq -r, no shell expansion); EC-024 reconciled — label-literal-in-quoted-summary → has_review_label=false → ALLOW. C. Generation table and STEP 6a ( |$) boundary correction (P8-003 MINOR): explicit note that bash regex is NOT tail-anchored; regular create pattern DOES match review-labeled create at step 5; anti-fungibility direction A enforced EXCLUSIVELY at step 6a (single point of failure — raises step 6a criticality). D. §8.18/§8.19 added: pass-8 PO propagation (BC-3.03.001 STEP 3 deny branches + test vectors; BC-3.01.001 quote-aware tokenizer + EC-023/024 corrections; BC-10.01.001 VP-Anchors footer + Cyberint operator note; BC-8.02.001 Cyberint note; prd-delta §1 VP roster + §5 version catch-up + changelog) and FV propagation (VP-HOOK-029 unbindable-deny vectors; P8-002 quote-aware false-deny vector + revert mutant; EC-023 step-5 correction). P8-OBS-1: SUPERSEDED banners at §8.12.1 item 2 and §8.13 item 1 (retired marker-upgrade mechanism). P8-OBS-2: D-DEC-013 Cyberint operator note (pre-ASM-008: 100% CRITICAL → review queue flood; PO to propagate to BC-8.02.001/BC-10.01.001)."
   - "1.10 (2026-07-21): Pass-7 adversarial remediation (ADV-F2-P7-001..P7-009). A. D-DEC-008 STEP 4 REDESIGN — DENY-THE-WRITE (P7-001 CRITICAL): the marker-upgrade approach from P5-001/P6-002 is REMOVED — P7-001 proved it structurally unsound (the hook cannot rewrite the loop's future Bash command; upgrade writes a marker the loop's own non-review jr command can never consume). DENY-AT-WRITE is the only deterministic lever at the point the LLM can still react. New STEP 4: hard-floor/Indeterminate verdict with non-review ticket_action_type (create/assign/comment/none) → disposition-guard DENIES the verdict Write with a structured machine-readable corrective reason (hard_floor_trigger, required_token, label_instruction) and writes UNDER-LABEL-DENIED audit entry. No marker issued; no Jira write occurs. The loop re-issues the verdict Write with the corrective token; on corrected Write STEP 3 issues the review marker normally. Non-termination: bounded fail-closed — the deny + audit entry ARE the loud failure. STEP 4 remains before STEP 5 kill switch. UNDER-LABEL-CORRECTED audit code RETIRED; replaced by UNDER-LABEL-DENIED. B. D-DEC-012 fail-loud invariant and O3 table updated to reflect deny-the-Write semantics. O3 table extended with O4 standing rule (P7-009): every 'never silently discarded' claim MUST have a VP asserting the consumer-boundary (jr authorization/execution) outcome, not an emitter-local artifact. C. D-DEC-001 consumer STEP 6a has_review_label fix (P7-005 MINOR): structural token detection (whitespace-separated token parse; --label must appear as a standalone token immediately preceding REVIEW-REQUIRED or BLIND-SPOT) replaces raw substring over full command; prevents false-deny of regular creates whose --summary contains the label literal string. D. D-DEC-013 Cyberint explicit conservative mapping (P7-006 MINOR): Cyberint row updated from ambiguous COMPUTE-AT-VALIDATION to explicit default CRITICAL + uncertainty_explicit naming the unvalidated mapping, mirroring the unrecognized-family rule; enum-valid and auditable from first Cyberint contact. E. ASM-014 symmetry obligation added (P7-008 OBS): when jr issue comment --label support is validated, the comment-review structural check MUST be added symmetrically with create-review. F. §8.16 added: pass-7 PO propagation (BC-3.03.001 STEP 4 redesign; BC-3.01.001 step-6a structural fix; BC-10.01.001 six stale locations + Iron Law + loop re-document obligation + Cyberint mapping + brief §3.9 version-pin refresh) and §8.17 FV propagation (VP-HOOK-029 end-to-end consumer-boundary re-scope + deny-path vectors + mutants; VP-SKILL-074 Cyberint partition; step-6a false-deny vector)."
-  - "1.9 (2026-07-21): Pass-6 adversarial remediation (ADV-F2-P6-001..P6-009). A. Unified P6-001/P6-004 fix: create-review command_pattern now structurally distinct — `--label (REVIEW-REQUIRED|BLIND-SPOT)` encoded in FIXED second position after `--project <key>`; consumer adds STEP 6a anti-fungibility cross-check enforcing both directions; D-DEC-012 Alternatives Rejected updated (hook-side label enforcement NOW ADOPTED, reversing prior rejection — O3 standing rule mandates this is a security control that cannot live only in SKILL.md). P6-004 unified: per-org-key isolation infeasible under brief's single-PRISM-DEMO constraint; SEC_ORG_A/SEC_ORG_B examples removed; explicit downgrade documented (single-use + TTL + review-label binding provides cross-org protection). B. STEP reorder (P6-002 CRITICAL): hard_floor_applies() under-label upgrade (formerly STEP 5) moved BEFORE autonomy_enabled kill switch (formerly STEP 4); new STEP 4 = hard-floor/under-label upgrade, new STEP 5 = kill switch; EC-012 case (d) updated from silent-drop to upgrade-path semantics. C. Inv#11/VP-SKILL-065 carve-out language added to D-DEC-012 (P6-003 MAJOR): under autonomy_enabled=false, ZERO REGULAR (comment/create/assign) markers consumed and ZERO regular jr writes; create-review/comment-review escalation writes for genuine hard-floor verdicts still execute per Option A. D. D-DEC-013 added: severity normalization named step (P6-005 MAJOR) — per-sensor-family mapping table (CrowdStrike numeric 1-100, Armis/Claroty risk bands, CVSS floats); unrecognized → CRITICAL with uncertainty_explicit; Cyberint COMPUTE-AT-VALIDATION per ASM-008. E. D-DEC-004 BLIND-SPOT dedup updated (P6-006 MINOR): ticket_action_type now create-review (new ticket) / comment-review (open-ticket dedup); D-DEC-012 exempt-marker path cited. F. D-DEC-002 late-event fail-loud added (P6-007 MINOR): events older than watermark-GRACE emit explicit auditable finding; never silent drop; ASM-008 gate noted. G. ASM-009 elevated to BLOCKING pre-Wave-3 deliverable with explicit go/no-go criteria (P6-008 MINOR); marker design marked CONDITIONAL not RESOLVED. H. D-DEC-012 O3 standing rule table extended with consumer-consumption, control-flow-ordering, and trust-boundary-crossing rows (P6-009 OBS). I. §8.14 added: pass-6 PO propagation (BC-3.01.001 consumer step 6a, BC-3.03.001 STEP reorder + pattern, BC-10.01.001 Inv#11 carve-out + VP-SKILL-065 re-scope + severity normalization) and §8.15 FV propagation (VP-HOOK-029 FINALIZE+expand, VP-SKILL-065 re-scope, VP-SKILL-074 severity-normalization, VP-SKILL-073 late-event-drop, consumer-fungibility mutants SM-36/SM-37). Namespace correction (2026-07-21): VP-SKILL-072 collided with existing FINALIZED VP (first-run 24h lookback) — reallocated to VP-SKILL-074 for severity normalization. SM-33/SM-34 collided with occupied pass-4 sentinels — reallocated to SM-36/SM-37 for consumer STEP 6a anti-fungibility mutants."
+  - "1.9 (2026-07-21): Pass-6 adversarial remediation (ADV-F2-P6-001..P6-009). A. Unified P6-001/P6-004 fix: create-review command_pattern now structurally distinct — `--label (REVIEW-REQUIRED|BLIND-SPOT)` encoded in FIXED second position after `--project <key>`; consumer adds STEP 6a anti-fungibility cross-check enforcing both directions; D-DEC-012 Alternatives Rejected updated (hook-side label enforcement NOW ADOPTED, reversing prior rejection — O3 standing rule mandates this is a security control that cannot live only in SKILL.md). P6-004 unified: per-org-key isolation infeasible under brief's single-PRISMDEMO constraint; SEC_ORG_A/SEC_ORG_B examples removed; explicit downgrade documented (single-use + TTL + review-label binding provides cross-org protection). B. STEP reorder (P6-002 CRITICAL): hard_floor_applies() under-label upgrade (formerly STEP 5) moved BEFORE autonomy_enabled kill switch (formerly STEP 4); new STEP 4 = hard-floor/under-label upgrade, new STEP 5 = kill switch; EC-012 case (d) updated from silent-drop to upgrade-path semantics. C. Inv#11/VP-SKILL-065 carve-out language added to D-DEC-012 (P6-003 MAJOR): under autonomy_enabled=false, ZERO REGULAR (comment/create/assign) markers consumed and ZERO regular jr writes; create-review/comment-review escalation writes for genuine hard-floor verdicts still execute per Option A. D. D-DEC-013 added: severity normalization named step (P6-005 MAJOR) — per-sensor-family mapping table (CrowdStrike numeric 1-100, Armis/Claroty risk bands, CVSS floats); unrecognized → CRITICAL with uncertainty_explicit; Cyberint COMPUTE-AT-VALIDATION per ASM-008. E. D-DEC-004 BLIND-SPOT dedup updated (P6-006 MINOR): ticket_action_type now create-review (new ticket) / comment-review (open-ticket dedup); D-DEC-012 exempt-marker path cited. F. D-DEC-002 late-event fail-loud added (P6-007 MINOR): events older than watermark-GRACE emit explicit auditable finding; never silent drop; ASM-008 gate noted. G. ASM-009 elevated to BLOCKING pre-Wave-3 deliverable with explicit go/no-go criteria (P6-008 MINOR); marker design marked CONDITIONAL not RESOLVED. H. D-DEC-012 O3 standing rule table extended with consumer-consumption, control-flow-ordering, and trust-boundary-crossing rows (P6-009 OBS). I. §8.14 added: pass-6 PO propagation (BC-3.01.001 consumer step 6a, BC-3.03.001 STEP reorder + pattern, BC-10.01.001 Inv#11 carve-out + VP-SKILL-065 re-scope + severity normalization) and §8.15 FV propagation (VP-HOOK-029 FINALIZE+expand, VP-SKILL-065 re-scope, VP-SKILL-074 severity-normalization, VP-SKILL-073 late-event-drop, consumer-fungibility mutants SM-36/SM-37). Namespace correction (2026-07-21): VP-SKILL-072 collided with existing FINALIZED VP (first-run 24h lookback) — reallocated to VP-SKILL-074 for severity normalization. SM-33/SM-34 collided with occupied pass-4 sentinels — reallocated to SM-36/SM-37 for consumer STEP 6a anti-fungibility mutants."
   - "1.8 (2026-07-21): Adversarial pass-5 remediation (ADV-F2-P5-001..P5-003) + human-gate confirmation. A. D-DEC-001 authoritative schema block (P5-003 MAJOR): updated to true D-DEC-012 superset — authorized_operations now includes create-review/comment-review tokens; disposition.verdict now includes Indeterminate; disposition.ticket_action_type sub-field added; O3 schema-sync obligation codified. B. D-DEC-008 STEP 3 review-exemption (P5-002 MAJOR): gated on hook-computed hard_floor_applies(verdict); create-review/comment-review tokens no longer bypass kill switch or hard floor for non-hard-floor verdicts; over-labeled non-hard-floor verdicts emit allow-without-marker at STEP 3; O3 standing rule codified. C. D-DEC-008 STEP 5 fail-loud (P5-001 CRITICAL): silent emit-allow without marker on hard_floor_applies()=true is PROHIBITED; replaced with deterministic upgrade to create-review (ticket_id null) or comment-review (ticket_id present); missing project_key → explicit error artifact + deny; audit entry written on every upgrade. D. D-DEC-012 fail-loud invariant updated: hook now enforces it deterministically (not delegated to SKILL.md). E. O3 standing rule codified in D-DEC-012. F. §8.12 added: pass-5 PO propagation (BC-3.03.001 STEP 3+5 updates, BC-10.01.001 ticket_action_type under-label semantics) and FV propagation (VP-HOOK-029 re-scope, SM-32 re-scope). G. Kill-switch/brief-§3.9 conflict RESOLVED 2026-07-21: human operator confirmed Option A — create-review/comment-review markers execute under autonomy_enabled=false for genuine hard-floor verdicts; all §8.12 HOLD markers lifted; brief §3.9 amendment delegated to PO."
   - "1.7 (2026-07-21): Version-ref sync to frozen pass-4 BC versions (BC-3.01.001 v1.17, BC-3.03.001 v1.13, BC-4.02.001 v1.8, BC-5.01.001 v1.8, BC-6.01.001 v1.5, BC-10.01.001 v1.9). §8.6 current-live annotation updated. §8.10 pass-4 propagation items 1–11 marked COMPLETE."
   - "1.6 (2026-07-20): Adversarial pass 4 remediation (ADV-F2-P4-001..012). A. D-DEC-008 dispatch-precedence fix (P4-001 CRITICAL): JSON-first dispatch — file ending in .json or content parsing as JSON (jq empty) routes to verdict-class 15-field path REGARDLESS of 'investigation' substring in path; prevents canonical path artifacts/investigations/verdict-*.json being misrouted to markdown branch; BC-3.03.001 PC#1/2/3 must be rewritten (PO). B. D-DEC-008 anchored create pattern (P4-002 CRITICAL): removed `.*` before --project; pattern is now `^jr (--output json )?issue create --project <key>( |$)`; --project must be first flag after issue create (Iron Law); trailing ( |$) prevents PROD matching PRODUCTION; BC-3.03.001 must adopt pattern (PO). C. D-DEC-012 (new) review-ticket path (P4-004 MAJOR): ticket_action_type `create-review` and `comment-review` as restricted marker types for hard-floor verdict surfacing; exempt from hard-floor no-marker rule; also exempt from autonomy_enabled kill switch (escalation ≠ autonomous triage); fail-loud invariant: hard-floor verdicts never silently dropped. D. D-DEC-008 autonomy_enabled operational field (P4-005 MAJOR): add autonomy_enabled to verdict JSON as non-ICD-203 operational metadata field; disposition-guard reads directly from verdict file (not delegated to monitoring-loop LLM); default-false conservative. E. D-DEC-008 enum-membership validation (P4-006 MAJOR): fail-closed deny on non-member values for severity/asset_type/disposition/sensor_health_status/ticket_action_type/confidence before hard-floor check; BC-3.03.001 PC#3 must add enum-membership validation (PO). F. Various minors: audit-log control-char sanitization for ticket_id/org_slug/op (P4-010); watermark WRITE validation tightened to full RFC3339 UTC-Z (P4-O1); marker-store cleanup mechanism note (P4-O2); grace-window drop trade-off note (P4-O3); budget-exhaustion behavior NFR note (P4-011). G. §5.4 ADV-F2-P2-007 audit-path note marked RESOLVED (P4-009) — fix was applied at BC-3.01.001 v1.14."
@@ -318,9 +319,9 @@ FUNCTION validate_marker(command):
     #   return False
     #
     # EC-024 RECONCILIATION (UNCHANGED — still valid under v2 tokenizer):
-    # For cmd = `jr issue create --project PRISM-DEMO --summary "rule matched literal --label REVIEW-REQUIRED in alert payload"`:
+    # For cmd = `jr issue create --project PRISMDEMO --summary "rule matched literal --label REVIEW-REQUIRED in alert payload"`:
     # - Tokenizer enters IN_DOUBLE at the `"` before "rule"; all chars through closing `"` → --summary token body
-    # - Token sequence: [jr, issue, create, --project, PRISM-DEMO, --summary,
+    # - Token sequence: [jr, issue, create, --project, PRISMDEMO, --summary,
     #                    rule matched literal --label REVIEW-REQUIRED in alert payload]
     # - `--label` is NOT a standalone token → has_review_label=false → ["create"] marker consumed → ALLOW
     # EC-024 is internally consistent: label-literal-in-quoted-summary → has_review_label=false → ALLOW.
@@ -1248,7 +1249,7 @@ A create marker authorizes exactly one ticket creation; any attempt to reuse it 
 | `["comment"]` | `"SEC-123"` | `^jr (--output json )?issue comment SEC-123 ` | Trailing space guards against SEC-123 matching SEC-1234 (EC-022) |
 | `["assign"]` | `"SEC-123"` | `^jr (--output json )?issue assign SEC-123 ` | Same trailing-space guard |
 | `["create"]` | `null` | `^jr (--output json )?issue create --project <jira_project_key>( \|$)` | ADV-F2-P4-002: `--project` is FIRST arg in fixed position; trailing `( \|$)` prevents project-KEY prefix-extension (`PROD` does not match `PRODUCTION`). **P8-003:** bash `[[ =~ ]]` is NOT tail-anchored — this pattern DOES match a review-labeled `jr issue create --project KEY --label REVIEW-REQUIRED ...` at consumer step 5. `( \|$)` guards ONLY against prefix extension; anti-fungibility direction A (regular create marker cannot authorize review-labeled command) is enforced EXCLUSIVELY at step 6a (`structural_label_check`). |
-| `["create-review"]` | `null` | `^jr (--output json )?issue create --project <jira_project_key> --label (REVIEW-REQUIRED\|BLIND-SPOT)( \|$)` | **ADV-F2-P6-001 fix (unified with P6-004):** structurally DISTINCT from `["create"]` — `--label (REVIEW-REQUIRED\|BLIND-SPOT)` in FIXED second position after `--project <key>` (mirrors P4-002 Iron Law); a regular `jr issue create --project X` without `--label` cannot match this pattern; consumer STEP 6a enforces anti-fungibility in both directions. P6-004 unified: single PRISM-DEMO project key makes per-org project-key isolation infeasible; review-label binding is the primary cross-org protection for create-review operations |
+| `["create-review"]` | `null` | `^jr (--output json )?issue create --project <jira_project_key> --label (REVIEW-REQUIRED\|BLIND-SPOT)( \|$)` | **ADV-F2-P6-001 fix (unified with P6-004):** structurally DISTINCT from `["create"]` — `--label (REVIEW-REQUIRED\|BLIND-SPOT)` in FIXED second position after `--project <key>` (mirrors P4-002 Iron Law); a regular `jr issue create --project X` without `--label` cannot match this pattern; consumer STEP 6a enforces anti-fungibility in both directions. P6-004 unified: single PRISMDEMO project key makes per-org project-key isolation infeasible; review-label binding is the primary cross-org protection for create-review operations |
 | `["comment-review"]` | `"SEC-123"` | `^jr (--output json )?issue comment SEC-123 ` | D-DEC-012: ticket_id-bound (same as `["comment"]`); consumer STEP 6a enforces that `["comment"]` markers cannot be consumed by a `["comment-review"]`-context command and vice versa. Structural `--label` check for comment-type commands pending ASM-014 empirical validation of `jr issue comment --label` support |
 
 > **ADV-F2-P4-002 create-scope anchored pattern:** The `.*` between `create ` and `--project`
@@ -1277,7 +1278,7 @@ A create marker authorizes exactly one ticket creation; any attempt to reuse it 
 > not require HUMAN-GATE-CONFIRM — per-org project key is architecturally consistent with the
 > multi-org model and uses per-org fallback semantics that are backward-compatible.
 >
-> Under the brief's PRISM-DEMO single-project configuration (key `PRISM-DEMO`), all orgs' per-org
+> Under the brief's PRISMDEMO single-project configuration (key `PRISMDEMO`), all orgs' per-org
 > keys would be set to the same value (or left empty to use the global fallback) — per-org project-key
 > isolation is a deployment-time choice, not an architectural constraint. **SEC_ORG_A/SEC_ORG_B
 > per-org-key examples are REMOVED (ADV-F2-P6-004 explicit downgrade was correct for demo;
@@ -1826,20 +1827,32 @@ markdown path "reaches the same emitter" is an authoring error (see PO obligatio
 4. **DO NOT execute:** validate_enums, STEP 1a (fields absent in 12-field markdown); scored_priority
    floor; asset_type critical-asset floor.
 
-**P12-002 route-to-review rule — disposition routing AFTER all floors pass:**
+**P13-001/P12-002 disposition routing AFTER all floors pass — MARKDOWN PATH NEVER ISSUES A COMMENT MARKER:**
 
-Because the hook CANNOT evaluate `scored_priority` or `asset_type` from a 12-field markdown,
-a markdown disposition carrying any hard-floor-relevant signal that the hook cannot evaluate
-MUST route to REVIEW rather than issuing an autonomous comment marker. Deterministic rule:
+Because the hook CANNOT evaluate `scored_priority` (field 18) or `asset_type` (field 14) from
+a 12-field markdown — and there is no known-FP store cross-check on this path — the markdown path
+MUST NEVER issue an autonomous `["comment"]` marker for any disposition. Per P13-001 (human
+decision 2026-07-22), MARKDOWN_COMMENT_PATH is eliminated. Deterministic rule (P13-001 supersedes
+the P12-002 FP-branch):
 
 ```
 parsed_disposition = parse_disposition_from_markdown(content)
-# e.g., "Disposition: TP" → "TP", "Disposition: FP" → "FP", "Disposition: BTP" → "BTP"
+# Parse grammar: see "Parse grammar specifications (P13-003)" block below.
+# Returns exactly one of {"TP","FP","BTP","Indeterminate"} or PARSE_FAIL.
+# PARSE_FAIL on any ambiguous/multi-valued/missing/unrecognized value.
+# Safe direction: PARSE_FAIL → non-FP routing (review, not allow-without-marker).
 
-IF parsed_disposition != "FP":
-  # TP/BTP/Indeterminate-already-gated-above: the hook cannot confirm scored_priority or
-  # asset_type from 12 fields. A TP/BTP on a domain_controller or CRIT-scored alert would
-  # bypass the §3.9 floor if we issued a regular comment marker. Route to review instead.
+IF parsed_disposition == "FP":
+  # FP: allow-without-marker. The hook cannot evaluate scored_priority/asset_type from
+  # a 12-field markdown; there is no known-FP store cross-check on this path.
+  # Per P13-001: no disposition may yield an autonomous comment marker from this path.
+  # The analyst's Write succeeds; no Jira action is authorized.
+  # P11-004 intent preserved: the Write is NOT denied. An FP comment the analyst wants
+  # to surface must use the review path or the normal 18-field verdict flow.
+  emit allow-without-marker
+  RETURN
+ELSE:
+  # Non-FP (TP/BTP/Indeterminate-already-gated-above) or PARSE_FAIL (safe direction).
   # MARKDOWN_REVIEW_PATH: same semantics as STEP 3 create-review/comment-review.
   # This path is EXEMPT from the autonomy_enabled kill switch (same as regular STEP 3 path).
   ticket_id = parse_ticket_id_from_markdown(content)
@@ -1853,12 +1866,23 @@ IF parsed_disposition != "FP":
       emit deny("MARKDOWN-HARD-FLOOR-UNBINDABLE: cannot surface non-FP markdown finding without ticket_id or jira_project_key.")
       RETURN
     GOTO MARKDOWN_CREATE_REVIEW_PATH    # no open ticket → create-review marker
-ELSE:
-  # parsed_disposition == "FP": benign FP investigation — human analyst saving evidence.
-  # No escalation-relevant signal from the scored_priority/asset_type floor set.
-  # Proceed to MARKDOWN_COMMENT_PATH (autonomous comment marker honored).
-  GOTO MARKDOWN_COMMENT_PATH
 ```
+
+**Parse grammar specifications (P13-003):**
+
+`parse_disposition_from_markdown(content)`:
+- Read ONLY the value of the canonical `Disposition` heading (e.g., `## Disposition` or `**Disposition:**`). Do NOT scan the full document for disposition tokens.
+- Map the value via an exact allowlist: `{TP, FP, BTP, Indeterminate}` and their canonical long forms ("True Positive" → TP, "False Positive" → FP, "Benign True Positive" → BTP). Matching is case-insensitive on canonical tokens only.
+- Any of the following → return `PARSE_FAIL` (treated as non-FP for routing): ambiguous value (e.g., "probably FP", "not a false positive"), multi-valued (e.g., "FP or BTP"), unrecognized token, missing heading, empty value. A `Disposition: FP` sentence inside an evidence block, code fence, or commentary MUST NOT match — heading-anchored parse only.
+- Safe direction: PARSE_FAIL → MARKDOWN_REVIEW_PATH (review), not allow-without-marker, so an adversarial markdown embedding a fake FP label in free text cannot obtain allow-without-marker.
+
+`parse_autonomy_enabled_from_markdown(content)`:
+- Read ONLY from a dedicated structured field (e.g., `Autonomy Enabled: true/false` heading or a well-defined YAML frontmatter field). Do NOT scan the full document for the token `autonomy_enabled: true`.
+- Return `true` ONLY when the dedicated field contains exactly `true` (or canonical boolean-true form) as a top-level value.
+- Return `false` for: absent field, `false` value, empty value, ambiguous value, or the `autonomy_enabled: true` token appearing inside a code fence, evidence block, or quoted log line.
+- Safe direction: any non-explicit-true → false (GATE 1 remains closed).
+
+**Adversarial vectors (FV obligation — P13-003):** See §8.29 item 3.
 
 **MARKDOWN_COMMENT_REVIEW_PATH / MARKDOWN_CREATE_REVIEW_PATH (non-FP dispositions):**
 - Construct the appropriate create-review or comment-review marker following the same
@@ -1869,44 +1893,70 @@ ELSE:
   masquerade vector: the loop gains nothing by writing a TP/BTP as investigation-*.md — it
   still receives a review marker requiring a human-labeled ticket, not an autonomous comment.
 
-**MARKDOWN_COMMENT_PATH (FP dispositions after all floors pass):**
-- Parse `ticket_id` from the markdown (standard "Jira Ticket:" heading or equivalent field).
-- **P12-001 O7 FIX — CHARSET VALIDATE ticket_id BEFORE pattern construction:**
-  ticket_id from free-text markdown content is attacker-influenceable (even more so than the
-  verdict path — the markdown is human-authored but the loop may produce it).
-  ```
-  IF NOT regex_match("^[A-Z][A-Z0-9]+-[0-9]+$", ticket_id):
-    WRITE audit entry:
-      "TICKET-ID-CHARSET-DENY (markdown): ticket_id '" + strip_control_chars(ticket_id) + "'" +
-      " fails Jira-key charset validation (P12-001/O7)"
-    emit deny("TICKET-ID-CHARSET-DENY: ticket_id from investigation markdown must match ^[A-Z][A-Z0-9]+-[0-9]+$.")
-    RETURN
-  ticket_id_safe = regex_escape(ticket_id)   # defense-in-depth per O7
-  ```
-- Emit a comment-scoped marker bound to `ticket_id_safe` (`authorized_operations: ["comment"]`).
-- The FP analyst's verdict Write succeeds; a comment marker is issued.
+**MARKDOWN_COMMENT_PATH — ELIMINATED (P13-001):**
+
+The autonomous comment marker branch for FP dispositions is removed. The hook cannot evaluate
+`scored_priority` (field 18) or `asset_type` (field 14) from a 12-field markdown, and there is
+no known-FP store cross-check on this path — therefore no autonomous `["comment"]` marker may
+be issued. Prior BC text referencing `MARKDOWN_COMMENT_PATH` or "FP + floors pass → comment
+marker" must be updated by PO (see §8.28.1 item 1). The ticket_id charset-validation logic that
+appeared in MARKDOWN_COMMENT_PATH is now superseded: FP dispositions on this path produce
+allow-without-marker with no pattern construction; O7 ticket_id charset validation remains
+active on the MARKDOWN_REVIEW_PATH branch (STEP 3 logic at MARKDOWN_COMMENT_REVIEW_PATH).
+
+**Jira project key constraint — hyphen-free required (P13-002):**
+
+Any Jira project key used with the marker mechanism MUST be hyphen-free and match
+`^[A-Z][A-Z0-9]+$`. Hyphens are not permitted in Jira project keys; the charset regex in
+D-DEC-008/D-DEC-001 is correct-for-Jira. The historical demo key `PRISM-DEMO` was invalid
+and would cause `PROJECT-KEY-CHARSET-DENY` fail-closed drops on every marker issuance; the
+correct key is `PRISMDEMO`. This architectural constraint applies to all configured project
+keys — global and per-org.
+
+**Setup-time key validation requirement (P13-002):**
+
+The `onboard-customer` and `activate` skills MUST validate any configured `jira_project_key`
+against `^[A-Z][A-Z0-9]+$` at setup time and refuse non-conformant keys with an explicit
+user-facing error message (e.g., "Invalid Jira project key 'PRISM-DEMO': Jira project keys
+must be uppercase alphanumeric with no hyphens or spaces — e.g., PRISMDEMO"). This is
+fail-early behavior — a bad key must never reach the marker mechanism to fail-closed mid-run.
+PO must propagate to BC-6.01.001 (activate) and BC-6.01.003 (onboard-customer) — see §8.28.3
+and §8.28.4.
 
 **If a markdown-evaluable floor fires (step 3):** deny with explicit audit entry and reason.
 The analyst receives actionable feedback; the Write is blocked only for that hard-floor condition.
 
-**Key guarantees (P11-004 intent preserved + P12-001/P12-002 fixes applied):**
+**Key guarantees (P11-004 intent preserved + P12-001/P12-002/P13-001 fixes applied):**
 1. An analyst who saves a complete 12-field **FP** investigation markdown with no forbidden
-   techniques and a healthy/degraded sensor WILL receive a comment marker — the Write is NOT denied.
-   (P11-004 intent: human analysts can save FP investigations without being blocked.)
+   techniques and a healthy sensor WILL have the Write succeed (NOT denied) — the markdown
+   path emits allow-without-marker for FP. The analyst's evidence is preserved.
+   (P11-004 intent: analysts are not blocked. P13-001: the autonomous comment marker is removed;
+   the analyst surfaces an FP comment via the review path or normal 18-field verdict flow.)
 2. The autonomous loop CANNOT use the markdown path to bypass the kill switch:
-   `autonomy_enabled=false` → allow-without-marker for comment path; STEP 3-equivalent
-   review markers still route non-FP TP/BTP findings to review under kill switch.
+   `autonomy_enabled=false` → allow-without-marker for FP; STEP 3-equivalent review markers
+   still route non-FP/PARSE_FAIL findings to review under the kill switch.
    (P12-002: kill switch semantics honored on markdown path.)
-3. The autonomous loop CANNOT use the markdown path to get an autonomous comment marker for
-   a TP/BTP finding: non-FP disposition → routes to review marker (not a regular comment).
-   (P12-002: masquerade bypass closed — the loop gains nothing by choosing the markdown path.)
-4. ticket_id from the markdown is charset-validated and regex-escaped before pattern construction.
-   (P12-001: regex injection closed on the markdown path.)
+3. The autonomous loop CANNOT use the markdown path to obtain ANY autonomous comment marker:
+   no disposition (FP or non-FP) yields a `["comment"]` marker from this path.
+   FP → allow-without-marker; non-FP/PARSE_FAIL → review marker.
+   (P13-001: MARKDOWN_COMMENT_PATH eliminated — closes the P12-002 FP-branch residual;
+   P12-002: masquerade bypass closed for TP/BTP — both now fully enforced.)
+4. ticket_id from the markdown is charset-validated and regex-escaped before pattern construction
+   on the MARKDOWN_REVIEW_PATH (STEP 3 logic at MARKDOWN_COMMENT_REVIEW_PATH).
+   (P12-001: regex injection closed; MARKDOWN_COMMENT_PATH ticket_id validation is superseded
+   by P13-001 elimination of that path.)
 
-**VP-HOOK-031 scope (updated P12-002):** Must verify all four key guarantees above. See §8.27
-FV propagation for required BATS vectors. The prior scope (path does not enter verdict emitter)
-is retained as a precondition but is now insufficient — VP-HOOK-031 must also assert the
-kill-switch behavior, the disposition-routing rule, and the ticket_id charset-validation.
+**VP-HOOK-031 scope (updated P13-001):** Must verify all four key guarantees above. See §8.29
+FV propagation for required BATS vectors. Guarantee (c) is rewritten: the prior "FP+floors-pass
+→ comment marker" guarantee is eliminated; the new guarantee is "no disposition yields an
+autonomous comment marker from the markdown path — FP emits allow-without-marker; non-FP/PARSE_FAIL
+routes to review." The P12-002 SM-P12-D mutant (covered "TP markdown with autonomy_enabled=true
+gets a regular comment marker") is now superseded and replaced by SM-52 (FP-comment-marker revert, P13-001): "FP markdown with
+autonomy_enabled=true MUST NOT emit a [\"comment\"] marker; correct behavior is allow-without-marker."
+FV must verify SM-52 kills the correctly fixed implementation. The prior scope (path does not
+enter verdict emitter) is retained as a precondition but is now insufficient — VP-HOOK-031 must
+also assert the kill-switch behavior, the no-autonomous-comment guarantee, and the disposition-
+routing rule (review vs allow-without-marker).
 
 **Hard floor binding (§3.9 — unconditional code branches) [v2.0 — ADV-F2-001 fix; v2.1 — P10-001 trust-basis correction; v2.2 — P11-001/P11-002 two-field model]:**
 
@@ -4663,9 +4713,9 @@ adversarial remediation.*
    @test "disposition-guard STEP3: Indeterminate + create-review + null jira_project_key → verdict Write DENIED; HARD-FLOOR-UNBINDABLE in audit.log (P8-001)"
    @test "disposition-guard STEP3: CRITICAL severity + create-review + null jira_project_key → deny reason contains missing_field=jira_project_key (P8-001)"
    @test "disposition-guard STEP3: silent sensor + comment-review + null ticket_id + null jira_project_key → DENIED; both fields absent noted in reason (P8-001)"
-   @test "disposition-guard STEP3: Indeterminate + comment-review + null ticket_id + project_key=PRISM-DEMO → DENIED; fallback hint suggests create-review (P8-001)"
+   @test "disposition-guard STEP3: Indeterminate + comment-review + null ticket_id + project_key=PRISMDEMO → DENIED; fallback hint suggests create-review (P8-001)"
    @test "disposition-guard STEP3: re-doc that still omits project_key → second HARD-FLOOR-UNBINDABLE audit entry; still no Jira write (P8-001 bounded non-termination)"
-   @test "disposition-guard STEP3: Indeterminate + create-review + project_key=PRISM-DEMO → review marker emitted normally (P8-001 happy path unbroken)"
+   @test "disposition-guard STEP3: Indeterminate + create-review + project_key=PRISMDEMO → review marker emitted normally (P8-001 happy path unbroken)"
    ```
 
 ---
@@ -5714,21 +5764,35 @@ prd-delta, or STATE.md. v1.15 continues with §8.27 FV obligations.*
 
 2. **VP-HOOK-031 scope update — markdown-path kill-switch + disposition routing (P12-002 CRITICAL).**
 
+   > **PARTIAL SUPERSESSION (P13-001, pass-13):** Two vectors below are superseded.
+   > (a) `"P12-002 FP disposition: … → comment marker issued (not review)"` — P13-001 eliminates
+   >     MARKDOWN_COMMENT_PATH; correct behavior for FP + autonomy_enabled=true is now
+   >     allow-without-marker, not a comment marker. Replace with SM-52 from §8.29 item 1.
+   > (b) `"P12-001 markdown ticket_id: ticket_id='SEC-456' from FP markdown → comment marker issued;
+   >     pattern anchored to SEC-456"` — also superseded; FP → allow-without-marker, no pattern
+   >     constructed. The TICKET-ID-CHARSET-DENY vector (ticket_id='.*') remains valid on the
+   >     MARKDOWN_REVIEW_PATH branch. SM-P12-D (reconciled as SM-51) is superseded on the FP path by SM-52 (§8.29 item 1).
+   > See §8.29 item 1 for replacement vectors. Kill-switch vectors (Guarantee 1 minus the
+   > "comment marker issued" expectation) and floor vectors (Guarantee 2) remain valid.
+
    VP-HOOK-031 must be updated to cover ALL four key guarantees of the redesigned markdown path:
 
    ```bats
    # Guarantee 1: kill switch honored on markdown path
    @test "P12-002 markdown kill-switch: autonomy_enabled=false, complete 12-field FP markdown → allow-without-marker (no Jira action)"
    @test "P12-002 markdown kill-switch: autonomy_enabled absent, complete 12-field FP markdown → allow-without-marker"
-   @test "P12-002 markdown kill-switch: autonomy_enabled=true, complete 12-field FP markdown → comment marker issued"
+   # NOTE (P13-001): the line below is SUPERSEDED — see §8.29 item 1 for replacement:
+   # @test "P12-002 markdown kill-switch: autonomy_enabled=true, complete 12-field FP markdown → comment marker issued"
+   # Replacement: FP + autonomy_enabled=true → allow-without-marker (not comment marker).
 
    # Guarantee 2: markdown-evaluable floors still fire
    @test "P12-002 markdown floor: Indeterminate disposition, autonomy_enabled=true → MARKDOWN-HARD-FLOOR deny"
    @test "P12-002 markdown floor: forbidden technique T1068, autonomy_enabled=true → MARKDOWN-HARD-FLOOR deny"
    @test "P12-002 markdown floor: silent sensor, autonomy_enabled=true → MARKDOWN-HARD-FLOOR deny"
 
-   # Guarantee 3: disposition routing rule
-   @test "P12-002 FP disposition: complete 12-field FP markdown, autonomy_enabled=true → comment marker issued (not review)"
+   # Guarantee 3: disposition routing rule (P13-001 update: FP → allow-without-marker)
+   # NOTE: the line below is SUPERSEDED — see §8.29 item 1 for replacement:
+   # @test "P12-002 FP disposition: complete 12-field FP markdown, autonomy_enabled=true → comment marker issued (not review)"
    @test "P12-002 TP disposition: complete 12-field TP markdown, autonomy_enabled=true → create-review or comment-review marker (not regular comment)"
    @test "P12-002 BTP disposition: complete 12-field BTP markdown, autonomy_enabled=true → review marker (not regular comment)"
 
@@ -5737,14 +5801,15 @@ prd-delta, or STATE.md. v1.15 continues with §8.27 FV obligations.*
 
    # ticket_id charset on markdown path (P12-001)
    @test "P12-001 markdown ticket_id: ticket_id='.*' from FP markdown → TICKET-ID-CHARSET-DENY"
-   @test "P12-001 markdown ticket_id: ticket_id='SEC-456' from FP markdown → comment marker issued; pattern anchored to SEC-456"
+   # NOTE (P13-001): the line below is SUPERSEDED — FP → allow-without-marker; no pattern constructed:
+   # @test "P12-001 markdown ticket_id: ticket_id='SEC-456' from FP markdown → comment marker issued; pattern anchored to SEC-456"
    ```
 
    Paired mutant (allocate SM-ID with occupancy check):
    - **SM-P12-C:** "revert P12-002 — remove autonomy_enabled check from markdown path" →
      set autonomy_enabled=false, write TP investigation markdown → assert comment marker IS issued
      (kill switch bypassed). Mutant dies when P12-002 fix correctly emits allow-without-marker.
-   - **SM-P12-D:** "revert P12-002 — remove disposition routing rule; issue comment marker for all dispositions" →
+   - **SM-51 (route-to-review, reconciled; formerly SM-P12-D — see §8.29 item 1 for SM-52):** "revert P12-002 — remove disposition routing rule; issue comment marker for all dispositions" →
      write TP investigation markdown with autonomy_enabled=true → assert regular comment marker
      is issued (not review). Mutant dies when P12-002 fix correctly routes TP to review.
 
@@ -5791,4 +5856,225 @@ prd-delta, or STATE.md. v1.15 continues with §8.27 FV obligations.*
    org_slug unless a future change introduces org_slug into pattern construction.
 
 *Pass-12 FV list (§8.27) complete. Architect does NOT edit BCs, verification-delta, prd-delta,
-or STATE.md. v1.15 is final for pass-12 adversarial remediation.*
+or STATE.md. v1.15 was final for pass-12 adversarial remediation. See §8.28/§8.29 for pass-13.*
+
+---
+
+## 8.28 PO PROPAGATION LIST (pass 13 — P13-001..P13-004)
+
+> **Owner:** Product owner. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md.
+> All items below are PO obligations — they document what must change in each BC and the brief.
+
+---
+
+### 8.28.1 BC-3.03.001 (disposition-guard emitter) — four items
+
+1. **MARKDOWN_COMMENT_PATH elimination (P13-001 CRITICAL):**
+   - Remove the MARKDOWN_COMMENT_PATH branch (FP + floors-pass → autonomous `["comment"]` marker)
+     from the Separate Human-Comment Marker Path pseudocode.
+   - New FP branch: emit allow-without-marker. Write succeeds; no Jira action authorized.
+     Add rationale comment: "hook cannot evaluate scored_priority/asset_type from a 12-field
+     markdown; no known-FP store cross-check on this path; P13-001 eliminates autonomous
+     comment marker from markdown path."
+   - Remove the ticket_id charset-validation code block that appeared inside MARKDOWN_COMMENT_PATH
+     (redundant — FP now produces allow-without-marker with no pattern construction; ticket_id
+     O7 validation remains active on the MARKDOWN_REVIEW_PATH branch via STEP 3 logic).
+   - Update VP-HOOK-031 scope annotation: guarantee (c) changes from "FP+floors-pass → comment
+     marker" to "no disposition yields an autonomous comment marker from the markdown path —
+     FP emits allow-without-marker; non-FP/PARSE_FAIL routes to review."
+   - Document human-analyst consequence: an FP comment the analyst wants to surface must use
+     the review path or the normal 18-field verdict flow; the markdown FP path only preserves
+     the analyst's evidence Write without any Jira action.
+
+2. **Parse grammar for parse_disposition_from_markdown and parse_autonomy_enabled_from_markdown (P13-003 MAJOR):**
+   - Add strict parse grammar for `parse_disposition_from_markdown`: reads ONLY the canonical
+     `Disposition` heading's value; exact allowlist {TP, FP, BTP, Indeterminate} and canonical
+     long forms ("True Positive" → TP, "False Positive" → FP, "Benign True Positive" → BTP);
+     PARSE_FAIL on ambiguous/multi-valued/missing/unrecognized → treated as non-FP (routes to
+     review). Never scan the full document for disposition tokens.
+   - Add strict parse grammar for `parse_autonomy_enabled_from_markdown`: reads ONLY a dedicated
+     structured field (not free-text/substring scan of the whole document); return `true` only on
+     explicit boolean-true in that field; return `false` for absent, false, empty, ambiguous, or
+     token appearing inside a code fence or evidence block.
+   - Add adversarial examples: `Disposition: not a false positive` → PARSE_FAIL → review route
+     (not allow-without-marker); `autonomy_enabled: true` embedded inside a code fence → GATE 1
+     remains closed (autonomy_enabled=false).
+   - Note blast-radius reduction: since P13-001 eliminates MARKDOWN_COMMENT_PATH, parse_disposition
+     now only decides review-vs-allow-without-marker; grammar remains required for correct routing.
+
+3. **Postcondition #2 prose update (P13-004 MINOR):**
+   - Update PC#2 outcome sentence (currently describes pre-P12-002 behavior: "If the separate
+     path's markdown-evaluable floors pass, a comment-scoped marker is written and
+     `permissionDecision: allow` is emitted") to reflect current post-P13-001 behavior:
+     (a) GATE 1 kill-switch (autonomy_enabled absent/false → allow-without-marker);
+     (b) floors check (Indeterminate/forbidden-technique/degraded-silent sensor → deny);
+     (c) no autonomous comment marker for any disposition — FP → allow-without-marker;
+         non-FP/PARSE_FAIL → review marker (create-review or comment-review).
+   - Update the cross-reference from `(P11-004)` to `(P11-004 / P12-002 / P13-001)`.
+
+4. **PRISMDEMO rename in test vectors and fallback hint (P13-002 CRITICAL):**
+   - Change all `PRISM-DEMO` occurrences in BC-3.03.001 test vectors and the comment-review
+     fallback hint to `PRISMDEMO` (tickets `PRISM-DEMO-42` → `PRISMDEMO-42`).
+   - Example: fallback hint "jira_project_key=PRISM-DEMO is present — re-issue with
+     ticket_action_type=create-review" → "jira_project_key=PRISMDEMO is present — re-issue
+     with ticket_action_type=create-review."
+   - Add constraint note at or near the charset validation section: "Jira project keys used
+     with the marker mechanism MUST be hyphen-free and match `^[A-Z][A-Z0-9]+$`; a key
+     such as PRISM-DEMO with a hyphen will be rejected by PROJECT-KEY-CHARSET-DENY at every
+     marker issuance — validate at setup time (BC-6.01.001 / BC-6.01.003) to prevent this."
+
+---
+
+### 8.28.2 Brief — human-authorized PRISMDEMO rename only (P13-002 CRITICAL)
+
+**Note:** The handoff brief (`.factory/feature/prism-integration-handoff-brief.md`) is normally
+not edited during architecture remediation. The human has explicitly authorized the following
+correction for the invalid demo key example ONLY. No other changes to the brief are permitted
+as part of this remediation burst.
+
+1. **§3.5 (SLA Impact):** Change the SLA-impact example from:
+   ```
+   "Appending to ticket PRISM-DEMO-42 (open, created 2h ago..."
+   ```
+   to:
+   ```
+   "Appending to ticket PRISMDEMO-42 (open, created 2h ago..."
+   ```
+
+2. **§4.1 (Demo environment Jira requirements):** Change `key \`PRISM-DEMO\`` → `key \`PRISMDEMO\``.
+   Add note: "Jira project keys must be hyphen-free and match `^[A-Z][A-Z0-9]+$`; the `activate`
+   and `onboard-customer` skills validate this at setup time and refuse non-conformant keys."
+
+3. **§4.5 (Updated demo sequence):** Inspect for any PRISM-DEMO reference in the demo sequence
+   steps and change to PRISMDEMO if present.
+
+---
+
+### 8.28.3 BC-6.01.001 (activate) — setup-time key validation (P13-002 CRITICAL)
+
+Add a new postcondition or extend existing EC-013 / Postcondition #12:
+
+- **Setup-time jira_project_key validation:** The `activate` skill MUST validate any configured
+  `jira_project_key` against `^[A-Z][A-Z0-9]+$` at setup time. On mismatch: emit an explicit
+  user-facing error (e.g., "Invalid Jira project key 'X': Jira project keys must be uppercase
+  alphanumeric with no hyphens — e.g., PRISMDEMO, SEC, SECOPS.") and refuse to complete
+  activation. Fail-early rationale: a bad key must not reach the marker mechanism to fail-closed
+  mid-run — every comment/create/create-review marker issuance would produce PROJECT-KEY-CHARSET-DENY
+  until the operator corrects the key at a setup boundary.
+- Cross-reference the architectural constraint in D-DEC-008: Jira project keys MUST be hyphen-free
+  per `^[A-Z][A-Z0-9]+$`.
+
+---
+
+### 8.28.4 BC-6.01.003 (onboard-customer) — setup-time key validation (P13-002 CRITICAL)
+
+Add a new invariant or extend existing Invariant #6:
+
+- **Per-org jira_project_key validation:** When capturing a per-org `jira_project_key` during
+  `onboard-customer`, validate the value against `^[A-Z][A-Z0-9]+$` before persisting it. On
+  mismatch: refuse the onboarding with an explicit error message and do not store the invalid key.
+- Cross-reference BC-6.01.001 Postcondition #12 / EC-013 (activate Stage-0 gate); the activate-
+  level validation is a prerequisite, but per-org keys captured during onboarding must also be
+  validated since onboard-customer may be invoked after initial activation.
+
+---
+
+*Pass-13 PO PROPAGATION LIST (§8.28) complete. Architect does NOT edit BCs, verification-delta,
+prd-delta, or STATE.md. v1.16 continues with §8.29 FV obligations.*
+
+---
+
+## 8.29 FORMAL-VERIFIER LIST (pass 13 — P13-001..P13-004)
+
+> **Owner:** Formal verifier. Architect does NOT write VPs or allocate IDs.
+>
+> **IMPORTANT — ID collision prevention:** Do NOT mint new VP/SM IDs without occupancy
+> verification. Run `grep -rE "VP-SKILL-0[6-9][0-9]|VP-HOOK-03[0-9]|SM-4[0-9]|SM-5[0-9]" .factory/`
+> before allocating any new ID. All IDs in this section are UNALLOCATED placeholders — FV
+> assigns actual numbers after occupancy check. Current confirmed max: VP-HOOK-032, SM-53. SM-P13-A → SM-52, SM-P13-B → SM-53 (allocated per FV in verification-delta v1.16 [ID-sync per FV]).
+
+---
+
+1. **VP-HOOK-031 scope update — MARKDOWN_COMMENT_PATH elimination + no-autonomous-comment guarantee (P13-001 CRITICAL).**
+
+   VP-HOOK-031 must be updated to reflect guarantee (c) rewrite. Add or update BATS vectors:
+
+   ```bats
+   # P13-001: FP markdown must NOT yield an autonomous comment marker (SM-52 kills this)
+   @test "P13-001 FP-no-comment: FP markdown, autonomy_enabled=true, all floors pass → allow-without-marker; NO [\"comment\"] marker written"
+   @test "P13-001 FP-no-comment: FP markdown, autonomy_enabled=true, healthy sensor → audit.log has NO MARKER-WRITTEN entry for comment operation"
+   @test "P13-001 FP-allow-write: FP markdown, autonomy_enabled=true → Write permitted (not denied); no Jira action authorized"
+
+   # P13-001: non-FP routing unchanged (still goes to review)
+   @test "P13-001 TP-review: TP markdown, autonomy_enabled=true → create-review or comment-review marker (not regular comment)"
+   @test "P13-001 BTP-review: BTP markdown, autonomy_enabled=true → review marker (not regular comment)"
+   @test "P13-001 PARSE_FAIL-review: ambiguous disposition 'probably FP', autonomy_enabled=true → PARSE_FAIL → review marker"
+
+   # P13-001: kill switch interaction with FP branch
+   @test "P13-001 FP-kill-switch: FP markdown, autonomy_enabled=false → allow-without-marker (kill switch honored; same outcome as P13-001 FP branch)"
+   @test "P13-001 FP-kill-switch-absent: FP markdown, autonomy_enabled absent → allow-without-marker"
+   ```
+
+   Paired mutant (allocate SM-ID with occupancy check — must be distinct from SM-51):
+   - **SM-52 (FP-comment-marker revert, P13-001):** "revert P13-001 — restore MARKDOWN_COMMENT_PATH: issue autonomous comment
+     marker for FP dispositions" → set autonomy_enabled=true, write complete 12-field FP markdown
+     with no forbidden techniques, healthy sensor → assert a `["comment"]` marker IS issued.
+     Mutant dies when P13-001 fix correctly emits allow-without-marker instead.
+     NOTE: this is distinct from SM-51 (which reverted the route-to-review rule for TP/BTP) and
+     from SM-P12-D (reconciled as SM-51; asserted TP markdown gets regular comment with routing rule removed).
+     SM-52 specifically targets the FP branch's autonomous comment. [ID-sync per FV]
+
+   Also update the SM-51 test description to note it is now superseded for the specific case it
+   covered (TP markdown routing) but the mutant itself remains valid for regression coverage.
+
+2. **PRISMDEMO rename in affected BATS vectors (P13-002 CRITICAL).**
+
+   Any BATS test vector in verification-delta that references `PRISM-DEMO` (ticket or project key)
+   must be updated to `PRISMDEMO` / `PRISMDEMO-42`. Scan:
+   ```
+   grep -rn "PRISM-DEMO" .factory/phase-f2-spec-evolution/verification-delta.md
+   ```
+   Update each occurrence. The charset regex `^[A-Z][A-Z0-9]+-[0-9]+$` and `^[A-Z][A-Z0-9]+$`
+   are correct-for-Jira and must NOT be changed. Only the example key values change.
+
+3. **Parse grammar adversarial vectors (P13-003 MAJOR).**
+
+   Add new BATS vectors to VP-HOOK-031 or a new VP (verify occupancy) covering adversarial
+   parse inputs:
+
+   ```bats
+   # Disposition parse — adversarial vectors
+   @test "P13-003 negated-FP prose: Disposition heading value 'not a false positive' → PARSE_FAIL → review route (not allow-without-marker)"
+   @test "P13-003 FP-in-body: 'Disposition: FP' appears only in evidence code block; canonical Disposition heading absent → PARSE_FAIL → review route"
+   @test "P13-003 FP-in-body-2: canonical Disposition heading value is 'TP'; body contains text 'this is not an FP' → parsed_disposition=TP → review route"
+   @test "P13-003 multi-valued: Disposition heading value 'FP or BTP' → PARSE_FAIL → review route"
+   @test "P13-003 empty-heading: Disposition heading present but value is empty → PARSE_FAIL → review route"
+   @test "P13-003 canonical-FP: Disposition heading value exactly 'FP' → parsed_disposition=FP → allow-without-marker"
+   @test "P13-003 canonical-long-form: Disposition heading value 'False Positive' → parsed_disposition=FP → allow-without-marker"
+
+   # autonomy_enabled parse — adversarial vectors
+   @test "P13-003 autonomy-in-code-fence: literal 'autonomy_enabled: true' appears only inside a code fence; no top-level structured field → gate=false → allow-without-marker"
+   @test "P13-003 autonomy-in-evidence: 'autonomy_enabled: true' appears in quoted log evidence block; no dedicated structured field → gate=false → allow-without-marker"
+   @test "P13-003 autonomy-top-level-true: dedicated 'Autonomy Enabled: true' structured field present → gate=true → GATE 1 opens"
+   @test "P13-003 autonomy-top-level-false: dedicated 'Autonomy Enabled: false' structured field → gate=false → allow-without-marker"
+   ```
+
+   Note: since P13-001 eliminates MARKDOWN_COMMENT_PATH, the blast radius of parse_disposition
+   PARSE_FAIL is reduced (all non-FP outcomes route to review, not autonomous comment). The
+   grammar is still required to correctly distinguish allow-without-marker (FP) from review
+   (everything else including PARSE_FAIL).
+
+4. **Historical VP count annotation — verification-delta (P13-004 / Coverage note).**
+
+   The adversary flagged a historical blockquote in verification-delta at approximately line 244
+   reading "6 VP-HOOK (024–029) … grand total 31" — this is from an earlier pass and must not be
+   read as the current total. FV must:
+   - Locate this blockquote in verification-delta and add a `> **[HISTORICAL — pass-N snapshot,
+     superseded]**` banner or equivalent annotation making clear the current totals are:
+     VP-HOOK range: 024–032 (9 hooks); current grand total: 35 VPs.
+   - Verify the CURRENT grand total statement in verification-delta reflects VP-HOOK 024–032 /
+     35 VPs. If a current-total statement does not exist, add one near the VP roster.
+   - Do NOT allocate new VP/SM IDs when making this annotation — this is a documentation fix only.
+
+*Pass-13 FV list (§8.29) complete. Architect does NOT edit BCs, verification-delta, prd-delta,
+or STATE.md. v1.16 is final for pass-13 adversarial remediation.*

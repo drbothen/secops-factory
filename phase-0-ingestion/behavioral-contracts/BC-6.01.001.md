@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.6"
+version: "1.7"
 status: draft
 producer: product-owner
 timestamp: 2026-07-20T00:00:00
@@ -15,7 +15,7 @@ subsystem: lifecycle-management
 capability: CAP-LIFECYCLE-01
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v1.1-D-DEC-003-PRISM-2026-07-20", "v1.2-FV-PROPOSED-DROP-2026-07-20", "v1.3-ADV-F2-P2-008-012-013-2026-07-20", "v1.4-ADV-F2-P3-010-2026-07-20", "v1.5-consistency-F3-changelog-correction-2026-07-21", "v1.6-ADV-F2-P9-008-2026-07-21"]
+modified: ["v1.1-D-DEC-003-PRISM-2026-07-20", "v1.2-FV-PROPOSED-DROP-2026-07-20", "v1.3-ADV-F2-P2-008-012-013-2026-07-20", "v1.4-ADV-F2-P3-010-2026-07-20", "v1.5-consistency-F3-changelog-correction-2026-07-21", "v1.6-ADV-F2-P9-008-2026-07-21", "v1.7-ADV-F2-P13-002-setup-time-charset-validation-2026-07-22"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -27,6 +27,7 @@ removal_reason: null
 # Behavioral Contract BC-6.01.001: activate Skill — Per-Project Activation Lifecycle with Prism MCP Integration
 
 > **Revision history:**
+> - v1.7 (2026-07-22): Pass-13 adversarial remediation — P13-002 (CRITICAL, setup-time `jira_project_key` charset validation). (1) **Postcondition #12 updated — charset validation required:** activate MUST validate any configured `jira_project_key` against `^[A-Z][A-Z0-9]+$` at setup time. On mismatch (e.g., a key containing a hyphen such as `PRISM-DEMO`), activate MUST emit an explicit user-facing error ("Invalid Jira project key '<X>': Jira project keys must be uppercase alphanumeric with no hyphens or spaces — e.g., PRISMDEMO, SEC, SECOPS.") and refuse to complete activation. Fail-early rationale: a non-conformant key reaches the marker mechanism and causes PROJECT-KEY-CHARSET-DENY fail-closed drops on every comment/create/create-review marker issuance — validating at setup time prevents this class of livelock entirely. Cross-reference: D-DEC-008 architectural constraint (Jira project keys MUST be hyphen-free per `^[A-Z][A-Z0-9]+$`). (2) **EC-013 example updated:** example prompt text changed from `(e.g., SEC, PRISM-DEMO)` to `(e.g., SEC, PRISMDEMO, SECOPS)` to reflect valid hyphen-free examples only. (3) **EC-014 added:** hyphen-containing key rejected at setup time with explicit user-facing error. ADV-F2-P13-002.
 > - v1.6 (2026-07-21): Pass-9 adversarial remediation — ADV-F2-P9-008 (OBS) jira_project_key as HARD Stage-0 precondition. The monitoring loop requires `jira_project_key` to be configured before it may run. A missing `jira_project_key` causes HARD-FLOOR-UNBINDABLE livelock on every hard-floor `create-review` verdict (disposition-guard STEP 3 denies every review marker because `jira_project_key` is null). (1) **Postcondition #12 added:** activate MUST prompt for and validate `jira_project_key` (non-empty string, Jira project key format) before completing. The monitoring-loop MUST NOT be scheduled or run without a valid `jira_project_key` configured in plugin state. If `jira_project_key` is absent when the loop starts, the loop MUST emit a fatal `MISSING-JIRA-PROJECT-KEY` error and exit immediately before processing any alerts. (See also BC-10.01.001 Precondition #9 v1.14.) (2) **EC-013 added:** jira_project_key absent at activation time — activate prompts user, validates format, blocks completion until populated.
 > - v1.5 (2026-07-21): consistency-F3 changelog correction — v1.4 entry had identical left/right sides in the subcommand rename notation; corrected to `jr auth check` → `jr auth status` to accurately record the rename that was applied.
 > - v1.4 (2026-07-20): ADV-F2-P3-010 (minor) GROUND TRUTH correction: `jr auth check` → `jr auth status` in PC#10, EC-010, test vectors, and purity classification (jr 0.5.0 subcommand is `jr auth status`; `jr auth check` does not exist).
@@ -121,12 +122,26 @@ removal_reason: null
     ```
     This display is informational (no credential collection occurs during activation).
 
-12. **[NEW v1.6] `jira_project_key` HARD Stage-0 precondition (P9-008 / architecture-delta v1.12 §D-DEC-008):**
+12. **[NEW v1.6; UPDATED v1.7 P13-002] `jira_project_key` HARD Stage-0 precondition with charset validation (P9-008 / P13-002 / architecture-delta v1.12/v1.16 §D-DEC-008):**
 
     Activate MUST prompt for and validate `jira_project_key` (non-empty string, valid Jira
-    project key format — uppercase letters and numbers, e.g. `SEC`, `PRISM-DEMO`) before
-    completing. The monitoring-loop MUST NOT be scheduled or run without a valid
-    `jira_project_key` configured in plugin state.
+    project key format — uppercase alphanumeric with no hyphens or spaces, e.g. `SEC`,
+    `PRISMDEMO`, `SECOPS`) before completing. The monitoring-loop MUST NOT be scheduled or
+    run without a valid `jira_project_key` configured in plugin state.
+
+    **Charset validation (P13-002 CRITICAL):** The `jira_project_key` MUST match `^[A-Z][A-Z0-9]+$`.
+    On mismatch, activate MUST emit an explicit user-facing error message and refuse to complete
+    activation (fail-early):
+    ```
+    Invalid Jira project key '<X>': Jira project keys must be uppercase alphanumeric with no
+    hyphens or spaces — e.g., PRISMDEMO, SEC, SECOPS.
+    ```
+    Rationale: a key with a hyphen (e.g., `PRISM-DEMO`) passes the non-empty format check but
+    fails the `^[A-Z][A-Z0-9]+$` regex applied at every marker issuance site in disposition-guard
+    (BC-3.03.001 P12-001/O7) — causing PROJECT-KEY-CHARSET-DENY fail-closed drops on every
+    comment, create, and create-review marker. Catching this at setup time prevents livelock.
+    Cross-reference: D-DEC-008 architectural constraint (Jira project keys MUST be hyphen-free
+    per `^[A-Z][A-Z0-9]+$`; architecture-delta.md v1.16 §D-DEC-008).
 
     If `jira_project_key` is absent when the monitoring-loop starts (despite this gate),
     the loop MUST emit a fatal `MISSING-JIRA-PROJECT-KEY` error and exit immediately before
@@ -174,7 +189,8 @@ removal_reason: null
 | EC-010 | `jr auth status` returns non-zero (not authenticated) | Halt with setup instructions ("jr auth login; then re-run /activate"); agent key WAS written to settings.local.json but activation not complete |
 | EC-011 | `~/.claude/settings.json` exists but is malformed JSON | Show parse error for `settings.json`; stop the MCP config write; do not overwrite; prism.mcp.json write is also skipped (both writes must succeed together) |
 | EC-012 | Idempotent re-run: `~/.claude/settings.json` already has `mcpServers.prism` key with RUST_LOG=off | Merge is a no-op; confirm "prism MCP already configured — settings unchanged"; still run `jr auth status` |
-| EC-013 | `jira_project_key` absent at activate time (user skips prompt or provides empty string) | Activate prompts user: "Enter your Jira project key (e.g., SEC, PRISM-DEMO):"; validates non-empty + project-key format; blocks completion until a valid value is provided or user explicitly cancels. If user cancels: activation halts with "jira_project_key is required before the monitoring-loop can run. Re-run /activate to complete setup." No partial state is written. |
+| EC-013 | `jira_project_key` absent at activate time (user skips prompt or provides empty string) | Activate prompts user: "Enter your Jira project key (e.g., SEC, PRISMDEMO, SECOPS):"; validates non-empty + `^[A-Z][A-Z0-9]+$` charset; blocks completion until a valid value is provided or user explicitly cancels. If user cancels: activation halts with "jira_project_key is required before the monitoring-loop can run. Re-run /activate to complete setup." No partial state is written. |
+| EC-014 | User provides `jira_project_key` containing a hyphen (e.g., `PRISM-DEMO`) — non-conformant to `^[A-Z][A-Z0-9]+$` | Activate emits user-facing error: "Invalid Jira project key 'PRISM-DEMO': Jira project keys must be uppercase alphanumeric with no hyphens or spaces — e.g., PRISMDEMO, SEC, SECOPS." Activation refuses to complete; user must supply a conformant key. No partial state is written. **(P13-002 fail-early requirement: bad key must not reach marker mechanism)** |
 
 ## Canonical Test Vectors
 

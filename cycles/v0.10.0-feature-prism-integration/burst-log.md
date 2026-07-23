@@ -608,3 +608,47 @@ Row displaced from STATE.md Current Phase Steps when burst-8 row was added (kept
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
 | F2: adversarial pass 10 | adversary | DONE | 1C/2M/6m — P10-001 (CRITICAL): hard_floor_applies() keys on LLM-supplied verdict.severity/asset_type with NO hook-side cross-validation vs source — O3 rule unapplied to the floor's own inputs; 'LLM cannot bypass' claim false. P10-002 (MAJOR)[process-gap]: cron wrapper gate never inspects audit.log fail-loud codes (HARD-FLOOR-LIVELOCK-ABORT/UNBINDABLE) + hook-deny→permission_denials unvalidated → livelock-abort run reports success. P10-003 (MAJOR): marker-write-failure allow-without-marker reintroduces silent-drop on hard-floor review path. P10-004..009 MINOR: fallback_hint dedup propagation, scan-threats structural-only VP, carve-out JOIN predicate, VP-SKILL-064 test-name, comment-review no --label (ASM-014), global jira_project_key vs multi-org. Report persisted; P10-001 approach at human gate. |
+
+---
+
+## Archived from STATE.md Current Phase Steps (displaced by burst-9 entry)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 11 | adversary | DONE | 1C/3M/2m — P11-001 (CRITICAL): STEP-1a re-normalizes from LLM-supplied native_severity/sensor_family (hook makes no prism call) → severity floor still LLM-bypassable; 'un-bypassable/independently-derived' claim FALSE; native_severity trust is an ASM-008 residual identical to asset_type (understated). P11-002 (MAJOR): STEP-1a exact-equality contradicts Stage-5 severity recalibration (BC-10.01.001 field 13 + brief §3.9) — recalibrated verdicts denied; scored-priority escalations invisible to the floor. P11-003 (MAJOR): NVD/CVSS severity source but sensor_family enum lacks 'nvd' → false SEVERITY-MISMATCH. P11-004 (MAJOR): 12-field investigation-markdown emitter-entry contradictory BC-3.03.001 vs arch-delta; validate_enums would deny an analyst's investigation save. P11-005 mis-anchor (BC-6.01.003 → wrong BC-9.01.001 ref). P11-006 prd-delta stale 12/15. [process-gap]: false-closure claim copy-propagated to 4 docs. Report persisted; at human gate. |
+
+---
+
+## Burst 9: F2 Pass-13 Remediation COMPLETE (2026-07-22)
+
+**Step added to STATE.md Current Phase Steps this burst:**
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-13 remediation burst 9 | architect / product-owner / formal-verifier | DONE | P13-001 CRITICAL markdown-comment path ELIMINATED (FP→allow-without-marker; MARKDOWN_COMMENT_PATH removed; hook cannot eval scored_priority/asset_type from 12-field markdown). P13-002 CRITICAL PRISMDEMO key correction (PRISM-DEMO invalid; ^[A-Z][A-Z0-9]+$ charset; setup-time key validation in BC-6.01.001 + BC-6.01.003). P13-003 MAJOR strict parse grammar (canonical-heading-only; exact allowlist; PARSE_FAIL→review). P13-004 MINOR PC#2 prose updated. SM-52 (FP-comment-marker revert) + SM-53 (disposition-scan revert) allocated. D-017/D-018 recorded. arch-delta v1.16, verif-delta v1.16, prd-delta v1.15, BC-3.03.001 v1.21, BC-6.01.001 v1.7, BC-6.01.003 v1.5, BC-10.01.001 v1.17, BC-4.05.001 v1.4, BC-3.01.001 v1.21, BC-5.01.001 v1.9, BC-4.02.001 v1.9, BC-8.02.001 v1.4. Clean streak 0/3. |
+
+**Narrative:**
+
+Pass-13 remediation (burst 9) closed P13-001 through P13-004. The recurring CRITICAL surface (markdown-comment path, 2 consecutive CRITICAL passes) was resolved via architectural elimination of the autonomous-comment branch.
+
+**P13-001 fix (CRITICAL — MARKDOWN_COMMENT_PATH ELIMINATED, per human decision 2026-07-22):** The hook cannot evaluate `scored_priority` (field 18) or `asset_type` (field 14) from a 12-field ICD-203 investigation markdown. P12-002 closed the TP/BTP masquerade by routing those dispositions to review, but left a residual FP branch that granted an autonomous comment marker with no scored_priority/asset_type floor enforcement and no known-FP store cross-check. P13-001 closes it entirely: the markdown path NEVER issues an autonomous comment marker for any disposition. New routing: `parsed_disposition == "FP"` → allow-without-marker (Write succeeds, no Jira action authorized); `parsed_disposition != "FP"` or PARSE_FAIL → MARKDOWN_REVIEW_PATH (create-review/comment-review, EXEMPT from kill switch). VP-HOOK-031 guarantee (c) rewritten. SM-52 (revert P13-001 — restore MARKDOWN_COMMENT_PATH for FP) allocated as kill target; distinct from SM-51 (route-to-review removal, remains valid). D-017 recorded.
+
+**P13-002 fix (CRITICAL — PRISMDEMO key correction, per human decision 2026-07-22):** The canonical RC demo key `PRISM-DEMO` used throughout specs, test vectors, and BATS fixtures is NOT a valid Jira project key: Jira project keys are hyphen-free and must match `^[A-Z][A-Z0-9]+$`. `PRISM-DEMO` would cause PROJECT-KEY-CHARSET-DENY fail-closed drops on every demo marker issuance — the live RC demo could never issue any Jira write. Corrected to `PRISMDEMO` throughout all current-body references. Setup-time key validation added to BC-6.01.001 (activate) Postcondition #12 and BC-6.01.003 (onboard-customer) Invariant #6. The `^[A-Z][A-Z0-9]+$` charset regex is unchanged (correct-for-Jira); only the example key values changed. D-018 recorded.
+
+**P13-003 fix (MAJOR — strict parse grammar):** `parse_disposition_from_markdown` now reads ONLY the canonical `Disposition` heading value; exact allowlist {TP,FP,BTP,Indeterminate} + canonical long forms; PARSE_FAIL on ambiguous/multi-valued/missing/unrecognized → treated as non-FP (routes to MARKDOWN_REVIEW_PATH, never allow-without-marker); no full-document scan. `parse_autonomy_enabled_from_markdown` reads ONLY a dedicated structured field; explicit-true-only; absent/false/ambiguous/embedded-in-code-fence → false (GATE 1 stays closed). Blast-radius note: since MARKDOWN_COMMENT_PATH is eliminated, a PARSE_FAIL only decides review vs allow-without-marker — not whether an autonomous comment marker is issued. SM-53 (disposition parse uses full-document substring scan → embedded `Disposition: FP` in a code fence reads as FP → allow-without-marker instead of review) allocated as kill target.
+
+**P13-004 fix (MINOR — PC#2 prose updated):** BC-3.03.001 Postcondition #2 prose updated from stale "comment-scoped marker is written and `permissionDecision: allow` is emitted" to reflect current post-P13-001 behavior: (a) GATE 1 kill-switch check; (b) markdown-evaluable floors check; (c) FP → allow-without-marker; non-FP/PARSE_FAIL → review marker. Cross-ref updated from `(P11-004)` to `(P11-004 / P12-002 / P13-001)`.
+
+**VP/SM ID sync:** SM-52 (FP-comment-marker revert) and SM-53 (disposition-scan revert) allocated by FV in verification-delta v1.16. All SM-P13-A placeholder references in BC-3.03.001 and architecture-delta updated to SM-52 [ID-sync per FV]. SM-P12-D placeholder updated to SM-51 (route-to-review, reconciled).
+
+**Artifacts produced by this burst:**
+
+- `phase-f2-spec-evolution/architecture-delta.md` v1.15 → v1.16
+- `phase-f2-spec-evolution/verification-delta.md` v1.15 → v1.16
+- `phase-f2-spec-evolution/prd-delta.md` v1.14 → v1.15
+- `phase-0-ingestion/behavioral-contracts/BC-3.03.001.md` v1.20 → v1.21
+- `phase-0-ingestion/behavioral-contracts/BC-6.01.001.md` v1.6 → v1.7
+- `phase-0-ingestion/behavioral-contracts/BC-6.01.003.md` v1.4 → v1.5
+- `feature/prism-integration-handoff-brief.md` (PRISMDEMO rename §3.5/§4.1, human-authorized)
+
+**Convergence counter:** 0/3 clean passes. Pass-13 REMEDIATED. Pass 14 is next (adversary fresh context; carry confirmed-invariants list).

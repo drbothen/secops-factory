@@ -303,7 +303,7 @@ The loop checks Jira before creating any ticket. The decision sequence [Q3]:
 When the loop's ticket action would affect an SLA (append to open ticket, link related,
 propose reopen), the loop MUST state the SLA impact explicitly in its output:
 
-> "Appending to ticket PRISM-DEMO-42 (open, created 2h ago, SLA deadline 4h from now).
+> "Appending to ticket PRISMDEMO-42 (open, created 2h ago, SLA deadline 4h from now).
 > Appending does not reset the SLA clock. If this is a new SLA-triggering event, a new
 > ticket should be opened."
 
@@ -482,7 +482,9 @@ workflow starting from existing tickets.
 
 The demo environment requires:
 
-1. **A demo Jira project** (e.g., key `PRISM-DEMO`) configured in `jr`
+1. **A demo Jira project** (e.g., key `PRISMDEMO`) configured in `jr`
+   (Jira project keys must be hyphen-free and match `^[A-Z][A-Z0-9]+$`; the `activate`
+   and `onboard-customer` skills validate this at setup time)
 2. **`jr` authenticated** in the demo environment — the secops-factory activate skill must
    include a `jr` auth check as part of the onboarding checklist
 3. **Demo tickets seeded** in the demo Jira project aligned to DTU scenario stages

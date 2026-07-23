@@ -1,19 +1,19 @@
 ---
 document_type: session-handoff
 level: ops
-version: "2.1"
+version: "2.2"
 status: current
 producer: state-manager
-timestamp: 2026-07-21T18:00:00Z
+timestamp: 2026-07-23T23:59:00Z
 project: secops-factory
-supersedes: "2.0 (2026-07-21T00:00:00Z)"
+supersedes: "2.1 (2026-07-21T18:00:00Z)"
 ---
 
 # SESSION-HANDOFF: secops-factory
 
 ### RESUME IN ONE BREATH
 
-secops-factory prism-integration v0.10.0 feature cycle is mid-Phase-F2 (spec evolution). F1 approved+committed. The full F2 spec body (11 BCs + delta docs) is FROZEN and committed. Pass-5 remediation is COMPLETE and committed (P5-001/P5-002/P5-003 all resolved; kill-switch Option A confirmed by human 2026-07-21). Consistency audit pass-5 is COMPLETE (PASS-WITH-MINORS, 0 blocking). Clean streak remains 0/3. NEXT ACTION: adversarial pass 6 (fresh adversary context — do NOT reuse pass-5 adversary context). Current artifact versions: arch-delta v1.8, verif-delta v1.8, prd-delta v1.9, BC-3.03.001 v1.14, BC-10.01.001 v1.10, brief §3.9 amended. All other BCs unchanged from their F2-frozen versions. D-DEC-001..012 locked. D-007 (Option A kill-switch decision) committed.
+secops-factory prism-integration v0.10.0 feature cycle is mid-Phase-F2 (spec evolution). F1 approved+committed. Full F2 spec body (11 BCs + delta docs) FROZEN. Pass-19 remediation COMPLETE (burst 16 — D-023 close disposition gate + D-024 rule-2 create+link + orphan-link reconciliation SM-68/VP-HOOK-036 extended [ID-sync per FV]). VPs 41 / SM 61 (SM-9..SM-68, SM-32=32a+32b+32-ext, SM-55 skipped). Artifact versions: arch-delta v1.21, verif-delta v1.21, prd-delta v1.19, BC-3.03.001 v1.28, BC-3.01.001 v1.23, BC-10.01.001 v1.22, BC-4.02.001 v1.14, BC-6.01.001 v1.8, others unchanged. D-DEC-001..D-024 locked. O3 standing rule: LLM-supplied routing fields granting state-change controls MUST be cross-validated against hook-computed invariants (D-023 close disposition gate is the latest instance). Clean streak 0/3. NEXT ACTION: adversarial pass 20 (fresh adversary context — do NOT reuse prior pass context; carry D-023/D-024 as confirmed new invariants). NOTE: .factory/hooks/ not instantiated in this project; verify-sha-currency.sh not run.
 
 ---
 
@@ -32,32 +32,32 @@ secops-factory prism-integration v0.10.0 feature cycle is mid-Phase-F2 (spec evo
 
 | BC ID | Version | Subject |
 |-------|---------|---------|
-| BC-3.01.001 | v1.17 | require-review — marker consumer |
-| BC-3.03.001 | v1.14 | disposition-guard — marker emitter (P5-001/002 remediated) |
-| BC-4.02.001 | v1.8 | update-jira |
-| BC-4.05.001 | v1.3 | assess-priority |
-| BC-5.01.001 | v1.8 | investigate-event |
-| BC-6.01.001 | v1.5 | activate |
-| BC-10.01.001 | v1.10 | monitoring-loop (Inv#10, VP-SKILL-061 sensor-silence fixed) |
-| BC-6.01.003 | v1.1 | onboard-customer (NEW) |
+| BC-3.01.001 | v1.23 | require-review — marker consumer (link+close scopes, anti-fungibility) |
+| BC-3.03.001 | v1.28 | disposition-guard — marker emitter (D-023 close disposition gate + orphan-link) |
+| BC-4.02.001 | v1.14 | update-jira (D-024 rule-2 create+link) |
+| BC-4.05.001 | v1.4 | assess-priority |
+| BC-5.01.001 | v1.12 | investigate-event |
+| BC-6.01.001 | v1.8 | activate (CLOSE_STATE_ALLOWLIST setup-time validation) |
+| BC-10.01.001 | v1.22 | monitoring-loop (D-023/D-024 propagation; orphan-link reconciliation SM-68) |
+| BC-6.01.003 | v1.7 | onboard-customer (NEW) |
 | BC-6.01.004 | v1.1 | onboard-sensor (NEW) |
-| BC-8.02.001 | v1.1 | sensor-metrics (NEW) |
-| BC-9.01.001 | v1.1 | scan-threats (NEW) |
+| BC-8.02.001 | v1.4 | sensor-metrics (NEW) |
+| BC-9.01.001 | v1.2 | scan-threats (NEW) |
 
 **Delta docs (phase-f2-spec-evolution/):**
 
 | File | Version |
 |------|---------|
-| architecture-delta.md | v1.8 (P5-001/002/003 remediated; D-DEC-012 O3 rule; Option A) |
-| verification-delta.md | v1.8 (VP-HOOK-029 re-scoped; SM-32a/32b; §7 Part F; ~238 tests) |
-| prd-delta.md | v1.9 (§4/§6 12/15-field count fixed) |
-| dtu-assessment.md | DTU_REQUIRED: true — prism L3 via prism demo server, jr L2 mock |
+| architecture-delta.md | v1.21 (D-023 close disposition gate; D-024 rule-2 create+link; orphan-link reconciliation; EC-013 3-condition AND) |
+| verification-delta.md | v1.21 (SM-66/SM-67/SM-68 allocated; VP-HOOK-035/036 extended; 41 VPs / 61 mutants; ~429 tests) |
+| prd-delta.md | v1.19 (burst-16 §5 post-note; BC versions v1.28/v1.22/v1.14 recorded) |
+| dtu-assessment.md | v1.2 — DTU_REQUIRED: true — prism L3 via prism demo server, jr L2 mock |
 | asm-004-validation.md | PARTIAL → resolved-by-design (--strict-mcp-config --mcp-config prism.mcp.json) |
-| adversarial-spec-delta-review-pass1..5.md | all remediated |
-| spec-changelog.md | spec 1.0.0 → 1.1.0 MINOR (+ F2 pass-5 remediation edits 2026-07-21) |
+| adversarial-spec-delta-review-pass1..19.md | pass1..18 remediated; pass19 remediated (burst 16) |
+| spec-changelog.md | spec 1.0.0 → 1.1.0 MINOR (+ F2 passes 1-19 remediation edits through burst 16) |
 | feature/prism-integration-handoff-brief.md | §3.9 amended — Option A kill-switch confirmed 2026-07-21 |
 
-**VP namespace:** VP-SKILL 001-072, VP-HOOK 024-029. Mutation vectors SM-9..SM-35. Decisions D-DEC-001..012.
+**VP namespace:** VP-SKILL 001-077, VP-HOOK 024-036. Mutation vectors SM-9..SM-68 (SM-32=32a+32b+32-ext; SM-55 skipped). Decisions D-DEC-001..D-024.
 
 ---
 
@@ -69,17 +69,15 @@ secops-factory prism-integration v0.10.0 feature cycle is mid-Phase-F2 (spec evo
 
 ## PENDING / CARRIED
 
-- **IMMEDIATE NEXT:** Adversarial pass 6 (fresh adversary context required — do NOT continue from pass-5 adversary context). Clean streak 0/3.
-- Pass-5 remediation COMPLETE: P5-001/P5-002/P5-003 all resolved; D-007 (Option A kill-switch) confirmed by human; all 6 artifacts updated and committed.
-- F2 consistency audit pass-5 COMPLETE (PASS-WITH-MINORS, 0 blocking). CONSISTENCY dimension is CLEAN.
-- **Remaining consistency minor punch-list (resolve before F2 state-backup):**
-  - F-003: VP-SKILL-061 sensor-silence wording — RESOLVED in BC-10.01.001 v1.10 (this burst).
+- **IMMEDIATE NEXT:** Adversarial pass 20 (fresh adversary context required — do NOT reuse context from any prior pass). Clean streak 0/3.
+- Pass-19 remediation COMPLETE (burst 16): D-023 close disposition gate + D-024 rule-2 create+link + orphan-link reconciliation SM-68 [ID-sync per FV]. All artifacts committed and pushed (factory-artifacts).
+- Pass-1..18 all remediated. Consistency audit pass-13 CLEAN (all 12 coherence findings resolved). ASM-008-DEFERRED / ASM-015 / ASM-014 / DI-015 remain KNOWN-DEFERRED (carried forward unchanged).
+- **Remaining minor punch-list (resolve before F2 state-backup):**
   - F-001: arch-delta §5.4 historical quote cosmetic label — still open (low priority, will not block F2 gate).
   - F-002: 6 established BCs carry bare "COMPUTE-AT-COMMIT" input-hash — compute at F2 state-backup; does not block adversarial passes.
-- DI-013 RESOLVED in-spec via marker mechanism.
-- Human decisions this cycle: D-004 full-brief scope, D-005 marker mechanism, D-006 demo-unaware, D-007 kill-switch Option A; `asset_type=unknown` floor [human-gate-confirm at F2 gate]; confidence enum thresholds 0.75/0.40 (D-DEC-011).
+- DI-013 RESOLVED in-spec via marker mechanism (D-005).
 - AFTER 3 clean passes: F2 state-backup (compute F-002 bare hashes here), then F2 human gate, then F3 story decomposition.
-- BCs carry COMPUTE-AT-COMMIT input-hash placeholders where inputs changed — compute at F2 state-backup (F-002).
+- NOTE: .factory/hooks/ not instantiated in this project; verify-sha-currency.sh was not run for any session wrap in this cycle.
 
 ## DECISION / LESSONS DELTA (pass-5 — CODIFIED)
 
@@ -104,6 +102,18 @@ D-DEC-001..012 recorded in architecture-delta.md. D-004/005/006 in STATE decisio
 |----------|--------|------|--------|
 | main | main | `/Users/jmagady/Dev/secops-factory` | active, clean |
 | .factory | factory-artifacts | `/Users/jmagady/Dev/secops-factory/.factory` | active, committed this wrap |
+
+---
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SUPERSEDED SNAPSHOT (v2.1 — 2026-07-21T18:00:00Z)         -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+---
+
+## [SUPERSEDED] Prior RESUME IN ONE BREATH (v2.1 — 2026-07-21)
+
+secops-factory prism-integration v0.10.0 feature cycle is mid-Phase-F2 (spec evolution). F1 approved+committed. The full F2 spec body (11 BCs + delta docs) is FROZEN and committed. Pass-5 remediation is COMPLETE and committed (P5-001/P5-002/P5-003 all resolved; kill-switch Option A confirmed by human 2026-07-21). Consistency audit pass-5 is COMPLETE (PASS-WITH-MINORS, 0 blocking). Clean streak remains 0/3. NEXT ACTION: adversarial pass 6 (fresh adversary context — do NOT reuse pass-5 adversary context). Current artifact versions: arch-delta v1.8, verif-delta v1.8, prd-delta v1.9, BC-3.03.001 v1.14, BC-10.01.001 v1.10, brief §3.9 amended. All other BCs unchanged from their F2-frozen versions. D-DEC-001..012 locked. D-007 (Option A kill-switch decision) committed.
 
 ---
 

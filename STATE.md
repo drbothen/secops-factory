@@ -1,10 +1,10 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "2.19"
+version: "2.20"
 status: active
 producer: state-manager
-timestamp: 2026-07-23T23:59:00Z
+timestamp: 2026-07-23T23:59:30Z
 phase: F2
 pipeline: FEATURE-CYCLE
 inputs: []
@@ -145,8 +145,8 @@ dtu_services: [prism-demo-server, jr-mock]
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-23 |
-| **Position** | Pass-19 remediation COMPLETE (burst 16 — D-023 close disposition gate + D-024 rule-2 create+link + orphan-link reconciliation SM-68). VPs 41 / SM 61. NEXT: adversarial pass 20 (fresh context — do NOT reuse prior pass context; carry D-023/D-024 as confirmed new invariants). Clean streak 0/3. |
-| **Context** | Artifact versions: arch-delta v1.21, verif-delta v1.21, prd-delta v1.19, BC-3.03.001 v1.28, BC-3.01.001 v1.23, BC-10.01.001 v1.22, BC-4.02.001 v1.14, BC-6.01.001 v1.8, BC-5.01.001 v1.12, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2, dtu-assessment v1.2. VPs 41 / SM 61 (SM-9..SM-68, SM-32=32a+32b+32-ext; SM-55 skipped). NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. |
+| **Position** | SESSION WRAP COMPLETE. Pass-19 remediation DONE (burst 16 — D-023/D-024/SM-68). SESSION-HANDOFF.md v2.2 written. NEXT: adversarial pass 20 (fresh adversary context — do NOT reuse prior pass context; carry D-023/D-024 as confirmed invariants). Clean streak 0/3. |
+| **Context** | Artifact versions: arch-delta v1.21, verif-delta v1.21, prd-delta v1.19, BC-3.03.001 v1.28, BC-3.01.001 v1.23, BC-10.01.001 v1.22, BC-4.02.001 v1.14, BC-6.01.001 v1.8, BC-5.01.001 v1.12, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2, dtu-assessment v1.2. VPs 41 / SM 61 (SM-9..SM-68, SM-32=32a+32b+32-ext; SM-55 skipped). SESSION-HANDOFF.md v2.2. NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. |
 | **Convergence counter** | 0/3 clean passes |
 
 ## Historical Content

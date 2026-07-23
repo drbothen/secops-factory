@@ -794,3 +794,11 @@ BC-10.01.001 v1.16/v1.17→v1.18). BC-10.01.001 canonical test vectors lines 648
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
 | F2: pass-16 remediation burst 12 | product-owner / state-manager | DONE | P16-001 consumer-BC Gate-1-first correction (burst-11 kill-switch-precondition regression): BC-4.02.001 v1.10→v1.11 (PC#4 rewritten Gate-1-first; allow-without-marker for ALL dispositions on human saves; FP/non-FP/hard-floor routing labeled masquerade-case-only; DI-013 footer reconciled); BC-5.01.001 v1.10→v1.11 (Inv#7 rewritten Gate-1-first; "MUST NOT be denied" extended to ALL dispositions incl. Indeterminate on human saves); P16-002 spec-changelog burst-11 entry 54 mutants→48 mutants (SM-9..SM-54, SM-32=32a+32b+32-ext; SM-55 skipped); P16-003 BC-3.03.001 v1.23→v1.24 (PC#1 VP-HOOK-028 note 15-field→18-field). Version-coherence sweep: verif-delta v1.18 BC anchor columns updated (BC-4.02.001→v1.11, BC-5.01.001→v1.11, BC-3.03.001→v1.24); prd-delta §5 New Version column + burst-12 post-note; spec-changelog burst-12 section. Clean streak 0/3. |
+
+---
+
+## Archived Current Phase Step — F2: adversarial pass 15 (2026-07-22)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 15 | adversary | DONE | 0C/1M/2m/2obs — convergence candidate; 11/12 coherence axes PASS. P15-001 (MAJOR): P13-001 markdown-comment-marker elimination NOT propagated to the two CONSUMER BCs — BC-4.02.001 PC#4 + BC-5.01.001 Inv#7 still describe the eliminated comment-scoped-marker mechanism as their jr-comment authorization path (spec-vs-spec contradiction; 'MUST NOT be denied' postcondition now literally wrong). P15-002 (MINOR): stale '15-field' JSON-path count in BC-3.03.001 Evidence Types L878 (older than P14-004 sweep scope). P15-003 (MINOR): prd-delta §1 VP-status snapshot inconsistent (4 skill-BC rows frozen at PROPOSED + omit VP-SKILL-076/077 while BC-10.01.001 row was updated to FINALIZED). P15-004/005 OBS: scan-threats severity-grouping normalization; stale VP-HOOK-031 v1.14 citation in consumer BCs. Report persisted. |

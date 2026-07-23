@@ -417,3 +417,62 @@ traces_to: STATE.md
     an explicit fail-closed direction — PARSE_FAIL must map to the more restrictive
     outcome (review, deny), not the permissive one (allow-without-marker, autonomous).
     _Discovered: F2 adversarial pass 13 (P13-003 MAJOR), 2026-07-22_
+
+---
+
+## Pass-14 Lessons (F2 adversarial pass 14, 2026-07-22 — first zero-CRITICAL since pass 9)
+
+### Process-Level
+
+34. **[Process gap] A fix declared "closed" must be audited for propagation into EVERY
+    sibling artifact before the burst is committed [P14-001 / P14-003 / P14-004]** — P11-003
+    (NVD/CVSS clean-separation) was recorded as closed and reflected in verification-delta
+    (VP-HOOK-030's CVSS-float vector removed). But the loop contract (BC-10.01.001 Inv#9)
+    still carried a "NVD: CVSS float 0.0–10.0" row in the NORMALIZE_SEVERITY table, the
+    "8.5 for NVD CVSS" example in field-16, and "NVD CVSS float" text in Inv#14 Stage-1. The
+    same pattern recurred with P13-002 (PRISMDEMO rename declared "throughout" but BC-3.01.001
+    test vectors were skipped) and P14-004 (17-field parenthetical lingered in BC-10.01.001
+    after the field-count was corrected elsewhere). Rule: when declaring a fix "closed," grep
+    the FULL in-scope artifact set for every key phrase the fix changes. "Done in the primary
+    artifact" is not done; "done throughout" must be proven by an explicit grep sweep.
+    _Discovered: F2 adversarial pass 14 (P14-001/P14-003/P14-004 MAJOR/MINOR), 2026-07-22_
+
+35. **A CRITICAL security control needs a PREVENTIVE VP for its setup-time gate, not only
+    a runtime deny VP [P14-002]** — P13-002 added setup-time jira_project_key charset
+    validation to activate (BC-6.01.001 PC#12/EC-014) and onboard-customer
+    (BC-6.01.003 Inv#6/EC-010). The RUNTIME deny on a bad key was covered by VP-HOOK-032
+    (PROJECT-KEY-CHARSET-DENY). But no VP covered the PREVENTIVE setup-time gate that
+    stops a bad key from being stored in the first place. A stored bad key causes
+    HARD-FLOOR-UNBINDABLE fail-closed livelock on every subsequent marker issuance — the
+    setup-time gate is not redundant with the runtime deny; it prevents a permanent
+    degraded state that the runtime deny can only report, not recover from. VP-SKILL-076
+    + SM-54 close this gap. Rule: whenever a fix adds a preventive setup-time gate for a
+    CRITICAL runtime failure path, allocate a VP that explicitly verifies the setup-time
+    gate — do not rely solely on the runtime deny VP as coverage.
+    _Discovered: F2 adversarial pass 14 (P14-002 MAJOR), 2026-07-22_
+
+36. **[Process gap] A completion claim of "throughout" / "all references" must be
+    grep-verified across the full in-scope artifact set before the burst closes [P14-003]**
+    — P13-002's burst narrative said PRISM-DEMO was corrected "throughout" the spec corpus.
+    The sweep missed BC-3.01.001's tokenizer test vectors. The root cause: the sweep was
+    run against the artifacts the PO/FV touched in that burst, not against the full in-scope
+    set. Rule: any "throughout" claim in a burst narrative must be backed by an explicit
+    grep across every artifact in scope for that cycle — not just the files already open
+    in the editor. Log the grep command and its hit count in the burst commit message.
+    _Discovered: F2 adversarial pass 14 (P14-003 MINOR), 2026-07-22_
+
+37. **Repurposing a VP ID silently orphans the behavior it used to cover — annotate at
+    origin and in every cross-reference [P14-005]** — VP-SKILL-053 was repurposed from
+    onboard-customer AD-017 credential-provisioning to idempotent directory creation
+    (EC-006) during the pass-14 FV cycle. The repurposing was documented in verification-
+    delta but not propagated to (a) BC-6.01.003's VP table row for VP-SKILL-053, (b) the
+    spec-changelog [1.1.0] New VPs table, or (c) the VP Anchors traceability field. This
+    left BC-6.01.003 Invariant #1 / EC-008 (the AD-017 credential-decline path) without
+    any formal VP anchor. The same pattern affected VP-SKILL-057 (sensor-metrics org_slug
+    scoping → naming-compliance D-DEC-006, repurposed pass-9/P9-005, never annotated in
+    spec-changelog). Rule: when a VP ID is repurposed, update (1) the VP roster row in
+    verification-delta with a repurposing note, (2) the original BC's VP table row to
+    reflect the new property, (3) the spec-changelog New VPs table row with the repurposing
+    annotation, and (4) the BC's VP Anchors field. Ensure the behavior previously covered
+    is explicitly re-anchored to a new VP or flagged as a VP-orphan requiring FV attention.
+    _Discovered: F2 adversarial pass 14 (P14-005 MINOR), 2026-07-22_

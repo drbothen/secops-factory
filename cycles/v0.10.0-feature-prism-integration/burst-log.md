@@ -655,6 +655,84 @@ Pass-13 remediation (burst 9) closed P13-001 through P13-004. The recurring CRIT
 
 ---
 
+## Burst 10: F2 Pass-14 Remediation COMPLETE (2026-07-22)
+
+**Step added to STATE.md Current Phase Steps this burst:**
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-14 remediation burst 10 | architect / product-owner / formal-verifier | DONE | P14-001 MAJOR NVD clean-separation propagated to BC-10.01.001 v1.18 (Inv#9 NVD row removed, field-16 Cyberint example, Inv#14 Stage-1 note; 2 VP-SKILL-074 CVSS fixtures removed). P14-002 MAJOR VP-SKILL-076 allocated (setup-time jira_project_key charset validation — activate PC#12/EC-014 + onboard-customer Inv#6/EC-010; SM-54). P14-003 MINOR PRISM-DEMO swept from BC-3.01.001 v1.22 test vectors. P14-004 MINOR 18-field propagated to BC-10.01.001 v1.18. P14-005 MINOR VP-SKILL-053/057 repurposing annotated (spec-changelog + BC-6.01.003 v1.6 AD-017 VP anchor = VP-SKILL-076). BC-3.03.001 v1.22 (PRISM-DEMO sweep + version bump). FV also fixed surviving NVD residual in VP-SKILL-074 verif-delta. arch-delta v1.17, verif-delta v1.17, prd-delta v1.15, BC-10.01.001 v1.18, BC-3.03.001 v1.22, BC-3.01.001 v1.22, BC-6.01.003 v1.6, BC-6.01.001 v1.7, BC-4.05.001 v1.4, BC-5.01.001 v1.9, BC-4.02.001 v1.9, BC-8.02.001 v1.4. VPs 36 / SM 54. Clean streak 0/3. |
+
+**Narrative:**
+
+Pass-14 remediation (burst 10) closed P14-001 through P14-005. No CRITICAL findings; all were
+prior-fix propagation/coherence gaps from pass 13.
+
+**P14-001 fix (MAJOR — NVD/CVSS clean-separation propagated to BC-10.01.001):** P11-003 removed
+the CVSS-float STEP-1a vector from VP-HOOK-030 but the loop contract itself (BC-10.01.001) still
+contained a "NVD: CVSS float 0.0–10.0 → LOW…CRITICAL" row in Inv#9's NORMALIZE_SEVERITY table,
+"8.5 for NVD CVSS" as the field-16 native_severity example, and "NVD CVSS float 0.0-10.0" in
+Inv#14 Stage-1 INGEST. All three removed: NORMALIZE_SEVERITY is authoritative ONLY over
+sensor_family ∈ {crowdstrike, armis, claroty, cyberint}; NVD/CVSS feeds scored_priority (field 18)
+at Stage 5, NOT native_severity. FV also corrected the surviving VP-SKILL-074 CVSS-boundary
+fixtures (2 removed, −2 BATS). P14-004 (stale "17-field" → "18-field") fixed in same BC-10.01.001
+v1.18 edit (Inv#9 field-2 parenthetical + VP-HOOK-028 description). BC-3.03.001 v1.21→v1.22
+received the PRISM-DEMO sweep (P14-003 propagated to this BC's test vectors).
+
+**P14-002 fix (MAJOR — VP-SKILL-076 + SM-54 allocated):** Setup-time jira_project_key charset
+validation (activate BC-6.01.001 PC#12/EC-014 + onboard-customer BC-6.01.003 Inv#6/EC-010) had
+no covering VP — only the runtime PROJECT-KEY-CHARSET-DENY (VP-HOOK-032). VP-SKILL-076 is the
+PREVENTIVE gate: both setup flows REJECT a key not matching `^[A-Z][A-Z0-9]+$` at setup time
+with a user-facing error and NO partial-state write (fail-EARLY, not fail-closed mid-run). SM-54
+(setup-time charset validation removed → hyphenated key stored → downstream HARD-FLOOR-UNBINDABLE
+livelock) allocated as kill target. +3 net BATS (+5 VP-SKILL-076 setup-time vectors, −2
+VP-SKILL-074 CVSS fixtures removed).
+
+**P14-003 fix (MINOR — PRISM-DEMO residue in BC-3.01.001):** BC-3.01.001 test vectors still
+contained `jira_project_key="PRISM-DEMO"` references from the P13-002 "throughout" claim.
+BC-3.01.001 v1.22 swept to PRISMDEMO. BC-3.03.001 also bumped to v1.22 for coherence.
+
+**P14-005 fix (MINOR — VP-repurposing annotation):** VP-SKILL-053 originally covered onboard-
+customer AD-017 credential-provisioning; repurposed pass-14/P14-005 to idempotent directory
+creation (EC-006). AD-017 coverage moved to VP-SKILL-076. VP-SKILL-057 originally covered
+sensor-metrics org_slug scoping; repurposed pass-9/P9-005 to naming-compliance D-DEC-006.
+Both annotated in spec-changelog [1.1.0] New VPs table and in BC-6.01.003 Traceability VP
+Anchors + VP table (VP-SKILL-TBD → VP-SKILL-076 + [ID-sync per FV] markers).
+
+**SM/VP ID sync (Task 1):** BC-6.01.003 placeholder "VP-SKILL-TBD (P14-005)" / "ID allocated
+by FV per §8.30.6" / "dedicated VP pending (FV §8.30.6)" → VP-SKILL-076 with [ID-sync per FV]
+annotations at all 5 locations (frontmatter modified[], revision history, Invariant #1, EC-008,
+VP table, VP Anchors).
+
+**Version-coherence sweep:** verification-delta §5 table headers updated
+(BC-3.01.001 v1.21→v1.22, BC-3.03.001 v1.21→v1.22, BC-10.01.001 v1.17→v1.18); VP table
+anchor columns updated for 13 VP rows (BC-3.01.001 v1.21→v1.22, BC-3.03.001 v1.19/v1.21→v1.22,
+BC-10.01.001 v1.16/v1.17→v1.18). BC-10.01.001 canonical test vectors lines 648/651: PRISM-DEMO
+→ PRISMDEMO (spot-check fix).
+
+**Artifacts produced by this burst:**
+
+- `phase-0-ingestion/behavioral-contracts/BC-6.01.003.md` v1.5 → v1.6: VP-SKILL-TBD placeholders → VP-SKILL-076; [ID-sync per FV] at 5 locations; VP Anchors updated (P14-005).
+- `phase-0-ingestion/behavioral-contracts/BC-10.01.001.md` v1.17 → v1.18: NVD row removed from NORMALIZE_SEVERITY table; field-16 Cyberint example; Inv#14 Stage-1 NVD cleaned; "17-field"→"18-field" (P14-001/P14-004); canonical test vectors PRISM-DEMO→PRISMDEMO (spot-check).
+- `phase-0-ingestion/behavioral-contracts/BC-3.01.001.md` v1.21 → v1.22: PRISM-DEMO→PRISMDEMO in test vectors (P14-003).
+- `phase-0-ingestion/behavioral-contracts/BC-3.03.001.md` v1.21 → v1.22: PRISM-DEMO→PRISMDEMO in test vectors; version coherence bump.
+- `phase-f2-spec-evolution/verification-delta.md` v1.16 → v1.17: VP-SKILL-076 + SM-54 allocated; VP-SKILL-074 CVSS fixtures removed (P14-001); VP-SKILL-053/057 repurposing annotated (P14-005); version-coherence sweep: §5 table headers + 13 VP table anchor column entries updated.
+- `phase-f2-spec-evolution/architecture-delta.md` v1.16 → v1.17: P14-001..P14-005 doc-hygiene (PO/FV routing per §8.30).
+- `spec-changelog.md` [1.1.0]: burst-10 section added; VP-SKILL-053/057 repurposing annotated in New VPs table.
+- `STATE.md` v2.13 → v2.14: phase/step/checkpoint updated; burst-10 row added; pass-12 adversary row displaced to burst-log.
+
+**Convergence counter:** 0/3 clean passes. Pass-14 REMEDIATED. Pass 15 is next (adversary fresh context; carry VP-SKILL-076, NVD-clean, PRISMDEMO-consistent; confirmed-intact list from pass-14 clean passes).
+
+---
+
+## Archived Current Phase Step — F2: adversarial pass 12 (displaced 2026-07-22 by burst-10 addition)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 12 | adversary | DONE | 2C/2M/2m — trust-basis class CLOSED (ASM-008 reframe held, not re-derived). NEW-surface CRITICALs: P12-001 ticket_id concatenated UNESCAPED into command_pattern regex → regex-injection (ticket_id='.*' broadens match) — LATENT since original marker design, defeats anchored-match property, NOT ASM-008-covered; clear fix (Jira-key charset validate + regex-escape). P12-002 human-comment markdown path (P11-004) selectable by autonomous loop → bypasses kill switch + scored_priority/asset_type floors, issues live comment marker (intent-dependent). P12-003 (MAJOR) CRIT-vs-CRITICAL enum mismatch on fast-path → fail-closed deny 30-40% volume + floor-vs-autoclose contradiction. P12-004 (MAJOR) BC-4.05.001 producer never emits/maps scored_priority (field 18). P12-005 mis-anchor (P11-005 fix wrong: Invariant#12 nonexistent → Postcondition#12). P12-006 stale Traceability. P12-007 [process-gap] no regex-escape standing rule. Report persisted; P12-002 at human gate. |
+
+---
+
 ## Archived Current Phase Step — F2: pass-11 remediation burst 7 (displaced 2026-07-22)
 
 | Step | Agent | Status | Output |

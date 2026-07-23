@@ -11,6 +11,38 @@ Track all spec version changes. Most recent version first.
 
 ## [1.1.0] - 2026-07-20 (patch edits 2026-07-21/22 — not a version bump)
 
+### F2 Pass-14 Remediation Edits — Burst 10 (2026-07-22) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 10). Root findings:
+P14-001 (MAJOR — NVD/CVSS clean-separation never propagated to BC-10.01.001 loop contract:
+NORMALIZE_SEVERITY table had "NVD: CVSS float 0.0–10.0→LOW…CRITICAL" row + "8.5 for NVD CVSS"
+field-16 example + Inv#14 Stage-1 "NVD CVSS float" text; cross-artifact contradiction with
+P11-003/D-013 clean-separation decision; FV also removed 2 stale CVSS-boundary fixtures from
+VP-SKILL-074),
+P14-002 (MAJOR — setup-time jira_project_key charset validation (BC-6.01.001 PC#12/EC-014 +
+BC-6.01.003 Inv#6/EC-010, added P13-002) had no covering VP; runtime deny via VP-HOOK-032 only;
+no PREVENTIVE setup-time gate; VP-SKILL-076 + SM-54 allocated),
+P14-003 (MINOR — PRISM-DEMO residue in BC-3.01.001 test vectors; P13-002 "throughout" claim
+missed this BC),
+P14-004 (MINOR — stale "17-field" in BC-10.01.001 Inv#9 field-2 parenthetical + VP-HOOK-028
+description, both swept to "18-field"),
+P14-005 (MINOR — VP-SKILL-053/057 repurposing orphaned onboard-customer AD-017 coverage:
+VP-SKILL-053 moved from AD-017 credential-provisioning to idempotent-dir (EC-006); AD-017
+now anchored via VP-SKILL-076; VP-SKILL-057 moved from sensor-metrics org_slug scoping to
+naming-compliance D-DEC-006 pass-9/P9-005).
+VP-SKILL-076 + SM-54 allocated. 36 VPs / 48 mutants / ~365 test vectors.
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.16 | v1.17 | P14-001..P14-005 doc-hygiene per §8.30 routing (FV/PO edits outside arch scope; NORMALIZE_SEVERITY reaffirmed) |
+| phase-f2-spec-evolution/verification-delta.md | v1.16 | v1.17 | P14-002: VP-SKILL-076 FINALIZED + SM-54; P14-001: VP-SKILL-074 CVSS fixtures removed; P14-005: VP-SKILL-053/057 repurposing annotated; version-coherence sweep: §5 table headers + 13 VP anchor column entries updated |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.17 | v1.18 [ID-sync per FV] | P14-001: NORMALIZE_SEVERITY NVD row removed; field-16 Cyberint example; Inv#14 Stage-1 NVD cleaned; P14-004: "17-field"→"18-field" (Inv#9 + VP-HOOK-028 ref); spot-check: canonical test vectors PRISM-DEMO→PRISMDEMO |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.21 | v1.22 | P14-003 propagation: PRISM-DEMO→PRISMDEMO in test vectors; version bump for coherence |
+| phase-0-ingestion/behavioral-contracts/BC-3.01.001.md | v1.21 | v1.22 | P14-003: PRISM-DEMO→PRISMDEMO in tokenizer test vectors |
+| phase-0-ingestion/behavioral-contracts/BC-6.01.003.md | v1.5 | v1.6 [ID-sync per FV] | P14-005: VP-SKILL-TBD→VP-SKILL-076 at 5 locations; [ID-sync per FV] in frontmatter modified[]+revision history; Invariant #1 dedicated-VP sentence updated; EC-008 interim-anchor updated; VP table row finalized; VP Anchors updated |
+
+---
+
 ### F2 Pass-13 Remediation Edits — Burst 9 (2026-07-22) — spec remains 1.1.0
 
 Remediation edits within the F2 adversarial convergence cycle (burst 9). Root findings:
@@ -292,11 +324,11 @@ VP-SKILL-050..063), 11 mutation vectors (SM-9..SM-19), and 10 architecture decis
 | VP-SKILL-050 | monitoring-loop: watermark monotonicity (post-run watermark >= injected pre-run value) | BATS |
 | VP-SKILL-051 | setup-prism: binary version gate (>= 1.0.0-rc.1) | BATS |
 | VP-SKILL-052 | onboard-customer: org slug/UUID-v7 provisioning postconditions | BATS |
-| VP-SKILL-053 | onboard-customer: credential provisioning instructions (AD-017 — no credential-in-chat) | BATS |
+| VP-SKILL-053 | onboard-customer: credential provisioning instructions (AD-017 — no credential-in-chat) → **REPURPOSED pass-14/P14-005: now idempotent-directory-creation (Postcondition #2/EC-006); original AD-017 coverage moved to VP-SKILL-076** | BATS |
 | VP-SKILL-054 | onboard-sensor: sensor overlay TOML write correctness | BATS |
 | VP-SKILL-055 | onboard-sensor: SELECT 1 connectivity check (success only when DB responds) | BATS |
 | VP-SKILL-056 | sensor-metrics: last-seen/row-counts/error-rate via prism_sensor_health | BATS |
-| VP-SKILL-057 | sensor-metrics: org_slug scoping invariant (no cross-tenant data) | BATS |
+| VP-SKILL-057 | sensor-metrics: org_slug scoping invariant (no cross-tenant data) → **REPURPOSED pass-9/P9-005: now naming-compliance D-DEC-006** | BATS |
 | VP-SKILL-058 | scan-threats: PrismQL hunting query dispatch (prism_describe-first) | BATS |
 | VP-SKILL-059 | scan-threats: org_slug scoping invariant (no cross-org findings) | BATS |
 | VP-SKILL-060 | monitoring-loop: four-disposition enum enforcement (Benign/FP/Indeterminate/TP) | BATS |

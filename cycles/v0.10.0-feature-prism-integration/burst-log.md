@@ -733,6 +733,14 @@ BC-10.01.001 v1.16/v1.17→v1.18). BC-10.01.001 canonical test vectors lines 648
 
 ---
 
+## Burst-10 Follow-up: VP-SKILL-076/077 Disentanglement Coherence Correction (2026-07-22)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: burst-10 follow-up — VP-SKILL-076/077 disentanglement | state-manager | DONE | Orchestrator-caught conflation corrected: burst-10 had cited VP-SKILL-076 for BOTH P14-002 (setup-time charset gate) AND P14-005 (AD-017 credential-decline). VP-SKILL-076 scoped strictly to P14-002; NEW VP-SKILL-077 allocated (next-free; P14-005 AD-017 credential-decline; mirrors VP-SKILL-054; B-STR; SM-55 skipped). verif-delta v1.17→v1.18, BC-6.01.003 v1.6→v1.7. VP count 36→37. spec-changelog VP-SKILL-053 annotation corrected ("moved to VP-SKILL-076" → "RESTORED via NEW VP-SKILL-077"); VP-SKILL-076/077 rows added to New Verification Properties table. Lesson 38 appended. Single-commit burst via state-burst protocol. |
+
+---
+
 ## Archived Current Phase Step — F2: pass-11 remediation burst 7 (displaced 2026-07-22)
 
 | Step | Agent | Status | Output |

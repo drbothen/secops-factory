@@ -11,6 +11,26 @@ Track all spec version changes. Most recent version first.
 
 ## [1.1.0] - 2026-07-20 (patch edits 2026-07-21/22 — not a version bump)
 
+### F2 Pass-14 Burst-10 Follow-up Coherence Correction — VP-SKILL-076/077 Disentanglement (2026-07-22) — spec remains 1.1.0
+
+Orchestrator-caught conflation at burst-10 close: VP-SKILL-076 was ambiguously cited for BOTH
+the P14-002 setup-time `jira_project_key` charset gate AND the P14-005 onboard-customer AD-017
+credential-decline path — the exact one-ID-two-behaviors anti-pattern lesson 37 (P14-005) flagged.
+Disentanglement: VP-SKILL-076 is scoped STRICTLY to P14-002 (setup-time key charset validation).
+NEW VP-SKILL-077 (next-free after 076; B-STR; SM-55 skipped — mirrors VP-SKILL-054 no-mutant
+precedent) covers onboard-customer AD-017 credential-decline (BC-6.01.003 Inv#1/EC-008),
+RESTORING the coverage orphaned when VP-SKILL-053 was repurposed. VP-SKILL-053 annotation
+corrected from "original AD-017 coverage moved to VP-SKILL-076" to
+"RESTORED via NEW VP-SKILL-077 (VP-SKILL-076 is the unrelated setup-time key charset gate)".
+37 VPs / 48 mutants / ~367 test vectors.
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/verification-delta.md | v1.17 | v1.18 | VP-SKILL-076/077 disentanglement: VP-SKILL-076 scoped strictly to P14-002 (setup-time jira_project_key charset gate); NEW VP-SKILL-077 (P14-005; B-STR; SM-55 skipped — mirrors VP-SKILL-054) covers onboard-customer AD-017 credential-decline (BC-6.01.003 Inv#1/EC-008); VP-SKILL-053 annotation corrected ("moved to VP-SKILL-076" → "RESTORED via VP-SKILL-077"); VP count 36→37 |
+| phase-0-ingestion/behavioral-contracts/BC-6.01.003.md | v1.6 [ID-sync per FV] | v1.7 | burst-10 follow-up: Inv#1/EC-008 VP anchor → VP-SKILL-077 (AD-017 credential-decline); Inv#6/EC-010 VP anchor → VP-SKILL-076 (setup-time key charset gate only); no combined P14-002/P14-005 cite on VP-SKILL-076 |
+
+---
+
 ### F2 Pass-14 Remediation Edits — Burst 10 (2026-07-22) — spec remains 1.1.0
 
 Remediation edits within the F2 adversarial convergence cycle (burst 10). Root findings:
@@ -28,9 +48,12 @@ P14-004 (MINOR — stale "17-field" in BC-10.01.001 Inv#9 field-2 parenthetical 
 description, both swept to "18-field"),
 P14-005 (MINOR — VP-SKILL-053/057 repurposing orphaned onboard-customer AD-017 coverage:
 VP-SKILL-053 moved from AD-017 credential-provisioning to idempotent-dir (EC-006); AD-017
-now anchored via VP-SKILL-076; VP-SKILL-057 moved from sensor-metrics org_slug scoping to
-naming-compliance D-DEC-006 pass-9/P9-005).
-VP-SKILL-076 + SM-54 allocated. 36 VPs / 48 mutants / ~365 test vectors.
+coverage RESTORED via NEW VP-SKILL-077 — **CORRECTED by burst-10 follow-up**: burst-10
+originally cited VP-SKILL-076; VP-SKILL-076 is the unrelated setup-time key charset gate;
+VP-SKILL-057 moved from sensor-metrics org_slug scoping to naming-compliance D-DEC-006
+pass-9/P9-005).
+VP-SKILL-076 + SM-54 allocated (burst-10); VP-SKILL-077 NO-SM allocated (burst-10 follow-up
+coherence correction — AD-017 credential-decline, P14-005). 37 VPs / 48 mutants / ~367 test vectors.
 
 | File | Old Version | New Version | Root Finding |
 |------|-------------|-------------|--------------|
@@ -324,7 +347,7 @@ VP-SKILL-050..063), 11 mutation vectors (SM-9..SM-19), and 10 architecture decis
 | VP-SKILL-050 | monitoring-loop: watermark monotonicity (post-run watermark >= injected pre-run value) | BATS |
 | VP-SKILL-051 | setup-prism: binary version gate (>= 1.0.0-rc.1) | BATS |
 | VP-SKILL-052 | onboard-customer: org slug/UUID-v7 provisioning postconditions | BATS |
-| VP-SKILL-053 | onboard-customer: credential provisioning instructions (AD-017 — no credential-in-chat) → **REPURPOSED pass-14/P14-005: now idempotent-directory-creation (Postcondition #2/EC-006); original AD-017 coverage moved to VP-SKILL-076** | BATS |
+| VP-SKILL-053 | onboard-customer: credential provisioning instructions (AD-017 — no credential-in-chat) → **REPURPOSED pass-14/P14-005: now idempotent-directory-creation (Postcondition #2/EC-006); original AD-017 coverage RESTORED via NEW VP-SKILL-077 (VP-SKILL-076 is the unrelated setup-time key charset gate)** | BATS |
 | VP-SKILL-054 | onboard-sensor: sensor overlay TOML write correctness | BATS |
 | VP-SKILL-055 | onboard-sensor: SELECT 1 connectivity check (success only when DB responds) | BATS |
 | VP-SKILL-056 | sensor-metrics: last-seen/row-counts/error-rate via prism_sensor_health | BATS |
@@ -335,6 +358,8 @@ VP-SKILL-050..063), 11 mutation vectors (SM-9..SM-19), and 10 architecture decis
 | VP-SKILL-061 | monitoring-loop: Indeterminate disposition hard floor (never auto-close) | BATS |
 | VP-SKILL-062 | monitoring-loop: §3.4 Jira ticket-action rules (PC#7a–d, never-auto-reopen-closed) | BATS |
 | VP-SKILL-063 | monitoring-loop: §3.5 SLA surface-never-assume invariant | BATS |
+| VP-SKILL-076 | setup-time `jira_project_key` charset validation — `activate` + `onboard-customer` REJECT a key not matching `^[A-Z][A-Z0-9]+$` at setup with user-facing error + no partial-state write (P14-002 MAJOR; DISTINCT from VP-HOOK-032 runtime deny; paired mutant SM-54) | BATS |
+| VP-SKILL-077 | onboard-customer AD-017 credential-decline — SKILL.md never requests/accepts credential paste in conversation; only piped-stdin `echo \| prism credential set` documented (P14-005; mirrors VP-SKILL-054; B-STR; no mutant — SM-55 skipped) | BATS |
 
 ### Architecture Changes
 

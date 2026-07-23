@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.6"
+version: "1.7"
 status: draft
 producer: product-owner
 timestamp: 2026-07-20T00:00:00
@@ -17,7 +17,7 @@ subsystem: lifecycle-management
 capability: CAP-LIFECYCLE-03
 lifecycle_status: active
 introduced: v0.10.0-feature-prism-integration
-modified: ["v1.1-FV-PROPOSED-DROP-2026-07-20", "v1.2-ADV-F2-P10-009-per-org-jira-project-key-2026-07-22", "v1.3-ADV-F2-P11-005-mis-anchor-fix-2026-07-22", "v1.4-ADV-F2-P12-005-postcondition-anchor-fix-2026-07-22", "v1.5-ADV-F2-P13-002-per-org-key-charset-validation-2026-07-22", "v1.6-ADV-F2-P14-005-AD-017-VP-anchor-2026-07-22 [ID-sync per FV]"]
+modified: ["v1.1-FV-PROPOSED-DROP-2026-07-20", "v1.2-ADV-F2-P10-009-per-org-jira-project-key-2026-07-22", "v1.3-ADV-F2-P11-005-mis-anchor-fix-2026-07-22", "v1.4-ADV-F2-P12-005-postcondition-anchor-fix-2026-07-22", "v1.5-ADV-F2-P13-002-per-org-key-charset-validation-2026-07-22", "v1.6-ADV-F2-P14-005-AD-017-VP-anchor-2026-07-22 [ID-sync per FV]", "v1.7-ADV-F2-burst-10-followup-VP-076-077-disentangle-2026-07-22"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -29,6 +29,7 @@ removal_reason: null
 # Behavioral Contract BC-6.01.003: onboard-customer Skill — Org Slug / UUID Provisioning and prism.toml Registration
 
 > **Revision history:**
+> - v1.7 (2026-07-22): Burst-10 follow-up coherence correction — disentangle VP-SKILL-076 (setup-time `jira_project_key` charset-validation, P14-002, Invariant #6 / EC-010) from VP-SKILL-077 (onboard-customer AD-017 credential-decline, P14-005, Invariant #1 / EC-008). **Changes:** (1) Invariant #1 VP-orphan note: replaced VP-SKILL-076 anchor with VP-SKILL-077. (2) EC-008 verdict column: dedicated VP reference updated from VP-SKILL-076 to VP-SKILL-077. (3) Verification Properties table: VP-SKILL-076 row rewritten to describe setup-time key charset-validation (Inv#6/EC-010 DENY path); VP-SKILL-077 row added for AD-017 credential-decline (Inv#1/EC-008, mirrors VP-SKILL-054 onboard-sensor pattern). (4) Traceability VP Anchors field updated to list both VPs with distinct scopes. Corrects burst-10 conflation in which VP-SKILL-076 was cited for both behaviors — one VP per behavior per anti-pattern P14-005. input-hash: COMPUTE-AT-COMMIT.
 > - v1.6 (2026-07-22): Pass-14 adversarial remediation — ADV-F2-P14-005 (MINOR) AD-017 VP-orphan remediation. **Background:** VP-SKILL-053 was repurposed from AD-017 credential-provisioning (onboard-customer) to idempotent directory creation (Postcondition #2 / EC-006) during the pass-14 FV cycle (verification-delta.md §8.30.6). This left Invariant #1 / EC-008 (credential-decline path) without a formal VP anchor. **Changes:** (1) Added VP-orphan note to Invariant #1 documenting that EC-008 AD-017 coverage inherits the VP-SKILL-054 pattern (onboard-sensor AD-017 piped-stdin, applied to the credential-decline path) and that a dedicated setup-time VP will be allocated by FV per §8.30.6. (2) Updated EC-008 Expected Behavior to reference the same interim anchor. (3) Updated VP Anchors field to reflect VP-SKILL-053 repurposing and add the pending FV VP note. (4) Added pending VP row to Verification Properties table. ADV-F2-P14-005. [ID-sync per FV]
 > - v1.5 (2026-07-22): Pass-13 adversarial remediation — P13-002 (CRITICAL, per-org `jira_project_key` charset validation). (1) **Invariant #6 updated — charset validation required:** when the user supplies a per-org `jira_project_key` during `onboard-customer`, the skill MUST validate the value against `^[A-Z][A-Z0-9]+$` before persisting it. On mismatch, refuse the onboarding with an explicit user-facing error ("Invalid Jira project key '<X>': Jira project keys must be uppercase alphanumeric with no hyphens or spaces — e.g., PRISMDEMO, SEC, SECOPS.") and do NOT store the invalid key. Rationale: a per-org key with a hyphen would cause PROJECT-KEY-CHARSET-DENY fail-closed drops on every disposition-guard marker issuance for that org. Cross-reference: D-DEC-008 architectural constraint (Jira project keys MUST be hyphen-free per `^[A-Z][A-Z0-9]+$`; architecture-delta.md v1.16 §D-DEC-008). Note: activate-level validation (BC-6.01.001 Postcondition #12 / EC-014) covers the global key set at activation; per-org keys captured here are independently validated since onboard-customer may be invoked after initial activation. (2) **EC-010 added:** hyphen-containing per-org `jira_project_key` rejected during onboard-customer. ADV-F2-P13-002.
 > - v1.4 (2026-07-22): Pass-12 adversarial remediation — P12-005 (MINOR, mis-anchor correction). **Invariant #6 cross-reference corrected again:** the v1.3 fix introduced a secondary error — "BC-6.01.001 Invariant #12 / EC-013" is incorrect because BC-6.01.001 (activate-skill) has only 6 invariants; the jira_project_key Stage-0 gate is a **Postcondition** (#12), not an Invariant. Corrected to "BC-6.01.001 Postcondition #12 / EC-013" in both Invariant #6 body and the v1.3 revision history entry. ADV-F2-P12-005.
@@ -86,7 +87,7 @@ into chat (AD-017 invariant).
    using the AD-017 piped-stdin pattern. A future output containing a field like
    "enter your API key:" is a defect.
 
-   > **[P14-005 VP-orphan note]** VP-SKILL-053 was repurposed in the pass-14 FV cycle to cover idempotent directory creation (Postcondition #2 / EC-006), leaving this invariant's credential-decline behavior (EC-008) without a formal VP anchor. Interim anchor: this behavior inherits the **VP-SKILL-054 pattern** (onboard-sensor AD-017 piped-stdin, applied to the credential-decline path here — if `onboard-sensor` enforces AD-017 via piped-stdin, `onboard-customer` must enforce the same constraint at its own credential-decline prompt gate). VP-SKILL-076 formally verifies the EC-008 DENY path for onboard-customer. [ID-sync per FV]
+   > **[P14-005 VP-orphan note — resolved v1.7]** VP-SKILL-053 was repurposed in the pass-14 FV cycle to cover idempotent directory creation (Postcondition #2 / EC-006), leaving this invariant's credential-decline behavior (EC-008) without a formal VP anchor. This behavior mirrors the **VP-SKILL-054 pattern** (onboard-sensor AD-017 piped-stdin, applied to the credential-decline path here — if `onboard-sensor` enforces AD-017 via piped-stdin, `onboard-customer` must enforce the same constraint at its own credential-decline prompt gate). **VP-SKILL-077 formally verifies the EC-008 DENY path for onboard-customer** (dedicated VP for this behavior; VP-SKILL-076 is reserved for setup-time `jira_project_key` charset-validation / Invariant #6 / EC-010).
 2. **org_slug uniqueness gate.** Before appending to `prism.toml`, the skill
    reads the existing `[[orgs]]` list and verifies no entry with the same
    `org_slug` exists. If a duplicate is found, the skill STOPS and reports the
@@ -130,7 +131,7 @@ into chat (AD-017 invariant).
 | EC-005 | `prism.toml` is not valid TOML (parse error) | Skill STOPS without modifying the file; reports the parse error and instructs user to fix manually |
 | EC-006 | `<spec_dir>/customers/<org_slug>/` directory already exists | Skill proceeds without error; does NOT delete or overwrite existing directory contents (idempotent create) |
 | EC-007 | org_slug contains characters that are not filesystem-safe (spaces, slashes, special chars) | Skill rejects with message specifying allowed characters (lowercase alphanumeric, hyphens, underscores); re-prompts |
-| EC-008 | User attempts to enter a credential value during this skill | Skill explicitly declines: "Credential setup happens via onboard-sensor. I will not accept credentials here." **[P14-005: VP-orphan — VP-SKILL-053 repurposed; interim anchor VP-SKILL-054 pattern; dedicated VP: VP-SKILL-076 [ID-sync per FV]]** |
+| EC-008 | User attempts to enter a credential value during this skill | Skill explicitly declines: "Credential setup happens via onboard-sensor. I will not accept credentials here." **(P14-005: VP-SKILL-077 — dedicated VP for AD-017 credential-decline DENY path; mirrors VP-SKILL-054 onboard-sensor pattern. VP-SKILL-076 is the separate setup-time key charset gate / EC-010.)** |
 | EC-009 | **[NEW v1.2 — P10-009]** User supplies `jira_project_key = "ACME"` for per-org override during onboard-customer | Skill appends `[[orgs]]` entry with `jira_project_key = "ACME"` alongside `org_slug`, `uuid`. Printed confirmation states: "Per-org Jira project key 'ACME' stored for org 'acme-corp'. This overrides the global jira_project_key for all disposition-guard create-review/create operations on this org. Global key is still used for orgs without a per-org override." |
 | EC-010 | **[NEW v1.5 — P13-002]** User supplies a per-org `jira_project_key` containing a hyphen (e.g., `ACME-CORP`) — non-conformant to `^[A-Z][A-Z0-9]+$` | Skill emits user-facing error: "Invalid Jira project key 'ACME-CORP': Jira project keys must be uppercase alphanumeric with no hyphens or spaces — e.g., PRISMDEMO, SEC, ACMECORP." Skill does NOT append the `[[orgs]]` entry with the invalid key. Re-prompts user for a valid key or cancels. **(P13-002 fail-early requirement: a hyphen-containing key stored in prism.toml would cause PROJECT-KEY-CHARSET-DENY at every disposition-guard marker issuance for this org)** |
 
@@ -150,7 +151,8 @@ into chat (AD-017 invariant).
 |--------|----------|-------------|
 | VP-SKILL-052 | UUID format validation — skill accepts only valid UUID-v7 format for the `uuid` field; rejects malformed UUIDs with re-prompt | integration / BATS (`@test "onboard-customer rejects invalid UUID format"`) |
 | VP-SKILL-053 | Idempotent directory creation — re-running `onboard-customer` for an existing org_slug does not modify or delete the existing customers/<org_slug>/ directory | integration / BATS (`@test "onboard-customer does not overwrite existing customer directory"`) |
-| VP-SKILL-076 | AD-017 credential-decline — `onboard-customer` skill explicitly declines when user attempts to paste a credential value; DENY path for EC-008 verified end-to-end. **(FINALIZED ID: VP-SKILL-076; P14-002/P14-005; inherits VP-SKILL-054 pattern [ID-sync per FV])** | integration / BATS (`@test "onboard-customer declines credential input (AD-017)"`) |
+| VP-SKILL-076 | Setup-time `jira_project_key` charset validation — `onboard-customer` rejects a per-org key that does not conform to `^[A-Z][A-Z0-9]+$`; DENY path for EC-010 verified end-to-end. (P14-002 preventive gate; Invariant #6 / EC-010) | integration / BATS (`@test "onboard-customer rejects invalid per-org jira_project_key charset"`) |
+| VP-SKILL-077 | AD-017 credential-decline — `onboard-customer` skill explicitly declines when user attempts to paste a credential value; DENY path for EC-008 verified end-to-end. (P14-005; Invariant #1 / EC-008; mirrors VP-SKILL-054 onboard-sensor AD-017 pattern) | integration / BATS (`@test "onboard-customer declines credential input (AD-017)"`) |
 
 ## Traceability
 
@@ -163,4 +165,4 @@ into chat (AD-017 invariant).
 | Related BCs | BC-6.01.001 (composes with — activate must run before onboard-customer); BC-6.01.004 (composes with — onboard-sensor runs after onboard-customer); BC-10.01.001 (depends on — monitoring-loop iterates over orgs registered here) |
 | Architecture Anchors | architecture-delta.md §D-DEC-005 (org_slug scoping invariant); architecture-delta.md §3 (external write surface: prism config dir) |
 | Story Anchor | TBD (filled by story-writer) |
-| VP Anchors | VP-SKILL-052; VP-SKILL-053 (repurposed to idempotent-dir per P14-005 FV cycle); VP-SKILL-076 (AD-017 / EC-008 credential-decline, setup-time preventive gate [ID-sync per FV]) |
+| VP Anchors | VP-SKILL-052; VP-SKILL-053 (repurposed to idempotent-dir per P14-005 FV cycle); VP-SKILL-076 (setup-time `jira_project_key` charset-validation, Inv#6 / EC-010, P14-002 preventive gate); VP-SKILL-077 (AD-017 credential-decline, Inv#1 / EC-008, P14-005 — mirrors VP-SKILL-054 onboard-sensor pattern) |

@@ -476,3 +476,29 @@ traces_to: STATE.md
     annotation, and (4) the BC's VP Anchors field. Ensure the behavior previously covered
     is explicitly re-anchored to a new VP or flagged as a VP-orphan requiring FV attention.
     _Discovered: F2 adversarial pass 14 (P14-005 MINOR), 2026-07-22_
+
+---
+
+## Burst-10 Follow-up Coherence Correction (2026-07-22)
+
+### Process-Level
+
+38. **[process-gap] A fix allocating a VP to restore orphaned coverage must verify the new
+    VP covers ONE behavior — a scope collision between a "pending VP placeholder" resolved
+    to an existing VP ID reproduces the one-ID-two-behaviors anti-pattern the fix intended
+    to close [burst-10 follow-up]** — The burst-10 fix for P14-005 (VP-ID repurposing
+    orphaning AD-017 credential-decline coverage) wrote "AD-017 coverage moved to
+    VP-SKILL-076" in both the spec-changelog and BC-6.01.003 anchors — but VP-SKILL-076
+    was already scoped to the P14-002 setup-time jira_project_key charset-validation gate,
+    a wholly unrelated behavior. The fix conflated two distinct behaviors under one VP ID:
+    the exact one-ID-two-behaviors anti-pattern lesson 37 (P14-005) flagged. The
+    orchestrator caught the conflation at burst close before the next adversarial pass.
+    Lesson: when allocating a VP to restore orphaned coverage, verify the new VP covers ONE
+    behavior. A "pending VP placeholder" (e.g., "VP-SKILL-TBD") that gets resolved to an
+    EXISTING VP ID (rather than a fresh next-free ID) must be explicitly checked for scope
+    collision against that ID's current definition before the annotation is committed.
+    A scope collision under a single VP ID is equivalent to the original orphaning — it
+    just produces a different coverage gap (one VP doing two things rather than zero VPs
+    for one thing). The correct fix: allocate the next-free ID (VP-SKILL-077) for the
+    orphaned behavior and keep VP-SKILL-076 scoped strictly to its existing property.
+    _Discovered: burst-10 follow-up coherence correction (orchestrator-caught conflation), 2026-07-22_

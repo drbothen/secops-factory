@@ -1,10 +1,10 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "2.13"
+version: "2.14"
 status: active
 producer: state-manager
-timestamp: 2026-07-22T12:00:00Z
+timestamp: 2026-07-22T15:00:00Z
 phase: F2
 pipeline: FEATURE-CYCLE
 inputs: []
@@ -68,7 +68,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | F2: adversarial pass 13 | adversary | DONE | 2C/1M/1m — markdown-comment path CRITICAL for 2nd consecutive pass. P13-001 (CRITICAL): MARKDOWN_COMMENT_PATH FP branch issues autonomous comment marker with NO scored_priority/asset_type floor (not in 12-field markdown) and NO known-FP store backing → unbounded exemption; P12-002 fix closed TP case, left FP branch open; NOT covered by DI-015. P13-002 (CRITICAL/RC-gate): brief canonical demo key PRISM-DEMO / PRISM-DEMO-42 is NOT a valid Jira key (hyphens disallowed in project keys) → P12-001 charset (correct-for-Jira) fails-closed on every demo marker → RC live-demo cannot issue any Jira write; regex right, brief example wrong. P13-003 (MAJOR): markdown disposition/autonomy_enabled parse grammar unspecified (FP mis-parse → floor bypass; no fail-closed-to-review rule). P13-004 (MINOR): PC#2 prose stale vs P12-002. Report persisted; P13-001/002 at human gate. |
 | F2: pass-13 remediation burst 9 | architect / product-owner / formal-verifier | DONE | P13-001 CRITICAL MARKDOWN_COMMENT_PATH ELIMINATED (FP→allow-without-marker; hook cannot eval scored_priority/asset_type from 12-field markdown; recurring 2-pass CRITICAL closed). P13-002 CRITICAL PRISMDEMO key correction (PRISM-DEMO invalid hyphen; ^[A-Z][A-Z0-9]+$ charset unchanged; setup-time validation added to BC-6.01.001 + BC-6.01.003). P13-003 MAJOR strict parse grammar (canonical-heading-only; exact allowlist; PARSE_FAIL→review; no full-doc scan). P13-004 MINOR PC#2 prose updated (P11-004/P12-002/P13-001 cross-ref). SM-52 (FP-comment-marker revert) + SM-53 (disposition-scan revert) allocated. D-017/D-018 recorded. arch-delta v1.16, verif-delta v1.16, prd-delta v1.15, BC-3.03.001 v1.21, BC-6.01.001 v1.7, BC-6.01.003 v1.5, BC-10.01.001 v1.17, BC-4.05.001 v1.4, BC-3.01.001 v1.21, BC-5.01.001 v1.9, BC-4.02.001 v1.9, BC-8.02.001 v1.4. Clean streak 0/3. |
 | F2: adversarial pass 14 | adversary | DONE | 0C/2M/3m — NO CRITICAL; all findings are prior-fix propagation/coherence gaps. P14-001 (MAJOR): P11-003 NVD/CVSS clean-separation never propagated to loop contract BC-10.01.001 (Inv#9 field-13 NVD row + '8.5 for NVD CVSS' example + Inv#14 Stage-1) — cross-artifact contradiction. P14-002 (MAJOR): P13-002 setup-time key-validation (activate PC#12/EC-014 + onboard-customer Inv#6/EC-010) has NO covering VP (runtime deny covered by VP-HOOK-032; preventive gate uncovered). P14-003 PRISM-DEMO residue in consumer BC-3.01.001 (rename claimed 'throughout' but skipped it). P14-004 stale '17-field' in BC-10.01.001 Inv#9 L249 + garbled BC-3.03.001 L825. P14-005 VP-ID repurposing (VP-SKILL-053/057) orphaned onboard-customer AD-017 coverage. Report persisted. |
-| F2: pass-14 remediation burst 10 | architect / product-owner / formal-verifier | DONE | P14-001 MAJOR NVD clean-separation propagated to BC-10.01.001 v1.18 (Inv#9 NVD row removed, field-16 Cyberint example, Inv#14 Stage-1 note; 2 VP-SKILL-074 CVSS fixtures removed). P14-002 MAJOR VP-SKILL-076 allocated (setup-time jira_project_key charset validation — activate PC#12/EC-014 + onboard-customer Inv#6/EC-010; SM-54). P14-003 MINOR PRISM-DEMO swept from BC-3.01.001 v1.22 test vectors. P14-004 MINOR 18-field propagated to BC-10.01.001 v1.18. P14-005 MINOR VP-SKILL-053/057 repurposing annotated (spec-changelog + BC-6.01.003 v1.6 AD-017 VP anchor = VP-SKILL-076). BC-3.03.001 v1.22 (PRISM-DEMO sweep + version bump). FV also fixed surviving NVD residual in VP-SKILL-074 verif-delta. arch-delta v1.17, verif-delta v1.17, prd-delta v1.15, BC-10.01.001 v1.18, BC-3.03.001 v1.22, BC-3.01.001 v1.22, BC-6.01.003 v1.6, BC-6.01.001 v1.7, BC-4.05.001 v1.4, BC-5.01.001 v1.9, BC-4.02.001 v1.9, BC-8.02.001 v1.4. VPs 36 / SM 54. Clean streak 0/3. |
+| F2: pass-14 remediation burst 10 + follow-up | architect / product-owner / formal-verifier / state-manager | DONE | P14-001..P14-005 CLOSED (see burst-log). Burst-10 follow-up (orchestrator-caught conflation): VP-SKILL-076/077 disentangled — VP-SKILL-077 allocated for onboard-customer AD-017 credential-decline (P14-005; B-STR; SM-55 skipped); VP-SKILL-076 scoped strictly to P14-002 charset gate. verif-delta v1.18 / BC-6.01.003 v1.7 / spec-changelog VP-SKILL-053 annotation corrected. VPs 37 / SM 54 (SM-55 skipped). Clean streak 0/3. |
 
 ## Decisions Log
 
@@ -139,9 +139,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-22 |
-| **Position** | Pass-14 remediation COMPLETE + committed. NEXT: adversarial pass 15 (fresh context; carry VP-SKILL-076, NVD fully purged incl. VP-SKILL-074, PRISMDEMO consistent; VPs 36 / VP-HOOK 024-032 / VP-SKILL 001-076 / SM 9-54; keep ASM-008/014/015 + DI-015 deferrals). Clean streak 0/3; pass 14 was 0-CRITICAL cleanup. |
-| **Context** | Artifact versions: arch-delta v1.17, verif-delta v1.17, prd-delta v1.15, BC-10.01.001 v1.18, BC-3.03.001 v1.22, BC-3.01.001 v1.22, BC-6.01.003 v1.6, BC-6.01.001 v1.7, BC-4.05.001 v1.4, BC-5.01.001 v1.9, BC-4.02.001 v1.9, BC-8.02.001 v1.4. VP-SKILL-076 + SM-54 allocated this burst. 36 VPs / 48 mutants / ~365 test vectors. D-017/D-018 carried; no new D recorded. Pass-14 report at phase-f2-spec-evolution/adversarial-spec-delta-review-pass14.md. |
-| **Convergence counter** | 0/3 clean passes (pass-14 remediated — pass 15 is next) |
+| **Position** | Pass-14 remediation COMPLETE + burst-10 follow-up coherence correction committed. NEXT: adversarial pass 15 (fresh context; carry VP-SKILL-076=key-charset / VP-SKILL-077=AD-017 distinct; NVD fully purged; PRISMDEMO consistent; VPs 37 / VP-HOOK 024-032 / VP-SKILL 001-077 / SM 9-54; keep ASM-008/014/015 + DI-015 deferrals). Clean streak 0/3; pass 14 was 0-CRITICAL cleanup. |
+| **Context** | Artifact versions: arch-delta v1.17, verif-delta v1.18, prd-delta v1.15, BC-10.01.001 v1.18, BC-3.03.001 v1.22, BC-3.01.001 v1.22, BC-6.01.003 v1.7, BC-6.01.001 v1.7, BC-4.05.001 v1.4, BC-5.01.001 v1.9, BC-4.02.001 v1.9, BC-8.02.001 v1.4. VP-SKILL-076 + SM-54 (burst-10); VP-SKILL-077 NO-SM (burst-10 follow-up disentanglement). 37 VPs / 48 mutants / ~367 test vectors. D-017/D-018 carried; no new D recorded. |
+| **Convergence counter** | 0/3 clean passes (pass-14 remediated + burst-10 follow-up committed — pass 15 is next) |
 
 ## Historical Content
 

@@ -1,10 +1,10 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "2.14"
+version: "2.15"
 status: active
 producer: state-manager
-timestamp: 2026-07-22T16:00:00Z
+timestamp: 2026-07-22T17:00:00Z
 phase: F2
 pipeline: FEATURE-CYCLE
 inputs: []
@@ -12,8 +12,8 @@ input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "F2 adversarial convergence — pass 15 done (0C/1M/2m), remediation pending"
-awaiting: "F2-pass15-remediation"
+current_step: "F2 adversarial convergence — pass-15 remediation COMPLETE, pass 16 pending"
+awaiting: "F2-adversarial-pass-16"
 current_cycle: v0.10.0-feature-prism-integration
 dtu_required: true
 dtu_assessment: "2026-07-20"
@@ -42,7 +42,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-22 |
 | **Current Phase** | F2: Spec Evolution (prism-integration cycle) |
-| **Current Step** | F2 adversarial convergence — pass 15 done (0C/1M/2m), remediation pending |
+| **Current Step** | F2 adversarial convergence — pass-15 remediation COMPLETE, pass 16 pending |
 
 ## Phase Progress
 
@@ -51,7 +51,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | pre-0: Pre-pipeline | PASSED | 2026-07-19 | 2026-07-19 | PASS | — |
 | 0: Codebase Ingestion + Remediation | COMPLETE | 2026-07-19 | 2026-07-20 | PASS | 12→11→7→8(1FP)→6→6→6→6(CRITICAL)→4→5→2→1→0; ADV-R1-4 CLEAN |
 | F1: Delta Analysis | PASSED | 2026-07-19 | 2026-07-20 | PASS | consistency: 7→0 |
-| F2: Spec Evolution | in-progress — pass15 done (0C/1M/2m), remediation pending | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated → pass10 1C/2M → pass10 remediated → pass11 1C/3M → pass11 remediated → pass12 2C/2M → pass12 remediated → pass13 2C/1M → pass13 remediated → pass14 0C/2M/3m → pass14 remediated → pass15 0C/1M/2m (remediation pending — coherence sweep PASSED 11/12 axes) |
+| F2: Spec Evolution | in-progress — pass 16 pending | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated → pass10 1C/2M → pass10 remediated → pass11 1C/3M → pass11 remediated → pass12 2C/2M → pass12 remediated → pass13 2C/1M → pass13 remediated → pass14 0C/2M/3m → pass14 remediated → pass15 0C/1M/2m (coherence sweep PASSED 11/12 axes) → pass15 remediated |
 | F3: Incremental Stories | not-started | | | | |
 | F4: Delta Implementation | not-started | | | | |
 | F5: Scoped Adversarial | not-started | | | | |
@@ -64,11 +64,11 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| F2: adversarial pass 15 | adversary | DONE | 0C/1M/2m/2obs — convergence candidate; 11/12 coherence axes PASS. P15-001 (MAJOR): P13-001 markdown-comment-marker elimination NOT propagated to the two CONSUMER BCs — BC-4.02.001 PC#4 + BC-5.01.001 Inv#7 still describe the eliminated comment-scoped-marker mechanism as their jr-comment authorization path (spec-vs-spec contradiction; 'MUST NOT be denied' postcondition now literally wrong). P15-002 (MINOR): stale '15-field' JSON-path count in BC-3.03.001 Evidence Types L878 (older than P14-004 sweep scope). P15-003 (MINOR): prd-delta §1 VP-status snapshot inconsistent (4 skill-BC rows frozen at PROPOSED + omit VP-SKILL-076/077 while BC-10.01.001 row was updated to FINALIZED). P15-004/005 OBS: scan-threats severity-grouping normalization; stale VP-HOOK-031 v1.14 citation in consumer BCs. Report persisted. |
-| F2: adversarial pass 13 | adversary | DONE | 2C/1M/1m — markdown-comment path CRITICAL for 2nd consecutive pass. P13-001 (CRITICAL): MARKDOWN_COMMENT_PATH FP branch issues autonomous comment marker with NO scored_priority/asset_type floor (not in 12-field markdown) and NO known-FP store backing → unbounded exemption; P12-002 fix closed TP case, left FP branch open; NOT covered by DI-015. P13-002 (CRITICAL/RC-gate): brief canonical demo key PRISM-DEMO / PRISM-DEMO-42 is NOT a valid Jira key (hyphens disallowed in project keys) → P12-001 charset (correct-for-Jira) fails-closed on every demo marker → RC live-demo cannot issue any Jira write; regex right, brief example wrong. P13-003 (MAJOR): markdown disposition/autonomy_enabled parse grammar unspecified (FP mis-parse → floor bypass; no fail-closed-to-review rule). P13-004 (MINOR): PC#2 prose stale vs P12-002. Report persisted; P13-001/002 at human gate. |
 | F2: pass-13 remediation burst 9 | architect / product-owner / formal-verifier | DONE | P13-001 CRITICAL MARKDOWN_COMMENT_PATH ELIMINATED (FP→allow-without-marker; hook cannot eval scored_priority/asset_type from 12-field markdown; recurring 2-pass CRITICAL closed). P13-002 CRITICAL PRISMDEMO key correction (PRISM-DEMO invalid hyphen; ^[A-Z][A-Z0-9]+$ charset unchanged; setup-time validation added to BC-6.01.001 + BC-6.01.003). P13-003 MAJOR strict parse grammar (canonical-heading-only; exact allowlist; PARSE_FAIL→review; no full-doc scan). P13-004 MINOR PC#2 prose updated (P11-004/P12-002/P13-001 cross-ref). SM-52 (FP-comment-marker revert) + SM-53 (disposition-scan revert) allocated. D-017/D-018 recorded. arch-delta v1.16, verif-delta v1.16, prd-delta v1.15, BC-3.03.001 v1.21, BC-6.01.001 v1.7, BC-6.01.003 v1.5, BC-10.01.001 v1.17, BC-4.05.001 v1.4, BC-3.01.001 v1.21, BC-5.01.001 v1.9, BC-4.02.001 v1.9, BC-8.02.001 v1.4. Clean streak 0/3. |
 | F2: adversarial pass 14 | adversary | DONE | 0C/2M/3m — NO CRITICAL; all findings are prior-fix propagation/coherence gaps. P14-001 (MAJOR): P11-003 NVD/CVSS clean-separation never propagated to loop contract BC-10.01.001 (Inv#9 field-13 NVD row + '8.5 for NVD CVSS' example + Inv#14 Stage-1) — cross-artifact contradiction. P14-002 (MAJOR): P13-002 setup-time key-validation (activate PC#12/EC-014 + onboard-customer Inv#6/EC-010) has NO covering VP (runtime deny covered by VP-HOOK-032; preventive gate uncovered). P14-003 PRISM-DEMO residue in consumer BC-3.01.001 (rename claimed 'throughout' but skipped it). P14-004 stale '17-field' in BC-10.01.001 Inv#9 L249 + garbled BC-3.03.001 L825. P14-005 VP-ID repurposing (VP-SKILL-053/057) orphaned onboard-customer AD-017 coverage. Report persisted. |
 | F2: pass-14 remediation burst 10 + follow-up | architect / product-owner / formal-verifier / state-manager | DONE | P14-001..P14-005 CLOSED (see burst-log). Burst-10 follow-up (orchestrator-caught conflation): VP-SKILL-076/077 disentangled — VP-SKILL-077 allocated for onboard-customer AD-017 credential-decline (P14-005; B-STR; SM-55 skipped); VP-SKILL-076 scoped strictly to P14-002 charset gate. verif-delta v1.18 / BC-6.01.003 v1.7 / spec-changelog VP-SKILL-053 annotation corrected. VPs 37 / SM 54 (SM-55 skipped). Clean streak 0/3. |
+| F2: adversarial pass 15 | adversary | DONE | 0C/1M/2m/2obs — convergence candidate; 11/12 coherence axes PASS. P15-001 (MAJOR): P13-001 markdown-comment-marker elimination NOT propagated to the two CONSUMER BCs — BC-4.02.001 PC#4 + BC-5.01.001 Inv#7 still describe the eliminated comment-scoped-marker mechanism as their jr-comment authorization path (spec-vs-spec contradiction; 'MUST NOT be denied' postcondition now literally wrong). P15-002 (MINOR): stale '15-field' JSON-path count in BC-3.03.001 Evidence Types L878 (older than P14-004 sweep scope). P15-003 (MINOR): prd-delta §1 VP-status snapshot inconsistent (4 skill-BC rows frozen at PROPOSED + omit VP-SKILL-076/077 while BC-10.01.001 row was updated to FINALIZED). P15-004/005 OBS: scan-threats severity-grouping normalization; stale VP-HOOK-031 v1.14 citation in consumer BCs. Report persisted. |
+| F2: pass-15 remediation burst 11 | product-owner / state-manager | DONE | P13-001 markdown-comment elimination propagated to the two consumer BCs (BC-4.02.001/BC-5.01.001) — closes the last cross-document contradiction; 15→18-field residue fixed; prd-delta §1 VP-status refreshed; scan-threats presentation-note. BC-4.02.001 v1.10, BC-5.01.001 v1.10, BC-3.03.001 v1.23, BC-9.01.001 v1.2, prd-delta v1.16. Clean streak 0/3. |
 
 ## Decisions Log
 
@@ -139,9 +139,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-22 |
-| **Position** | Pass 15 COMPLETE (0C/1M/2m, report persisted; coherence sweep 11/12 PASS — package near convergence). Burst 11 in flight: P15-001 reconcile BC-4.02.001 PC#4 + BC-5.01.001 Inv#7 (+footers) to post-P13-001 model (markdown path issues NO comment marker; FP→allow-without-marker, jr-comment falls to human approval; non-FP→review); P15-002 15→18-field; P15-003 prd-delta §1 VP-status refresh incl. VP-SKILL-076/077; P15-004 scan-threats note; P15-005 VP-HOOK-031 v1.14→v1.18 citation. Then pass 16. Clean streak 0/3. |
-| **Context** | Artifact versions (pre-burst-11): arch-delta v1.17, verif-delta v1.18, prd-delta v1.15, BC-10.01.001 v1.18, BC-3.03.001 v1.22, BC-3.01.001 v1.22, BC-6.01.003 v1.7, BC-6.01.001 v1.7, BC-4.05.001 v1.4, BC-5.01.001 v1.9, BC-4.02.001 v1.9, BC-8.02.001 v1.4. VPs 37 / SM 48. D-017/D-018 carried; no new D this pass. |
-| **Convergence counter** | 0/3 clean passes (pass-15 NOT clean — 1 MAJOR, 2 MINOR) |
+| **Position** | Pass-15 remediation COMPLETE + committed (burst 11): P13-001 markdown-comment-marker elimination propagated to BC-4.02.001 (v1.10) + BC-5.01.001 (v1.10); BC-3.03.001 (v1.23) 15→18-field residue fixed; BC-9.01.001 (v1.2) scan-threats presentation-note; prd-delta (v1.16) §1 VP-status refreshed. VPs 37 / SM 54. Clean streak 0/3. Next: dispatch F2 adversarial pass 16. |
+| **Context** | Artifact versions (post-burst-11): arch-delta v1.17, verif-delta v1.18 (anchor sweep only), prd-delta v1.16, BC-10.01.001 v1.18, BC-3.03.001 v1.23, BC-3.01.001 v1.22, BC-6.01.003 v1.7, BC-6.01.001 v1.7, BC-4.05.001 v1.4, BC-5.01.001 v1.10, BC-4.02.001 v1.10, BC-9.01.001 v1.2, BC-8.02.001 v1.4. VPs 37 / SM 54. |
+| **Convergence counter** | 0/3 clean passes (pass-15 remediated — burst 11 committed; pass 16 pending) |
 
 ## Historical Content
 

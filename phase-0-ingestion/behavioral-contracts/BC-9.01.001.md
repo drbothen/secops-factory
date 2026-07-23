@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-07-20T00:00:00
@@ -17,7 +17,7 @@ subsystem: threat-hunting
 capability: CAP-THREATHUNTING-01
 lifecycle_status: active
 introduced: v0.10.0-feature-prism-integration
-modified: ["v1.1-FV-PROPOSED-DROP-2026-07-20"]
+modified: ["v1.1-FV-PROPOSED-DROP-2026-07-20", "v1.2-ADV-F2-P15-004-severity-presentation-only-note-2026-07-22"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -29,8 +29,9 @@ removal_reason: null
 # Behavioral Contract BC-9.01.001: scan-threats Skill — Proactive PrismQL Threat Hunt Across All Orgs
 
 > **Revision history:**
-> - v1.0 (2026-07-20): Initial authoring for prism-integration cycle (v0.10.0). Source: handoff brief §2.4 (scan-threats skill), architecture-delta.md §D-DEC-005 (org_slug scoping invariant), artifact-mapping.md §1.4 (BC-9.01.001 slot). prism_describe-before-query is the critical ordering invariant.
+> - v1.2 (2026-07-22): Pass-15 adversarial remediation — P15-004 (OBS, presentation-only severity bucketing clarification). **PC#5 clarifying note added:** The CRIT/HIGH/MED/LOW severity bucketing in PC#5 is presentation-only — scan-threats does not run Stage-5 scoring (assess-priority) and does not produce a `scored_priority` verdict field. Native prism severity values are mapped to these tokens for display grouping only; this mapping is not an input to disposition-guard hard-floor checks. No mechanism change. ADV-F2-P15-004.
 > - v1.1 (2026-07-20): FV-PROPOSED-DROP: VP-SKILL-058 and VP-SKILL-059 are now FINALIZED per verification-delta §1 — dropped `(PROPOSED)` qualifier from VP table rows and VP Anchors.
+> - v1.0 (2026-07-20): Initial authoring for prism-integration cycle (v0.10.0). Source: handoff brief §2.4 (scan-threats skill), architecture-delta.md §D-DEC-005 (org_slug scoping invariant), artifact-mapping.md §1.4 (BC-9.01.001 slot). prism_describe-before-query is the critical ordering invariant.
 
 ## Description
 
@@ -74,6 +75,8 @@ monitoring-loop. All queries are scoped per-org via org_slug (D-DEC-005).
 5. Findings are grouped by severity (CRIT, HIGH, MED, LOW) in the output.
    Findings with no severity indicator from prism default to MED. Confidence:
    brief §2.4 "results grouped by severity."
+
+   **NOTE (P15-004, OBS — presentation-only):** This severity bucketing is for display purposes only — scan-threats does not run Stage-5 scoring (assess-priority, BC-4.05.001) and does not produce a `scored_priority` verdict field. Native prism severity values are mapped to the CRIT/HIGH/MED/LOW tokens for grouping display; this mapping is not an input to disposition-guard hard-floor checks (which key on verdict `scored_priority` from the monitoring-loop pipeline).
 6. If no findings are returned across all orgs for all queries, the output states
    "No threat indicators found" rather than emitting an empty response. Confidence:
    fail-loud requirement.

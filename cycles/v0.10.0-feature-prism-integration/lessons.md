@@ -502,3 +502,14 @@ traces_to: STATE.md
     for one thing). The correct fix: allocate the next-free ID (VP-SKILL-077) for the
     orphaned behavior and keep VP-SKILL-076 scoped strictly to its existing property.
     _Discovered: burst-10 follow-up coherence correction (orchestrator-caught conflation), 2026-07-22_
+
+---
+
+### Lesson 39 — [process-gap] Consumer-side propagation of design eliminations (pass-15, burst-11, 2026-07-22)
+
+[process-gap] a design ELIMINATION (P13-001 removed the markdown comment marker) must be
+propagated to CONSUMER contracts, not only the emitter+verifier+index docs — BC-4.02.001/BC-5.01.001
+named the eliminated mechanism as their authorization path and survived 2 passes stale; a
+consumer-side re-derivation (not emitter-anchored) is what surfaced it. When a mechanism is
+removed, grep every BC that CONSUMES it, not just the one that DEFINES it.
+    _Discovered: pass-15 (P15-001) — surfaced by adversary pass, remediated burst-11, 2026-07-22_

@@ -11,6 +11,31 @@ Track all spec version changes. Most recent version first.
 
 ## [1.1.0] - 2026-07-20 (patch edits 2026-07-21/22 — not a version bump)
 
+### F2 Pass-15 Remediation Edits — Burst 11 (2026-07-22) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 11). Root findings:
+P15-001 (MAJOR — P13-001 markdown-comment-marker elimination not propagated to consumer BCs
+BC-4.02.001/BC-5.01.001: both still described the eliminated comment-scoped-marker mechanism
+as their jr-comment authorization path in PC#4/Inv#7 respectively — spec-vs-spec contradiction),
+P15-002 (MINOR — stale '15-field' JSON-path count in BC-3.03.001 Evidence Types §5 table row
+(pre-P14-004 sweep)),
+P15-003 (MINOR — prd-delta §1 VP-status snapshot inconsistent: 4 skill-BC rows frozen at PROPOSED
++ VP-SKILL-076/077 omitted while BC-10.01.001 row was updated to FINALIZED),
+P15-004 (OBS — scan-threats severity-grouping normalization presentation-note added to BC-9.01.001),
+P15-005 (OBS — stale VP-HOOK-031 v1.14 citation in consumer BCs; updated to v1.18 reference).
+37 VPs / 54 mutants / ~367 test vectors (no VP/SM additions this burst).
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-0-ingestion/behavioral-contracts/BC-4.02.001.md | v1.9 | v1.10 | P15-001 (PC#4 authorization path updated to post-P13-001 model — no comment-scoped-marker; FP→allow-without-marker, non-FP→review); P15-005 (VP-HOOK-031 citation updated to v1.18) |
+| phase-0-ingestion/behavioral-contracts/BC-5.01.001.md | v1.9 | v1.10 | P15-001 (Inv#7 authorization path updated to post-P13-001 model — no comment-scoped-marker; FP→allow-without-marker, non-FP→review); P15-005 (VP-HOOK-031 citation updated to v1.18) |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.22 | v1.23 | P15-002 (Evidence Types §5 table row: 15-field JSON-path count corrected to 18-field) |
+| phase-0-ingestion/behavioral-contracts/BC-9.01.001.md | v1.1 | v1.2 | P15-004 (scan-threats severity-grouping normalization presentation-note added) |
+| phase-f2-spec-evolution/prd-delta.md | v1.15 | v1.16 | P15-003 (§1 VP-status snapshot refreshed: 4 skill-BC rows updated to FINALIZED; VP-SKILL-076/077 added to BC-6.01.003 row) |
+| phase-f2-spec-evolution/verification-delta.md | v1.18 | v1.18 | anchor-version sweep only (BC-4.02.001→v1.10, BC-5.01.001→v1.10, BC-3.03.001→v1.23 in VP table + §5 sizing table; no VP definition changes) |
+
+---
+
 ### F2 Pass-14 Burst-10 Follow-up Coherence Correction — VP-SKILL-076/077 Disentanglement (2026-07-22) — spec remains 1.1.0
 
 Orchestrator-caught conflation at burst-10 close: VP-SKILL-076 was ambiguously cited for BOTH

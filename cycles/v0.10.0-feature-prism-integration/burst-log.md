@@ -770,3 +770,19 @@ BC-10.01.001 v1.16/v1.17→v1.18). BC-10.01.001 canonical test vectors lines 648
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
 | F2: pass-13 remediation burst 9 | architect / product-owner / formal-verifier | DONE | P13-001 CRITICAL MARKDOWN_COMMENT_PATH ELIMINATED (FP→allow-without-marker; hook cannot eval scored_priority/asset_type from 12-field markdown; recurring 2-pass CRITICAL closed). P13-002 CRITICAL PRISMDEMO key correction (PRISM-DEMO invalid hyphen; ^[A-Z][A-Z0-9]+$ charset unchanged; setup-time validation added to BC-6.01.001 + BC-6.01.003). P13-003 MAJOR strict parse grammar (canonical-heading-only; exact allowlist; PARSE_FAIL→review; no full-doc scan). P13-004 MINOR PC#2 prose updated (P11-004/P12-002/P13-001 cross-ref). SM-52 (FP-comment-marker revert) + SM-53 (disposition-scan revert) allocated. D-017/D-018 recorded. arch-delta v1.16, verif-delta v1.16, prd-delta v1.15, BC-3.03.001 v1.21, BC-6.01.001 v1.7, BC-6.01.003 v1.5, BC-10.01.001 v1.17, BC-4.05.001 v1.4, BC-3.01.001 v1.21, BC-5.01.001 v1.9, BC-4.02.001 v1.9, BC-8.02.001 v1.4. Clean streak 0/3. |
+
+---
+
+## Archived Current Phase Step — F2: adversarial pass 14 (displaced 2026-07-22)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 14 | adversary | DONE | 0C/2M/3m — NO CRITICAL; all findings are prior-fix propagation/coherence gaps. P14-001 (MAJOR): P11-003 NVD/CVSS clean-separation never propagated to loop contract BC-10.01.001 (Inv#9 field-13 NVD row + '8.5 for NVD CVSS' example + Inv#14 Stage-1) — cross-artifact contradiction. P14-002 (MAJOR): P13-002 setup-time key-validation (activate PC#12/EC-014 + onboard-customer Inv#6/EC-010) has NO covering VP (runtime deny covered by VP-HOOK-032; preventive gate uncovered). P14-003 PRISM-DEMO residue in consumer BC-3.01.001 (rename claimed 'throughout' but skipped it). P14-004 stale '17-field' in BC-10.01.001 Inv#9 L249 + garbled BC-3.03.001 L825. P14-005 VP-ID repurposing (VP-SKILL-053/057) orphaned onboard-customer AD-017 coverage. Report persisted. |
+
+---
+
+## Archived Current Phase Step — F2: pass-16 remediation burst 12 (2026-07-22)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-16 remediation burst 12 | product-owner / state-manager | DONE | P16-001 consumer-BC Gate-1-first correction (burst-11 kill-switch-precondition regression): BC-4.02.001 v1.10→v1.11 (PC#4 rewritten Gate-1-first; allow-without-marker for ALL dispositions on human saves; FP/non-FP/hard-floor routing labeled masquerade-case-only; DI-013 footer reconciled); BC-5.01.001 v1.10→v1.11 (Inv#7 rewritten Gate-1-first; "MUST NOT be denied" extended to ALL dispositions incl. Indeterminate on human saves); P16-002 spec-changelog burst-11 entry 54 mutants→48 mutants (SM-9..SM-54, SM-32=32a+32b+32-ext; SM-55 skipped); P16-003 BC-3.03.001 v1.23→v1.24 (PC#1 VP-HOOK-028 note 15-field→18-field). Version-coherence sweep: verif-delta v1.18 BC anchor columns updated (BC-4.02.001→v1.11, BC-5.01.001→v1.11, BC-3.03.001→v1.24); prd-delta §5 New Version column + burst-12 post-note; spec-changelog burst-12 section. Clean streak 0/3. |

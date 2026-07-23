@@ -1,10 +1,10 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "2.15"
+version: "2.16"
 status: active
 producer: state-manager
-timestamp: 2026-07-22T21:00:00Z
+timestamp: 2026-07-22T23:00:00Z
 phase: F2
 pipeline: FEATURE-CYCLE
 inputs: []
@@ -12,8 +12,8 @@ input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "F2 adversarial convergence — pass 16 done (0C/1M/2m), remediation pending"
-awaiting: "F2-pass16-remediation"
+current_step: "F2 adversarial convergence — pass-16 remediation COMPLETE, consistency-validator sweep pending"
+awaiting: "F2-consistency-validator-sweep (then pass 17)"
 current_cycle: v0.10.0-feature-prism-integration
 dtu_required: true
 dtu_assessment: "2026-07-20"
@@ -42,7 +42,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | **Started** | 2026-07-19 |
 | **Last Updated** | 2026-07-22 |
 | **Current Phase** | F2: Spec Evolution (prism-integration cycle) |
-| **Current Step** | F2 adversarial convergence — pass 16 done (0C/1M/2m), remediation pending |
+| **Current Step** | F2 adversarial convergence — pass-16 remediation COMPLETE, consistency-validator sweep pending |
 
 ## Phase Progress
 
@@ -51,7 +51,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | pre-0: Pre-pipeline | PASSED | 2026-07-19 | 2026-07-19 | PASS | — |
 | 0: Codebase Ingestion + Remediation | COMPLETE | 2026-07-19 | 2026-07-20 | PASS | 12→11→7→8(1FP)→6→6→6→6(CRITICAL)→4→5→2→1→0; ADV-R1-4 CLEAN |
 | F1: Delta Analysis | PASSED | 2026-07-19 | 2026-07-20 | PASS | consistency: 7→0 |
-| F2: Spec Evolution | in-progress — pass 16 done (remediation pending) | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated → pass10 1C/2M → pass10 remediated → pass11 1C/3M → pass11 remediated → pass12 2C/2M → pass12 remediated → pass13 2C/1M → pass13 remediated → pass14 0C/2M/3m → pass14 remediated → pass15 0C/1M/2m (coherence sweep PASSED 11/12 axes) → pass15 remediated → pass16 0C/1M/2m (remediation pending) |
+| F2: Spec Evolution | in-progress — pass16 remediated, consistency-validator sweep pending | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated → pass10 1C/2M → pass10 remediated → pass11 1C/3M → pass11 remediated → pass12 2C/2M → pass12 remediated → pass13 2C/1M → pass13 remediated → pass14 0C/2M/3m → pass14 remediated → pass15 0C/1M/2m (coherence sweep PASSED 11/12 axes) → pass15 remediated → pass16 0C/1M/2m → pass16 remediated |
 | F3: Incremental Stories | not-started | | | | |
 | F4: Delta Implementation | not-started | | | | |
 | F5: Scoped Adversarial | not-started | | | | |
@@ -64,11 +64,11 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| F2: adversarial pass 14 | adversary | DONE | 0C/2M/3m — NO CRITICAL; all findings are prior-fix propagation/coherence gaps. P14-001 (MAJOR): P11-003 NVD/CVSS clean-separation never propagated to loop contract BC-10.01.001 (Inv#9 field-13 NVD row + '8.5 for NVD CVSS' example + Inv#14 Stage-1) — cross-artifact contradiction. P14-002 (MAJOR): P13-002 setup-time key-validation (activate PC#12/EC-014 + onboard-customer Inv#6/EC-010) has NO covering VP (runtime deny covered by VP-HOOK-032; preventive gate uncovered). P14-003 PRISM-DEMO residue in consumer BC-3.01.001 (rename claimed 'throughout' but skipped it). P14-004 stale '17-field' in BC-10.01.001 Inv#9 L249 + garbled BC-3.03.001 L825. P14-005 VP-ID repurposing (VP-SKILL-053/057) orphaned onboard-customer AD-017 coverage. Report persisted. |
 | F2: pass-14 remediation burst 10 + follow-up | architect / product-owner / formal-verifier / state-manager | DONE | P14-001..P14-005 CLOSED (see burst-log). Burst-10 follow-up (orchestrator-caught conflation): VP-SKILL-076/077 disentangled — VP-SKILL-077 allocated for onboard-customer AD-017 credential-decline (P14-005; B-STR; SM-55 skipped); VP-SKILL-076 scoped strictly to P14-002 charset gate. verif-delta v1.18 / BC-6.01.003 v1.7 / spec-changelog VP-SKILL-053 annotation corrected. VPs 37 / SM 54 (SM-55 skipped). Clean streak 0/3. |
 | F2: adversarial pass 15 | adversary | DONE | 0C/1M/2m/2obs — convergence candidate; 11/12 coherence axes PASS. P15-001 (MAJOR): P13-001 markdown-comment-marker elimination NOT propagated to the two CONSUMER BCs — BC-4.02.001 PC#4 + BC-5.01.001 Inv#7 still describe the eliminated comment-scoped-marker mechanism as their jr-comment authorization path (spec-vs-spec contradiction; 'MUST NOT be denied' postcondition now literally wrong). P15-002 (MINOR): stale '15-field' JSON-path count in BC-3.03.001 Evidence Types L878 (older than P14-004 sweep scope). P15-003 (MINOR): prd-delta §1 VP-status snapshot inconsistent (4 skill-BC rows frozen at PROPOSED + omit VP-SKILL-076/077 while BC-10.01.001 row was updated to FINALIZED). P15-004/005 OBS: scan-threats severity-grouping normalization; stale VP-HOOK-031 v1.14 citation in consumer BCs. Report persisted. |
 | F2: pass-15 remediation burst 11 | product-owner / state-manager | DONE | P13-001 markdown-comment elimination propagated to the two consumer BCs (BC-4.02.001/BC-5.01.001) — closes the last cross-document contradiction; 15→18-field residue fixed; prd-delta §1 VP-status refreshed; scan-threats presentation-note. BC-4.02.001 v1.10, BC-5.01.001 v1.10, BC-3.03.001 v1.23, BC-9.01.001 v1.2, prd-delta v1.16. Clean streak 0/3. |
 | F2: adversarial pass 16 | adversary | DONE | 0C/1M/2m — P16-001 (MAJOR, burst-11 regression): consumer-BC reconciliation dropped the Gate-1 autonomy_enabled kill-switch precondition — BC-4.02.001 PC#4 + BC-5.01.001 Inv#7 now describe review-marker/hard-floor-deny for human investigation saves, but the authoritative emitter fires Gate 1 FIRST → allow-without-marker for ALL dispositions on human saves (no autonomy_enabled); the FP/non-FP/hard-floor routing applies ONLY to the autonomy_enabled=true masquerade case. P16-002 (MINOR): spec-changelog burst-11 entry says '54 mutants' (SM-max-ID) vs authoritative 48. P16-003 (MINOR): stale 'verdict-class 15-field path' in BC-3.03.001 PC#1 VP-HOOK-028 note (survived every field sweep; adjacent normative text says 18). Report persisted. |
+| F2: pass-16 remediation burst 12 | product-owner / state-manager | DONE | P16-001 consumer-BC Gate-1-first correction (fixes the burst-11 kill-switch-precondition regression) + P16-002 changelog mutant-count 54→48 + P16-003 BC-3.03.001 PC#1 15→18. BC-4.02.001 v1.11, BC-5.01.001 v1.11, BC-3.03.001 v1.24. Version-coherence sweep: verif-delta v1.18 BC anchors updated; prd-delta §5 New Version + burst-12 post-note. Clean streak 0/3. |
 
 ## Decisions Log
 
@@ -139,9 +139,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-07-22 |
-| **Position** | Pass 16 COMPLETE (0C/1M/2m, report persisted). Burst 12 in flight: P16-001 rewrite BC-4.02.001 PC#4 + BC-5.01.001 Inv#7 to state Gate-1-FIRST human-path behavior (allow-without-marker for ALL dispositions on human saves; FP/non-FP/hard-floor routing is masquerade-case-only); P16-002 changelog 54→48; P16-003 BC-3.03.001 PC#1 15→18. THEN a fresh-context consistency-validator full sweep to flush remaining cross-document drift, then pass 17. Clean streak 0/3. |
-| **Context** | Artifact versions (post-burst-11, pre-burst-12): arch-delta v1.17, verif-delta v1.18, prd-delta v1.16, BC-10.01.001 v1.18, BC-3.03.001 v1.23, BC-3.01.001 v1.22, BC-6.01.003 v1.7, BC-6.01.001 v1.7, BC-4.05.001 v1.4, BC-5.01.001 v1.10, BC-4.02.001 v1.10, BC-9.01.001 v1.2, BC-8.02.001 v1.4. VPs 37 / SM 54. Pass-16 report: adversarial-spec-delta-review-pass16.md. |
-| **Convergence counter** | 0/3 clean passes (pass-16 done — 0C/1M/2m; remediation pending as burst 12) |
+| **Position** | Pass-16 remediation COMPLETE + committed. NEXT: fresh-context consistency-validator FULL cross-document sweep (flush the coherence-tail backlog in one shot — passes 14/15/16 were all 0-CRITICAL propagation/coherence findings) BEFORE adversarial pass 17. Then pass 17. Clean streak 0/3. |
+| **Context** | Artifact versions: arch-delta v1.17, verif-delta v1.18, prd-delta v1.16, BC-3.03.001 v1.24, BC-4.02.001 v1.11, BC-5.01.001 v1.11, BC-10.01.001 v1.18, BC-3.01.001 v1.22, BC-6.01.003 v1.7, BC-6.01.001 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2, BC-6.01.004 v1.1. VPs 37 / SM 54 (SM-55 skipped). |
+| **Convergence counter** | 0/3 clean passes (pass-16 done — 0C/1M/2m; remediated burst 12) |
 
 ## Historical Content
 

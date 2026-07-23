@@ -513,3 +513,18 @@ named the eliminated mechanism as their authorization path and survived 2 passes
 consumer-side re-derivation (not emitter-anchored) is what surfaced it. When a mechanism is
 removed, grep every BC that CONSUMES it, not just the one that DEFINES it.
     _Discovered: pass-15 (P15-001) — surfaced by adversary pass, remediated burst-11, 2026-07-22_
+
+---
+
+### Lesson 40 — [process-gap] Propagation bursts can introduce regressions by propagating only the branch of interest, dropping the precondition that gates it (pass-16, burst-12, 2026-07-22)
+
+[process-gap] a propagation-remediation burst can itself introduce a regression: burst-11's
+consumer-BC rewrite carried the post-Gate-1 routing (FP→allow-without-marker, non-FP→review,
+hard-floor routing) but dropped the Gate-1 precondition (autonomy_enabled absent/≠true →
+allow-without-marker for ALL dispositions — kill switch fires before routing). When
+propagating a multi-gate mechanism to a consumer, propagate the FULL gate sequence including
+preconditions, not just the branch of interest. The consumer BC must mirror the emitter's
+control flow from the TOP, not from the branch the finding concerned. Motivates the
+consistency-validator full sweep now scheduled to flush the coherence tail rather than
+discovering gaps one adversarial pass at a time.
+    _Discovered: pass-16 (P16-001 — burst-11 regression), remediated burst-12, 2026-07-22_

@@ -11,6 +11,29 @@ Track all spec version changes. Most recent version first.
 
 ## [1.1.0] - 2026-07-20 (patch edits 2026-07-21/22 — not a version bump)
 
+### F2 Pass-16 Remediation Edits — Burst 12 (2026-07-22) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 12). Root findings:
+P16-001 (MAJOR — burst-11 regression: consumer-BC reconciliation dropped the Gate-1 autonomy_enabled
+kill-switch precondition from the human-path routing; BC-4.02.001 PC#4 + BC-5.01.001 Inv#7 described
+FP/non-FP/hard-floor routing for ALL saves, but the authoritative emitter fires Gate 1 FIRST →
+allow-without-marker for ALL dispositions on human saves (autonomy_enabled absent/≠true); the
+FP/non-FP/hard-floor routing applies ONLY to the autonomy_enabled=true masquerade case; DI-013
+footer reconciled to v1.11/P16-001),
+P16-002 (MINOR — spec-changelog burst-11 entry stated "54 mutants" (SM-max-ID) vs authoritative
+48 (SM-9..SM-54, SM-32=32a+32b+32-ext; SM-55 skipped)),
+P16-003 (MINOR — stale "verdict-class 15-field path" in BC-3.03.001 PC#1 VP-HOOK-028 note;
+adjacent normative text correctly says 18; corrected to "18-field").
+37 VPs / 48 mutants (SM-9..SM-54, SM-32=32a+32b+32-ext; SM-55 skipped) / ~367 test vectors (no VP/SM additions this burst).
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-0-ingestion/behavioral-contracts/BC-4.02.001.md | v1.10 | v1.11 | P16-001 (PC#4 rewritten Gate-1-first: human saves → allow-without-marker for ALL dispositions; Gate-2/3 FP/non-FP/hard-floor routing labeled masquerade-case-only; DI-013 footer reconciled to v1.11/P13-001+P16-001) |
+| phase-0-ingestion/behavioral-contracts/BC-5.01.001.md | v1.10 | v1.11 | P16-001 (Inv#7 rewritten Gate-1-first; "MUST NOT be denied" extended to ALL dispositions incl. Indeterminate on human saves; DI-013 footer reconciled to v1.11/P13-001+P16-001) |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.23 | v1.24 | P16-003 (PC#1 VP-HOOK-028 note "15-field"→"18-field"; no other changes) |
+
+---
+
 ### F2 Pass-15 Remediation Edits — Burst 11 (2026-07-22) — spec remains 1.1.0
 
 Remediation edits within the F2 adversarial convergence cycle (burst 11). Root findings:
@@ -23,7 +46,7 @@ P15-003 (MINOR — prd-delta §1 VP-status snapshot inconsistent: 4 skill-BC row
 + VP-SKILL-076/077 omitted while BC-10.01.001 row was updated to FINALIZED),
 P15-004 (OBS — scan-threats severity-grouping normalization presentation-note added to BC-9.01.001),
 P15-005 (OBS — stale VP-HOOK-031 v1.14 citation in consumer BCs; updated to v1.18 reference).
-37 VPs / 54 mutants / ~367 test vectors (no VP/SM additions this burst).
+37 VPs / 48 mutants (SM-9..SM-54, SM-32=32a+32b+32-ext; SM-55 skipped) / ~367 test vectors (no VP/SM additions this burst).
 
 | File | Old Version | New Version | Root Finding |
 |------|-------------|-------------|--------------|

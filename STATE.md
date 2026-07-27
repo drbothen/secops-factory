@@ -1,10 +1,10 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "2.20"
+version: "2.21"
 status: active
 producer: state-manager
-timestamp: 2026-07-23T23:59:30Z
+timestamp: 2026-07-27T00:00:00Z
 phase: F2
 pipeline: FEATURE-CYCLE
 inputs: []
@@ -12,8 +12,8 @@ input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "F2 adversarial convergence — pass-19 remediation COMPLETE (burst 16), pass 20 pending"
-awaiting: "F2-adversarial-pass-20"
+current_step: "F2 adversarial convergence — pass 20 complete (0C/1M/3med/3m/2obs, NOT CLEAN), pass-20 remediation burst 17 pending"
+awaiting: "F2-pass-20-remediation-burst-17"
 current_cycle: v0.10.0-feature-prism-integration
 dtu_required: true
 dtu_assessment: "2026-07-20"
@@ -40,9 +40,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | **Target Workspace** | /Users/jmagady/Dev/secops-factory |
 | **Engine** | /Users/jmagady/Dev/dark-factory (vsdd-factory plugin) |
 | **Started** | 2026-07-19 |
-| **Last Updated** | 2026-07-23 |
+| **Last Updated** | 2026-07-27 |
 | **Current Phase** | F2: Spec Evolution (prism-integration cycle) |
-| **Current Step** | F2 adversarial convergence — pass-19 remediation COMPLETE (burst 16), pass 20 pending |
+| **Current Step** | F2 adversarial convergence — pass 20 complete (0C/1M/3med/3m/2obs, NOT CLEAN), pass-20 remediation burst 17 pending |
 
 ## Phase Progress
 
@@ -51,7 +51,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | pre-0: Pre-pipeline | PASSED | 2026-07-19 | 2026-07-19 | PASS | — |
 | 0: Codebase Ingestion + Remediation | COMPLETE | 2026-07-19 | 2026-07-20 | PASS | 12→11→7→8(1FP)→6→6→6→6(CRITICAL)→4→5→2→1→0; ADV-R1-4 CLEAN |
 | F1: Delta Analysis | PASSED | 2026-07-19 | 2026-07-20 | PASS | consistency: 7→0 |
-| F2: Spec Evolution | in-progress — pass19 remediated, pass20 pending | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated → pass10 1C/2M → pass10 remediated → pass11 1C/3M → pass11 remediated → pass12 2C/2M → pass12 remediated → pass13 2C/1M → pass13 remediated → pass14 0C/2M/3m → pass14 remediated → pass15 0C/1M/2m → pass15 remediated → pass16 0C/1M/2m → pass16 remediated → consistency-audit remediated (12 findings, all coherence) → pass17 0C/3M → pass17 remediated → pass18 0C/2M/1med → pass18 remediated → pass19 1C/1m → pass19 remediated |
+| F2: Spec Evolution | in-progress — pass20 complete, remediation pending | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated → pass10 1C/2M → pass10 remediated → pass11 1C/3M → pass11 remediated → pass12 2C/2M → pass12 remediated → pass13 2C/1M → pass13 remediated → pass14 0C/2M/3m → pass14 remediated → pass15 0C/1M/2m → pass15 remediated → pass16 0C/1M/2m → pass16 remediated → consistency-audit remediated (12 findings, all coherence) → pass17 0C/3M → pass17 remediated → pass18 0C/2M/1med → pass18 remediated → pass19 1C/1m → pass19 remediated → pass20 0C/1M/3med/3m |
 | F3: Incremental Stories | not-started | | | | |
 | F4: Delta Implementation | not-started | | | | |
 | F5: Scoped Adversarial | not-started | | | | |
@@ -64,11 +64,11 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| F2: pass-17 remediation burst 14 | architect / product-owner / formal-verifier | DONE | D-019 known-FP high-sev→review (scopes D-016 to LOW/MED; closes the loop-vs-gate contradiction + the would-be LLM-known_fp CRITICAL bypass; no gate change; SM-56 added). P17-002 Inv#14/VP-HOOK-028 JSON-first residue cleared (BC-10.01.001 Inv#14 Stage-7 + VP-HOOK-028 property-(1) rewritten to actual fail-closed boundary). P17-003 BC-3.03.001 EC-005/L814 markdown-comment residue cleared (consistent with L836). Version-coherence sweep: verif-delta v1.19 BC anchors v1.20/v1.26; prd-delta §5 v1.18; arch-delta v1.19. Clean streak 0/3. |
 | F2: adversarial pass 18 | adversary | DONE | 0C/2M/1med/2obs — substance pass; emitter/consumer/loop/D-019/JSON-first/tokenizer re-derived INTACT. NEW cluster (unmapped surface): P18-001 (MAJOR) jr issue link + jr issue move/close have NO authorization path — §3.4 correlation rules 2&4 require link autonomously (BC-4.02.001 PC#7b/d, BC-10.01.001 §3.4, DTU design asserts it called) but require-review has no write-block/allowlist/marker-scope for link → fail-closed DENY, no path; correlation links silently never form. P18-003 (MEDIUM) one-verdict-one-marker can't express compound comment+link / create+link. P18-002 (MAJOR) burst-14 propagation gap: verification-delta says VP-HOOK-028 property-(1) rewrite DONE but authoritative BC-10.01.001 L616 still has old property + 'pending FV' banner. P18-004/005 OBS (BC-4.02.001 Inv#1 omits link; FP 'Close (if open)' unauthorizable — autonomous-close scope ambiguous). Report persisted; link/close cluster at human gate; P18-002 clear fix. |
 | F2: pass-18 remediation burst 15 | architect / product-owner×2 / formal-verifier / state-manager | DONE | §3.4 Jira-action authorization: D-020 (link=`jr issue link` scope, REGULAR, anti-fungible), D-021 (close=`jr issue move`, CLOSE_STATE_ALLOWLIST, HIGH/CRIT NEVER auto-close, REGULAR), D-022 (compound §3.4 = two sequential verdict Writes, anti-fungible). P18-001: `jr issue link` added to write-block + `["link"]` marker scope (BC-3.03.001 v1.27, BC-3.01.001 v1.23). P18-002: VP-HOOK-028 property-(1) synced to verif-delta v1.20. P18-003: compound two-Write model (BC-10.01.001 v1.21, BC-4.02.001 v1.13). P18-004/005 OBS addressed. VP-HOOK-033..036 + SM-57..65 allocated. BC-6.01.001 v1.8 (close gating). O7 now 8 sites. VP 41 / SM 58. arch-delta v1.20. Clean streak 0/3. |
 | F2: adversarial pass 19 | adversary | DONE | 1C/1m/2obs — attacked the burst-15 link/close/compound surfaces. P19-001 (CRITICAL): D-021 close emitter branch enforces hard-floor (STEP4) + kill-switch (STEP5) but NOT the disposition∈{FP,BTP} leg — a TP verdict scored LOW/MED with ticket_action_type=close auto-closes a confirmed-malicious ticket (O3 regression: LLM ticket_action_type=close trusted without cross-checking verdict.disposition); clear fix (enforce the FP/BTP leg D-021 already mandates). P19-002 (MINOR): D-022 compound has no partial-failure/orphan-link recovery spec (create succeeds, link verdict never lands → orphaned unlinked ticket); no covering VP. P19-003 (OBS): jira_close_state lacks emit-time re-validation/regex_escape (config-side, allowlist-safe now; defense-in-depth). P19-004 (OBS, low-conf): §3.4 rule-2 comment+link vs 'keep tickets separate' — provenance ambiguity (architect to adjudicate from brief). LINK + COMPOUND surfaces re-derived otherwise sound; burst-15 broke no prior invariant. Report persisted. |
 | F2: pass-19 remediation burst 16 | architect / product-owner / formal-verifier / state-manager | DONE | D-023 close disposition gate: `disposition∈{FP,BTP}` FIRST check in close branch; fires regardless of `autonomy_enabled`; TP MUST NOT be auto-closed; EC-013 3-condition AND restored. D-024 §3.4 rule-2 = create+link (HUMAN DECISION 2026-07-23; parallel to rule 4). Orphan-link reconciliation spec (SM-68 [ID-sync per FV] / VP-HOOK-036 extended). BC-3.03.001 v1.27→v1.28, BC-10.01.001 v1.21→v1.22, BC-4.02.001 v1.13→v1.14. arch-delta v1.21, verif-delta v1.21, prd-delta v1.18→v1.19. SM-66/SM-67/SM-68 allocated [ID-sync per FV]. VP count 41 / SM count 61. Clean streak 0/3. |
+| F2: adversarial pass 20 | adversary | DONE | 0C/1M/3med/3m/2obs — NOT CLEAN. P20-001 (MAJOR): D-023 close-disposition gate placed inside STEP 6, unreachable when autonomy_enabled≠true — contradicts 'fires regardless of autonomy_enabled' narrative in BC-3.03.001 L578-579 / arch-delta L1848-vs-L1860 / VP-HOOK-035; TP-never-auto-closed still holds via require-review defense-in-depth (hence MAJOR not CRITICAL); fix = hoist gate before STEP 5 (mirror STEP 4) OR correct narrative. P20-002 (MED): 'EC-013 = close 3-condition AND' is a dangling mis-anchor — BC-10.01.001 EC-013 is the closed-ticket create+link edge case; no BC EC encodes the 3-condition AND. P20-003 (MED): orphan-link reconciliation predicate (BC-10.01.001 L627-636) unimplementable from stateless loop state; §3.4 rule-1 would misroute orphan as duplicate-open → link permanently lost. P20-004 (MED): prd-delta §5 New Version cells stale (v1.27/v1.21/v1.13 vs actual v1.28/v1.22/v1.14). Minors: P20-005 BC-6.01.003 v1.6/v1.7 undocumented in prd-delta; P20-006 prd-delta changelog missing v1.19 row; P20-007 BC-4.02.001 Inv#1 non-close jr-issue-move claim unsupported. Obs: P20-008 verif-delta L2812 stale rule-2 comment+link in historical block; P20-009 [process-gap] reachability-of-guarantee review axis recommended. Report persisted. Clean streak 0/3. |
 
 ## Decisions Log
 
@@ -144,8 +144,8 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Field | Value |
 |-------|-------|
-| **Date** | 2026-07-23 |
-| **Position** | SESSION WRAP COMPLETE. Pass-19 remediation DONE (burst 16 — D-023/D-024/SM-68). SESSION-HANDOFF.md v2.2 written. NEXT: adversarial pass 20 (fresh adversary context — do NOT reuse prior pass context; carry D-023/D-024 as confirmed invariants). Clean streak 0/3. |
+| **Date** | 2026-07-27 |
+| **Position** | Adversarial pass 20 COMPLETE (0C/1M/3med/3m/2obs — NOT CLEAN). Report persisted at phase-f2-spec-evolution/adversarial-spec-delta-review-pass20.md. NEXT: pass-20 remediation burst 17 (P20-001 gate-placement decision at human gate; P20-002/003/004 + minors routed architect/product-owner/formal-verifier). Clean streak 0/3. |
 | **Context** | Artifact versions: arch-delta v1.21, verif-delta v1.21, prd-delta v1.19, BC-3.03.001 v1.28, BC-3.01.001 v1.23, BC-10.01.001 v1.22, BC-4.02.001 v1.14, BC-6.01.001 v1.8, BC-5.01.001 v1.12, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2, dtu-assessment v1.2. VPs 41 / SM 61 (SM-9..SM-68, SM-32=32a+32b+32-ext; SM-55 skipped). SESSION-HANDOFF.md v2.2. NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. |
 | **Convergence counter** | 0/3 clean passes |
 

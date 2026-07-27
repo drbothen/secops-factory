@@ -896,6 +896,14 @@ F2: pass-16 remediation burst 12 already archived at "Archived Current Phase Ste
 
 ---
 
+## Archived Phase Step — F2 pass-17 remediation burst 14 (archived from STATE.md Current Phase Steps to make room for pass-20 row)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-17 remediation burst 14 | architect / product-owner / formal-verifier | DONE | D-019 known-FP high-sev→review (scopes D-016 to LOW/MED; closes the loop-vs-gate contradiction + the would-be LLM-known_fp CRITICAL bypass; no gate change; SM-56 added). P17-002 Inv#14/VP-HOOK-028 JSON-first residue cleared (BC-10.01.001 Inv#14 Stage-7 + VP-HOOK-028 property-(1) rewritten to actual fail-closed boundary). P17-003 BC-3.03.001 EC-005/L814 markdown-comment residue cleared (consistent with L836). Version-coherence sweep: verif-delta v1.19 BC anchors v1.20/v1.26; prd-delta §5 v1.18; arch-delta v1.19. Clean streak 0/3. |
+
+---
+
 ## Archived Phase Step — F2 adversarial pass 17 (archived from STATE.md Current Phase Steps to make room for burst-16 row)
 
 | Step | Agent | Status | Output |

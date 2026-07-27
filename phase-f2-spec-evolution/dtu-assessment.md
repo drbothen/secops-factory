@@ -1,8 +1,8 @@
 ---
 document_type: dtu-assessment
 producer: architect
-version: "1.2"
-date: 2026-07-23
+version: "1.3"
+date: 2026-07-27
 feature: prism-integration
 feature_version: v0.10.0-feature-prism-integration
 status: draft
@@ -12,6 +12,21 @@ inputs:
 traces_to: .factory/phase-f1-delta-analysis/delta-analysis.md
 prior_assessment: ".factory/specs/dtu-assessment.md (Phase 0 — DTU_REQUIRED: false; no external service dependencies at that time)"
 ---
+
+> **v1.3 (2026-07-27) — Pass-21 adversarial remediation burst 18, P21-002/P21-003/P21-004/P21-006 / D-024:**
+> Rule-2 create+link propagation (P21-002/D-024/P19-004): v1.2 incorrectly described rule 2
+> (`related-open`) as comment+link; D-024 (human decision 2026-07-23) resolved it to
+> **create+link** — verdict-1 create → NEW_KEY; verdict-2 link (ticket_id=NEW_KEY,
+> link_target_ticket_id=existing_related_key); the existing related ticket is NOT commented upon
+> (mirrors `closed-same`). Header note, `related-open` scenario, compound-sequence note, and
+> test-surface row corrected to cite D-024/P21-002. Never-auto-reopen assertion corrected
+> (P21-003): `jr issue transition` (non-existent verb) replaced with `jr issue move` to a
+> non-close state, distinguished from the ALLOWED close-state move (BC-4.02.001 Invariant #4 /
+> VP-SKILL-066). Dedup command corrected (P21-004): `jr issue search` (non-existent verb)
+> replaced with `jr issue list --jql` (actual jr JQL query command per ground-truth CLI audit
+> 2026-07-27). D-026 link-read mechanism pinned (P21-006): the Relates(O,C) absence predicate
+> is computed from `jr issue view <candidate-key> --output json` issuelinks output (allowlisted
+> read per BC-3.01.001 PC#3).
 
 > **v1.2 (2026-07-23) — Pass-18 adversarial remediation burst 15, P18-001/P18-005 / D-020/D-021/D-022:**
 > Dependency 2 (jr mock) annotated to reflect new marker-scope authorization paths. The mock must
@@ -250,11 +265,17 @@ tests (read-ticket, update-jira basic operations).
 The monitoring loop's §3.4 Jira-first decision tree requires **stateful behavior**
 across jr calls within a single loop run:
 
-1. `jr issue search` (JQL) — must return an issue list reflecting current state
+1. `jr issue list --jql` (JQL) — must return an issue list reflecting current state
 2. `jr issue comment` — must be callable when a duplicate open ticket is found
 3. `jr issue link` — must be callable when a related open ticket is found
 4. `jr issue create` — must be callable when no matching ticket exists
-5. `jr issue transition` — must not be called for auto-reopen (never-auto-reopen invariant)
+5. `jr issue move` to a non-close state — MUST NOT be called for auto-reopen
+   (BC-4.02.001 Invariant #4 / VP-SKILL-066 / P21-003); the ALLOWED close-state move
+   (`jr issue move KEY Done|Closed|Resolved` via `["close"]` marker, D-021) is distinct
+   from a PROHIBITED reopen move (`jr issue move KEY <non-close-state>`)
+6. `jr issue view <candidate-key> --output json` — the D-026 Relates(O,C)-absence predicate
+   is computed from this command's issuelinks output (allowlisted read per BC-3.01.001 PC#3;
+   P21-006)
 
 Testing the four-branch decision tree requires the mock to respond differently
 based on the current issue state (open duplicate / open related / resolved /
@@ -264,7 +285,7 @@ jr calls within a BATS test.
 ### Fidelity Level: L2 (Stateful)
 
 The enhanced jr mock maintains a per-test issue registry in tmpfiles:
-- `jr issue search` reads from a seeded fixture file (per-test scenario)
+- `jr issue list --jql` reads from a seeded fixture file (per-test scenario)
 - `jr issue comment`, `jr issue create`, `jr issue link` append to a call log
   AND update the mock issue registry
 - Test assertions check: (a) which jr commands were called, (b) in what order,
@@ -290,10 +311,10 @@ Extend the existing BATS mock `jr` binary (located in BATS helpers) with:
    (tmpfile, reset per test)
 3. **Branch-triggering scenarios** (one fixture set per §3.4 branch):
 
-| Scenario | `jr issue search` returns | Expected monitoring-loop action |
+| Scenario | `jr issue list --jql` returns | Expected monitoring-loop action |
 |----------|--------------------------|--------------------------------|
 | `duplicate-open` | 1 open ticket, same root cause | `jr issue comment` called (comment marker, D-DEC-001) |
-| `related-open` | 1 open ticket, different root cause | **Two sequential marker-authorized calls (D-022/D-020):** verdict-1 comment marker → `jr issue comment KEY1 "..."`; verdict-2 `["link"]` marker (ticket_id=KEY1, link_target_ticket_id=KEY2) → `jr issue link KEY1 KEY2` without `--type` flag (D-020 Iron Law). Mock asserts both calls in order; anti-fungibility: comment marker does NOT authorize link call. |
+| `related-open` | 1 open ticket, different root cause | **Two sequential marker-authorized calls (D-022/D-020/D-024/P21-002):** verdict-1 create marker → `jr issue create --project <key>` → NEW_KEY returned; verdict-2 `["link"]` marker (ticket_id=NEW_KEY, link_target_ticket_id=KEY1_RELATED) → `jr issue link NEW_KEY KEY1_RELATED` without `--type` flag (D-020 Iron Law). Mock records both calls; test asserts link_target_ticket_id equals the ticket_id returned from create. **The existing related ticket (KEY1_RELATED) is NOT commented upon** (D-024/P19-004: rule 2 = create+link, not comment+link; BC-4.02.001 PC#7b). |
 | `resolved-same` | 1 resolved ticket, same root cause | Human-surface (propose-reopen, no auto-transition) |
 | `closed-same` | 1 closed ticket, same root cause | **Two sequential marker-authorized calls (D-022/D-020):** verdict-1 create marker → `jr issue create --project <key>` → NEW_KEY returned; verdict-2 `["link"]` marker (ticket_id=NEW_KEY, link_target_ticket_id=CLOSED_KEY) → `jr issue link NEW_KEY CLOSED_KEY`. Mock records both calls; test asserts link_target_ticket_id equals the ticket_id returned from create (D-022 Iron Law). |
 | `no-match` | 0 tickets | `jr issue create` called (if TP disposition) |
@@ -301,8 +322,12 @@ Extend the existing BATS mock `jr` binary (located in BATS helpers) with:
 | `blind-spot-absent` | 0 BLIND-SPOT tickets | `jr issue create` with BLIND-SPOT label |
 | `fp-auto-close` | **[NEW v1.2 — D-021]** 1 open ticket, disposition=FP, non-hard-floor scored_priority (LOW/MED), autonomy_enabled=true | `["close"]` marker issued → `jr issue move <ticket_id> <jira_close_state>` called; `<jira_close_state>` is CONFIG-driven from plugin state (e.g., "Done"); mock asserts the close command matches `CLOSE_STATE_ALLOWLIST` member; test verifies NO `jr issue comment` or other action is called instead. Asserts kill-switch NOT engaged (autonomy_enabled=true) and hard_floor_applies()=false (non-HIGH/CRIT). |
 
-4. **Never-auto-reopen validation**: Test asserts `jr issue transition` is NOT
-   called for the `resolved-same` and `closed-same` scenarios
+4. **Never-auto-reopen validation**: Test asserts `jr issue move` is NOT called to
+   transition a ticket OUT OF Resolved/Closed (i.e., no `jr issue move KEY <non-close-state>`).
+   The ALLOWED close-state move (`jr issue move KEY Done|Closed|Resolved` via `["close"]`
+   marker) is distinct from a PROHIBITED reopen move. This assertion covers the
+   `resolved-same` and `closed-same` scenarios. (BC-4.02.001 Invariant #4 / VP-SKILL-066 /
+   P21-003)
 
 5. **[NEW v1.2 — D-020/D-021/D-022 marker-scope routing alignment (P18-001/P18-005)]:** The
    mock `jr` binary must accept commands that arrive via the new `["link"]` (D-020), `["close"]`
@@ -315,7 +340,7 @@ Extend the existing BATS mock `jr` binary (located in BATS helpers) with:
      mock records the call; `<close_state>` is CONFIG-driven (test must inject `MOCK_JIRA_CLOSE_STATE`
      from `CLOSE_STATE_ALLOWLIST = {"Done","Closed","Resolved"}`); test asserts the state value
      is the configured allowlist member, NOT a verdict-supplied value.
-   - **D-022 compound sequences:** for `closed-same` (create+link) and `related-open` (comment+link),
+   - **D-022 compound sequences:** for `closed-same` (create+link) and `related-open` (create+link — D-024/P21-002),
      the mock must accept the two marker-authorized calls as independent sequential invocations
      (not a single call). The link call for `closed-same` MUST carry the `link_target_ticket_id`
      returned from the immediately preceding `jr issue create`. The mock records the full call
@@ -331,10 +356,10 @@ Extend the existing BATS mock `jr` binary (located in BATS helpers) with:
 | BATS tests for monitoring-loop Stage 7 (ticket action §3.4) | All 7 jr mock scenarios above |
 | BATS tests for require-review D-005 marker mechanism | `jr issue comment` / `jr issue create` authorized via marker |
 | BATS tests for sensor-silence BLIND-SPOT dedup (R-006) | `blind-spot-open` and `blind-spot-absent` scenarios |
-| BATS tests for never-auto-reopen-closed invariant (§3.4 rule 4) | `closed-same` scenario: assert no `jr issue transition` call |
+| BATS tests for never-auto-reopen-closed invariant (§3.4 rule 4) | `resolved-same` + `closed-same` scenarios: assert no `jr issue move KEY <non-close-state>` call (BC-4.02.001 Invariant #4 / VP-SKILL-066 / P21-003) |
 | BATS tests for D-020 link scope anti-fungibility | `related-open` scenario: assert `["link"]` marker authorizes ONLY `jr issue link`; comment marker does NOT authorize link call |
 | **[NEW v1.2]** BATS tests for D-021 close scope (FP/BTP auto-close) | `fp-auto-close` scenario: assert `["close"]` marker → `jr issue move <ticket_id> <close_state>` with CONFIG-driven state from CLOSE_STATE_ALLOWLIST; hard_floor=false + autonomy_enabled=true guards exercised |
-| **[NEW v1.2]** BATS tests for D-022 compound-action sequence ordering | `closed-same` (create+link): assert link verdict carries NEW_KEY from create result; `related-open` (comment+link): assert comment precedes link in call log |
+| **[v1.2/v1.3]** BATS tests for D-022 compound-action sequence ordering | `closed-same` (create+link): assert link verdict carries NEW_KEY from create result; `related-open` (create+link — D-024/P21-002): assert create precedes link in call log and link_target_ticket_id equals the ticket_id returned from create; the existing related ticket is NOT commented upon |
 | Holdout scenarios HS-036 (Jira-first correlation rules) | All §3.4 branches exercised end-to-end |
 
 ### Cost/Benefit

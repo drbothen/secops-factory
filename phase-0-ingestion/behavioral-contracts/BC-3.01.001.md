@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.23"
+version: "1.24"
 status: draft
 producer: product-owner
 timestamp: 2026-07-20T00:00:00
@@ -15,7 +15,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-01
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19", "v0.9.x-ADV0-001-ADV0-007-2026-07-19", "v1.4-ADV-0-405-ADV-0-507-2026-07-19", "v1.5-ADV-0-504-2026-07-19", "v1.6-ADV-0-706-obs-PC2-2026-07-19", "v1.7-ADV-0-801-PR15-2026-07-19", "v1.8-ADV-0-A01-ADV-0-A02-ADV-0-A04-2026-07-19", "v1.9-ADV-0-B01-2026-07-19", "v1.10-RESYNC-PR17-2026-07-19", "v1.11-D-DEC-001-D-DEC-008-2026-07-20", "v1.12-FV-PROPOSED-DROP-2026-07-20", "v1.13-ADV-F2-013-014-017-018-2026-07-20", "v1.14-ADV-F2-P2-003-007-012-2026-07-20", "v1.15-ADV-F2-P3-002-011-2026-07-20", "v1.16-D-DEC-012-P4-010-P4-002-2026-07-21", "v1.17-FV-VP-HOOK-024-029-ANCHORS-2026-07-21", "v1.18-ADV-F2-P6-001-P6-004-2026-07-21", "v1.19-ADV-F2-P7-005-2026-07-21 [SM-ID-sync per FV]", "v1.20-ADV-F2-P8-002-P8-003-2026-07-21 [SM-ID-sync per FV]", "v1.21-ADV-F2-P9-001-2026-07-21 [SM-ID-sync per FV]", "v1.22-ADV-F2-P14-003-PRISM-DEMO-rename-2026-07-22", "v1.23-ADV-F2-P18-001-003-link-close-consumer-write-block-anti-fungibility-2026-07-23"]
+modified: ["v0.9.x-PR13-2026-07-19", "v0.9.x-PR14-2026-07-19", "v0.9.x-ADV0-001-ADV0-007-2026-07-19", "v1.4-ADV-0-405-ADV-0-507-2026-07-19", "v1.5-ADV-0-504-2026-07-19", "v1.6-ADV-0-706-obs-PC2-2026-07-19", "v1.7-ADV-0-801-PR15-2026-07-19", "v1.8-ADV-0-A01-ADV-0-A02-ADV-0-A04-2026-07-19", "v1.9-ADV-0-B01-2026-07-19", "v1.10-RESYNC-PR17-2026-07-19", "v1.11-D-DEC-001-D-DEC-008-2026-07-20", "v1.12-FV-PROPOSED-DROP-2026-07-20", "v1.13-ADV-F2-013-014-017-018-2026-07-20", "v1.14-ADV-F2-P2-003-007-012-2026-07-20", "v1.15-ADV-F2-P3-002-011-2026-07-20", "v1.16-D-DEC-012-P4-010-P4-002-2026-07-21", "v1.17-FV-VP-HOOK-024-029-ANCHORS-2026-07-21", "v1.18-ADV-F2-P6-001-P6-004-2026-07-21", "v1.19-ADV-F2-P7-005-2026-07-21 [SM-ID-sync per FV]", "v1.20-ADV-F2-P8-002-P8-003-2026-07-21 [SM-ID-sync per FV]", "v1.21-ADV-F2-P9-001-2026-07-21 [SM-ID-sync per FV]", "v1.22-ADV-F2-P14-003-PRISM-DEMO-rename-2026-07-22", "v1.23-ADV-F2-P18-001-003-link-close-consumer-write-block-anti-fungibility-2026-07-23", "v1.24-ADV-F2-P21-004-P21-006-allowlist-annotations-dedup-link-read-2026-07-27"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -27,6 +27,7 @@ removal_reason: null
 # Behavioral Contract BC-3.01.001: require-review Hook — Jira Field-Modification Gate
 
 > **Revision history:**
+> - v1.24 (2026-07-27): Pass-21 adversarial remediation — ADV-F2-P21-004 (MEDIUM, dedup subcommand cross-reference), ADV-F2-P21-006 (OBSERVATION, D-026 link-read allowlist cross-reference). Annotation-only changes — no allowlist entries added or removed. (1) **P21-004 — `jr issue list` and `--output json issue list` annotated as the §3.4 dedup command per BC-10.01.001 Invariant #8:** `jr issue list --jql` is the allowlisted subcommand for Jira-first dedup queries; `jr issue search` does not exist. (2) **P21-006 — `jr issue view` and `--output json issue view` annotated as the D-026 link-read mechanism per architecture-delta v1.23:** the D-026 Relates(O,C) absence predicate is detected by calling `jr issue view <candidate-key> --output json` and inspecting the issuelinks array; both plain and `--output json` forms are confirmed present in the allowlist.
 > - v1.23 (2026-07-23): Pass-18 adversarial remediation — ADV-F2-P18-001 (MAJOR, link scope), ADV-F2-P18-003 (MAJOR, close scope). (1) **P18-001/D-020 — `jr issue link` added to write-block:** `jr issue link ` (trailing-space guard) added to plain write-block forms; `--output json issue link ` added to `--output json` write-block forms; total write-block entries: 12. `jr issue move` was already in the write-block; confirmed unchanged. (2) **Step 6 scope check — link and close:** `jr issue link KEY1 KEY2` → accept ONLY `["link"]` (EC-026 anti-fungibility); command_pattern anchored match at step 5 structurally enforces KEY1 == marker.ticket_id AND KEY2 == marker.link_target_ticket_id via `^jr (--output json )?issue link KEY1 KEY2( |$)`. `jr issue move <ticket_id> <close_state>` → accept ONLY `["close"]` (EC-027 anti-fungibility); ticket_id binding enforced by anchored command_pattern. (3) **EC-026 (link anti-fungibility) and EC-027 (close anti-fungibility) added.** (4) **Canonical test vectors added** for link accept, close accept, link cross-type deny, close cross-type deny. ADV-F2-P18-001, ADV-F2-P18-003.
 > - v1.22 (2026-07-22): Pass-14 adversarial remediation — ADV-F2-P14-003 (MINOR) Jira project-key rename. Replaced all current-body occurrences of the invalid hyphenated project key `PRISM-DEMO` with the valid key `PRISMDEMO` (Jira project keys must match `^[A-Z][A-Z0-9]+$` — no hyphens). Affected sections: step-6a tokenizer comment block (P9-001 context), EC-023 direction B, EC-024, EC-025 (both directions), canonical test-vector table rows, VP-HOOK-024 description, and create-scope project-binding note. `PRISM-DEMO-42` → `PRISMDEMO-42`; `PRISM-DEMO-EXTRA` → `PRISMDEMO-EXTRA`. Total: 16 current-body lines renamed. Historical changelog entries (lines 31-52) preserved verbatim per append-only policy.
 > - v1.21 (2026-07-21): Pass-9 adversarial remediation — ADV-F2-P9-001 (MAJOR) backslash-escape tokenizer extension. (1) **`structural_label_check` v2 — backslash-escape handling (P9-001 MAJOR):** The P8-002 tokenizer exits double-quote state on `\"` (wrong — bash keeps `\"` as a literal `"` inside IN_DOUBLE). Attack vector: `jr issue create --project KEY --summary "normal\"" --label REVIEW-REQUIRED` — P8-002 exits IN_DOUBLE at `\"`, swallows `--label REVIEW-REQUIRED` into a second double-quote region → has_review_label=FALSE → regular create marker authorizes a REVIEW-REQUIRED-labeled command (security bypass). Fixed v2 tokenizer (index-based, replaces for-char-in-cmd loop): `\"` in IN_DOUBLE → stays IN_DOUBLE, adds literal `"` to token body; `\\` in IN_DOUBLE → stays IN_DOUBLE, adds literal `\`; only a bare `"` ends the double-quote region → `--label REVIEW-REQUIRED` is exposed as a standalone token → has_review_label=TRUE → regular create marker DENIED. Also: `\'` in UNQUOTED — P8-002 entered IN_SINGLE (wrong); v2: backslash in UNQUOTED consumes next char as literal `'` with NO state toggle. IN_SINGLE unchanged (no escaping in bash single-quotes). `--label=VALUE` equals form confirmed NOT supported by jr CLI (`jr issue create --help`, 2026-07-21) — equals-form vector **SCOPED OUT**; monitoring loop never emits it. (2) **EC-025 added:** Two directions: (A) escaped quote in `--summary` with real `--label` outside → has_review_label=TRUE → DENY (security: escaped quote must not hide real label); (B) escaped quote inside `--summary`, no real label outside → has_review_label=FALSE → ALLOW (false-deny prevention). (3) **VP-HOOK-024 v1.21 extension:** escaped-quote differential-vs-bash vector partition, paired mutant (SM-43), equals-form vector SCOPED OUT note.
@@ -308,8 +309,8 @@ removal_reason: null
 3. If `tool_input.command` — after passing the write-block check (postcondition #2) — contains any entry from the explicit read-only allowlist, the hook emits `permissionDecision: allow` and exits 0. The allowlist is evaluated AFTER the write-block. The allowlist has two families: Confidence: verified by code analysis (read-only allowlist in require-review.sh) and BATS tests `@test "require-review allows jr read-only commands"` (hooks.bats:15).
 
    **Plain forms (family a):**
-   - `jr issue view`
-   - `jr issue list`
+   - `jr issue view` *(D-026 link-read mechanism: `jr issue view <candidate-key> --output json` inspects issuelinks array to detect Relates(O,C) absence — architecture-delta v1.23/P21-006)*
+   - `jr issue list` *(§3.4 dedup command per BC-10.01.001 Invariant #8 — P21-004: used as `jr issue list --jql "..."` for Jira-first dedup queries; `jr issue search` does not exist)*
    - `jr issue comments`
    - `jr issue assets`
    - `jr issue transitions`
@@ -324,8 +325,8 @@ removal_reason: null
    - `jr --version` *(added PR #14)*
 
    **`--output json` forms (family b — added PR #14, for metrics suite):**
-   - `--output json issue view`
-   - `--output json issue list`
+   - `--output json issue view` *(D-026 link-read mechanism — `--output json` form required for JSON issuelinks inspection; architecture-delta v1.23/P21-006)*
+   - `--output json issue list` *(§3.4 dedup command `--output json` form per BC-10.01.001 Invariant #8 — P21-004)*
    - `--output json issue comments`
    - `--output json issue changelog`
    - `--output json issue assets`

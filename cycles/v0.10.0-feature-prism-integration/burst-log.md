@@ -933,3 +933,48 @@ F2: pass-16 remediation burst 12 already archived at "Archived Current Phase Ste
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
 | F2: pass-18 remediation burst 15 | architect / product-owner×2 / formal-verifier / state-manager | DONE | §3.4 Jira-action authorization: D-020 (link=`jr issue link` scope, REGULAR, anti-fungible), D-021 (close=`jr issue move`, CLOSE_STATE_ALLOWLIST, HIGH/CRIT NEVER auto-close, REGULAR), D-022 (compound §3.4 = two sequential verdict Writes, anti-fungible). P18-001: `jr issue link` added to write-block + `["link"]` marker scope (BC-3.03.001 v1.27, BC-3.01.001 v1.23). P18-002: VP-HOOK-028 property-(1) synced to verif-delta v1.20. P18-003: compound two-Write model (BC-10.01.001 v1.21, BC-4.02.001 v1.13). P18-004/005 OBS addressed. VP-HOOK-033..036 + SM-57..65 allocated. BC-6.01.001 v1.8 (close gating). O7 now 8 sites. VP 41 / SM 58. arch-delta v1.20. Clean streak 0/3. |
+
+---
+
+## Archived Phase Step — F2 adversarial pass 19 (archived from STATE.md Current Phase Steps to make room for burst-18 row)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 19 | adversary | DONE | 1C/1m/2obs — attacked the burst-15 link/close/compound surfaces. P19-001 (CRITICAL): D-021 close emitter branch enforces hard-floor (STEP4) + kill-switch (STEP5) but NOT the disposition∈{FP,BTP} leg — a TP verdict scored LOW/MED with ticket_action_type=close auto-closes a confirmed-malicious ticket (O3 regression: LLM ticket_action_type=close trusted without cross-checking verdict.disposition); clear fix (enforce the FP/BTP leg D-021 already mandates). P19-002 (MINOR): D-022 compound has no partial-failure/orphan-link recovery spec (create succeeds, link verdict never lands → orphaned unlinked ticket); no covering VP. P19-003 (OBS): jira_close_state lacks emit-time re-validation/regex_escape (config-side, allowlist-safe now; defense-in-depth). P19-004 (OBS, low-conf): §3.4 rule-2 comment+link vs 'keep tickets separate' — provenance ambiguity (architect to adjudicate from brief). LINK + COMPOUND surfaces re-derived otherwise sound; burst-15 broke no prior invariant. Report persisted. |
+
+---
+
+## Burst 18: F2 Pass-21 Remediation — D-025 canonical vector sync, dtu-assessment v1.3, dedup/link-read pinned, SM-71 (2026-07-27)
+
+**Agents dispatched:** architect (architecture-delta v1.23), product-owner (BC-3.03.001 v1.30, BC-10.01.001 v1.24, BC-3.01.001 v1.24, BC-4.02.001 v1.16, prd-delta v1.21), formal-verifier (verification-delta v1.23), state-manager (STATE.md + dtu-assessment v1.3 + burst-log)
+
+**Root findings addressed (from pass-21 report):**
+- **P21-001 (MAJOR)** — canonical test vectors in BC-3.03.001 and BC-10.01.001 still attributed D-023/P19-001 (STEP 6 first) rather than D-025/D-023/P20-001 (STEP 4b first); SM-69 kill vector (TP+close+autonomy_enabled=false → CLOSE-DISPOSITION-DENY at STEP 4b) missing from both BCs.
+- **P21-002 (MAJOR)** — dtu-assessment v1.2 still specifies §3.4 rule-2 = comment+link, contradicting D-024 create+link.
+- **P21-003 (MED)** — dtu-assessment never-auto-reopen assertion uses 'jr issue transition' (command does not exist); corrected to 'jr issue move non-close-state'.
+- **P21-004 (MED)** — dtu-assessment dedup command 'jr issue search' not on require-review read-only allowlist (command does not exist; CLI-verified); corrected to 'jr issue list --jql'; BC-10.01.001 Inv#8 pinned to the subcommand form.
+- **P21-005 (m)** — verification-delta SM recap stale (count shown 61 vs actual 63).
+- **P21-006 (obs)** — D-026 link-read mechanism unspecified; pinned to 'jr issue view <key> --output json' issuelinks field inspection; VP-HOOK-036 extended (fail-closed on unconfirmed read) + SM-71 allocated.
+- **P21-007 (obs)** — BC-4.02.001 Inv#1 'permission dialog' terminology overstates require-review deny; corrected to allow/deny-only language.
+
+**Burst narrative:**
+- architect pinned D-026 link-read mechanism in architecture-delta v1.22→v1.23 (§8.34 extension): `jr issue view <key> --output json` issuelinks field inspection; fail-closed predicate — link read MUST succeed and confirm absence of Relates(O,C) before issuing link-only verdict; unconfirmed read = do not issue link-only verdict.
+- product-owner updated BC-3.03.001 v1.29→v1.30: canonical test vectors synced to D-025 (STEP 4b fires first, audit provenance D-025/D-023/P20-001); stale STEP-6 form (D-023/P19-001 attribution) removed from live vectors; SM-69 kill vector added (TP+close+autonomy_enabled=false → CLOSE-DISPOSITION-DENY at STEP 4b).
+- product-owner updated BC-10.01.001 v1.23→v1.24: canonical test vectors synced to D-025 (STEP 4b attribution); SM-69 kill vector coverage confirmed; Inv#8 dedup command pinned to 'jr issue list --jql' (jr issue search does not exist).
+- product-owner updated BC-3.01.001 v1.23→v1.24: allowlist coverage confirmed + annotated (no entries added/removed); DI-016 observability gap noted for jr issue unlink/remote-link (functionally blocked by fail-closed catch-all but SILENT — no audit.log entry).
+- product-owner updated BC-4.02.001 v1.15→v1.16: Inv#1 allow/deny-only terminology fix (removes 'permission dialog' overstatement of require-review deny semantics).
+- product-owner updated prd-delta v1.20→v1.21: §5 version cells updated to final burst-18 versions; P21-005 verif-delta SM recap noted.
+- state-manager updated dtu-assessment v1.2→v1.3: §3.4 rule-2 = create+link (D-024 sync); never-auto-reopen assertion corrected to 'jr issue move non-close-state'; dedup pinned to 'jr issue list --jql'.
+- formal-verifier updated verification-delta v1.22→v1.23: SM recap reconciled (SM count 63→64; SM-71 allocated for link-read-predicate-skipped-or-inverted mutant, kill vector: seeded existing Relates(O,C) → D-026 does NOT fire); VP-HOOK-036 extended (fail-closed on unconfirmed D-026 link-read; SM-71 citation).
+
+**Files touched:**
+- `.factory/phase-f2-spec-evolution/architecture-delta.md` → v1.23
+- `.factory/phase-f2-spec-evolution/verification-delta.md` → v1.23
+- `.factory/phase-f2-spec-evolution/prd-delta.md` → v1.21
+- `.factory/phase-0-ingestion/behavioral-contracts/BC-3.03.001.md` → v1.30
+- `.factory/phase-0-ingestion/behavioral-contracts/BC-10.01.001.md` → v1.24
+- `.factory/phase-0-ingestion/behavioral-contracts/BC-3.01.001.md` → v1.24
+- `.factory/phase-0-ingestion/behavioral-contracts/BC-4.02.001.md` → v1.16
+- `.factory/phase-0-ingestion/dtu-assessment.md` → v1.3
+- `.factory/STATE.md` → v2.22
+- `.factory/cycles/v0.10.0-feature-prism-integration/burst-log.md` → this entry

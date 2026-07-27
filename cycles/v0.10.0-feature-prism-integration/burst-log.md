@@ -912,6 +912,14 @@ F2: pass-16 remediation burst 12 already archived at "Archived Current Phase Ste
 
 ---
 
+## Archived Phase Step — F2 adversarial pass 18 (archived from STATE.md Current Phase Steps to make room for burst-17 row)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 18 | adversary | DONE | 0C/2M/1med/2obs — substance pass; emitter/consumer/loop/D-019/JSON-first/tokenizer re-derived INTACT. NEW cluster (unmapped surface): P18-001 (MAJOR) jr issue link + jr issue move/close have NO authorization path — §3.4 correlation rules 2&4 require link autonomously (BC-4.02.001 PC#7b/d, BC-10.01.001 §3.4, DTU design asserts it called) but require-review has no write-block/allowlist/marker-scope for link → fail-closed DENY, no path; correlation links silently never form. P18-003 (MEDIUM) one-verdict-one-marker can't express compound comment+link / create+link. P18-002 (MAJOR) burst-14 propagation gap: verification-delta says VP-HOOK-028 property-(1) rewrite DONE but authoritative BC-10.01.001 L616 still has old property + 'pending FV' banner. P18-004/005 OBS (BC-4.02.001 Inv#1 omits link; FP 'Close (if open)' unauthorizable — autonomous-close scope ambiguous). Report persisted; link/close cluster at human gate; P18-002 clear fix. |
+
+---
+
 ## Archived Phase Step — F2 consistency-validator full sweep + burst 13 (archived from STATE.md Current Phase Steps to make room for pass-19 row)
 
 | Step | Agent | Status | Output |

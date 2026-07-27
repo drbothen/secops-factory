@@ -644,3 +644,14 @@ field that grants a security-relevant capability. It MUST be cross-validated aga
 and the gate cannot be reached by a TP verdict regardless of how autonomy_enabled or scored_priority
 are set. D-023 codifies this as a permanent gate invariant.
     _Discovered: F2 adversarial pass 19 (P19-001 CRITICAL, D-023), burst-16, 2026-07-23_
+
+---
+
+### Lesson 47 — P20-009 [process-gap] Narrative-vs-pseudocode reachability class: verify REACHABILITY of guarantees, not only gate CONTENT (pass 20, burst-17, 2026-07-27)
+
+[process-gap] Prior passes verified gate CONTENT (the disposition∈{FP,BTP} check existed) but not REACHABILITY against STEP ordering (an earlier RETURN short-circuited the "fires regardless of autonomy_enabled" guarantee — the gate was placed inside STEP 6, unreachable when autonomy_enabled=false exits at STEP 5). The narrative and the pseudocode gave opposite answers to the same question; neither the architect nor the formal-verifier checked control-flow reachability as a distinct axis.
+
+Recommendation: add a "reachability-of-guarantee" axis to the adversarial emitter-ordering review — trace every "fires regardless of X" / "always" / "unconditional" claim to its guarding control-flow position. A gate placed anywhere after an early-exit RETURN is reachable ONLY on the branches that reach it; a guarantee that requires ALL branches must be placed at a STEP before any discriminating RETURN.
+
+Codification follow-up owed at cycle close (S-7.02 step 3): follow-up story in STORY-INDEX or justified deferral in STATE.md Drift Items.
+    _Discovered: F2 adversarial pass 20 (P20-009 [process-gap]), burst-17, 2026-07-27_

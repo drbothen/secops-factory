@@ -1,10 +1,11 @@
 ---
 document_type: architecture-delta
 producer: architect
-version: "1.21"
-date: 2026-07-23
+version: "1.22"
+date: 2026-07-27
 input-hash: COMPUTE-AT-COMMIT
 changelog:
+  - "1.22 (2026-07-27): Pass-20 adversarial remediation burst 17. D-025 (P20-001 MAJOR — human decision 2026-07-27): D-023 close-disposition gate HOISTED to fire as STEP 4b — BEFORE the STEP-5 autonomy_enabled kill switch. Root cause: D-023 gate was placed inside the STEP-6 ELIF action==\"close\" branch, which is only reached after STEP 5 returns; with autonomy_enabled=false (default), a TP close verdict exited at STEP 5 with allow-without-marker and never reached D-023, silently omitting the CLOSE-DISPOSITION-DENY audit entry and corrective feedback. The gate now fires as an unconditional early guard for ALL ticket_action_type=close verdicts where disposition∉{FP,BTP}, regardless of autonomy_enabled or scored_priority. D-023's 'fires regardless of autonomy_enabled' mandate is now structurally guaranteed. The STEP-6 close branch retains the disposition check as defense-in-depth only (explicitly annotated); authoritative gate is STEP 4b. SECURITY RECAP comment and self-contradicting narrative at v1.21 L1848/L1860 corrected. Decision record D-025 added. Decision record D-023 updated to reference D-025 hoist. D-026 (P20-003 MEDIUM): orphan-link reconciliation predicate adjudicated and recorded. Chose option (b) — explicit stateless §3.4 correlation rule (precedence over rule 1): 'open ticket O + closed/resolved ticket C + same root cause + no Relates(O,C) link → issue link-only verdict; do not comment.' Rationale: stateless (no new persisted artifact beyond watermarks); definable Jira-query predicate; self-healing on repeated failure; avoids second-order orphaned-pending-link failure mode of option (a). Rule-1 precedence interaction specified explicitly. §8.33.2 item 2 updated with precise predicate. VP-HOOK-036/SM-68 now have a verifiable predicate. Decision record D-026 added. P20-002 (MEDIUM): §8.33.2 item 1 EC-013 dangling anchor fixed — instruction now directs PO to ALLOCATE A NEW EC-022 in BC-10.01.001 encoding the close 3-condition AND (disposition∈{FP,BTP} AND hard_floor_applies()=false AND autonomy_enabled=true); stale 'update EC-013' instruction corrected. All other 'EC-013 = 3-condition AND' references inside architecture-delta annotated or corrected. §8.34 propagation list added (D-025/D-026/P20-002 obligations). Emitter pseudocode bumped to v1.9. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.21 (2026-07-23): Pass-19 adversarial remediation burst 16. D-023 (P19-001 CRITICAL): disposition↔action coherence gate added to emitter close branch — hook MUST cross-validate verdict.disposition∈{FP,BTP} before issuing a close marker, regardless of autonomy_enabled. A TP/Indeterminate verdict with ticket_action_type=close previously flowed through STEP 4 (no floor) → STEP 5 (kill switch passes) → close branch unguarded; CLOSE-DISPOSITION-DENY gate now fires as FIRST check in the close branch (before ticket_id null check), analogous to STEP 3 gating review-surfacing on hard_floor_applies() entry. Gate fires regardless of autonomy_enabled — a TP/Indeterminate close is wrong even with kill switch ON. NOT covered by ASM-008 (disposition↔action coherence, not value-truthfulness). EC-013 constraint restored to full 3-condition AND: disposition∈{FP,BTP} AND hard_floor_applies()=false AND autonomy_enabled=true. O3 table extended with P19-001/D-023 row. Emitter pseudocode bumped to v1.8. P19-002 (MINOR): D-022 partial-failure orphan-link reconciliation spec added — if verdict-1 (create or comment) succeeds but verdict-2 (link) never lands (process interruption or denied Write), a ticket/comment may exist unlinked to its companion ticket; idempotent reconciliation: on subsequent loop run, when §3.4 dedup finds open ticket lacking expected Relates link to matching closed/related ticket, loop re-issues the link verdict only; FV obligation to extend VP-HOOK-036 or allocate new VP in §8.33. P19-003 (OBS): emit-time CLOSE_STATE_ALLOWLIST re-check and regex_escape(close_state) added to close branch as belt-and-suspenders per O7; missing-config default explicitly set to 'Done' (documented decision). P19-004 (OBS): HUMAN-GATE-CONFIRM — brief §3.4 rule 2 is genuinely ambiguous on whether the current alert needs a CREATE before linking; see §8.33.2 item 3 for specific question; rule 2 left as-is (comment+link) pending human confirmation. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.20 (2026-07-23): Pass-18 adversarial remediation burst 15 — human decisions 2026-07-23. D-020 (P18-001 MAJOR): new `link` authorized_operations token + ticket_action_type value + emitter command_pattern + consumer acceptance. Command: `jr issue link <ticket_id_a> <ticket_id_b>` (jr issue link help confirmed; default link-type 'Relates'; no --type arg in Iron Law — uses default). O7: ticket_id_a and ticket_id_b are TWO new interpolation sites — both charset-validated against ^[A-Z][A-Z0-9]+-[0-9]+$ + regex-escaped before pattern interpolation. New marker schema field: `link_target_ticket_id` (optional, non-ICD-203 operational metadata; required when ticket_action_type=link; null for all other marker types). Consumer: `link` added to write-block list; accepts a `[\"link\"]` marker for `jr issue link` commands; anti-fungibility: link marker authorizes ONLY a link command; comment/create/assign/close markers do NOT authorize link, and vice versa. D-021 (P18-005 OBS→RESOLVED): new `close` authorized_operations token + ticket_action_type value for FP/BTP auto-close. Command: `jr issue move <ticket_id> <close_state>` (jr issue move help confirmed; single-key legacy form). `jr issue move` already in write-block; `close` is a new authorized_operations token authorizing it. O7: ticket_id charset-validated + escaped (same ^[A-Z][A-Z0-9]+-[0-9]+$ as comment/assign); jira_close_state is CONFIG-side (set at onboard time), validated at setup against CLOSE_STATE_ALLOWLIST={Done,Closed,Resolved} — NOT verdict-influenceable; no LLM-injection surface. SECURITY: close is a REGULAR scope action (NOT exempt from kill switch); hard_floor_applies()=true (HIGH/CRIT scored_priority) → STEP 4 DENY-THE-WRITE fires → routes to comment-review instead of auto-close; autonomy_enabled=false → STEP 5 kill switch fires; close ONLY authorized for FP/BTP + non-hard-floor + autonomy_enabled=true. D-022 (P18-003 MEDIUM): compound §3.4 actions (comment+link for rule 2; create+link for rule 4) authorized via TWO SEQUENTIAL Stage-7 verdict Writes (option b). Rationale: preserves the proven one-verdict-one-marker invariant; each marker is single-use + single-element; anti-fungibility is preserved; audit trail records each action separately; for rule 4 (create+link), the link verdict MUST carry the ticket_id returned from the preceding jr issue create (loop obligation). No change to 'never multi-element' invariant — compound actions ARE two verdicts, not one. P18-002 (MAJOR): propagation gap only — VP-HOOK-028 property-(1) rewrite in BC-10.01.001 L616/L618 is a PO obligation recorded in §8.32. No architecture-delta change beyond noting it. P18-004 (OBS): BC-4.02.001 Inv#1 gated-mutation enumeration update is a PO obligation recorded in §8.32. Schema bump to v2.2. O7 interpolation audit updated (P12-007 sites + 3 new sites: 2 for link, 1 for close). Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.19 (2026-07-23): Pass-17 adversarial remediation burst 14 — human decision 2026-07-23. P17-001 (MAJOR — D-019): D-016/P12-003b floor-exemption REVISED — known-FP scored_priority floor exemption is SCOPED to LOW/MED-severity known-FPs only. HIGH/CRIT-native known-FPs are NOT exempt from hard_floor_applies(); they route to comment-review (human review) exactly as the deterministic gate already enforces. Rationale: disposition-guard has no forgery-proof known-FP signal (verdict is LLM-authored; an LLM known_fp field would be a CRITICAL bypass violating O6); routing high-sev known-FPs to human review is the secure posture and aligns with DI-015 (poisoned HIGH-sev known-FP entry cannot silently suppress a real high-severity alert). LOW/MED known-FPs retain auto-close (no floor fires). NO change to hard_floor_applies() itself — it was already correct. D-DEC-008 known-FP exemption note, §8.26.2 item 2 / P12-003b instruction, and the §8.27 FV hold-note all updated to reflect D-019. FV hold-note CLOSED (RESOLVED — D-019). LLM-known_fp-field approach REJECTED (forgeable CRITICAL bypass, violates O6). PO + FV propagation in §8.31. P17-002 (MAJOR): Partial-fix propagation residue — CV-009 fixed BC-10.01.001 PC#8 to JSON-first but did NOT propagate to Invariant #14 Stage-7 (still mandates 'verdict' substring, cites retired PC#8) or VP-HOOK-028 property (1) (still asserts now-tautological 'non-verdict-path Write → fast-path-allow' under JSON-first). PO + FV remediation in §8.31. P17-003 (MAJOR): Partial-fix propagation residue — P13-001 eliminated MARKDOWN_COMMENT_PATH but did NOT propagate to BC-3.03.001 EC-005 (L798) or the L814 canonical test vector, which still assert comment-scoped marker + non-existent ticket_action_type field for investigation markdown. PO remediation in §8.31. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
@@ -70,7 +71,9 @@ asm_004_validation: .factory/phase-f2-spec-evolution/asm-004-validation.md
 | D-DEC-010 | **RESOLVED** | Unattended permission model: `--allowedTools` scoped allowlist (prism/tavily/perplexity MCP tools + Bash + Write + Read) — NOT `--dangerously-skip-permissions`; `--bare` explicitly forbidden (would disable require-review hook); require-review hook remains the Jira auth gate |
 | D-DEC-011 | **RESOLVED** | Confidence float→enum contract: assess-priority outputs BOTH a float posterior (0.0–1.0) AND a mapped enum `{high,medium,low}`; monitoring-loop uses the enum for verdict field #2; canonical thresholds: high ≥ 0.75, medium ≥ 0.40 and < 0.75, low < 0.40 |
 | D-DEC-012 | **RESOLVED** | Review-ticket surfacing path for hard-floor verdicts: `create-review` and `comment-review` restricted marker types; exempt from hard-floor no-marker rule and autonomy_enabled kill switch; fail-loud invariant — hard-floor verdicts never silently dropped; BC-10.01.001 Inv#10 must be narrowed (PO); BC-3.01.001 must map create-review/comment-review to authorized operations (PO) |
-| D-023 | **RESOLVED** | Disposition↔action coherence gate: emitter close branch MUST cross-validate verdict.disposition∈{FP,BTP} as FIRST check (before ticket_id null check), regardless of autonomy_enabled; CLOSE-DISPOSITION-DENY fires for TP/Indeterminate; O3 annotated — ticket_action_type=close is LLM-supplied routing granting a state-change control that MUST be cross-validated against hook-computed disposition invariant (P19-001) |
+| D-023 | **RESOLVED** | Disposition↔action coherence gate: close verdict MUST cross-validate verdict.disposition∈{FP,BTP}; CLOSE-DISPOSITION-DENY fires for TP/Indeterminate; O3 annotated — ticket_action_type=close is LLM-supplied routing granting a state-change control that MUST be cross-validated against hook-computed disposition invariant (P19-001). **Gate placement: STEP 4b per D-025** — authoritative check fires before STEP-5 kill switch; STEP-6 check is defense-in-depth. |
+| D-025 | **RESOLVED** | Close-disposition gate hoisted to STEP 4b (before STEP-5 autonomy_enabled kill switch) — human decision 2026-07-27 (P20-001). Rationale: D-023 gate inside STEP-6 was unreachable when autonomy_enabled=false (default), contradicting the 'fires regardless of autonomy_enabled' mandate. Hoist mirrors STEP-4 hard-floor placement; D-008 deny-the-write + O3 standing rule. STEP-6 defense-in-depth retained. |
+| D-026 | **RESOLVED** | Orphan-link reconciliation predicate (P20-003): stateless §3.4 correlation rule (option b) — new rule evaluated BEFORE rule 1: 'open ticket O with same root cause as Closed/Resolved ticket C AND no Relates(O,C) link exists → issue link-only verdict; do not comment.' Precedence over rule 1 explicit. Stateless (no persisted artifact beyond watermarks). Verifiable predicate for VP-HOOK-036/SM-68. |
 
 ---
 
@@ -1726,16 +1729,55 @@ IF hard_floor_applies(verdict, recomputed_severity):
   )
   RETURN   # DO NOT issue any marker; DO NOT GOTO WRITE_MARKER
 
+# ── STEP 4b: close-disposition early guard (D-025/D-023/P20-001) [HOISTED — fires BEFORE STEP 5] ──
+# [Emitter pseudocode v1.9 — D-025 hoist]
+#
+# P20-001 remediation (human decision 2026-07-27): the D-023 close-disposition gate was placed
+# inside the STEP-6 ELIF action=="close" branch, which is only reached AFTER STEP 5 returns.
+# Since STEP 5 is the autonomy_enabled kill switch (default-false), a ticket_action_type=close
+# verdict with disposition=TP and autonomy_enabled=false previously exited at STEP 5 with
+# allow-without-marker, never reaching the D-023 gate. This contradicted D-023's
+# "fires regardless of autonomy_enabled" mandate and left a silent compliance gap in the
+# default deployment.
+#
+# D-025 hoists the gate here — BETWEEN STEP 4 (hard-floor) and STEP 5 (kill switch) —
+# mirroring STEP 4's "fires before kill switch" placement and the O3 standing rule.
+#
+# Rationale: D-008 deny-the-write philosophy — a TP/Indeterminate close is a disposition↔action
+# incoherence regardless of kill-switch state; the audit entry and corrective feedback trail
+# MUST fire even when autonomy_enabled=false; this is another instance of the O3 invariant that
+# authorization controls must be structurally earlier than the path that would otherwise route
+# around them.
+#
+# This guard is only reached for non-hard-floor verdicts (STEP 4 exited for hard-floor cases).
+# It fires for ALL ticket_action_type=close verdicts where disposition∉{FP,BTP}, regardless of:
+#   - autonomy_enabled (true or false — fires even when kill switch would otherwise pass through)
+#   - scored_priority (non-hard-floor by construction — STEP 4 already handled hard-floor exits)
+#
+IF action == "close" AND verdict.disposition NOT IN {"FP", "BTP"}:
+  WRITE audit entry:
+    "CLOSE-DISPOSITION-DENY: close authorized only for FP/BTP disposition, got '" +
+    verdict.disposition + "'; verdict Write denied by disposition-guard (D-025/D-023/P20-001)"
+  emit deny(
+    "CLOSE-DISPOSITION-DENY: ticket_action_type=close is an LLM-supplied routing field " +
+    "granting a state-change control; hook-computed invariant requires " +
+    "verdict.disposition ∈ {FP, BTP}. Got disposition='" + verdict.disposition + "'. " +
+    "A TP or Indeterminate verdict MUST NOT be auto-closed. " +
+    "Re-issue with a non-close ticket_action_type appropriate for this disposition."
+  )
+  RETURN
+
 # ── STEP 5: autonomy_enabled kill switch (ADV-F2-P4-005) [REORDERED AFTER HARD-FLOOR — ADV-F2-P6-002] ──
 # autonomy_enabled is a NON-ICD-203 operational metadata field in the verdict JSON (alongside
 # jira_project_key and confidence_score). Disposition-guard reads it directly from the verdict
 # file. Default-false (conservative): if field absent or non-boolean, treat as false.
 # This makes the kill switch deterministic — not delegated to the monitoring-loop LLM.
 #
-# ADV-F2-P6-002: After reorder, this STEP 5 is only reached for non-hard-floor verdicts.
-# Hard-floor under-labeled verdicts (STEP 4 above) and correctly-labeled review verdicts
-# (STEP 3 above) both exit before reaching this point. The kill switch now fires exclusively
-# for regular-action, non-hard-floor verdicts — the intended semantic.
+# ADV-F2-P6-002/D-025: After reorder, this STEP 5 is only reached for non-hard-floor verdicts
+# with valid disposition↔action coherence for close verdicts (STEP 4b caught incoherent closes).
+# Hard-floor under-labeled verdicts (STEP 4) and review-path verdicts (STEP 3) both exit before
+# this point. Incoherent close verdicts (disposition∉{FP,BTP}) exit at STEP 4b.
+# The kill switch fires exclusively for regular-action, non-hard-floor, coherent verdicts.
 autonomy_enabled = verdict.autonomy_enabled   # non-ICD-203 operational field; default false
 IF autonomy_enabled is NOT exactly true:
   emit allow without marker      # kill switch fires; evidence write proceeds; no Jira action
@@ -1841,34 +1883,38 @@ ELIF action == "close":
   # that authorizes it for the specific FP/BTP auto-close use case.
   #
   # SECURITY RECAP (close reaches STEP 6 ONLY when STEP 4 hard-floor did NOT fire,
-  # AND STEP 5 autonomy_enabled was true; AND — enforced here — disposition∈{FP,BTP}):
+  # AND STEP 4b close-disposition gate (D-025) did NOT fire,
+  # AND STEP 5 autonomy_enabled was true):
   #   - HIGH/CRIT scored_priority → STEP 4 DENY-THE-WRITE fires BEFORE this point
   #     → loop re-documents with required_token=comment-review (routes to human review)
   #     → HIGH/CRIT alert is NEVER auto-closed (P18-005 human decision confirmed)
+  #   - disposition∉{FP,BTP} → STEP 4b CLOSE-DISPOSITION-DENY (D-025/D-023) fires BEFORE
+  #     STEP 5 — fires regardless of autonomy_enabled (kill-switch-independent per D-025 hoist)
+  #     → a TP/Indeterminate close is DENIED even when autonomy_enabled=false (default config)
   #   - autonomy_enabled=false → STEP 5 kill switch fires BEFORE this point → no marker
-  #   - disposition∉{FP,BTP} → D-023 gate DENIES here regardless of autonomy_enabled
-  #   - This branch issues a close marker ONLY for: non-hard-floor + autonomy_enabled=true
-  #     + disposition∈{FP,BTP} (all three conditions required — full 3-condition AND)
+  #     (only reached here for close+FP/BTP verdicts; D-025 already caught all non-FP/BTP cases)
+  #   - This branch issues a close marker ONLY for: non-hard-floor + disposition∈{FP,BTP}
+  #     + autonomy_enabled=true (all three conditions required — full 3-condition AND)
   #
-  # ── D-023 (P19-001): DISPOSITION GATE — close ONLY for FP/BTP ────────────────
-  # D-021 mandates close ONLY for FP/BTP disposition. D-023 adds the hook-side enforcement:
-  # the LLM-supplied ticket_action_type=close is a routing field that grants a state-change
-  # control and MUST be cross-validated against the hook-computed verdict.disposition∈{FP,BTP}
-  # invariant before any marker issuance.
-  # Gate placement: FIRST check in this branch (before ticket_id null check), analogous to
-  # STEP 3 gating review-surfacing on hard_floor_applies() entry.
-  # Gate fires REGARDLESS of autonomy_enabled — a TP/Indeterminate close is wrong even
-  # with the kill switch ON.
-  # NOT covered by ASM-008 (this is a disposition↔action coherence check, not a
-  # value-truthfulness issue).
+  # ── D-023 (P19-001) / D-025 (P20-001): DISPOSITION CHECK — DEFENSE-IN-DEPTH ONLY ─────────
+  # AUTHORITATIVE gate is STEP 4b (D-025/P20-001 hoist). The check below is RETAINED here
+  # as defense-in-depth only. By construction, any verdict reaching this point already has
+  # disposition∈{FP,BTP} — STEP 4b exited earlier for all other cases. This explicit check
+  # guards against future refactoring that might alter STEP ordering without updating STEP 4b.
+  # D-021 mandates close ONLY for FP/BTP disposition. D-023 / D-025 provide enforcement:
+  # the LLM-supplied ticket_action_type=close grants a state-change control and MUST be
+  # cross-validated against the hook-computed verdict.disposition∈{FP,BTP} invariant.
+  # NOT covered by ASM-008 (disposition↔action coherence check, not value-truthfulness).
   # O3 standing rule annotation: ticket_action_type=close is LLM-supplied routing that grants
-  # a state-change write; it MUST be cross-validated against hook-computed
-  # verdict.disposition∈{FP,BTP} before taking effect (parallel to how review-surfacing
-  # tokens are cross-validated against hook-computed hard_floor_applies()).
+  # a state-change write; it MUST be cross-validated against verdict.disposition∈{FP,BTP}
+  # (parallel to how review-surfacing tokens are cross-validated against hard_floor_applies()).
+  # Gate fires regardless of autonomy_enabled — structural guarantee provided by STEP 4b.
   IF verdict.disposition NOT IN {"FP", "BTP"}:
     WRITE audit entry:
       "CLOSE-DISPOSITION-DENY: close authorized only for FP/BTP disposition, got '" +
-      verdict.disposition + "'; verdict Write denied by disposition-guard (D-023/P19-001)"
+      verdict.disposition + "'; verdict Write denied by disposition-guard (D-025/D-023) " +
+      "[DEFENSE-IN-DEPTH — STEP 4b is authoritative; this check should never fire in a " +
+      "correctly ordered emitter]"
     emit deny(
       "CLOSE-DISPOSITION-DENY: ticket_action_type=close is an LLM-supplied routing field " +
       "granting a state-change control; hook-computed invariant requires " +
@@ -6733,7 +6779,7 @@ or STATE.md. hard_floor_applies() requires NO implementation change — it was c
 
 ---
 
-### 8.32.4 PO — BC-10.01.001 (§3.4 correlation rules + Stage 8 + EC-008/011/013)
+### 8.32.4 PO — BC-10.01.001 (§3.4 correlation rules + Stage 8 + EC-008/011/013/new-EC-022)
 
 1. **§3.4 rule 2 (related — comment+link)**: update Stage 7 to reflect the two-Write model (D-022): verdict-1 ticket_action_type=comment → comment marker issued → Stage 8 executes `jr issue comment SEC-42 "..."` (marker consumed); verdict-2 ticket_action_type=link, ticket_id=SEC-42, link_target_ticket_id=SEC-99 → link marker issued → Stage 8 executes `jr issue link SEC-42 SEC-99` (marker consumed). Both stages are individually gated by require-review.
 
@@ -6745,7 +6791,7 @@ or STATE.md. hard_floor_applies() requires NO implementation change — it was c
 
 5. **EC-011** (link to closed ticket as related): confirm authorized via compound D-022 model (rule 4: create then link). Update accordingly.
 
-6. **EC-013** (close FP/BTP ticket): confirm now authorized via `["close"]` scope (D-021/D-023). Update with the FULL 3-condition security constraint (restored per P19-001): close marker is issued ONLY when **disposition∈{FP,BTP}** AND hard_floor_applies()=false AND autonomy_enabled=true. The prior statement "close issued ONLY when hard_floor_applies()=false AND autonomy_enabled=true" omitted the disposition leg; restore it. The disposition gate (D-023/P19-001) is the hook-side enforcement of the first condition; it fires as the first check in the ELIF action=="close" branch, regardless of autonomy_enabled. Note: hard_floor_applies() itself is unchanged — Indeterminate verdicts already trigger STEP 4 DENY-THE-WRITE before reaching the close branch; the disposition gate adds the explicit FP/BTP coherence check for non-floor verdicts where a TP could otherwise slip through.
+6. **[CORRECTION: P20-002 — EC-013 anchor was wrong; use EC-022]** ~~**EC-013** (close FP/BTP ticket)~~ → **BC-10.01.001 EC-013 is the "Closed ticket same-root-cause → create+link (D-022 rule 4)" edge case** and does NOT encode the auto-close authorization. The prior instruction to update EC-013 with the 3-condition AND was a dangling anchor (P20-002 adversarial finding). **Corrected instruction:** allocate **new EC-022** in BC-10.01.001 (next free after EC-021) encoding: close authorized via `["close"]` scope (D-021/D-023/D-025) with the FULL 3-condition security constraint: close marker issued ONLY when **disposition∈{FP,BTP}** AND hard_floor_applies()=false AND autonomy_enabled=true. The disposition gate (D-025/D-023/P20-001) is the hook-side enforcement of the first condition; **authoritative gate is now STEP 4b** (fires before STEP-5 kill switch — D-025 hoist); STEP-6 close-branch check is defense-in-depth only. Do NOT modify existing EC-013 (create+link rule 4). See §8.33.2 item 1 and §8.34 for updated PO instructions.
 
 7. **VP-HOOK-028 property-(1) (P18-002 propagation)**: in BC-10.01.001 at approximately L616, replace the retired VP-HOOK-028 property-(1) ("a Stage-7 Write to a path NOT containing the `verdict` substring causes disposition-guard to fast-path-allow ... the downstream Stage-8 jr write is DENIED") with the current JSON-first residual fail-closed boundary property: "a Write with neither `.json` extension nor JSON-parseable content nor `*investigation-*.md` glob → fast-path-allow → Stage-8 jr write denied (no marker in store)." Preserve the old text in a `Previous` block for auditability. **DELETE the L618 "pending FV / IDs allocated by FV" banner** — verification-delta (burst-14, P17-002) confirmed the rewrite is DONE and no new SM/VP IDs are pending.
 
@@ -6839,7 +6885,7 @@ edit BCs, verification-delta, prd-delta, spec-changelog, or STATE.md.*
    ```
    Gate fires regardless of `autonomy_enabled`. Reference: D-023/P19-001.
 
-2. **EC-013 security invariant update**: update any BC-3.03.001 security invariant describing the close gate conditions. The full 3-condition AND is: **disposition∈{FP,BTP}** AND hard_floor_applies()=false AND autonomy_enabled=true. Prior statement "close ONLY when hard_floor_applies()=false AND autonomy_enabled=true" was the 2-condition form; restore the disposition leg.
+2. **BC-3.03.001 close gate security invariant update**: update any BC-3.03.001 security invariant describing the close gate conditions. The full 3-condition AND is: **disposition∈{FP,BTP}** AND hard_floor_applies()=false AND autonomy_enabled=true. Prior statement "close ONLY when hard_floor_applies()=false AND autonomy_enabled=true" was the 2-condition form; restore the disposition leg. **[D-025 SUPERSEDES gate placement note from v1.21]:** The gate placement description — "fires as the first check in the ELIF action=='close' branch, regardless of autonomy_enabled" — must be updated: per D-025/P20-001 (burst-17), the authoritative gate is now **STEP 4b** (fires BEFORE the STEP-5 autonomy_enabled kill switch, not inside the STEP-6 close branch). The STEP-6 close-branch check is defense-in-depth only. The BC-3.03.001 invariant narrative must reflect this; see §8.34.1 for the full STEP 4b PO obligation.
 
 3. **Emit-time close-state validation (P19-003)**: in the close branch, AFTER reading `jira_close_state` config, add:
    - Re-check `jira_close_state` against `CLOSE_STATE_ALLOWLIST={"Done","Closed","Resolved"}` at emit time; emit CLOSE-STATE-DENY on mismatch.
@@ -6850,13 +6896,27 @@ edit BCs, verification-delta, prd-delta, spec-changelog, or STATE.md.*
 
 ---
 
-### 8.33.2 PO — BC-10.01.001 (§3.4 EC-013 + orphan-link reconciliation)
+### 8.33.2 PO — BC-10.01.001 (§3.4 new EC + orphan-link reconciliation)
 
-1. **EC-013 constraint restoration**: update EC-013 or any §3.4 auto-close invariant to the full 3-condition AND: disposition∈{FP,BTP} AND hard_floor_applies()=false AND autonomy_enabled=true. Any BC-10.01.001 text stating "close issued when autonomy_enabled=true and not hard-floor" must add "AND disposition∈{FP,BTP}" as the first condition.
+1. **[CORRECTED by P20-002/D-025] New EC-022 for close 3-condition AND**: the prior instruction in this item said "update EC-013 or any §3.4 auto-close invariant" — **this was a dangling anchor** (BC-10.01.001 EC-013 is the "Closed ticket same-root-cause → create+link, D-022 rule 4" edge case; it does not encode the auto-close condition). **Corrected instruction:** allocate a **new EC-022** in BC-10.01.001 (next free EC after EC-021) encoding the close 3-condition AND: **disposition∈{FP,BTP} AND hard_floor_applies()=false AND autonomy_enabled=true**. This EC-022 should appear in BC-10.01.001's edge-cases table or §3.4/Stage-8 authorization section, and any BC-10.01.001 text stating "close issued when autonomy_enabled=true and not hard-floor" must be updated to add "AND disposition∈{FP,BTP}" as the first condition. Do NOT modify the existing EC-013 (closed-ticket create+link).
 
-2. **D-022 orphan-link reconciliation (P19-002 MINOR)**: specify in §3.4/Stage-7 an idempotent reconciliation for D-022 compound-action partial failures:
-   - **Failure mode**: verdict-1 (create for rule 4; comment for rule 2) lands successfully, but verdict-2 (link) never lands due to process interruption or a subsequently denied Write. A ticket or comment exists unlinked to its companion.
-   - **Reconciliation**: on a subsequent loop run, when the §3.4 dedup check finds an open ticket for the alert root-cause that lacks the expected "Relates" link to the matching closed/related ticket, the loop MUST re-issue the link verdict only (not re-create the ticket or re-comment). Emit verdict with ticket_action_type=link, ticket_id=<existing ticket>, link_target_ticket_id=<companion ticket>.
+2. **D-022 orphan-link reconciliation (P19-002 MINOR — predicate specified by D-026)**: specify in BC-10.01.001 §3.4 a new orphan-link recovery rule with **explicit precedence over rule 1** (duplicate-open → comment). This is D-026 (architecture-delta v1.22 decision record):
+
+   **New §3.4 orphan-link recovery rule (D-026 — evaluated BEFORE rule 1):**
+   Condition: an open ticket O exists for the current alert's root cause AND a Closed/Resolved ticket C exists for the same root cause AND no "Relates" link exists between O and C.
+   Action: issue a **link-only verdict** — ticket_action_type=link, ticket_id=O, link_target_ticket_id=C. Do NOT append a comment to O. Do NOT re-create a ticket.
+   Precedence: this rule fires before rule 1 ("duplicate-open → append comment, PC#7a/EC-010"). When this rule fires, rule 1 does NOT fire for this alert.
+
+   Implementation note: the loop must query Jira for the Relates link between O and C as part of the §3.4 dedup check. If the link already exists, this rule does not fire (proceeds to rule 1 evaluation). The Jira query for "Relates" link existence uses the standard link-type check (jr issue link is idempotent — no-op if link already exists; confirm in DTU `related-open` mock scenario).
+
+   **Rationale for option (b) stateless design over option (a) pending-link record (D-026):**
+   - **Stateless**: no new persisted artifact type beyond watermarks; the current "only watermarks persist" architectural model is unchanged
+   - **Definable predicate**: "open O + closed C + same root cause + no Relates(O,C)" is a concrete Jira-query predicate VP-HOOK-036/SM-68 can verify against a mock
+   - **Self-healing**: if the link verdict fails on run N, the same detection fires on run N+1 — the rule corrects itself without TTL/cleanup logic
+   - **Avoids second-order orphan**: option (a) — a persisted pending-link record — would require its own cleanup logic and carries a second-order failure mode if the pending-link record itself is never consumed (accumulates orphaned records)
+   - **Rule-1 misrouting eliminated**: explicit precedence prevents the orphan open ticket from receiving a spurious comment instead of the missing link
+
+   - **Failure mode context (D-022)**: verdict-1 (create for rule 4; create for rule 2 if D-026-confirmed) lands successfully, but verdict-2 (link) never lands due to process interruption or subsequently denied Write. A ticket or comment exists unlinked to its companion.
    - **Idempotency**: `jr issue link KEY1 KEY2` when a "Relates" link already exists is a no-op or benign warning; confirm with DTU mock scenario and add assertion to the `related-open` DTU scenario.
    - **Non-security**: finding exists; only the link is absent. Operational/audit integrity issue, not a security regression.
 
@@ -6887,10 +6947,99 @@ No change required until the HUMAN-GATE-CONFIRM on P19-004 rule-2 adjudication r
 
 ---
 
-*Pass-19 propagation list (§8.33) complete. Architecture-delta v1.21 is final for pass-19
+*Pass-19 propagation list (§8.33) complete. Architecture-delta v1.21 was final for pass-19
 remediation burst 16. D-023 (close disposition gate — P19-001 CRITICAL): gate enforced.
 D-022 orphan-link reconciliation (P19-002 MINOR): spec added to §8.32.4 item 8 and §8.33.2
 item 2. Close-state emit-time validation (P19-003 OBS): pseudocode and O7 audit updated.
 P19-004 (OBS): HUMAN-GATE-CONFIRM flagged for §3.4 rule-2 adjudication; rule 2 left as-is
 (comment+link) pending human confirmation. Architect does NOT edit BCs, verification-delta,
 prd-delta, spec-changelog, or STATE.md.*
+
+---
+
+## 8.34 PROPAGATION LIST (pass 20 — P20-001/P20-002/P20-003 / D-025/D-026)
+
+> **Owner (§8.34 items 1–5):** Product owner and formal verifier as marked. Architect does NOT
+> edit BCs, verification-delta, prd-delta, spec-changelog, or STATE.md. All changes below are
+> the sole responsibility of the product owner (PO) and formal verifier (FV).
+>
+> **Architectural decisions recorded here:** D-025 (close-disposition gate hoisted to STEP 4b —
+> P20-001 MAJOR, human decision 2026-07-27). D-026 (orphan-link reconciliation predicate —
+> P20-003 MEDIUM, stateless §3.4 rule). EC-013 anchor correction (P20-002 MEDIUM).
+
+---
+
+### 8.34.1 PO — BC-3.03.001 (emitter): STEP 4b close-disposition guard (D-025/P20-001)
+
+**Required change:** Hoist the D-023 close-disposition gate from inside the `ELIF action=="close"` branch (STEP 6) to a new guard that fires BEFORE the STEP-5 autonomy_enabled kill switch.
+
+Specifically:
+1. **Insert new STEP 4b** immediately after the STEP 4 hard-floor block (`IF hard_floor_applies(...): ... RETURN`), before the autonomy_enabled kill switch. The new guard:
+   ```
+   IF ticket_action_type == "close" AND verdict.disposition NOT IN {"FP", "BTP"}:
+     WRITE audit "CLOSE-DISPOSITION-DENY: close authorized only for FP/BTP disposition,
+       got '<disposition>'; verdict Write denied by disposition-guard (D-025/D-023/P20-001)"
+     emit deny(structured corrective reason: ticket_action_type=close requires
+       verdict.disposition ∈ {FP, BTP}; a TP or Indeterminate MUST NOT be auto-closed;
+       re-issue with a non-close ticket_action_type appropriate for this disposition)
+     RETURN
+   ```
+   Gate fires regardless of `autonomy_enabled` (fires before STEP 5). Reference: D-025/D-023/P20-001.
+
+2. **Update the STEP 6 close branch**: the existing disposition check (`IF verdict.disposition NOT IN {"FP", "BTP"}`) at the top of the `ELIF action=="close"` branch MUST be annotated as **defense-in-depth only** (not the authoritative gate). Add a comment clarifying: "AUTHORITATIVE gate is STEP 4b (D-025). This check is retained as defense-in-depth. By construction this branch is only reached when disposition∈{FP,BTP}."
+
+3. **Update STEP 5 comment**: update the comment preceding the `autonomy_enabled` kill switch to acknowledge that close+non-FP/BTP verdicts have already been handled at STEP 4b and will not reach STEP 5.
+
+4. **Fix the v1.21 self-contradiction**: remove or annotate all BC-3.03.001 text that still asserts "CLOSE-DISPOSITION-DENY fires as FIRST check in the close branch" — after D-025, the authoritative check is at STEP 4b, not in the close branch. Retain the close-branch check description with a "defense-in-depth" qualifier.
+
+5. **Emitter invariant narrative update**: update BC-3.03.001 Invariant #4 / security narrative to state: "STEP 4b close-disposition guard (D-025) fires before STEP-5 kill switch — a TP/Indeterminate close is denied regardless of autonomy_enabled."
+
+---
+
+### 8.34.2 PO — BC-10.01.001 (monitoring-loop): D-026 orphan-link rule + EC-022 allocation
+
+**Required change 1 — EC-022 allocation (P20-002):**
+- Allocate **EC-022** as the next free edge case in BC-10.01.001 (after EC-021). EC-022 encodes: "close issued: disposition∈{FP,BTP} AND hard_floor_applies()=false AND autonomy_enabled=true (full 3-condition AND authorizing auto-close)."
+- Add EC-022 to BC-10.01.001's edge-cases table / §3.4 auto-close authorization section.
+- Do NOT modify EC-013 (which is the "Closed ticket same-root-cause → create+link, D-022 rule 4" case and has nothing to do with auto-close).
+- Update any BC-10.01.001 text that states "close issued when autonomy_enabled=true and not hard-floor" to add "AND disposition∈{FP,BTP}" as the first condition, and cite EC-022.
+
+**Required change 2 — D-026 orphan-link recovery rule:**
+- Add a new §3.4 dedup evaluation rule with explicit precedence over rule 1 ("duplicate-open → comment"). Suggested placement: add as a numbered "rule 0" or "pre-rule" checked before rule 1:
+
+  > **§3.4 orphan-link recovery (D-026, evaluated before rule 1):** If an open ticket O exists for the current alert's root cause AND a Closed/Resolved ticket C exists for the same root cause AND no "Relates" link exists between O and C → issue a **link-only verdict** (ticket_action_type=link, ticket_id=O, link_target_ticket_id=C). Do NOT comment on O. Do NOT re-create a ticket. When this rule fires, rule 1 does NOT apply.
+
+- Specify the Jira query requirement: the loop MUST query for the Relates link between O and C as part of the §3.4 dedup pass. If the link already exists (idempotent check), this rule does not fire.
+- Cross-reference Stage-8 link-path (line ~627–636 in current v1.22): annotate the orphan reconciliation description there to reference this rule as the recovery mechanism and cite D-026.
+- Update Stage-8 item 3 text ("on a subsequent loop run, when §3.4 dedup finds an open ticket lacking the expected Relates link") to reference the new §3.4 rule as the mechanism (the current text describes the behavior but does not provide a rule that implements it — D-026 fills this gap).
+
+---
+
+### 8.34.3 FV — VP/SM obligations (D-025/D-026/P20-002)
+
+> **Do NOT mint VP or SM IDs here.** FV allocates IDs with occupancy verification in
+> verification-delta. Use the next-free IDs after SM-66 / VP-HOOK-036 occupancy check.
+
+1. **D-025 gate-placement VP update (P20-001)**: update VP-HOOK-035 (or the VP allocated per §8.33.4 item 1) to reflect the hoisted gate placement. The VP property must assert:
+   - A verdict with ticket_action_type=close AND disposition∉{FP,BTP} is DENIED with CLOSE-DISPOSITION-DENY audit entry **regardless of autonomy_enabled** (assert both autonomy_enabled=true and autonomy_enabled=false variants — the gate must fire for BOTH).
+   - Test the `autonomy_enabled=false` variant explicitly: this was the unreachable path in v1.21; D-025 makes it reachable.
+   - Paired mutant: "remove STEP 4b close-disposition guard (leave only the STEP-6 defense-in-depth check)" → assert that a TP verdict with ticket_action_type=close, scored_priority=LOW, autonomy_enabled=**false** now receives allow-without-marker instead of CLOSE-DISPOSITION-DENY → mutant dies when STEP 4b is present. This is the PRECISE defect that D-025 fixes; the mutant must verify the exact failure mode.
+
+2. **D-026 orphan-link predicate VP (P20-003)**: update or extend VP-HOOK-036 (or the VP allocated per §8.33.4 item 2). The VP property must now assert the concrete D-026 predicate:
+   - When §3.4 dedup on a subsequent loop run finds: open ticket O (same root cause) AND closed ticket C (same root cause) AND no Relates(O,C) link → the loop emits a link-only verdict (ticket_action_type=link, ticket_id=O, link_target_ticket_id=C); no comment is appended to O; O is NOT re-created.
+   - Negative assertion: rule 1 (duplicate-open → comment) does NOT fire when the D-026 orphan-link rule fires.
+   - Idempotency assertion: if a Relates(O,C) link already exists, the D-026 rule does not fire (proceeds to rule 1 evaluation).
+   - Paired mutant: "remove the D-026 orphan-link recovery rule from §3.4 dedup evaluation" → assert that after a crash between verdict-1 and verdict-2, the second loop run produces a comment on O (rule 1 misrouting) instead of a link verdict → mutant dies when D-026 rule is present.
+
+3. **EC-022 VP coverage**: ensure VP-HOOK-035 or an adjacent VP cites EC-022 (not EC-013) as the BC anchor for the close 3-condition AND. Update any VP that currently cites "EC-013 = close 3-condition AND" in verification-delta — this is the mis-anchor identified by P20-002.
+
+---
+
+*Pass-20 propagation list (§8.34) complete. Architecture-delta v1.22 is final for pass-20
+remediation burst 17. D-025 (close-disposition gate hoisted to STEP 4b — P20-001 MAJOR):
+gate placement fixed; STEP 4b inserted before STEP 5; STEP-6 defense-in-depth retained;
+narrative contradiction resolved. D-026 (orphan-link reconciliation — P20-003 MEDIUM):
+stateless §3.4 rule with rule-1 precedence adopted; predicate specified; VP-HOOK-036 updated.
+P20-002 (EC-013 anchor — MEDIUM): §8.33.2 item 1 corrected; EC-022 designated for the close
+3-condition AND. Architect does NOT edit BCs, verification-delta, prd-delta, spec-changelog,
+or STATE.md.*

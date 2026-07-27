@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.28"
+version: "1.29"
 status: draft
 producer: product-owner
 timestamp: 2026-07-20T00:00:00
@@ -15,7 +15,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-03
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-501-ADV-0-507-2026-07-19", "v1.3-ADV-0-605-ADV-0-606-2026-07-19", "v1.4-ADV-0-B01-2026-07-19", "v1.5-RESYNC-PR17-2026-07-19", "v1.6-D-DEC-001-ICD-203-2026-07-20", "v1.7-FV-VP-HOOK-025-FINALIZED-2026-07-20", "v1.8-ADV-F2-001-003-004-016-2026-07-20", "v1.9-ADV-F2-P2-001-emitter-ordering-2026-07-20", "v1.10-ADV-F2-P3-001-002-003-011-2026-07-20", "v1.11-FV-VP-026-025-ANCHORS-2026-07-20", "v1.12-P4-001-P4-002-P4-005-P4-006-D-DEC-012-2026-07-21", "v1.13-FV-VP-028-025-026-029-ANCHORS-2026-07-21", "v1.14-ADV-F2-P5-001-P5-002-P5-003-2026-07-21", "v1.15-ADV-F2-P6-001-P6-002-2026-07-21", "v1.16-ADV-F2-P7-001-2026-07-21 [SM-ID-sync per FV]", "v1.17-ADV-F2-P8-001-OBS-2-2026-07-21", "v1.18-ADV-F2-P10-001-P10-003-P10-004-P10-008-2026-07-22 [ID-sync per FV]", "v1.19-ADV-F2-P11-001-P11-002-P11-003-P11-004-2026-07-22 [ID-sync per FV]", "v1.20-ADV-F2-P12-001-P12-002-P12-003-2026-07-22 [ID-sync per FV]", "v1.21-ADV-F2-P13-001-002-003-004-2026-07-22 [ID-sync per FV]", "v1.22-ADV-F2-P14-004-garbled-test-vector-parenthetical-2026-07-22", "v1.23-ADV-F2-P15-002-evidence-types-18field-2026-07-22", "v1.24-ADV-F2-P16-003-pc1-vphook028-18field-2026-07-22", "v1.25-CV-010-evidence-types-path-dispatch-annotation-2026-07-23", "v1.26-ADV-F2-P17-003-EC-005-L814-markdown-no-comment-marker-2026-07-23", "v1.27-ADV-F2-P18-001-003-005-D-020-021-022-link-close-scope-2026-07-23", "v1.28-ADV-F2-P19-001-P19-003-D023-close-disposition-gate-emit-time-validation-2026-07-23"]
+modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-501-ADV-0-507-2026-07-19", "v1.3-ADV-0-605-ADV-0-606-2026-07-19", "v1.4-ADV-0-B01-2026-07-19", "v1.5-RESYNC-PR17-2026-07-19", "v1.6-D-DEC-001-ICD-203-2026-07-20", "v1.7-FV-VP-HOOK-025-FINALIZED-2026-07-20", "v1.8-ADV-F2-001-003-004-016-2026-07-20", "v1.9-ADV-F2-P2-001-emitter-ordering-2026-07-20", "v1.10-ADV-F2-P3-001-002-003-011-2026-07-20", "v1.11-FV-VP-026-025-ANCHORS-2026-07-20", "v1.12-P4-001-P4-002-P4-005-P4-006-D-DEC-012-2026-07-21", "v1.13-FV-VP-028-025-026-029-ANCHORS-2026-07-21", "v1.14-ADV-F2-P5-001-P5-002-P5-003-2026-07-21", "v1.15-ADV-F2-P6-001-P6-002-2026-07-21", "v1.16-ADV-F2-P7-001-2026-07-21 [SM-ID-sync per FV]", "v1.17-ADV-F2-P8-001-OBS-2-2026-07-21", "v1.18-ADV-F2-P10-001-P10-003-P10-004-P10-008-2026-07-22 [ID-sync per FV]", "v1.19-ADV-F2-P11-001-P11-002-P11-003-P11-004-2026-07-22 [ID-sync per FV]", "v1.20-ADV-F2-P12-001-P12-002-P12-003-2026-07-22 [ID-sync per FV]", "v1.21-ADV-F2-P13-001-002-003-004-2026-07-22 [ID-sync per FV]", "v1.22-ADV-F2-P14-004-garbled-test-vector-parenthetical-2026-07-22", "v1.23-ADV-F2-P15-002-evidence-types-18field-2026-07-22", "v1.24-ADV-F2-P16-003-pc1-vphook028-18field-2026-07-22", "v1.25-CV-010-evidence-types-path-dispatch-annotation-2026-07-23", "v1.26-ADV-F2-P17-003-EC-005-L814-markdown-no-comment-marker-2026-07-23", "v1.27-ADV-F2-P18-001-003-005-D-020-021-022-link-close-scope-2026-07-23", "v1.28-ADV-F2-P19-001-P19-003-D023-close-disposition-gate-emit-time-validation-2026-07-23", "v1.29-ADV-F2-P20-001-D025-STEP4b-close-disposition-hoist-2026-07-27"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -27,6 +27,7 @@ removal_reason: null
 # Behavioral Contract BC-3.03.001: disposition-guard Hook — Alternatives-Required Gate and ICD-203 Validator / Marker Emitter
 
 > **Revision history:**
+> - v1.29 (2026-07-27): Pass-20 adversarial remediation — ADV-F2-P20-001 (MAJOR, D-025 STEP 4b hoist). **P20-001/D-025 — Close-disposition gate hoisted to STEP 4b (before STEP 5 kill switch):** D-023's gate was structurally unreachable when `autonomy_enabled=false` — a TP+close verdict exits at STEP 5 allow-without-marker before reaching STEP 6 close branch. D-025 resolves by inserting STEP 4b between STEP 4 and STEP 5: `IF action == "close" AND verdict.disposition NOT IN {"FP","BTP"} → CLOSE-DISPOSITION-DENY RETURN`. STEP 6 close branch D-023 check RETAINED as defense-in-depth only (annotated accordingly). STEP 5 comment updated to reference D-025/STEP 4b — kill switch now fires exclusively for regular-action, non-hard-floor, coherent verdicts. Generation table close row updated: STEP 4b is authoritative gate; STEP 6 check is defense-in-depth. ADV-F2-P20-001, D-025.
 > - v1.28 (2026-07-23): Pass-19 adversarial remediation — ADV-F2-P19-001 (CRITICAL, D-023 disposition gate), ADV-F2-P19-003 (OBS, close-state emit-time validation + regex_escape). (1) **P19-001/D-023 (CRITICAL) — Disposition gate added as FIRST check in close branch:** `ticket_action_type=close` is an LLM-supplied routing field granting a state-change control (O3 standing rule); D-023 requires hook-side enforcement cross-validating `verdict.disposition∈{FP,BTP}` before any close marker issuance. Gate fires REGARDLESS of `autonomy_enabled` — a TP or Indeterminate verdict MUST NOT be auto-closed. If `verdict.disposition` not in {FP,BTP}: `CLOSE-DISPOSITION-DENY` audit entry written + emit deny with structured corrective reason; RETURN before ticket_id/close_state checks. Note: Indeterminate+close → STEP 4 UNDER-LABEL-DENIED fires FIRST (before STEP 6 close branch; Indeterminate is a hard floor with "close" as under-label token); D-023 gate fires for verdicts reaching STEP 6 (e.g., TP+LOW scored_priority). (2) **P19-003/D-023 (OBS) — Emit-time CLOSE_STATE_ALLOWLIST re-check + default="Done" + regex_escape(close_state):** `jira_close_state` default explicitly set to "Done" (fail-safe; "Done" ∈ CLOSE_STATE_ALLOWLIST). After ticket_id charset check: emit-time re-check of `close_state` against `CLOSE_STATE_ALLOWLIST={Done,Closed,Resolved}` (belt-and-suspenders against config drift); if not allowlisted → `CLOSE-STATE-DENY` audit entry + emit deny; RETURN. `close_state_safe = regex_escape(close_state)` (O7 site 9); `ticket_id_safe = regex_escape(ticket_id)` (renamed from reassignment for clarity); pattern uses `ticket_id_safe + " " + close_state_safe`. O7 site count updated 8→9. (3) **Canonical test vectors:** FP+close happy-path updated to show D-023 gate passing; new vectors: TP+close+LOW+autonomy=true → CLOSE-DISPOSITION-DENY; Indeterminate+close → STEP 4 UNDER-LABEL-DENIED (fires before close branch); close_state not in allowlist → CLOSE-STATE-DENY. (4) **Generation table close row updated:** D-023 gate noted as FIRST check; P19-003 emit-time validation noted; 3-condition AND explicit. ADV-F2-P19-001, ADV-F2-P19-003, D-023.
 > - v1.27 (2026-07-23): Pass-18 adversarial remediation — ADV-F2-P18-001 (MAJOR, link scope), ADV-F2-P18-003 (MAJOR, close scope), ADV-F2-P18-005 (MAJOR, O7 interpolation audit update). (1) **P18-001/D-020 — link scope added:** `"link"` added to `ACTION_ENUM` and `authorized_operations`; new STEP 6 link branch: validates `ticket_id` (KEY1) + `link_target_ticket_id` (KEY2) against `^[A-Z][A-Z0-9]+-[0-9]+$` (O7 sites 3+8); LINK-TARGET-MISSING deny if `link_target_ticket_id` absent; LINK-TARGET-CHARSET-DENY if KEY2 fails charset; pattern `^jr (--output json )?issue link <ticket_id> <link_target_ticket_id>( |$)` (no `--type` arg — default "Relates" per D-020; link_type is NOT loop-supplied). Marker schema v2.2: `link_target_ticket_id` field added (non-null for `["link"]` scope; null for all other scopes). (2) **P18-003/D-021 — close scope added:** `"close"` added to `ACTION_ENUM` and `authorized_operations`; new STEP 6 close branch: validates `ticket_id` against `^[A-Z][A-Z0-9]+-[0-9]+$` (O7 site 4); `jira_close_state` from CONFIG (CLOSE_STATE_ALLOWLIST={Done,Closed,Resolved}, validated at setup, NOT verdict-influenceable); pattern `^jr (--output json )?issue move <ticket_id> <jira_close_state>( |$)`. **CLOSE security gating (D-021):** close is REGULAR scope (not review-exempt); `hard_floor_applies()`=true (scored_priority ∈ {HIGH,CRIT}) → STEP 4 DENY-THE-WRITE fires before STEP 6 is reached; `autonomy_enabled=false` → STEP 5 kill switch. A HIGH/CRIT verdict is NEVER auto-closed. No known-FP/close bypass to `hard_floor_applies()`. (3) **P18-005/O7 — interpolation audit updated to 8 sites:** O7 site count updated from 5 to 8 in security note; sites 3 (link KEY1 ticket_id), 4 (close ticket_id), and 8 (link KEY2 link_target_ticket_id) added. ADV-F2-P18-001, ADV-F2-P18-003, ADV-F2-P18-005.
 > - v1.26 (2026-07-23): Pass-17 adversarial remediation — P17-003 (MAJOR, stale MARKDOWN_COMMENT_PATH residue in EC-005 and L814 canonical test vector). (1) **EC-005 rewritten (P17-003):** The pre-P13-001 text described "marker written … scope determined by ticket_action_type content if present; defaults to comment-scoped for investigation files" — two errors: (a) MARKDOWN_COMMENT_PATH was eliminated at P13-001 so no autonomous comment marker is ever issued from the markdown path; (b) `ticket_action_type` does not exist on the 12-field markdown path (verdict-only field, PC#1 path). Rewritten to post-P13-001 behavior: GATE 1 (autonomy_enabled absent/≠true — the common human-save case) → allow-without-marker for ALL dispositions; autonomy_enabled=true masquerade: FP → allow-without-marker (MARKDOWN_COMMENT_PATH eliminated, P13-001); non-FP/PARSE_FAIL → MARKDOWN_REVIEW_PATH (create-review/comment-review review marker, EXEMPT from kill switch); NO autonomous ["comment"] marker from the markdown path. (2) **Canonical test vector row at L814 rewritten (P17-003):** The "happy-path (v1.10 EMITTER)" row asserted "marker file written (comment-scoped, ticket-bound pattern)" for a TP investigation markdown — this contradicted the correct sibling vector at L835 (TP + autonomy=true → MARKDOWN_REVIEW_PATH comment-review marker) and asserted the retired comment-marker behavior. Rewritten: autonomy_enabled absent (common human-save case) + TP investigation markdown → allow-without-marker (NO marker), consistent with GATE 1 semantics. The two vectors (L814 autonomy-absent / L835 autonomy=true) now cover distinct, consistent cases. ADV-F2-P17-003.
@@ -446,11 +447,31 @@ removal_reason: null
      }))
      RETURN
 
+   # ── STEP 4b: close-disposition early guard (D-025/D-023/P20-001) [HOISTED — fires BEFORE STEP 5] ──
+   # O3 standing rule: authorization controls must be structurally earlier than paths that
+   # would otherwise route around them. With D-023's gate inside STEP 6 close branch,
+   # a TP+close verdict with autonomy_enabled=false exits at STEP 5 allow-without-marker,
+   # never reaching the D-023 gate (P20-001 MAJOR). D-025 hoists the gate to STEP 4b so
+   # it fires BEFORE the kill switch — for ALL autonomy_enabled values.
+   IF action == "close" AND verdict.disposition NOT IN {"FP", "BTP"}:
+     WRITE audit entry:
+       "CLOSE-DISPOSITION-DENY: close authorized only for FP/BTP disposition, got '" +
+       verdict.disposition + "'; verdict Write denied by disposition-guard (D-025/D-023/P20-001)"
+     emit deny(
+       "CLOSE-DISPOSITION-DENY: ticket_action_type=close is an LLM-supplied routing field " +
+       "granting a state-change control; hook-computed invariant requires " +
+       "verdict.disposition ∈ {FP, BTP}. Got disposition='" + verdict.disposition + "'. " +
+       "A TP or Indeterminate verdict MUST NOT be auto-closed. " +
+       "Re-issue with a non-close ticket_action_type appropriate for this disposition."
+     )
+     RETURN
+
    # ── STEP 5: autonomy_enabled kill switch (ADV-F2-P4-005 MAJOR) [REORDERED AFTER HARD-FLOOR — ADV-F2-P6-002] ──
-   # ADV-F2-P6-002: After reorder, this STEP 5 is only reached for non-hard-floor verdicts.
-   # Hard-floor under-labeled verdicts (STEP 4 above) and correctly-labeled review verdicts
-   # (STEP 3 above) both exit before this point. The kill switch now fires exclusively for
-   # regular-action, non-hard-floor verdicts — the intended semantic.
+   # ADV-F2-P6-002/D-025: After reorder, this STEP 5 is only reached for non-hard-floor verdicts
+   # with valid disposition↔action coherence for close verdicts (STEP 4b caught incoherent closes).
+   # Hard-floor under-labeled verdicts (STEP 4 above) and review-path verdicts (STEP 3 above) both
+   # exit before this point. Incoherent close verdicts (disposition∉{FP,BTP}) exit at STEP 4b.
+   # The kill switch fires exclusively for regular-action, non-hard-floor, coherent verdicts.
    # autonomy_enabled is a NON-ICD-203 operational metadata field in the verdict JSON
    # (alongside jira_project_key and confidence_score). Disposition-guard reads it
    # directly from the verdict file (not delegated to the monitoring-loop LLM).
@@ -570,15 +591,11 @@ removal_reason: null
      link_target = ticket_id_b   # schema v2.2: stored in link_target_ticket_id marker field
 
    ELIF action == "close":
-     # ── D-023 (P19-001): DISPOSITION GATE — close ONLY for FP/BTP ────────────
-     # O3 standing rule: ticket_action_type=close is an LLM-supplied routing field granting
-     # a state-change control; MUST be cross-validated against hook-computed invariant
-     # verdict.disposition∈{FP,BTP} before taking effect (parallel to review-surfacing
-     # tokens cross-validated against hook-computed hard_floor_applies()).
-     # Gate fires REGARDLESS of autonomy_enabled — a TP/Indeterminate close is wrong
-     # even if the kill switch is ON. D-023 is close-branch-specific; hard_floor_applies()
-     # itself is NOT changed. Note: Indeterminate+close never reaches this gate — STEP 4
-     # UNDER-LABEL-DENIED fires first (Indeterminate is a hard floor; "close" is under-label).
+     # ── D-023 (P19-001) / D-025 (P20-001): DISPOSITION CHECK — DEFENSE-IN-DEPTH ONLY ─────────
+     # AUTHORITATIVE gate is STEP 4b (D-025/P20-001 hoist). The check below is RETAINED here
+     # only because STEP 4b guarantees that only close+FP/BTP verdicts reach this branch.
+     # Gate fires regardless of autonomy_enabled — structural guarantee provided by STEP 4b.
+     # Note: Indeterminate+close never reaches this gate — STEP 4 UNDER-LABEL-DENIED fires first.
      IF verdict.disposition NOT IN {"FP", "BTP"}:
        WRITE audit entry:
          "CLOSE-DISPOSITION-DENY: close authorized only for FP/BTP disposition, got '" +
@@ -753,7 +770,7 @@ removal_reason: null
    | `"create-review"` | `null` | `^jr (--output json )?issue create --project <jira_project_key> --label (REVIEW-REQUIRED\|BLIND-SPOT)( \|$)` (**ADV-F2-P6-001**: `--label (REVIEW-REQUIRED\|BLIND-SPOT)` in FIXED second position after `--project <key>`; structurally distinct from `["create"]` pattern; consumer STEP 6a enforces anti-fungibility in both directions; D-DEC-012 restricted marker; REQUIRES `hard_floor_applies()`=true — STEP 3 O3 gate (P5-002); over-labeled non-hard-floor verdict → emit allow without marker; exempt from kill switch; if `jira_project_key` null/absent → **HARD-FLOOR-UNBINDABLE deny (P8-001/D-DEC-012 clause 2: explicit error + deny; NEVER silent allow-without-marker)**) | `["create-review"]` | Step 3 |
    | `"comment-review"` | from verdict (non-null) | `^jr (--output json )?issue comment <ticket_id> ` (D-DEC-012: restricted human-surfacing marker; REQUIRES `hard_floor_applies()`=true — STEP 3 O3 gate (P5-002); over-labeled non-hard-floor verdict → emit allow without marker; exempt from kill switch; if `ticket_id` null → **HARD-FLOOR-UNBINDABLE deny (P8-001/D-DEC-012 clause 2: if jira_project_key present, fallback hint suggests create-review; NEVER silent allow-without-marker)**) | `["comment-review"]` | Step 3 |
    | `"link"` | KEY1 from verdict.ticket_id (non-null); KEY2 from verdict.link_target_ticket_id (required non-null — LINK-TARGET-MISSING deny if absent) | `^jr (--output json )?issue link <ticket_id> <link_target_ticket_id>( |$)` (D-020: no `--type` arg; default "Relates"; link_type NOT loop-supplied; both keys charset-validated `^[A-Z][A-Z0-9]+-[0-9]+$` + regex-escaped; O7 sites 3+8) | `["link"]` | Step 6 |
-   | `"close"` | from verdict.ticket_id (non-null); **D-023 disposition gate (P19-001): verdict.disposition MUST ∈ {FP,BTP} — checked FIRST in close branch before ticket_id; denies TP/Indeterminate as CLOSE-DISPOSITION-DENY; gate fires regardless of autonomy_enabled** | `^jr (--output json )?issue move <ticket_id_safe> <close_state_safe>( |$)` (D-021/D-023: `jira_close_state` CONFIG-driven from CLOSE_STATE_ALLOWLIST={Done,Closed,Resolved}; default="Done"; NOT verdict-influenceable; validated at setup AND re-checked at emit time (P19-003 belt-and-suspenders); O7 site 4 (ticket_id_safe) + O7 site 9 (close_state_safe, regex_escaped); REGULAR scope: hard_floor_applies()=true (scored_priority ∈ {HIGH,CRIT}) → STEP 4 DENY-THE-WRITE fires before close branch; autonomy_enabled=false → STEP 5 kill switch; ONLY issued when disposition∈{FP,BTP} AND hard_floor_applies()=false AND autonomy_enabled=true) | `["close"]` | Step 6 |
+   | `"close"` | from verdict.ticket_id (non-null); **D-025/D-023 disposition gate (P20-001/P19-001): verdict.disposition MUST ∈ {FP,BTP} — AUTHORITATIVE gate is STEP 4b (D-025 hoist, fires BEFORE STEP 5 kill switch for ALL autonomy_enabled values); STEP 6 close branch check retained as defense-in-depth only; denies TP/Indeterminate as CLOSE-DISPOSITION-DENY** | `^jr (--output json )?issue move <ticket_id_safe> <close_state_safe>( |$)` (D-021/D-023: `jira_close_state` CONFIG-driven from CLOSE_STATE_ALLOWLIST={Done,Closed,Resolved}; default="Done"; NOT verdict-influenceable; validated at setup AND re-checked at emit time (P19-003 belt-and-suspenders); O7 site 4 (ticket_id_safe) + O7 site 9 (close_state_safe, regex_escaped); REGULAR scope: hard_floor_applies()=true (scored_priority ∈ {HIGH,CRIT}) → STEP 4 DENY-THE-WRITE fires before close branch; autonomy_enabled=false → STEP 5 kill switch; ONLY issued when disposition∈{FP,BTP} AND hard_floor_applies()=false AND autonomy_enabled=true) | `["close"]` | Step 6 |
 
    > **Previous (v1.10) create pattern:** `^jr (--output json )?issue create .*--project <jira_project_key>` (unbounded `.*` before `--project` allowed injection; no trailing boundary). **Previous (v1.10) table:** No `create-review` or `comment-review` rows; `"none"` had no semantic qualification.
 

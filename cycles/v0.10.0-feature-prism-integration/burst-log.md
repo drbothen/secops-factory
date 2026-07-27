@@ -11,6 +11,17 @@ are archived here when the 5-row limit is reached.
 
 ---
 
+## Archived Step: F2 pass-19 remediation burst 16 (rotated 2026-07-27)
+
+| Field | Value |
+|-------|-------|
+| **Step** | F2: pass-19 remediation burst 16 |
+| **Agent** | architect / product-owner / formal-verifier / state-manager |
+| **Status** | DONE |
+| **Output** | D-023 close disposition gate: `disposition∈{FP,BTP}` FIRST check in close branch; fires regardless of `autonomy_enabled`; TP MUST NOT be auto-closed; EC-013 3-condition AND restored. D-024 §3.4 rule-2 = create+link (HUMAN DECISION 2026-07-23; parallel to rule 4). Orphan-link reconciliation spec (SM-68 [ID-sync per FV] / VP-HOOK-036 extended). BC-3.03.001 v1.27→v1.28, BC-10.01.001 v1.21→v1.22, BC-4.02.001 v1.13→v1.14. arch-delta v1.21, verif-delta v1.21, prd-delta v1.18→v1.19. SM-66/SM-67/SM-68 allocated [ID-sync per FV]. VP count 41 / SM count 61. Clean streak 0/3. |
+
+---
+
 ## Burst 0: Cycle Init + Environment Check (2026-07-19 → 2026-07-20)
 
 **Steps archived from STATE.md Current Phase Steps:**

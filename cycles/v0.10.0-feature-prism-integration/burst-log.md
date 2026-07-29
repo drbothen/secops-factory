@@ -11,6 +11,14 @@ are archived here when the 5-row limit is reached.
 
 ---
 
+## Archived Step: F2 pass-24 remediation burst 21 (rotated 2026-07-29)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-24 remediation burst 21 | architect / product-owner / formal-verifier / state-manager | DONE | P24-001: EMIT_LINK_MARKER invocation model fixed — positional $1, marker vars global (bash-faithful), WRITE_MARKER invoked directly as final statement, call sites 'EMIT_LINK_MARKER true|false; RETURN'; contradiction (call/return vs fall-through) eliminated; SM-74 mechanism wording synced, remains killable. P24-002: O7 site 10 — resolved_project_key emit-time charset re-check (^[A-Z][A-Z0-9]+$) → LINK-PROJECT-KEY-CHARSET-DENY + regex_escape defense-in-depth; active O7 sites now 9; SM-76 allocated (distinct from SM-75: gate-present-but-input-corruptible vs gate-absent); Gate-2 grep adjudicated NO-CHANGE (binding/charset denies are input-validation, not silent-escalation-drop signals). P24-003: L1107 REGULAR-link happy-path vector org-binding config precondition pinned. P24-004: dtu tp-close-denied pinned scored_priority∈{LOW,MED} + hard-floor companion note. P24-005: D-026 stable-key residual note (arch-delta). P24-006 → DI-017. Versions: BC-3.03.001 v1.33, BC-10.01.001 v1.27, arch-delta v1.26, verif-delta v1.26, prd-delta v1.24, dtu-assessment v1.5. VP 41 / SM 69 alloc (68 live) / ~443 tests. NOTE: verif-delta §5 per-BC test-count breakdown lags (pre-existing; assigned to version-coherence sweep). Clean streak 0/3. |
+
+---
+
 ## Archived Step: F2 adversarial pass 23 (rotated 2026-07-29)
 
 | Step | Agent | Status | Output |

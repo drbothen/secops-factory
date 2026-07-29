@@ -1,10 +1,11 @@
 ---
 document_type: architecture-delta
 producer: architect
-version: "1.28"
+version: "1.29"
 date: 2026-07-29
 input-hash: COMPUTE-AT-COMMIT
 changelog:
+  - "1.29 (2026-07-29): Pass-27 adversarial remediation burst 24. P27-001 (MAJOR): structural-deny vs disposition-value-parse distinction drawn. D-029 item-1 rewritten: an investigation-*.md Write that FAILS structural ICD-203 completeness (missing any of the 12 required headings, missing Alternatives-Considered, or failing charset validation) → structural DENY (EC-004/EC-010 semantics; disposition-guard side) — fully consistent with D-029, which scopes save-always-succeeds to DISPOSITION and HARD-FLOOR reasons only. DISPOSITION-VALUE parse failure (all 12 headings present but disposition value non-canonical, e.g. 'probably TP') → PARSE_FAIL on the value → allow + MARKDOWN_REVIEW_PATH routing (safe direction). D-029 rationale restated: 'Document-Before-Action means a STRUCTURALLY COMPLETE investigation is never denied for its disposition/technique/sensor content; structural completeness itself remains gated, enforced consistently by both disposition-guard (EC-010) and the enrichment-completeness hook (BC-3.02.001 PC#3).' Key guarantee #1 updated: 'complete or incomplete' removed; 'structurally complete' qualifier added; structural completeness gates explicitly retained. Routing outcomes table header annotated: table applies only to Writes that have passed the structural completeness gate. PARSE_FAIL row split: (a) value-only PARSE_FAIL → allow + MARKDOWN_REVIEW_PATH; (b) structural incompleteness → structural DENY (pre-table). Note for PO: BC-5.01.001 Inv#7 'always succeeds for ALL dispositions' absolute phrasing and BC-4.02.001 PC#4 absolute phrasing must be re-scoped to 'no disposition-/hard-floor-based deny; structural ICD-203 completeness + Alternatives-Considered + charset guards retained and can still deny.' BC-3.03.001 PC#2/EC-004/EC-010 already say structural deny — they are correct; the fix is aligning the arch-delta D-029 item 1, BC-5.01.001 Inv#7, and BC-4.02.001 PC#4 to them. P27-002 (MEDIUM): WRITE_MARKER made path-aware. Markdown review path enters WRITE_MARKER with undefined verdict fields (verdict.org_slug, recomputed_severity, verdict.disposition, verdict.asset_type — absent on 12-field markdown path). Path-specific variable setup defined at MARKDOWN_COMMENT_REVIEW_PATH / MARKDOWN_CREATE_REVIEW_PATH: is_markdown_path=true; org_slug = get_org_slug_from_config() (not verdict.org_slug — config/org context is the available source); markdown_parsed_disposition carries the parsed value (from parse_disposition_from_markdown, not verdict.disposition); recomputed_severity = null (no STEP 1a on markdown path); asset_type = null (absent from 12-field markdown). WRITE_MARKER updated with is_markdown_path-conditional field sources. link_target = ticket_id_b IF action=='link' ELSE null is already self-computing and correct on both paths (action is never 'link' on markdown path → link_target=null). P27-002 markdown-path marker-write-failure adjudication: FAIL-LOUD (MARKER-WRITE-FAILED deny) — (1) review-class markers (create-review/comment-review) must fail closed per P10-003/D-DEC-012 clause 2; (2) silent loss of a review escalation is the P10-003 harm class — an analyst's T1003/Indeterminate/TP finding would silently disappear from human review; (3) infrastructure-failure deny is DISTINCT from content/disposition deny — D-029's save-always-succeeds does not apply to infrastructure failures (disk full, permissions error); (4) BC-5.01.001 Inv#7 'MUST NOT be denied' must be scoped to no disposition-/hard-floor-based deny — infrastructure-failure denies were never in D-029's guarantee; (5) is_review_path = TRUE on markdown path (action ∈ {create-review, comment-review}) — the existing P10-003 MARKER-WRITE-FAILED logic at WRITE_MARKER already handles this correctly once undefined fields are resolved. PO note: BC-3.03.001 MARKDOWN_COMMENT_REVIEW_PATH / MARKDOWN_CREATE_REVIEW_PATH must add path-specific variable setup matching arch-delta v1.29 spec; delete false 'L565 initialized link_target' claim. P27-003 (OBS): parse_autonomy_enabled_from_markdown grammar annotated 'retained for defense-in-depth / P13-003 adversarial-masquerade detection only; NOT consulted in D-029 routing.' P27-004 (OBS): note for state-manager/FV — verification-delta §4 SM-catalog recap line (~L2822) stale-cites 'SM-9..SM-71' and should read SM-9..SM-78 (version-coherence; SM-78 was allocated at v1.28); FV obligation in §8.40. §8.40 propagation list added. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.28 (2026-07-29): Pass-26 adversarial remediation burst 23. P26-003 (MEDIUM — orchestrator adjudication: option a, ACCEPTED RESIDUAL): markdown-path kill-switch residual documented. The markdown path issues kill-switch-exempt create-review/comment-review markers WITHOUT hard_floor_applies() cross-validation (structurally impossible from a 12-field markdown — scored_priority/asset_type are absent); therefore autonomy_enabled=false does NOT suppress markdown-path review markers; an agent can masquerade findings as investigation-*.md (PARSE_FAIL trivially inducible) to mint review markers under the kill switch. Blast radius bounded to review surface only (create-review with REVIEW-REQUIRED label / comment-review comment — no close, no triage state change, no regular comment/create/assign/link); org-binding and O7 charset still apply; review tickets are human-facing by construction so abuse is self-surfacing; no hook-side dedup means repeated-save review-ticket flooding is part of the residual, with operator-visibility as compensating control. Cross-reference D-DEC-012 Option A (intended trade-off, extended by P22-001/D-029); asymmetry vs verdict-path STEP 3 O3 over-label gate is INHERENT (verdict has hook-recomputable fields; markdown does not). ACCEPTED RESIDUAL block added near key guarantees section; D-DEC-012 Inv#11/VP-SKILL-065 carve-out updated: accurate statement is zero REGULAR writes under autonomy_enabled=false (not zero all writes); review-surface writes from BOTH verdict path and markdown path remain live; D-029 Decision Summary Table annotated. P26-004 (MINOR): heading-anchored parse grammars added for three GATE 1/GATE 2 hard-floor reads in the Parse grammar specifications block, mirroring P13-003 discipline: disposition_section_contains('Indeterminate') → canonical Disposition heading value only (parse_disposition_from_markdown output); attack_techniques_contains_forbidden() → canonical Attack Techniques heading value list only; sensor_health_status_is() → canonical Sensor Health Status heading value only. Effect: markdown whose prose mentions 'Indeterminate' but whose Disposition heading is False Positive does NOT trip the floor. PO note to mirror into BC-3.03.001; FV note that VP-HOOK-031 gets a negative grammar vector. §8.39 propagation list added (PO: BC-3.03.001 PC#2 L98 rewrite to D-029 model with Previous-blockquote P26-001; L994 + BC-4.02.001 PC#4 qualified 'no deny' wording P26-002; grammar mirror P26-004; kill-switch residual note in BC-3.03.001 + BC-10.01.001 VP-SKILL-065 area; prd-delta EC-012 row fix P26-005. FV: VP-HOOK-031 negative grammar vector; residual doc check; stale-string sweep). Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.27 (2026-07-29): Pass-25 adversarial remediation burst 22. D-029 (P25-001 MAJOR — human decision 2026-07-29): markdown-path GATE 1/GATE 2 hard-floor DENIES eliminated — converted to ROUTING SIGNALS. The Write ALWAYS succeeds for any investigation-*.md (ALL dispositions, ALL techniques, ALL sensor states, ALL writers). Rationale: D-017 eliminated all autonomous markdown actions; the deny only ever blocked documentation; the hard floor's purpose (human sees it) is BETTER served by save+surface than by deny; consistent with Document-Before-Action and BC-5.01.001 Inv#7 / BC-4.02.001 PC#4. New routing model (disposition-routing-first per P22-001, unchanged): FP with NO markdown-evaluable hard floor → allow-without-marker (no Jira action authorized). Non-FP OR PARSE_FAIL OR any hard floor (Indeterminate disposition, forbidden techniques T1003/T1068/T1021/T1041, degraded/silent sensor) OR FP+hard-floor (hard floor wins) → allow the Write AND issue MARKDOWN_REVIEW_PATH review marker (create-review/comment-review, kill-switch exempt per D-DEC-012 Option A). Completeness adjudication: incomplete saves (< 12 fields / PARSE_FAIL) also succeed + route to review — denying a save loses the analyst's work. MARKDOWN-HARD-FLOOR audit code: retired as a DENY code; REPURPOSED as routing-annotation audit entry (written on routing trigger, no deny). MARKDOWN-HARD-FLOOR-UNBINDABLE: deny converted to allow-without-marker (Write succeeds; review marker cannot be issued without binding keys; audit entry retained). Updated: gating sequence, hard-floor step 2, pseudocode, 'If a floor fires' note, key guarantees, VP-HOOK-031 scope note. §8.38 propagation list added (PO: BC-3.03.001 markdown pseudocode + canonical vectors + BC-5.01.001 Inv#7 + BC-4.02.001 PC#4; FV: VP-HOOK-031 re-scope, SM-73 validity, new SM for 'hard-floor deny restored → analyst save denied', MARKDOWN-HARD-FLOOR code disposition; also P25-002 VP-HOOK-031 table row + SM-73 cite; P25-003 stale cross-version cites; P25-004 function-definition-order implementer note). Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.26 (2026-07-29): Pass-24 adversarial remediation burst 21. P24-001 (MEDIUM): EMIT_LINK_MARKER control-flow contradiction resolved — adopted bash-faithful invocation model: EMIT_LINK_MARKER is a shell function receiving is_hard_floor_link as positional arg $1 (verdict and recomputed_severity accessed as globals); function invokes WRITE_MARKER directly as its final statement (replaces GOTO WRITE_MARKER + contradictory END-FUNCTION frame + 'falls through' comment); call sites become `EMIT_LINK_MARKER true; RETURN` / `EMIT_LINK_MARKER false; RETURN`; marker variables including is_link_hard_floor set globally (no local qualifier — bash-visible to WRITE_MARKER). SM-74 kill-vector mechanism note updated: FV must confirm is_link_hard_floor=true reaches WRITE_MARKER via direct invocation (not GOTO or fall-through) and sets is_review_path=TRUE. §8.36.1 item 6 corrected: PO instruction updated from 'fall through to WRITE_MARKER' to 'invoke WRITE_MARKER directly as final statement'. P24-002 (MEDIUM): O7 site 10 — emit-time charset re-validation of resolved_project_key. Inside EMIT_LINK_MARKER, after read_org_project_key() and null check and BEFORE regex construction: (a) re-validate resolved_project_key against ^[A-Z][A-Z0-9]+$ — non-conformant → LINK-PROJECT-KEY-CHARSET-DENY audit code + deny (fail-closed; mirrors close_state three-layer treatment; corrective reason points at config); (b) regex_escape(resolved_project_key) already present — explicitly labeled defense-in-depth, no-op after (a) passes but guards drift. O7 inventory updated: site 10 = resolved_project_key (1 site: EMIT_LINK_MARKER org-binding regex construction, CONFIG-side); total active O7 sites: 9. FV obligation: SM for malformed resolved key → broadened binding regex must be denied. P24-005 (OBS): D-026 stable-key spec note added to D-026 decision record — D-026 self-healing assumes stable per-org jira_project_key; after project re-key, historical Closed/Resolved tickets carry old prefix; org-binding denies recovery link with LINK-PROJECT-BINDING-DENY; operator remediation is manual linking or config-driven allowance; accepted bounded residual. §8.37 propagation list added (P24-001/P24-002/P24-005 obligations for PO + FV). dtu-assessment bumped to v1.5 (separate artifact — P24-004 tp-close-denied scored_priority pinning). PO obligation (P24-003, BC owner): BC-3.03.001 regular-link happy-path vector L1107 must add org-binding precondition (config: resolved_project_key=SEC) to match the D-028 gate that fires on both entry paths. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
@@ -2155,9 +2156,29 @@ FUNCTION EMIT_LINK_MARKER(is_hard_floor_link):
 END FUNCTION EMIT_LINK_MARKER
 
 # ── WRITE_MARKER: common path for all marker types ────────────────────────────────────────
-# Non-link paths reach here via GOTO WRITE_MARKER from STEP 3 (create-review/comment-review)
-# and STEP 6 (comment/create/assign/close). Link path: EMIT_LINK_MARKER invokes WRITE_MARKER
-# directly as its final statement (P24-001 — NOT a fall-through; NOT a GOTO; direct call).
+# Entry paths:
+#   Verdict emitter path: GOTO WRITE_MARKER from STEP 3 (create-review/comment-review)
+#     and STEP 6 (comment/create/assign/close). Link path: EMIT_LINK_MARKER invokes
+#     WRITE_MARKER directly as its final statement (P24-001 — NOT a fall-through; NOT a GOTO).
+#   Markdown review path (P27-002/v1.29): GOTO WRITE_MARKER from MARKDOWN_COMMENT_REVIEW_PATH
+#     or MARKDOWN_CREATE_REVIEW_PATH, AFTER the path-specific variable setup block (is_markdown_path=true,
+#     org_slug from config, markdown_parsed_disposition, recomputed_severity=null, asset_type=null).
+#
+# P27-002 PATH-AWARE FIELD SOURCES (v1.29):
+#   is_markdown_path is set to true ONLY on the markdown review path (MARKDOWN_COMMENT/CREATE_REVIEW_PATH).
+#   All non-markdown entry paths leave is_markdown_path unset (defaults false).
+#   Fields that differ by path:
+#     org_slug:               verdict path → verdict.org_slug
+#                             markdown path → get_org_slug_from_config() (set as org_slug before GOTO)
+#     disposition.verdict:    verdict path → verdict.disposition
+#                             markdown path → markdown_parsed_disposition (set before GOTO)
+#     disposition.severity:   verdict path → recomputed_severity (hook-recomputed, P10-001)
+#                             markdown path → null (STEP 1a absent; omit from marker disposition)
+#     disposition.asset_type: verdict path → verdict.asset_type (field 14)
+#                             markdown path → null (absent from 12-field markdown; omit)
+#     link_target:            both paths → ticket_id_b IF action=="link" ELSE null
+#                             (action is NEVER "link" on markdown path → link_target=null)
+#
 # P10-003: marker-write FAILURE is handled differently for review vs regular paths.
 # On the hard-floor review path (create-review/comment-review) AND the hard-floor link
 # path (D-028): a write failure MUST fail closed — WRITE audit entry MARKER-WRITE-FAILED
@@ -2166,15 +2187,32 @@ END FUNCTION EMIT_LINK_MARKER
 # Rationale: a silently-dropped hard-floor finding (no ticket, no error) contradicts D-DEC-012
 # fail-loud invariant. The regular path's allow-without-marker is safe because the absence of
 # a marker causes require-review to deny the Jira write — the human gate is preserved.
+# P27-002 markdown-path fail-closed: markdown review path → action ∈ {create-review,
+# comment-review} → is_review_path=TRUE → marker-write failure → MARKER-WRITE-FAILED deny
+# (same as verdict-path review markers; infrastructure-failure deny, not content deny;
+# fully consistent with D-029 — D-029 does not protect against infrastructure failures).
 # is_review_path is TRUE when:
 #   (a) GOTO WRITE_MARKER was from STEP 3 (create-review/comment-review), OR
-#   (b) action=="link" AND is_link_hard_floor==true (D-028 extension).
+#   (b) action=="link" AND is_link_hard_floor==true (D-028 extension), OR
+#   (c) GOTO WRITE_MARKER was from MARKDOWN_COMMENT_REVIEW_PATH / MARKDOWN_CREATE_REVIEW_PATH
+#       (P27-002: action ∈ {create-review, comment-review} on markdown path → (a) covers this).
 # For non-link paths, is_link_hard_floor is not set (defaults false).
 # is_link_hard_floor is set globally by EMIT_LINK_MARKER (P24-001; no local qualifier).
 WRITE_MARKER:
 expires_at = now() + 120s             # absolute expiry (schema v2.0)
-# D-020: link_target_ticket_id is populated only for action=="link"; null for all other scopes
+# D-020: link_target_ticket_id is populated only for action=="link"; null for all other scopes.
+# P27-002: self-computing form is path-agnostic — on markdown path, action is NEVER "link"
+#   so link_target = null (correct; no ticket_id_b is defined on the markdown path).
 link_target = ticket_id_b IF action == "link" ELSE null
+# P27-002 path-aware field assignment (v1.29):
+#   org_slug_field:      verdict path → verdict.org_slug; markdown path → org_slug (from config)
+#   disposition_verdict: verdict path → verdict.disposition; markdown path → markdown_parsed_disposition
+#   severity_field:      both paths → recomputed_severity (null on markdown path — STEP 1a absent)
+#   asset_type_field:    verdict path → verdict.asset_type; markdown path → null (absent)
+org_slug_field      = org_slug IF is_markdown_path ELSE verdict.org_slug
+disposition_verdict = markdown_parsed_disposition IF is_markdown_path ELSE verdict.disposition
+severity_field      = recomputed_severity             # null on markdown path; hook-recomputed on verdict path
+asset_type_field    = null IF is_markdown_path ELSE verdict.asset_type
 marker = {
   marker_id: generate_uuid(),
   issued_at_utc: now_iso8601(),
@@ -2182,14 +2220,14 @@ marker = {
   issued_by: "disposition-guard",
   ticket_id: ticket_id,
   link_target_ticket_id: link_target,  # schema v2.2: non-null only for ["link"] scope
-  org_slug: verdict.org_slug,
+  org_slug: org_slug_field,            # P27-002: path-aware; verdict.org_slug on verdict path; config on markdown path
   authorized_operations: ops,
   command_pattern: pattern,
   disposition: {
-    verdict: verdict.disposition,
-    severity: recomputed_severity,      # P10-001: hook-recomputed, not raw verdict.severity
-    asset_type: verdict.asset_type,     # field 14 — required for hard floor check
-    ticket_action_type: action          # for audit trail (includes link/close)
+    verdict: disposition_verdict,       # P27-002: path-aware; verdict.disposition OR markdown_parsed_disposition
+    severity: severity_field,           # P10-001: hook-recomputed on verdict path; null on markdown path (no STEP 1a)
+    asset_type: asset_type_field,       # field 14 on verdict path; null on markdown path (absent from 12-field markdown)
+    ticket_action_type: action          # for audit trail (includes link/close; create-review/comment-review on markdown)
   }
 }
 # D-028 (P23-001): is_review_path extended to cover hard-floor link path.
@@ -2236,7 +2274,7 @@ The investigation-markdown (12-field) path does NOT enter the verdict emitter ab
 minimal marker path. This is the authoritative model; any BC text claiming the investigation-
 markdown path "reaches the same emitter" is an authoring error (see PO obligation in §8.24).
 
-**Gating sequence (evaluated in order; ALL paths produce allow — D-029: the Write ALWAYS succeeds on this path):**
+**Gating sequence (evaluated in order; P27-001/v1.29 — structural gates DENY before routing; D-029 scopes save-always-succeeds to disposition/hard-floor reasons only; structural completeness gates are retained):**
 
 > **P22-001 REORDER:** The former step 1 (autonomy_enabled kill switch check) is REMOVED from
 > the upfront gating sequence. It was placed before disposition routing, making the D-DEC-012
@@ -2249,17 +2287,45 @@ markdown path "reaches the same emitter" is an authoring error (see PO obligatio
 > non-FP/PARSE_FAIL → MARKDOWN_REVIEW_PATH (exempt from kill switch per D-DEC-012 Option A).
 
 > **D-029 (P25-001, human decision 2026-07-29): Hard-floor steps are ROUTING SIGNALS only —
-> NOT deny conditions.** The Write ALWAYS succeeds for ANY investigation-*.md. Step 2 below
-> formerly produced a DENY (MARKDOWN-HARD-FLOOR); that deny is ELIMINATED. Hard floors now
-> set a routing flag that causes MARKDOWN_REVIEW_PATH to be taken — a human sees the finding
-> rather than losing it. See Decision Summary Table D-029 and §8.38 for rationale and
-> propagation obligations.
+> NOT deny conditions.** The Write ALWAYS succeeds for ANY investigation-*.md for DISPOSITION
+> and HARD-FLOOR reasons. Step 2 below formerly produced a DENY (MARKDOWN-HARD-FLOOR); that
+> deny is ELIMINATED. Hard floors now set a routing flag that causes MARKDOWN_REVIEW_PATH to
+> be taken — a human sees the finding rather than losing it. See Decision Summary Table D-029
+> and §8.38 for rationale and propagation obligations.
 
-1. **12-field completeness:** all 12 ICD-203 headings present (heading-anchored grep).
-   — **D-029 adjudication:** if headings are incomplete, `parse_disposition_from_markdown`
-   returns PARSE_FAIL. The Write STILL SUCCEEDS; PARSE_FAIL routes to MARKDOWN_REVIEW_PATH
-   (non-FP routing). Denying a save for incompleteness loses the analyst's work-in-progress;
-   review routing surfaces it to a human instead.
+> **P27-001 (v1.29) — D-029 scope correction:** D-029's save-always-succeeds guarantee is
+> scoped to DISPOSITION and HARD-FLOOR reasons. Structural ICD-203 completeness gates are NOT
+> eliminated by D-029. An investigation-*.md Write that is missing any of the 12 required
+> ICD-203 headings, OR missing Alternatives-Considered, OR failing charset validation →
+> **structural DENY** (EC-004/EC-010 semantics; disposition-guard side) — fully consistent
+> with D-029. Accurate D-029 rationale: "Document-Before-Action means a STRUCTURALLY COMPLETE
+> investigation is never denied for its disposition/technique/sensor content; structural
+> completeness itself remains gated (a 12-field investigation must actually have its 12 fields),
+> enforced consistently by both disposition-guard (EC-010) and the enrichment-completeness hook
+> (BC-3.02.001 PC#3 'deny from either wins')." A DISPOSITION-VALUE parse failure is distinct
+> from structural incompleteness — see gating step 1 below.
+
+1. **Structural ICD-203 completeness + Alternatives-Considered + charset (P27-001 — structural gate):**
+   All 12 ICD-203 headings present (heading-anchored grep), Alternatives-Considered heading
+   present, and charset validation passes.
+   — **P27-001 architect correction (v1.29): structural completeness failure = structural DENY.**
+   An investigation-*.md Write that FAILS this structural gate → **structural DENY**
+   (EC-004/EC-010 semantics; disposition-guard side). This is NOT a disposition-/hard-floor-
+   based deny and is fully consistent with D-029. The enrichment-completeness hook
+   (BC-3.02.001 PC#3 "deny from either wins") INDEPENDENTLY enforces the same gate; the
+   disposition-guard structural-deny is consistent with — and aligned to — that hook.
+   — **P27-001 distinction — structural DENY vs DISPOSITION-VALUE PARSE_FAIL:**
+   These are categorically different:
+   (a) **Structural incompleteness** (< 12 headings present, Alternatives-Considered absent,
+       charset fail) → **structural DENY** (EC-004/EC-010). The Write does NOT succeed. This
+       gate fires BEFORE the disposition routing logic below.
+   (b) **Disposition-VALUE PARSE_FAIL** (all 12 headings PRESENT, but the Disposition heading
+       value is non-canonical — e.g., "probably TP", unrecognized token, multi-valued, empty,
+       or token inside a code fence/evidence block) → `parse_disposition_from_markdown` returns
+       PARSE_FAIL on the VALUE, NOT the structure. The structural gate has already PASSED
+       (all 12 headings present). Result: **allow Write + MARKDOWN_REVIEW_PATH routing** (the
+       safe direction — a non-canonical value cannot obtain allow-without-marker).
+   — Only Writes that PASS the structural completeness gate reach the disposition routing table.
 
 2. **Markdown-evaluable hard floors (routing signal — NOT a deny):** check for (a) `Disposition:
    Indeterminate`, (b) any forbidden technique from {T1003, T1068, T1021, T1041} in the Attack
@@ -2283,14 +2349,27 @@ rule (P13-001/P22-001/D-029 — disposition routing runs FIRST, mirroring verdic
 STEP 5; hard_floor_triggered from step 2 above feeds the routing decision):
 
 ```
-# D-029: ALL investigation-*.md Writes succeed. permissionDecision is ALWAYS allow.
-# The only question is allow-without-marker vs. allow + MARKDOWN_REVIEW_PATH review marker.
+# D-029 (SCOPED — P27-001/v1.29): Writes that reach THIS point have already passed the
+# structural completeness gate (gating step 1). For those structurally complete Writes,
+# permissionDecision is ALWAYS allow — the only question is allow-without-marker vs.
+# allow + MARKDOWN_REVIEW_PATH review marker. Structural failures (< 12 headings,
+# missing Alternatives-Considered, charset fail) → structural DENY (EC-004/EC-010);
+# those Writes NEVER reach this routing pseudocode.
 
 parsed_disposition = parse_disposition_from_markdown(content)
 # Parse grammar: see "Parse grammar specifications (P13-003)" block below.
 # Returns exactly one of {"TP","FP","BTP","Indeterminate"} or PARSE_FAIL.
-# PARSE_FAIL on any ambiguous/multi-valued/missing/unrecognized value, or < 12 headings.
-# Safe direction: PARSE_FAIL → non-FP routing (review, not allow-without-marker).
+# P27-001 distinction — two categorically different PARSE_FAIL scenarios:
+#   (a) DISPOSITION-VALUE PARSE_FAIL: all 12 headings present; Disposition VALUE is
+#       non-canonical (ambiguous, multi-valued, unrecognized token, empty, or token
+#       inside code fence/evidence block). Structural gate PASSED; this is a value-only
+#       failure → allow Write + MARKDOWN_REVIEW_PATH (non-FP safe direction).
+#   (b) STRUCTURAL incompleteness (< 12 headings): this is NOT a PARSE_FAIL routing case —
+#       it is a structural DENY (EC-004/EC-010) enforced in gating step 1, BEFORE this
+#       pseudocode runs. If a Write reaches this point, structural validation has PASSED.
+# Safe direction for value-only PARSE_FAIL: PARSE_FAIL → MARKDOWN_REVIEW_PATH (review,
+# not allow-without-marker), so an adversarial markdown with a fake FP label in free text
+# cannot obtain allow-without-marker.
 #
 # P22-001: disposition routing runs FIRST (before any kill-switch check). This is the
 # correct ordering — it mirrors how verdict STEP 3 (review surfacing) runs before STEP 5
@@ -2340,6 +2419,12 @@ ELSE:
 
 **D-029 routing outcomes table (all rows produce permissionDecision: allow):**
 
+> **P27-001 (v1.29) — pre-table gate:** This table only applies to Writes that have PASSED
+> the structural completeness gate (gating step 1). Structural incompleteness (< 12 headings,
+> missing Alternatives-Considered, charset fail) → **structural DENY (EC-004/EC-010)** before
+> this table is evaluated. DISPOSITION-VALUE PARSE_FAIL (all headings present, value
+> non-canonical) → row 6 below (allow + MARKDOWN_REVIEW_PATH).
+
 | Disposition | hard_floor_triggered | Outcome | Jira action |
 |-------------|---------------------|---------|-------------|
 | FP | false | allow-without-marker | None authorized |
@@ -2347,11 +2432,12 @@ ELSE:
 | TP / BTP | false | allow + MARKDOWN_REVIEW_PATH | Review marker |
 | TP / BTP | true | allow + MARKDOWN_REVIEW_PATH | Review marker |
 | Indeterminate | true (floor: Indeterminate) | allow + MARKDOWN_REVIEW_PATH | Review marker |
-| PARSE_FAIL (any, incl. incomplete) | any | allow + MARKDOWN_REVIEW_PATH | Review marker |
+| PARSE_FAIL (value-only: all 12 headings present, value non-canonical) | any | allow + MARKDOWN_REVIEW_PATH | Review marker |
 | Any | any, ticket_id=null AND project_key=null | allow-without-marker (degraded) | None (MARKDOWN-HARD-FLOOR-UNBINDABLE audit entry) |
+| [Structural incompleteness: < 12 headings / missing Alternatives-Considered / charset fail] | N/A | **structural DENY (EC-004/EC-010)** — pre-table; Write denied | None (no marker issued) |
 
 Hard-floor wins over FP: FP+hard_floor_triggered=true → MARKDOWN_REVIEW_PATH (row 2).
-All rows produce `permissionDecision: allow`. No row produces deny.
+All rows in the routing table produce `permissionDecision: allow`. The structural-deny row (row 8) produces permissionDecision: deny — it fires BEFORE this table and is NOT a D-029 routing outcome.
 
 **Parse grammar specifications (P13-003):**
 
@@ -2362,6 +2448,13 @@ All rows produce `permissionDecision: allow`. No row produces deny.
 - Safe direction: PARSE_FAIL → MARKDOWN_REVIEW_PATH (review), not allow-without-marker, so an adversarial markdown embedding a fake FP label in free text cannot obtain allow-without-marker.
 
 `parse_autonomy_enabled_from_markdown(content)`:
+> **P27-003 (v1.29) annotation:** This grammar is retained for defense-in-depth / P13-003
+> adversarial-masquerade detection only. It is NOT consulted in D-029 routing. P22-001
+> removed autonomy_enabled from the markdown gating sequence; D-029 confirmed the removal.
+> The function serves as a guard against sophisticated masquerade attempts that embed a
+> valid autonomy_enabled field in a forged markdown (the parse grammar constrains how that
+> field can be read), but the D-029 disposition routing table above is the authoritative
+> routing decision — parse_autonomy_enabled_from_markdown output does not enter it.
 - Read ONLY from a dedicated structured field (e.g., `Autonomy Enabled: true/false` heading or a well-defined YAML frontmatter field). Do NOT scan the full document for the token `autonomy_enabled: true`.
 - Return `true` ONLY when the dedicated field contains exactly `true` (or canonical boolean-true form) as a top-level value.
 - Return `false` for: absent field, `false` value, empty value, ambiguous value, or the `autonomy_enabled: true` token appearing inside a code fence, evidence block, or quoted log line.
@@ -2421,6 +2514,41 @@ negative vector obligation for VP-HOOK-031.
 **Adversarial vectors (FV obligation — P13-003):** See §8.29 item 3.
 
 **MARKDOWN_COMMENT_REVIEW_PATH / MARKDOWN_CREATE_REVIEW_PATH (non-FP dispositions):**
+
+> **P27-002 (v1.29) — path-specific variable setup (required before WRITE_MARKER):**
+> The markdown path does NOT have a `verdict` object or STEP 1a outputs. Before entering
+> WRITE_MARKER, the following path-specific variables MUST be set:
+>
+> ```
+> # P27-002: markdown-path variable setup — REQUIRED before WRITE_MARKER
+> is_markdown_path   = true
+> # org_slug: source from config/org context (NOT verdict.org_slug — no verdict object)
+> org_slug           = get_org_slug_from_config()
+> #   Rationale: the same config lookup that yielded project_key also has org_slug context.
+> #   If unavailable from config, the marker's org_slug field is omitted (see WRITE_MARKER).
+> # disposition for audit trail: use markdown-parsed value (NOT verdict.disposition)
+> markdown_org_slug_field = org_slug   # alias for clarity in WRITE_MARKER
+> # recomputed_severity: ABSENT on markdown path — STEP 1a does not run
+> recomputed_severity = null
+> # asset_type: ABSENT on markdown path — not a field in the 12-field ICD-203 markdown
+> markdown_asset_type = null
+> # action: already set by the routing pseudocode above (create-review or comment-review)
+> # link_target: self-computing (ticket_id_b IF action=="link" ELSE null);
+> #   action is NEVER "link" on the markdown path → link_target = null (correct, no change)
+> ```
+>
+> **P27-002 marker-write-failure adjudication (markdown review path):** FAIL-LOUD — a
+> marker-write failure on the markdown review path → MARKER-WRITE-FAILED deny (identical to
+> the verdict-path P10-003 behavior). Rationale: (1) review-class markers (create-review/
+> comment-review) must fail closed per P10-003/D-DEC-012 clause 2, regardless of path; (2)
+> silent loss of a review escalation is the P10-003 harm class — an analyst's T1003/Indeterminate
+> finding would vanish from human review; (3) infrastructure-failure deny (disk full, permissions
+> error) is DISTINCT from content/disposition deny — D-029's save-always-succeeds does not
+> cover infrastructure failures; (4) BC-5.01.001 Inv#7 "MUST NOT be denied" must be read as
+> no disposition-/hard-floor-based deny, not no-deny-ever; (5) is_review_path = TRUE on this
+> path (action ∈ {create-review, comment-review}) → the existing P10-003 WRITE_MARKER logic
+> already handles fail-closed correctly once the path variables above are defined.
+
 - Construct the appropriate create-review or comment-review marker following the same
   STEP 3 logic (project_key charset-validation against `^[A-Z][A-Z0-9]+$`, ticket_id
   charset-validation against `^[A-Z][A-Z0-9]+-[0-9]+$`, regex-escape as defense-in-depth).
@@ -2461,17 +2589,30 @@ and §8.28.4.
 
 **If a markdown-evaluable floor fires (step 2 — D-029):** write audit annotation `MARKDOWN-HARD-FLOOR: <reason>; routed to review (D-029)` and set `hard_floor_triggered = true`. The Write ALWAYS SUCCEEDS. The hard floor is a routing signal — MARKDOWN_REVIEW_PATH is taken, ensuring a human sees the finding. The former deny behavior is eliminated.
 
-**Key guarantees (P11-004 + P12-001/P12-002/P13-001/P22-001/D-029 fixes applied):**
-1. An analyst who saves ANY investigation markdown — with ANY disposition (TP/FP/BTP/Indeterminate/
-   PARSE_FAIL), ANY techniques (including T1003/T1068/T1021/T1041), ANY sensor state (healthy/
-   degraded/silent), complete or incomplete — WILL have the Write succeed (NOT denied). This is the
-   Document-Before-Action invariant. D-029 (human decision 2026-07-29) eliminates ALL markdown-path
-   denies. The ONLY consequence of hard-floor conditions is routing to MARKDOWN_REVIEW_PATH rather
-   than allow-without-marker; the analyst's work is always preserved.
-   (P11-004 intent: analysts are not blocked. P13-001: the autonomous comment marker is removed;
-   the analyst surfaces findings via the review path or the normal 18-field verdict flow.
-   D-029: the hard-floor deny that P25-001 identified is removed; BC-5.01.001 Inv#7 /
-   BC-4.02.001 PC#4 'MUST NOT be denied' contract is now structurally satisfied.)
+**Key guarantees (P11-004 + P12-001/P12-002/P13-001/P22-001/D-029 + P27-001/P27-002 fixes applied):**
+1. An analyst who saves a STRUCTURALLY COMPLETE investigation markdown — with ANY disposition
+   (TP/FP/BTP/Indeterminate/value-PARSE_FAIL), ANY techniques (including T1003/T1068/T1021/T1041),
+   ANY sensor state (healthy/degraded/silent) — WILL have the Write succeed (NOT denied for
+   disposition/technique/sensor content). This is the Document-Before-Action invariant.
+   D-029 (human decision 2026-07-29) eliminates ALL disposition-/hard-floor-based denies. The
+   ONLY consequence of hard-floor conditions is routing to MARKDOWN_REVIEW_PATH rather than
+   allow-without-marker; the analyst's work on a structurally complete investigation is always
+   preserved.
+   **P27-001 structural completeness scope (v1.29):** D-029's save-always-succeeds is scoped
+   to DISPOSITION and HARD-FLOOR reasons only. Structural completeness gates remain: a Write
+   missing any of the 12 required ICD-203 headings, or missing Alternatives-Considered, or
+   failing charset validation → structural DENY (EC-004/EC-010; disposition-guard side), fully
+   consistent with D-029. An incomplete investigation saves are denied structurally — D-029 does
+   NOT override structural completeness. BC-5.01.001 Inv#7 / BC-4.02.001 PC#4 "MUST NOT be
+   denied" must be scoped to "no disposition-/hard-floor-based deny" — structural gates are
+   retained and can still deny. (BC-3.02.001 PC#3 "deny from either wins" already enforces the
+   structural gate independently; the disposition-guard structural-deny is consistent with it.)
+   (P11-004 intent: analysts are not blocked from saving structurally complete investigations.
+   P13-001: the autonomous comment marker is removed; the analyst surfaces findings via the
+   review path or the normal 18-field verdict flow. D-029: the hard-floor deny that P25-001
+   identified is removed; BC-5.01.001 Inv#7 / BC-4.02.001 PC#4 'MUST NOT be denied' contract
+   is satisfied for structurally complete investigations. P27-001: structural completeness
+   gates are explicitly retained, consistent with BC-3.02.001 PC#3.)
 2. The autonomous loop CANNOT use the markdown path to bypass the kill switch for autonomous actions:
    FP (no hard floor) → allow-without-marker regardless of `autonomy_enabled` (no autonomous
    comment possible; kill switch irrelevant for FP). Non-FP/PARSE_FAIL/hard-floor →
@@ -8252,4 +8393,173 @@ P26-004 (MINOR): heading-anchored grammars specified for all three GATE 1/GATE 2
 read functions (disposition, attack techniques, sensor health status); negative grammar
 vectors added to VP-HOOK-031 obligation. P26-001/P26-002/P26-005 (PO obligations already
 owned by PO from pass-26 adversarial review) captured in §8.39.1/8.39.2/8.39.5.
+Architect does NOT edit BCs, verification-delta, prd-delta, spec-changelog, or STATE.md.*
+
+---
+
+## 8.40 PROPAGATION LIST (pass 27 — P27-001/P27-002/P27-003/P27-004)
+
+> **Owner:** Product owner and formal verifier as marked. Architect does NOT edit BCs,
+> verification-delta, prd-delta, or STATE.md.
+
+> **Architectural decisions recorded here:** P27-001 structural-deny vs disposition-value-parse
+> distinction (D-029 item-1 correction; structural completeness is a pre-routing DENY gate, not a
+> D-029-covered allow case); P27-002 WRITE_MARKER path-awareness (markdown-path field sources +
+> fail-loud adjudication for marker-write failure); P27-003 parse_autonomy_enabled defense-in-depth
+> annotation; P27-004 version-coherence note for verification-delta SM-catalog recap.
+
+---
+
+### 8.40.1 PO — BC-3.03.001: D-029 item-1 structural-vs-disposition-parse distinction + grammar sync (P27-001 MAJOR)
+
+> **BC owner obligation — BC-3.03.001.**
+
+The current BC-3.03.001 gating step 1 (and/or its GATE 1 completeness check area) must be
+updated to match the arch-delta v1.29 distinction:
+
+1. **Structural completeness failure (< 12 headings, missing Alternatives-Considered, charset
+   fail) = structural DENY (EC-004/EC-010 semantics; disposition-guard side).** The Write is
+   denied BEFORE the D-029 disposition routing runs. Required wording: "missing any required
+   structural element (ICD-203 headings, Alternatives-Considered, charset) → structural DENY
+   (EC-004/EC-010); not a D-029 routing case."
+
+2. **Disposition-VALUE PARSE_FAIL (all 12 headings present, Disposition heading VALUE
+   non-canonical) = allow + MARKDOWN_REVIEW_PATH.** Required wording distinguishes this from
+   structural incompleteness: "Disposition heading present but value unrecognized (e.g.,
+   'probably TP') → PARSE_FAIL on value; structural gate PASSED; → allow Write +
+   MARKDOWN_REVIEW_PATH (non-FP safe routing direction)."
+
+3. **Confirm BC-3.03.001 PC#2 / EC-004 / EC-010 already say structural DENY** — they are
+   correct and do not need to change. The fix is aligning the prose explanations of D-029 item 1
+   to be consistent with EC-004/EC-010, not the reverse.
+
+4. **BC-3.03.001 parse grammar sync:** The `parse_disposition_from_markdown` grammar note near
+   GATE 1/GATE 2 pseudocode must NOT list "< 12 headings" as a PARSE_FAIL routing case. Structural
+   incompleteness → DENY (pre-grammar), not PARSE_FAIL → routing. Update accordingly.
+
+---
+
+### 8.40.2 PO — BC-5.01.001 Inv#7 + BC-4.02.001 PC#4: re-scope absolute phrasing (P27-001 MAJOR)
+
+> **BC owner obligation — BC-5.01.001 and BC-4.02.001.**
+
+BC-5.01.001 Inv#7's "always succeeds for ALL dispositions / no deny is possible" absolute and
+BC-4.02.001 PC#4's absolute "no deny possible on the markdown path" phrasing (the P26-002 partial
+residue, specifically Inv#7's "ALL" absolute) must be re-scoped:
+
+Required canonical phrase (consistent with §8.39.2 P26-002 resolution for PC#4 and the P27-001
+extension for Inv#7):
+
+> "no **disposition-/hard-floor-based** deny is possible on the markdown path for a
+> STRUCTURALLY COMPLETE investigation; structural ICD-203 completeness, Alternatives-Considered,
+> and charset-injection guards are retained and can still deny."
+
+Specific changes:
+- BC-5.01.001 Inv#7: remove/qualify "always succeeds for ALL dispositions" — the absolute
+  "ALL" must be scoped to "ALL dispositions and sensor states on a structurally complete
+  investigation." Infrastructure-failure denies (MARKER-WRITE-FAILED) are also explicitly
+  excluded from the D-029 guarantee.
+- BC-4.02.001 PC#4: if any residual absolute "no deny is possible" language remains after
+  the P26-002 fix, apply the same scope qualification.
+
+---
+
+### 8.40.3 PO — BC-3.03.001: path-aware WRITE_MARKER variable setup + delete false L565 claim (P27-002 MEDIUM)
+
+> **BC owner obligation — BC-3.03.001.**
+
+At MARKDOWN_COMMENT_REVIEW_PATH and MARKDOWN_CREATE_REVIEW_PATH in BC-3.03.001 pseudocode,
+add the path-specific variable setup defined in arch-delta v1.29 §8.40 (gating sequence block
+— MARKDOWN_COMMENT/CREATE_REVIEW_PATH section):
+
+```
+# P27-002: markdown-path variable setup — REQUIRED before WRITE_MARKER
+is_markdown_path    = true
+org_slug            = get_org_slug_from_config()   # NOT verdict.org_slug (no verdict object)
+# markdown_parsed_disposition set by parse_disposition_from_markdown() above
+recomputed_severity = null   # STEP 1a absent on markdown path
+asset_type_field    = null   # field 14 absent from 12-field markdown
+# action: already set (create-review or comment-review)
+# link_target: ticket_id_b IF action=="link" ELSE null → null on markdown path (action never "link")
+```
+
+Additionally: delete any BC-3.03.001 claim that `link_target` is "initialized at L565 so
+WRITE_MARKER always has it" or similar phrasing. The self-computing form
+(`link_target = ticket_id_b IF action == "link" ELSE null`) is the authoritative spec; on the
+markdown path, action is never "link" so link_target is always null — the "L565 initialized"
+claim is a false cross-reference to a verdict-path line that does not exist on the markdown path.
+
+---
+
+### 8.40.4 FV — VP-HOOK-031 structural-deny vs review-route vectors + markdown marker-write-failure (P27-001/P27-002)
+
+> **FV obligation — verification-delta.**
+
+VP-HOOK-031 must receive new/updated vectors for:
+
+1. **Structural-deny vector (P27-001):**
+   Input: investigation-*.md with a missing required heading (e.g., missing `## Disposition`).
+   Assert: `permissionDecision: deny` (structural DENY — EC-004/EC-010); no routing to
+   MARKDOWN_REVIEW_PATH; no review marker issued. This kills a mutant that converts the
+   structural DENY to an allow+MARKDOWN_REVIEW_PATH routing (the D-029 incoherence the adversary
+   identified — treating structural incompleteness as a PARSE_FAIL routing case).
+   Paired mutant: convert gating step 1 structural DENY to allow+MARKDOWN_REVIEW_PATH → assert
+   investigation with missing heading now (incorrectly) routes to review instead of denying.
+
+2. **Disposition-value PARSE_FAIL (allow+review) vector (P27-001):**
+   Input: investigation-*.md with all 12 headings present, `Disposition: probably TP` (non-canonical
+   value). Assert: `permissionDecision: allow` + MARKDOWN_REVIEW_PATH (review marker issued);
+   NOT a structural deny; the structural gate PASSED (12 headings present).
+   This confirms the distinction from vector (1) — value-only PARSE_FAIL → allow, not deny.
+
+3. **Markdown-path marker-write-failure vector (P27-002):**
+   Input: investigation-*.md with all 12 headings, non-FP disposition (e.g., TP); inject
+   WRITE_MARKER failure (e.g., simulate disk-full on marker store).
+   Assert: `permissionDecision: deny`; `MARKER-WRITE-FAILED` audit entry written;
+   NOT allow-without-marker (fail-loud, not silent drop).
+   Rationale for this vector: P27-002 adjudicates that markdown-path review marker-write failure
+   → MARKER-WRITE-FAILED deny (infrastructure-failure deny; P10-003 harm class; not content deny).
+
+4. **SM consideration (P27-001):** Allocate a new SM if no existing SM covers the "structural
+   incompleteness DENY converted to allow+MARKDOWN_REVIEW_PATH" regressed scenario
+   (distinct from SM-77 which covers DENY restored for hard-floor/disposition reasons).
+   Verify occupancy (FRESH grep) before allocation per Lesson 8.
+
+---
+
+### 8.40.5 FV — VP-HOOK-031 SM for structural-vs-parse distinction (P27-001 OBS) + §4 SM-catalog recap refresh (P27-004 OBS)
+
+> **FV obligation — verification-delta.**
+
+1. **SM for structural-DENY-converted-to-allow regressed scenario (P27-001):**
+   If no existing SM covers "structural incompleteness DENY → incorrectly routed to
+   MARKDOWN_REVIEW_PATH as PARSE_FAIL routing case", allocate a new SM (next-free after SM-78,
+   occupancy-check first per Lesson 8). This SM is distinct from:
+   - SM-77 (hard-floor deny restored — wrong DECISION/deny for disposition/hard-floor reasons)
+   - SM-73 (kill-switch restored — wrong ROUTING ordering)
+   - SM-53 (disposition-read substring scan — under-surfaces, different direction)
+   The P27-001 structural-DENY-to-allow SM specifically tests the "gating step 1 structural DENY
+   removed → structural incompleteness silently allowed+routed-to-review" kill scenario.
+
+2. **§4 SM-catalog recap refresh (P27-004 OBS):**
+   Verification-delta §4 SM-catalog recap line (~L2822) currently reads "SM-9..SM-71, 64 mutants"
+   (reflects v1.23 state). As of v1.28, the correct range is SM-9..SM-78 (71 allocated; SM-55
+   reserved-skipped; SM-50 retired-in-place; 70 live/killable). FV must update the recap line to
+   read: "SM-9..SM-78, 71 allocated (SM-32 = SM-32a+SM-32b+SM-32-ext, SM-55 reserved-skipped,
+   SM-50 retired-in-place; 70 live/killable)." Update the per-version additions list to include:
+   +SM-72/SM-73 at v1.22; +SM-74/SM-75 at v1.23; +SM-76 at v1.24; +SM-77 at v1.25; +SM-78 at v1.26.
+   Note: if P27-001 SM allocation occurs in this burst, update to SM-9..SM-79 (or next-free)
+   accordingly.
+
+---
+
+*Pass-27 propagation list (§8.40) complete. Architecture-delta v1.29 is final for pass-27
+remediation burst 24 (prism-integration cycle). P27-001 (MAJOR): structural-deny vs
+disposition-value-parse distinction drawn and recorded; D-029 item-1 gating step 1 and parse
+grammar corrected; routing outcomes table PARSE_FAIL row split; key guarantee #1 updated;
+D-029 "save-always-succeeds" scoped to disposition/hard-floor reasons. P27-002 (MEDIUM):
+WRITE_MARKER made path-aware — markdown-path variable setup defined; marker-write-failure
+adjudicated as fail-loud (MARKER-WRITE-FAILED deny); all undefined fields resolved.
+P27-003 (OBS): parse_autonomy_enabled_from_markdown annotated defense-in-depth only.
+P27-004 (OBS): verification-delta §4 SM-catalog recap staleness recorded as FV obligation.
 Architect does NOT edit BCs, verification-delta, prd-delta, spec-changelog, or STATE.md.*

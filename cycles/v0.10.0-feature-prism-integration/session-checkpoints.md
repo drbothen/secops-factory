@@ -10,6 +10,19 @@ Superseded checkpoints rotated out of STATE.md.
 
 ---
 
+## Checkpoint — Pass-26 COMPLETE, burst-24 pending (2026-07-29)
+
+**Superseded by:** Pass-27 remediation COMPLETE checkpoint (2026-07-29)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-07-29 |
+| **Position** | Pass-26 remediation COMPLETE (burst 23). NEXT: adversarial pass 27 (fresh adversary context; carry D-023..D-029 + P26-003 accepted residual as settled; severity trend pass22 1C/2M → pass23 0C/1M/5med → pass24 0C/0M/4med → pass25 0C/1M/1med → pass26 0C/1M/2med; open PO item: resolve '[ID per FV]' → SM-77 in BC-3.03.001 on next touch). Clean streak 0/3. |
+| **Context** | Artifact versions: arch-delta v1.28, verif-delta v1.28, prd-delta v1.26, dtu-assessment v1.5, BC-3.03.001 v1.35, BC-3.01.001 v1.25, BC-10.01.001 v1.29, BC-4.02.001 v1.19, BC-5.01.001 v1.13, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 71 allocated, 70 live (SM-9..SM-78; SM-32=32a+32b+32-ext; SM-55 skipped; SM-50 retired). NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. |
+| **Convergence counter** | 0/3 clean passes |
+
+---
+
 ## Checkpoint — Pass-25 COMPLETE, burst-22 pending (2026-07-29)
 
 **Superseded by:** Pass-25 remediation COMPLETE checkpoint (2026-07-29)

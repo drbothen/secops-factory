@@ -11,6 +11,29 @@ Track all spec version changes. Most recent version first.
 
 ## [1.1.0] - 2026-07-20 (patch edits 2026-07-21/22 — not a version bump)
 
+### F2 Pass-24 Remediation Edits — Burst 21 (2026-07-29) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 21). Root findings:
+P24-001 (MED): EMIT_LINK_MARKER invocation model fixed — positional $1, marker vars global (bash-faithful), WRITE_MARKER invoked directly as final statement, call sites 'EMIT_LINK_MARKER true|false; RETURN'; contradiction (call/return vs fall-through) eliminated; SM-74 mechanism wording synced, remains killable,
+P24-002 (MED): O7 site 10 — resolved_project_key emit-time charset re-check (^[A-Z][A-Z0-9]+$) → LINK-PROJECT-KEY-CHARSET-DENY + regex_escape defense-in-depth; active O7 sites now 9; SM-76 allocated (distinct from SM-75: gate-present-but-input-corruptible vs gate-absent); Gate-2 grep adjudicated NO-CHANGE (binding/charset denies are input-validation, not silent-escalation-drop signals),
+P24-003 (MED): BC-3.03.001 L1107 REGULAR-link happy-path vector org-binding config precondition pinned,
+P24-004 (MED): dtu-assessment v1.4 tp-close-denied scenario pinned scored_priority∈{LOW,MED} + hard-floor companion note,
+P24-005 (obs): D-026 stable-key residual note added to arch-delta,
+P24-006 (obs) → DI-017 (org_slug validation drift item; tracked in STATE.md Drift Items).
+SM-9..SM-76 (69 allocated / 68 live; SM-32=32a+32b+32-ext; SM-55 reserved-skipped; SM-50 retired).
+41 VPs (unchanged) / 69 allocated (68 live) / ~443 tests.
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.25 | v1.26 | P24-001: EMIT_LINK_MARKER positional $1, global marker vars, direct WRITE_MARKER call, 'EMIT_LINK_MARKER true\|false; RETURN' call sites; SM-74 mechanism wording synced; P24-002: resolved_project_key emit-time charset re-check (^[A-Z][A-Z0-9]+$) → LINK-PROJECT-KEY-CHARSET-DENY + regex_escape; SM-76 allocated; O7 site 10 noted (active sites 9 after this fix); Gate-2 NO-CHANGE adjudication; P24-005: D-026 stable-key residual note |
+| phase-f2-spec-evolution/verification-delta.md | v1.25 | v1.26 | SM-76 (resolved-project-key-charset-check-removed) allocated; vectors for P24-002 O7 site 10 + LINK-PROJECT-KEY-CHARSET-DENY; SM recap updated 68→69; P24-001 EMIT_LINK_MARKER subroutine mechanism note synced |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.32 | v1.33 | P24-003: L1107 REGULAR-link happy-path vector org-binding config precondition pinned; P24-002 LINK-PROJECT-KEY-CHARSET-DENY propagation |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.26 | v1.27 | P24-001: EMIT_LINK_MARKER invocation model noted (positional arg, global vars, direct WRITE_MARKER); P24-002: resolved_project_key charset re-check + SM-76 noted |
+| phase-f2-spec-evolution/prd-delta.md | v1.23 | v1.24 | Version-coherence: burst-21 post-note added; BC-3.03.001 v1.32→v1.33, BC-10.01.001 v1.26→v1.27; §5 Live-BC version anchors updated |
+| phase-0-ingestion/dtu-assessment.md | v1.4 | v1.5 | P24-004: tp-close-denied scenario pinned to scored_priority∈{LOW,MED} + hard-floor companion note |
+
+---
+
 ### F2 Pass-23 Remediation Edits — Burst 20 (2026-07-29) — spec remains 1.1.0
 
 Remediation edits within the F2 adversarial convergence cycle (burst 20). Root findings:

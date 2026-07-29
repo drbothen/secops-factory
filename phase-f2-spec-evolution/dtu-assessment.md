@@ -1,7 +1,7 @@
 ---
 document_type: dtu-assessment
 producer: architect
-version: "1.4"
+version: "1.5"
 date: 2026-07-29
 feature: prism-integration
 feature_version: v0.10.0-feature-prism-integration
@@ -13,6 +13,19 @@ traces_to: .factory/phase-f1-delta-analysis/delta-analysis.md
 prior_assessment: ".factory/specs/dtu-assessment.md (Phase 0 — DTU_REQUIRED: false; no external service dependencies at that time)"
 ---
 
+> **v1.5 (2026-07-29) — Pass-24 adversarial remediation burst 21, P24-001/P24-004:**
+> P24-004 (MEDIUM): `tp-close-denied` scenario under-specified `scored_priority`. A hard-floor
+> TP+close (scored_priority ∈ {HIGH,CRIT}) is caught at STEP 4 (UNDER-LABEL-DENIED), NOT STEP
+> 4b (CLOSE-DISPOSITION-DENY). Scenario pinned to non-hard-floor inputs: scored_priority ∈
+> {LOW,MED}, healthy sensor, benign technique, non-critical asset (hard_floor_applies()=FALSE) so
+> STEP 4b is the reached gate — matching BC-3.03.001 canonical vectors L1112/L1113 and SM-69
+> kill vector. Companion note added: hard-floor TP+close → UNDER-LABEL-DENIED (STEP 4), not
+> covered by this scenario.
+> P24-001 (MEDIUM): EMIT_LINK_MARKER invocation model correction propagated to
+> `blind-spot-closed-compound` scenario and test surfaces row: `EMIT_LINK_MARKER(is_hard_floor_link=true)`
+> replaced with `EMIT_LINK_MARKER true`; "is_link_hard_floor=true at WRITE_MARKER" replaced with
+> "is_link_hard_floor=true set globally by EMIT_LINK_MARKER, WRITE_MARKER invoked directly".
+
 > **v1.4 (2026-07-29) — Pass-23 adversarial remediation burst 20, P23-001/P23-002 / D-028:**
 > D-027 STEP 3b hard-floor link path coverage (P23-002): dtu-assessment did not cover the
 > D-027 hard-floor link path introduced in burst 19. Two new jr-mock scenarios added:
@@ -20,7 +33,8 @@ prior_assessment: ".factory/specs/dtu-assessment.md (Phase 0 — DTU_REQUIRED: f
 > asserts verdict-2 `["link"]` marker IS issued via STEP 3b (D-027 carve-out) and consumed
 > (`jr issue link` called); also asserts D-028 fail-loud on injected marker-write failure
 > (MARKER-WRITE-FAILED deny, NOT allow-without-marker). Verifies the review-class vs REGULAR
-> link distinction: hard-floor link uses is_link_hard_floor=true at WRITE_MARKER.
+> link distinction: hard-floor link uses is_link_hard_floor=true (set globally by EMIT_LINK_MARKER,
+> which invokes WRITE_MARKER directly — P24-001 correction).
 > (b) `tp-close-denied`: disposition=TP + ticket_action_type=close (any autonomy_enabled) →
 > CLOSE-DISPOSITION-DENY at STEP 4b (D-025); asserts NO `jr issue move` call (SM-69/D-025
 > vector). Both scenarios added to the branch-triggering table and the test surfaces table.
@@ -333,8 +347,8 @@ Extend the existing BATS mock `jr` binary (located in BATS helpers) with:
 | `blind-spot-open` | 1 open BLIND-SPOT ticket | `jr issue comment` on existing (not new creation) |
 | `blind-spot-absent` | 0 BLIND-SPOT tickets | `jr issue create` with BLIND-SPOT label |
 | `fp-auto-close` | **[NEW v1.2 — D-021]** 1 open ticket, disposition=FP, non-hard-floor scored_priority (LOW/MED), autonomy_enabled=true | `["close"]` marker issued → `jr issue move <ticket_id> <jira_close_state>` called; `<jira_close_state>` is CONFIG-driven from plugin state (e.g., "Done"); mock asserts the close command matches `CLOSE_STATE_ALLOWLIST` member; test verifies NO `jr issue comment` or other action is called instead. Asserts kill-switch NOT engaged (autonomy_enabled=true) and hard_floor_applies()=false (non-HIGH/CRIT). |
-| `blind-spot-closed-compound` | **[NEW v1.4 — D-027/D-028/P23-002]** BLIND-SPOT sensor-silence alert: disposition=Indeterminate, sensor_health_status=silent (→ hard_floor_applies()=TRUE unconditionally), autonomy_enabled=false. Compound two-verdict sequence: verdict-1 ticket_action_type=create-review + hard_floor_applies()=TRUE → STEP 3 issues create-review marker → `jr issue create --project PRISMDEMO --label BLIND-SPOT` called → NEW_KEY returned. Verdict-2 ticket_action_type=link, ticket_id=NEW_KEY, link_target_ticket_id=CLOSED_KEY, hard_floor_applies()=TRUE → **D-027 STEP 3b carve-out** → null-binding checks pass (D-028) → EMIT_LINK_MARKER(is_hard_floor_link=true) → org-binding check passes → `["link"]` marker issued (is_link_hard_floor=true at WRITE_MARKER) → `jr issue link NEW_KEY CLOSED_KEY` authorized and called. Assertions: (a) verdict-2 `["link"]` marker IS issued (not denied); (b) `jr issue link` IS called with NEW_KEY and CLOSED_KEY; (c) autonomy_enabled=false does NOT suppress the link (STEP 3b exempt from kill switch per D-027); (d) the `["link"]` marker has `is_link_hard_floor=true` routing — REVIEW-CLASS behavior, not REGULAR. **D-028 fail-loud sub-scenario**: inject WRITE_MARKER failure on verdict-2 (disk-full simulation). Assert: audit code `MARKER-WRITE-FAILED` emitted; verdict-2 Write DENIED (not allow-without-marker); `jr issue link` is NOT called. This is distinct from the REGULAR link path (non-hard-floor link + write failure → allow-without-marker). |
-| `tp-close-denied` | **[NEW v1.4 — D-025/P23-002]** 1 open ticket, disposition=TP, ticket_action_type=close (any autonomy_enabled value). STEP 4b close-disposition guard (D-025/D-023) fires BEFORE STEP 5 kill switch: disposition∉{FP,BTP} → CLOSE-DISPOSITION-DENY. | Audit code `CLOSE-DISPOSITION-DENY` emitted; verdict Write DENIED; NO `jr issue move` call of any kind (SM-69/D-025 vector). Asserts: (a) denial fires regardless of autonomy_enabled (autonomy_enabled=false default case AND autonomy_enabled=true case — both asserted); (b) no `jr issue move` in call log for either autonomy setting; (c) mock never reaches STEP 5 or STEP 6. Covers the SM-69 STEP 4b close-disposition gate for TP disposition. |
+| `blind-spot-closed-compound` | **[NEW v1.4 — D-027/D-028/P23-002; P24-001 invocation model applied]** BLIND-SPOT sensor-silence alert: disposition=Indeterminate, sensor_health_status=silent (→ hard_floor_applies()=TRUE unconditionally), autonomy_enabled=false. Compound two-verdict sequence: verdict-1 ticket_action_type=create-review + hard_floor_applies()=TRUE → STEP 3 issues create-review marker → `jr issue create --project PRISMDEMO --label BLIND-SPOT` called → NEW_KEY returned. Verdict-2 ticket_action_type=link, ticket_id=NEW_KEY, link_target_ticket_id=CLOSED_KEY, hard_floor_applies()=TRUE → **D-027 STEP 3b carve-out** → null-binding checks pass (D-028) → `EMIT_LINK_MARKER true` (positional $1=true per P24-001) → org-binding + P24-002 charset check pass → `["link"]` marker issued (`is_link_hard_floor=true` set globally by EMIT_LINK_MARKER, WRITE_MARKER invoked directly — P24-001 invocation model) → `jr issue link NEW_KEY CLOSED_KEY` authorized and called. Assertions: (a) verdict-2 `["link"]` marker IS issued (not denied); (b) `jr issue link` IS called with NEW_KEY and CLOSED_KEY; (c) autonomy_enabled=false does NOT suppress the link (STEP 3b exempt from kill switch per D-027); (d) the `["link"]` marker has `is_link_hard_floor=true` routing — REVIEW-CLASS behavior, not REGULAR. **D-028 fail-loud sub-scenario**: inject WRITE_MARKER failure on verdict-2 (disk-full simulation). Assert: audit code `MARKER-WRITE-FAILED` emitted; verdict-2 Write DENIED (not allow-without-marker); `jr issue link` is NOT called. This is distinct from the REGULAR link path (non-hard-floor link + write failure → allow-without-marker). |
+| `tp-close-denied` | **[NEW v1.4 — D-025/P23-002; P24-004 scored_priority pinned]** 1 open ticket, disposition=TP, ticket_action_type=close (any autonomy_enabled value), **scored_priority ∈ {LOW,MED}** (non-hard-floor: healthy sensor, benign technique, non-critical asset — hard_floor_applies()=FALSE). STEP 4b close-disposition guard (D-025/D-023) fires BEFORE STEP 5 kill switch: disposition∉{FP,BTP} → CLOSE-DISPOSITION-DENY. STEP 4 hard-floor gate is NOT triggered (scored_priority=LOW/MED passes). | Audit code `CLOSE-DISPOSITION-DENY` emitted; verdict Write DENIED; NO `jr issue move` call of any kind (SM-69/D-025 vector). Asserts: (a) denial fires regardless of autonomy_enabled (autonomy_enabled=false default case AND autonomy_enabled=true case — both asserted); (b) no `jr issue move` in call log for either autonomy setting; (c) mock never reaches STEP 5 or STEP 6. Covers the SM-69 STEP 4b close-disposition gate for TP disposition. **Precondition note (P24-004):** scored_priority MUST be LOW or MED — a hard-floor TP+close (scored_priority ∈ {HIGH,CRIT}) is caught at STEP 4 (UNDER-LABEL-DENIED), not STEP 4b; that path is covered by the STEP 4 under-label deny path and BC-3.03.001 canonical vectors L1112/L1113, not by this scenario. |
 
 4. **Never-auto-reopen validation**: Test asserts `jr issue move` is NOT called to
    transition a ticket OUT OF Resolved/Closed (i.e., no `jr issue move KEY <non-close-state>`).
@@ -374,8 +388,8 @@ Extend the existing BATS mock `jr` binary (located in BATS helpers) with:
 | BATS tests for D-020 link scope anti-fungibility | `related-open` scenario: assert `["link"]` marker authorizes ONLY `jr issue link`; comment marker does NOT authorize link call |
 | **[NEW v1.2]** BATS tests for D-021 close scope (FP/BTP auto-close) | `fp-auto-close` scenario: assert `["close"]` marker → `jr issue move <ticket_id> <close_state>` with CONFIG-driven state from CLOSE_STATE_ALLOWLIST; hard_floor=false + autonomy_enabled=true guards exercised |
 | **[v1.2/v1.3]** BATS tests for D-022 compound-action sequence ordering | `closed-same` (create+link): assert link verdict carries NEW_KEY from create result; `related-open` (create+link — D-024/P21-002): assert create precedes link in call log and link_target_ticket_id equals the ticket_id returned from create; the existing related ticket is NOT commented upon |
-| **[NEW v1.4 — D-027/D-028/P23-002]** BATS tests for D-027 STEP 3b hard-floor link path | `blind-spot-closed-compound` (autonomy_enabled=false): assert verdict-2 `["link"]` marker IS issued via STEP 3b carve-out (not denied by kill switch); `jr issue link NEW_KEY CLOSED_KEY` asserted called; REVIEW-CLASS routing (is_link_hard_floor=true) verified distinct from REGULAR link; D-028 fail-loud sub-scenario: injected WRITE_MARKER failure → `MARKER-WRITE-FAILED` deny asserted (NOT allow-without-marker) |
-| **[NEW v1.4 — D-025/P23-002]** BATS tests for D-025 STEP 4b close-disposition gate (TP vector) | `tp-close-denied`: disposition=TP + ticket_action_type=close → `CLOSE-DISPOSITION-DENY` asserted; NO `jr issue move` call asserted for both autonomy_enabled=false and autonomy_enabled=true; SM-69/D-025 canonical vector exercised |
+| **[NEW v1.4 — D-027/D-028/P23-002; P24-001 invocation model]** BATS tests for D-027 STEP 3b hard-floor link path | `blind-spot-closed-compound` (autonomy_enabled=false): assert verdict-2 `["link"]` marker IS issued via STEP 3b carve-out (not denied by kill switch); `jr issue link NEW_KEY CLOSED_KEY` asserted called; REVIEW-CLASS routing (`is_link_hard_floor=true` set globally by EMIT_LINK_MARKER, WRITE_MARKER invoked directly — P24-001) verified distinct from REGULAR link; D-028 fail-loud sub-scenario: injected WRITE_MARKER failure → `MARKER-WRITE-FAILED` deny asserted (NOT allow-without-marker) |
+| **[NEW v1.4 — D-025/P23-002; P24-004 scored_priority pinned]** BATS tests for D-025 STEP 4b close-disposition gate (TP vector) | `tp-close-denied` (**scored_priority ∈ {LOW,MED}**, non-hard-floor — P24-004): disposition=TP + ticket_action_type=close → `CLOSE-DISPOSITION-DENY` asserted; NO `jr issue move` call asserted for both autonomy_enabled=false and autonomy_enabled=true; SM-69/D-025 canonical vector exercised. Note: hard-floor TP+close (scored_priority HIGH/CRIT) → UNDER-LABEL-DENIED at STEP 4, not covered by this test surface. |
 | Holdout scenarios HS-036 (Jira-first correlation rules) | All §3.4 branches exercised end-to-end |
 
 ### Cost/Benefit

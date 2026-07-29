@@ -10,6 +10,19 @@ Superseded checkpoints rotated out of STATE.md.
 
 ---
 
+## Checkpoint — Pass-24 COMPLETE, burst-21 pending (2026-07-29)
+
+**Superseded by:** Pass-24 remediation COMPLETE checkpoint (2026-07-29)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-07-29 |
+| **Position** | Pass 24 COMPLETE (0C/0M/4med — mechanical, D-028 delta). NEXT: burst 21 (architect: P24-001 structure fix + P24-002 O7 site 10 + P24-004 dtu pin + P24-005 spec note; PO: BC-3.03.001 mirror + P24-003 vector precondition; FV: SM-76 malformed-resolved-key + vector sync; state-manager: DI-017 org_slug validation drift item). Clean streak 0/3. |
+| **Context** | Artifact versions: arch-delta v1.25, verif-delta v1.25, prd-delta v1.23, dtu-assessment v1.4, BC-3.03.001 v1.32, BC-3.01.001 v1.25, BC-10.01.001 v1.26, BC-4.02.001 v1.17, BC-6.01.001 v1.8, BC-5.01.001 v1.12, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 68 allocated, 67 live (SM-9..SM-75; SM-32=32a+32b+32-ext; SM-55 skipped; SM-50 retired). Pass-23 report: .factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass23.md. NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. |
+| **Convergence counter** | 0/3 clean passes |
+
+---
+
 ## Checkpoint — Pass-23 COMPLETE, burst-20 pending (2026-07-29)
 
 **Superseded by:** Pass-23 remediation COMPLETE checkpoint (2026-07-29)

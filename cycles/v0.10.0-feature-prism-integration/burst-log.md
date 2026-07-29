@@ -11,6 +11,14 @@ are archived here when the 5-row limit is reached.
 
 ---
 
+## Archived Step: F2 adversarial pass 22 (rotated 2026-07-29)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 22 | adversary | DONE | 1C/2M/1med/1m/2obs — NOT CLEAN, novelty HIGH. P22-003 (CRITICAL): compound link verdict-2 is REGULAR scope → STEP-4 hard-floor denies it for exactly the scenarios that mandate it (EC-008 BLIND-SPOT always Indeterminate+silent → link structurally unreachable; EC-013 HIGH/CRIT create+link same); D-026 precedence over rule 1 then permanently starves rule-1 comments for that (O,C) pair; VP-HOOK-036/SM-68/SM-70 vectors use benign alerts → zero regression coverage for the hard-floor case; fix options at human gate: (a) hard-floor exemption for link, (b) review-class link exemption. P22-001 (MAJOR): investigation-markdown path kill-switch evaluated as step 1 BEFORE disposition routing → non-FP markdown under autonomy=false exits allow-without-marker, never reaches MARKDOWN_REVIEW_PATH — contradicts D-DEC-012 Option A annotation + Key guarantee #2 (same ordering pathology class as P20-001, on the markdown path). P22-002 (MAJOR): architecture-delta never recorded D-024 — no decision row, three live comment+link assertions (L152/L1848/L6785), §8.33.2/§8.33.3 still say 'do NOT change PC#7b / pending human confirmation'; BC-4.02.001 L83 mis-anchors to §8.33.3 as its authority. P22-004 (MED): VP-SKILL-062 (BC-10.01.001 L742) asserts absence of non-existent 'jr issue reopen' verb — vacuous; VP-SKILL-066 is correct sibling. P22-005 (m): EC-026(A) muddled mechanism attribution + stray self-correction. Report persisted. Clean streak 0/3. |
+
+---
+
 ## Archived Step: F2 adversarial pass 21 (rotated 2026-07-29)
 
 | Step | Agent | Status | Output |

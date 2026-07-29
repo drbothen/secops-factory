@@ -10,6 +10,19 @@ Superseded checkpoints rotated out of STATE.md.
 
 ---
 
+## Checkpoint — Pass-22 remediation COMPLETE, pass-23 pending (2026-07-28)
+
+**Superseded by:** Pass-23 COMPLETE checkpoint (2026-07-29)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-07-28 |
+| **Position** | Pass-22 remediation COMPLETE (burst 19 — D-027 STEP 3b two-tier link, P22-001 markdown reorder, D-024 recorded). NEXT: adversarial pass 23 (fresh adversary context — do NOT reuse prior pass context; carry D-023..D-027 as confirmed invariants; reachability axis mandatory on STEP 3b and the markdown reorder). Clean streak 0/3. |
+| **Context** | Artifact versions: arch-delta v1.24, verif-delta v1.24, prd-delta v1.22, dtu-assessment v1.3, BC-3.03.001 v1.31, BC-3.01.001 v1.25, BC-10.01.001 v1.25, BC-4.02.001 v1.17, BC-6.01.001 v1.8, BC-5.01.001 v1.12, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 66 allocated, 65 live (SM-9..SM-73, SM-32=32a+32b+32-ext; SM-55 skipped; SM-50 retired). NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. |
+| **Convergence counter** | 0/3 clean passes |
+
+---
+
 ## Checkpoint — Pass-22 COMPLETE, burst-19 pending (2026-07-27)
 
 **Superseded by:** Pass-22 remediation COMPLETE checkpoint (2026-07-28)

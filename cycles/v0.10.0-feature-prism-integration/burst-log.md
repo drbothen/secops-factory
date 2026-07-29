@@ -11,6 +11,14 @@ are archived here when the 5-row limit is reached.
 
 ---
 
+## Archived Step: F2 pass-20 remediation burst 17 (rotated 2026-07-29)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-20 remediation burst 17 | architect / product-owner / formal-verifier / state-manager | DONE | D-025 STEP 4b close-disposition hoist (fires before kill switch, all autonomy_enabled values; STEP-6 check = defense-in-depth). D-026 stateless §3.4 orphan-link recovery rule (precedence over rule 1). EC-022 allocated in BC-10.01.001 (close 3-condition AND); EC-013 untouched. P20-002 EC anchors repointed EC-013→EC-022 (arch-delta + verif-delta). P20-004/005/006 prd-delta version bookkeeping fixed (§5 cells, missing v1.19 changelog row, BC-6.01.003 v1.6/v1.7 footnote). P20-007 wording-fix: BC-4.02.001 Inv#1 non-close jr-issue-move = HUMAN-GATED ONLY. P20-008 verif-delta historical annotation. SM-69 (STEP-4b-guard-removed reachability mutant) + SM-70 (D-026-rule-removed mutant) allocated. BC-3.03.001 v1.29, BC-10.01.001 v1.23, BC-4.02.001 v1.15; arch-delta v1.22, verif-delta v1.22, prd-delta v1.20. VP 41 / SM 63 (~431 tests). Clean streak 0/3. |
+
+---
+
 ## Archived Step: F2 adversarial pass 20 (rotated 2026-07-28)
 
 | Step | Agent | Status | Output |

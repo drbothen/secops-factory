@@ -10,6 +10,19 @@ Superseded checkpoints rotated out of STATE.md.
 
 ---
 
+## Checkpoint — Pass-23 COMPLETE, burst-20 pending (2026-07-29)
+
+**Superseded by:** Pass-23 remediation COMPLETE checkpoint (2026-07-29)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-07-28 |
+| **Position** | Pass 23 COMPLETE (0C/1M/5med/1m — NOT CLEAN). NEXT: burst 20 (architect: D-027 defensive completion — link fail-loud + org-binding + STEP6_LINK subroutine refactor + dtu-assessment scenarios; PO: BC propagation + VP-SKILL-065; FV: fail-loud/org-binding VP+SM; state-manager: spec-changelog catch-up bursts 17-19). Clean streak 0/3. |
+| **Context** | Artifact versions: arch-delta v1.24, verif-delta v1.24, prd-delta v1.22, dtu-assessment v1.3, BC-3.03.001 v1.31, BC-3.01.001 v1.25, BC-10.01.001 v1.25, BC-4.02.001 v1.17, BC-6.01.001 v1.8, BC-5.01.001 v1.12, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 66 allocated, 65 live (SM-9..SM-73, SM-32=32a+32b+32-ext; SM-55 skipped; SM-50 retired). Pass-23 report: .factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass23.md. NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. |
+| **Convergence counter** | 0/3 clean passes |
+
+---
+
 ## Checkpoint — Pass-22 remediation COMPLETE, pass-23 pending (2026-07-28)
 
 **Superseded by:** Pass-23 COMPLETE checkpoint (2026-07-29)

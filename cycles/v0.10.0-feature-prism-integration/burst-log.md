@@ -11,6 +11,14 @@ are archived here when the 5-row limit is reached.
 
 ---
 
+## Archived Step: F2 adversarial pass 21 (rotated 2026-07-29)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 21 | adversary | DONE | 0C/2M/2med/1m/3obs — NOT CLEAN. Emitter logic held: STEP-4b reachability, close 3-condition AND, anti-fungibility, O7, kill-switch all re-derived INTACT. All blocking findings are stale sibling-artifact propagation: P21-001 (MAJOR) D-025 hoist not propagated to canonical test vectors in BC-3.03.001 L967/970/972 + BC-10.01.001 L721 — vectors still say 'STEP 6 fires FIRST' with wrong audit provenance (D-023/P19-001 vs actual D-025/D-023/P20-001); no TP+close+autonomy=false vector exists (the SM-69 kill vector). P21-002 (MAJOR) dtu-assessment v1.2 still specifies rule 2 = comment+link, contradicting D-024 create+link. P21-003 (MED) dtu-assessment never-auto-reopen assertion targets non-existent 'jr issue transition' instead of 'jr issue move' — vacuous guard. P21-004 (MED) dtu-assessment names dedup command 'jr issue search' which is NOT on require-review read-only allowlist → fail-closed deny would break Jira-first dedup; BC-10.01.001 Inv#8 doesn't pin the subcommand. P21-005 (m) verif-delta L2806 stale SM recap (61 vs 63). P21-006 (obs, process-gap) D-026 Relates-link read mechanism unspecified/not allowlisted. P21-007 (obs) 'permission dialog' terminology overstates require-review deny. Report persisted. Clean streak 0/3. |
+
+---
+
 ## Archived Step: F2 pass-20 remediation burst 17 (rotated 2026-07-29)
 
 | Step | Agent | Status | Output |

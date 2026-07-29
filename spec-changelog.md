@@ -11,6 +11,99 @@ Track all spec version changes. Most recent version first.
 
 ## [1.1.0] - 2026-07-20 (patch edits 2026-07-21/22 — not a version bump)
 
+### F2 Pass-23 Remediation Edits — Burst 20 (2026-07-29) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 20). Root findings:
+P23-001 (MAJOR, D-028 defensive half of D-027): review-class link got the permissive carve-out (D-027 STEP 3b) but not the defensive parity — WRITE_MARKER is_review_path excluded link, so hard-floor link marker-write-failure → allow-without-marker with no audit (vs MARKER-WRITE-FAILED deny for create-review/comment-review); null KEY1 silently dropped (no HARD-FLOOR-UNBINDABLE deny); Gate-2 grep blind; EC-011 loss permanent; fixed: is_review_path extended to (action∈{create-review,comment-review}) OR (action==link AND is_link_hard_floor=true); failure → MARKER-WRITE-FAILED deny + audit; null ticket_id / link_target_ticket_id → HARD-FLOOR-UNBINDABLE deny,
+P23-002 (MED, process-gap): dtu-assessment v1.3 missing hard-floor-link-under-kill-switch scenario + TP-close-denied scenario; dtu-assessment v1.4 adds blind-spot-closed-compound + tp-close-denied,
+P23-003 (MED): VP-SKILL-065 kill-switch invariant stale — link/close missing from REGULAR set, hard-floor-link positive exemption absent; VP-SKILL-065 re-scoped: link/close in REGULAR set, hard-floor-link exempt only when is_link_hard_floor=true,
+P23-004 (MED): GOTO STEP6_LINK label before ELIF ladder is ill-formed in bash (no goto); refactored to EMIT_LINK_MARKER named subroutine with two explicit call sites (STEP 3b: is_hard_floor_link=true; STEP 6: false); all stale STEP6_LINK refs swept,
+P23-005 (MED): STEP 3b lacked org/project binding — forged hard-floor (LLM-scored_priority) + LLM-chosen KEY1/KEY2 → arbitrary/cross-org Relates links under kill switch; D-028: KEY1+KEY2 must match resolved per-org jira_project_key prefix (CONFIG-side, D-010) → LINK-PROJECT-BINDING-DENY on mismatch (3 paths); same-project residual bounded, accepted per D-027,
+P23-006 (MED, process-gap): spec-changelog 3 bursts stale (missing bursts 17-19 / D-025/D-026/D-027); caught up in this entry,
+P23-007 (m): wording fix in arch-delta.
+41 VPs (unchanged) / 68 allocated (67 live) (SM-9..SM-75; SM-32=32a+32b+32-ext; SM-55 reserved-skipped; SM-50 retired; +SM-74 [fail-loud-removed], +SM-75 [project-binding-removed]) / ~441 test cases.
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.24 | v1.25 | P23-001/D-028: is_review_path extension (link+is_link_hard_floor branch); MARKER-WRITE-FAILED deny on marker-write failure; HARD-FLOOR-UNBINDABLE null guards (ticket_id / link_target_ticket_id); EMIT_LINK_MARKER subroutine replaces GOTO STEP6_LINK (two call sites); P23-005: LINK-PROJECT-BINDING-DENY org/project binding (KEY1+KEY2 vs per-org jira_project_key, D-010 CONFIG-side, 3 deny paths; same-project residual noted); P23-007 wording fix |
+| phase-f2-spec-evolution/verification-delta.md | v1.24 | v1.25 | VP-HOOK-033 fail-loud vectors extended (4: marker-write-failed+link, hard-floor-unbindable+null-key1, hard-floor-unbindable+null-key2, regular-link-still-silent); VP-HOOK-034 org-binding vectors extended (4: LINK-PROJECT-BINDING-DENY×3 paths, regular-link-no-binding); SM-74 (fail-loud-removed) + SM-75 (project-binding-removed) allocated; stale STEP6_LINK refs swept; VP-SKILL-065 re-scoped (link/close in REGULAR set; hard-floor-link positive exemption) |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.31 | v1.32 | P23-001/D-028: MARKER-WRITE-FAILED deny path + HARD-FLOOR-UNBINDABLE null guards added to hard-floor link branch; EMIT_LINK_MARKER subroutine annotation; LINK-PROJECT-BINDING-DENY invariant; SM-74 (fail-loud-removed) + SM-75 (project-binding-removed) kill vectors cited |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.25 | v1.26 | P23-001/D-028 propagation: hard-floor link fail-loud + null-key guards + org-binding invariants noted; VP-SKILL-065 re-scope (link/close in REGULAR set; hard-floor-link positive exemption) |
+| phase-f2-spec-evolution/prd-delta.md | v1.22 | v1.23 | Version-coherence: burst-20 post-note added; BC-3.03.001 v1.31→v1.32, BC-10.01.001 v1.25→v1.26; §5 Live-BC version anchors updated |
+| phase-0-ingestion/dtu-assessment.md | v1.3 | v1.4 | P23-002: blind-spot-closed-compound scenario (EC-008 BLIND-SPOT Indeterminate + hard-floor link under kill switch) + tp-close-denied scenario (TP verdict → CLOSE-DISPOSITION-DENY at STEP 4b) added to DTU test suite |
+
+---
+
+### F2 Pass-22 Remediation Edits — Burst 19 (2026-07-28) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 19). Root findings:
+P22-003 (CRITICAL, D-027): compound link verdict-2 was REGULAR scope → STEP-4 hard-floor denied it for exactly the scenarios that mandate create+link (EC-008 BLIND-SPOT always Indeterminate+silent → link structurally unreachable; EC-013 HIGH/CRIT same); fixed: ticket_action_type=link is TWO-TIER — when hard_floor_applies()=TRUE the link verdict is review-class, STEP 3b GOTOs STEP6_LINK (exempt from STEP-4 deny AND STEP-5 kill switch); O7 charset validation at STEP6_LINK for both entries; D-026 self-healing now TRUE for hard-floor orphans,
+P22-001 (MAJOR): investigation-markdown path kill-switch evaluated as STEP 1 BEFORE disposition routing → non-FP markdown under autonomy=false exited allow-without-marker, never reached MARKDOWN_REVIEW_PATH; fixed: disposition routing FIRST, non-FP/PARSE_FAIL → MARKDOWN_REVIEW_PATH kill-switch-exempt (D-DEC-012 Option A), FP → allow-without-marker,
+P22-002 (MAJOR): architecture-delta never recorded D-024 (three live comment+link assertions L152/L1848/L6785; §8.33.2/§8.33.3 still said "pending human confirmation"); D-024 decision row recorded; all comment+link purged; BC-4.02.001 citation repointed to D-024/§8.35.1,
+P22-004 (MED): VP-SKILL-062 asserted absence of non-existent 'jr issue reopen' verb — vacuous; restated to real mechanism,
+P22-005 (m): EC-026(A) mechanism muddled; tidied.
+SM-50 RETIRED-in-place (inverted into SM-73); SM-51/SM-52 remain valid.
+41 VPs (unchanged) / 66 allocated (65 live) (SM-9..SM-73; SM-32=32a+32b+32-ext; SM-55 skipped; SM-50 retired; +SM-72 [STEP-3b-carve-out-removed], +SM-73 [markdown-gate1-kill-switch-restored]) / ~435 test cases.
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.23 | v1.24 | P22-003/D-027: STEP 3b two-tier link posture (is_link_hard_floor=true → GOTO STEP6_LINK; exempt STEP-4+STEP-5; O7 at STEP6_LINK both entries; D-026 self-healing TRUE for hard-floor orphans); P22-001: markdown path disposition-routing-first reorder (FP → allow-without-marker; non-FP/PARSE_FAIL → MARKDOWN_REVIEW_PATH; old GATE-1 step-1 kill switch removed); P22-002: D-024 decision row recorded; L152/L1848/L6785 comment+link purged; §8.33.2/§8.33.3 rewritten RESOLVED |
+| phase-f2-spec-evolution/verification-delta.md | v1.23 | v1.24 | VP-HOOK-036 hard-floor BLIND-SPOT create+link vector + D-026 hard-floor orphan-recovery vector; VP-HOOK-033 two-tier re-scope + consumer ALLOW vector; VP-HOOK-031 disposition-routing-first re-scope + a3-nonFP vector; SM-72 (STEP-3b-carve-out-removed) + SM-73 (markdown-gate1-kill-switch-restored) allocated; SM-50 RETIRED-in-place |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.30 | v1.31 | P22-003/D-027: STEP 3b hard-floor link carve-out annotation; STEP6_LINK dual-entry; P22-001: markdown disposition-routing-first reorder; SM-72 + SM-73 kill vectors; SM-50 RETIRED-in-place annotation |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.24 | v1.25 | P22-003/D-027 propagation: two-tier link posture, STEP 3b carve-out, hard-floor exemption noted in Stage-8; P22-002: D-024 propagation confirmed (rule-2 create+link already correct per prior sync) |
+| phase-0-ingestion/behavioral-contracts/BC-3.01.001.md | v1.24 | v1.25 | P22-003/D-027: consumer invariant — hard-floor link marker exemption from STEP-4/STEP-5 gating noted |
+| phase-0-ingestion/behavioral-contracts/BC-4.02.001.md | v1.16 | v1.17 | P22-002: PC citation repointed from §8.33.3 (stale) to D-024/§8.35.1 (authoritative); comment+link language purged from rule-2 description |
+| phase-f2-spec-evolution/prd-delta.md | v1.21 | v1.22 | Version-coherence: burst-19 post-note added; BC-3.03.001 v1.30→v1.31, BC-10.01.001 v1.24→v1.25, BC-3.01.001 v1.24→v1.25, BC-4.02.001 v1.16→v1.17; §5 Live-BC version anchors updated |
+
+---
+
+### F2 Pass-21 Remediation Edits — Burst 18 (2026-07-27) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 18). Root findings:
+P21-001 (MAJOR): canonical test vectors in BC-3.03.001 and BC-10.01.001 still attributed STEP 6 first (D-023/P19-001 provenance) rather than STEP 4b first (D-025/D-023/P20-001 provenance); SM-69 kill vector (TP+close+autonomy_enabled=false → CLOSE-DISPOSITION-DENY at STEP 4b) missing; fixed in both BCs,
+P21-002 (MAJOR): dtu-assessment v1.2 still specified §3.4 rule-2 = comment+link, contradicting D-024 create+link; corrected in dtu-assessment v1.3,
+P21-003 (MED): dtu-assessment never-auto-reopen assertion used 'jr issue transition' (command does not exist); corrected to 'jr issue move non-close-state',
+P21-004 (MED): dtu-assessment dedup command 'jr issue search' not on require-review read-only allowlist (command does not exist, CLI-verified); corrected to 'jr issue list --jql'; BC-10.01.001 Inv#8 pinned to subcommand form; BC-3.01.001 allowlist coverage confirmed + annotated (no entries added/removed),
+P21-005 (m): verification-delta SM recap stale (count shown 61 vs actual 63); reconciled,
+P21-006 (obs, process-gap): D-026 link-read mechanism unspecified; pinned to 'jr issue view <key> --output json' issuelinks field inspection; VP-HOOK-036 extended (fail-closed on unconfirmed read) + SM-71 allocated (link-read-predicate-skipped-or-inverted),
+P21-007 (obs): BC-4.02.001 Inv#1 'permission dialog' terminology overstates require-review deny; corrected to allow/deny-only language.
+41 VPs (unchanged) / 64 mutants (SM-9..SM-71; SM-32=32a+32b+32-ext; SM-55 skipped; +SM-71 [link-read-predicate-skipped-or-inverted]) / ~432 test cases.
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.22 | v1.23 | P21-006/D-026: §8.34 link-read mechanism pinned — `jr issue view <key> --output json` issuelinks field inspection; fail-closed predicate: unconfirmed read = do not issue link-only verdict |
+| phase-f2-spec-evolution/verification-delta.md | v1.22 | v1.23 | SM-71 (link-read-predicate-skipped-or-inverted) allocated; kill vector: seeded existing Relates(O,C) → D-026 predicate does NOT fire; VP-HOOK-036 extended (fail-closed on unconfirmed D-026 link-read); SM recap reconciled 63→64 |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.29 | v1.30 | P21-001/D-025: canonical test vectors synced — STEP 4b fires first, audit provenance D-025/D-023/P20-001; stale STEP-6/(D-023/P19-001) attribution removed from live vectors; SM-69 kill vector added (TP+close+autonomy_enabled=false → CLOSE-DISPOSITION-DENY at STEP 4b) |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.23 | v1.24 | P21-001: canonical test vectors synced to D-025 STEP 4b attribution; SM-69 kill vector coverage confirmed; Inv#8 dedup command pinned to 'jr issue list --jql' (jr issue search does not exist) |
+| phase-0-ingestion/behavioral-contracts/BC-3.01.001.md | v1.23 | v1.24 | P21-004: allowlist coverage confirmed + annotated (no entries added/removed); DI-016 observability gap noted for jr issue unlink/remote-link |
+| phase-0-ingestion/behavioral-contracts/BC-4.02.001.md | v1.15 | v1.16 | P21-007: Inv#1 allow/deny-only terminology fix (removes 'permission dialog' overstatement) |
+| phase-f2-spec-evolution/prd-delta.md | v1.20 | v1.21 | Version-coherence: burst-18 post-note added; BC-3.03.001 v1.29→v1.30, BC-10.01.001 v1.23→v1.24, BC-3.01.001 v1.23→v1.24, BC-4.02.001 v1.15→v1.16; §5 Live-BC version anchors updated |
+| phase-0-ingestion/dtu-assessment.md | v1.2 | v1.3 | P21-002: §3.4 rule-2 = create+link (D-024 sync); P21-003: never-auto-reopen assertion corrected to 'jr issue move non-close-state'; P21-004: dedup command pinned to 'jr issue list --jql' |
+
+---
+
+### F2 Pass-20 Remediation Edits — Burst 17 (2026-07-27) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 17). Root findings:
+P20-001 (MAJOR, D-025): D-023 close-disposition gate placed inside STEP 6 was unreachable under default config (autonomy_enabled=false exits at STEP 5 allow-without-marker) — narrative claimed "fires regardless of autonomy_enabled" while pseudocode guaranteed the opposite; fixed: gate hoisted to STEP 4b BEFORE STEP-5 kill switch (mirrors hard-floor placement); STEP-6 check demoted to defense-in-depth only; fires for ALL autonomy_enabled values,
+P20-002 (related): EC anchors repointed EC-013→EC-022 in arch-delta and verif-delta; EC-022 allocated in BC-10.01.001 (close 3-condition AND); EC-013 scope untouched,
+P20-003 (MEDIUM, D-026): orphan-link reconciliation spec (P19-002) was unimplementable from stateless loop state; §3.4 rule 1 would misroute orphan as duplicate-open→comment; fixed: D-026 stateless orphan-link recovery rule with explicit precedence OVER rule 1 (open O + Closed/Resolved C + same root cause + no Relates(O,C) → issue link-only verdict; no persisted state),
+P20-004/P20-005/P20-006 (minor/obs): prd-delta version bookkeeping corrections (§5 cells, missing v1.19 changelog row, BC-6.01.003 v1.6/v1.7 footnote),
+P20-007 (obs): BC-4.02.001 Inv#1 non-close jr-issue-move = HUMAN-GATED ONLY wording fix,
+P20-008 (obs): verif-delta historical annotation.
+41 VPs (unchanged) / 63 mutants (SM-9..SM-70; SM-32=32a+32b+32-ext; SM-55 skipped; +SM-69 [STEP-4b-guard-removed], +SM-70 [D-026-rule-removed]) / ~431 test cases.
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.21 | v1.22 | P20-001/D-025: STEP 4b close-disposition gate hoisted (§8.33 updated; STEP-6 check = defense-in-depth only; fires for all autonomy_enabled values); P20-003/D-026: §8.34 stateless orphan-link recovery rule with rule-1 precedence; EC-022 allocated; EC-013 scope note |
+| phase-f2-spec-evolution/verification-delta.md | v1.21 | v1.22 | SM-69 (STEP-4b-guard-removed reachability mutant) + SM-70 (D-026-rule-removed mutant) allocated; EC anchors repointed EC-013→EC-022 in VP definitions; SM recap updated 61→63; P20-008 historical annotation |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.28 | v1.29 | P20-001/D-025: STEP 4b close-disposition gate hoisted (pseudocode updated; fires before kill switch); SM-69 + SM-70 kill vectors cited; defense-in-depth note at STEP-6 close branch |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.22 | v1.23 | P20-001/D-025 propagation: STEP 4b gate noted; EC-022 allocated (close 3-condition AND); P20-003/D-026: orphan-link recovery rule noted in Stage-8; P20-007 Inv#1 wording fix |
+| phase-0-ingestion/behavioral-contracts/BC-4.02.001.md | v1.14 | v1.15 | P20-007: Inv#1 non-close jr-issue-move = HUMAN-GATED ONLY (removes ambiguity with autonomous close path) |
+| phase-f2-spec-evolution/prd-delta.md | v1.19 | v1.20 | P20-004/005/006: §5 version cells corrected; missing v1.19 changelog row added; BC-6.01.003 v1.6/v1.7 footnote fixed; burst-17 post-note added |
+
+---
+
 ### F2 Pass-19 Remediation Edits — Burst 16 (2026-07-23) — spec remains 1.1.0
 
 Remediation edits within the F2 adversarial convergence cycle (burst 16). Root findings:

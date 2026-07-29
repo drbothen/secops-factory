@@ -1,10 +1,11 @@
 ---
 document_type: architecture-delta
 producer: architect
-version: "1.24"
-date: 2026-07-28
+version: "1.25"
+date: 2026-07-29
 input-hash: COMPUTE-AT-COMMIT
 changelog:
+  - "1.25 (2026-07-29): Pass-23 adversarial remediation burst 20. D-028 (P23-001 MAJOR + P23-005 MEDIUM): completes D-027's defensive half. (1) WRITE_MARKER fail-closed extended to hard-floor link path: is_link_hard_floor flag passed from EMIT_LINK_MARKER; is_review_path condition extended to `(action in {create-review, comment-review}) OR is_link_hard_floor`; marker-write failure on a hard-floor link → MARKER-WRITE-FAILED audit entry + DENY (matches create-review/comment-review; MARKER-WRITE-FAILED already in Gate-2 grep set — no new grep pattern needed). (2) Null-binding fail-loud on STEP 3b path: ticket_id==null OR link_target_ticket_id==null → HARD-FLOOR-UNBINDABLE deny + audit with machine-actionable corrective reason (mirrors P8-001 create-review/comment-review paths); allow-without-marker on null key is NOT acceptable for hard-floor link. (3) Org/project binding (P23-005 folded): at EMIT_LINK_MARKER (both entry paths — hard-floor and REGULAR), after O7 charset validation, KEY1 and KEY2 validated against org's resolved jira_project_key prefix (per-org CONFIG lookup, not verdict-influenceable); non-conformant → LINK-PROJECT-BINDING-DENY audit code + deny with corrective reason. Residual: forged hard-floor still enables same-project Relates link under kill switch — bounded, accepted per D-027. P23-004 (MEDIUM): GOTO-into-ELIF replaced with named subroutine EMIT_LINK_MARKER(verdict, recomputed_severity, is_hard_floor_link) — bash-implementable shell function; STEP 3b calls it directly after null-binding checks; STEP 6 ELIF link branch calls same subroutine; no GOTO; STEP6_LINK label removed. PO obligations: BC-3.03.001 (STEP 3b + STEP 6 link branch + WRITE_MARKER), BC-10.01.001 (Gate-2 note unchanged). FV obligations: VP/SM for hard-floor link fail-closed (marker-write-failure path), org-binding deny, VP-SKILL-065 kill-switch invariant re-scope for link/close (P23-003). Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.24 (2026-07-28): Pass-22 adversarial remediation burst 19. D-027 (P22-003 CRITICAL — human decision 2026-07-27): link verdict is REVIEW-CLASS when hard_floor_applies()=TRUE — EXEMPT from STEP-4 hard-floor DENY and STEP-5 kill switch (mirroring D-007/D-DEC-012 Option-A). Rationale: a Relates link records relationship metadata for the human reviewer; it authorizes no triage decision and changes no ticket state; both keys remain charset-validated + anti-fungible; exemption condition is hook-recomputable (hard_floor_applies() + action==link — O6-safe); blast radius if forged = one Relates link (accepted). New STEP 3b carve-out inserted between STEP 3 and STEP 4; STEP 6 link branch serves as common emission path (reached from STEP 3b for hard-floor OR from STEP 6 normal flow for non-hard-floor). Non-hard-floor links remain REGULAR scope (STEP-4 N/A by definition, STEP-5 gated). D-026 self-healing claim now TRUE: orphan-link recovery on hard-floor alerts succeeds. D-024 (P22-002 MAJOR — RESOLVED from HUMAN-GATE-CONFIRM P19-004, human decision 2026-07-23): §3.4 rule 2 = create+link (interpretation b), parallel to rule 4; each root cause gets its own ticket; existing related ticket is NOT commented upon. Decision record added; stale comment+link text at L152, L1848, §8.32.1 item 6, §8.32.4 item 1, §8.32.5 item 1, §8.33.2 item 3, §8.33.3, and pass-19 closing text all updated. P22-001 (MAJOR): investigation-markdown kill-switch ordering defect fixed — disposition routing now runs BEFORE the autonomy_enabled kill switch; non-FP/PARSE_FAIL → MARKDOWN_REVIEW_PATH (exempt from kill switch per D-DEC-012 Option A) regardless of autonomy_enabled; kill switch is removed from step 1 of the markdown gating sequence (P13-001 eliminates all autonomous-comment paths, making it redundant and harmful); L2037 'behaves identically to STEP 5' claim removed; Key guarantee #2 updated. Emitter pseudocode bumped to v2.0. PO obligations: BC-3.03.001 (emitter STEPs for STEP 3b + markdown reorder), BC-10.01.001 (link scope description, EC-008/011/013 postconditions reachable, D-026 rule now self-healing, §3.4 rule 2 = create+link + PC#7b update + D-024 record). FV obligations: VP-HOOK-036 hard-floor link vector (BLIND-SPOT closed→new+link with hard-floor mock alert asserting [\"link\"] marker issued and consumed), mutant for D-027 exemption, markdown-path non-FP+autonomy_enabled=false vector. BC-4.02.001 L83 citation fix: PO must repoint from §8.33.3 (which said 'do NOT change PC#7b') to the new D-024 decision record. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.23 (2026-07-27): Pass-21 adversarial remediation burst 18 — D-026 link-read mechanism pinned (P21-006). D-026 decision record updated to specify that the Relates(O,C) absence predicate is computed from `jr issue view <candidate-key> --output json` issuelinks output, which is an allowlisted read per BC-3.01.001 PC#3. PO obligation added: add the D-026 link-read mechanism to BC-10.01.001 §3.4/D-026 rule text and verify `jr issue view` (plain + `--output json` forms) allowlist coverage in BC-3.01.001. dtu-assessment bumped to v1.3 (separate artifact). Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.22 (2026-07-27): Pass-20 adversarial remediation burst 17. D-025 (P20-001 MAJOR — human decision 2026-07-27): D-023 close-disposition gate HOISTED to fire as STEP 4b — BEFORE the STEP-5 autonomy_enabled kill switch. Root cause: D-023 gate was placed inside the STEP-6 ELIF action==\"close\" branch, which is only reached after STEP 5 returns; with autonomy_enabled=false (default), a TP close verdict exited at STEP 5 with allow-without-marker and never reached D-023, silently omitting the CLOSE-DISPOSITION-DENY audit entry and corrective feedback. The gate now fires as an unconditional early guard for ALL ticket_action_type=close verdicts where disposition∉{FP,BTP}, regardless of autonomy_enabled or scored_priority. D-023's 'fires regardless of autonomy_enabled' mandate is now structurally guaranteed. The STEP-6 close branch retains the disposition check as defense-in-depth only (explicitly annotated); authoritative gate is STEP 4b. SECURITY RECAP comment and self-contradicting narrative at v1.21 L1848/L1860 corrected. Decision record D-025 added. Decision record D-023 updated to reference D-025 hoist. D-026 (P20-003 MEDIUM): orphan-link reconciliation predicate adjudicated and recorded. Chose option (b) — explicit stateless §3.4 correlation rule (precedence over rule 1): 'open ticket O + closed/resolved ticket C + same root cause + no Relates(O,C) link → issue link-only verdict; do not comment.' Rationale: stateless (no new persisted artifact beyond watermarks); definable Jira-query predicate; self-healing on repeated failure; avoids second-order orphaned-pending-link failure mode of option (a). Rule-1 precedence interaction specified explicitly. §8.33.2 item 2 updated with precise predicate. VP-HOOK-036/SM-68 now have a verifiable predicate. Decision record D-026 added. P20-002 (MEDIUM): §8.33.2 item 1 EC-013 dangling anchor fixed — instruction now directs PO to ALLOCATE A NEW EC-022 in BC-10.01.001 encoding the close 3-condition AND (disposition∈{FP,BTP} AND hard_floor_applies()=false AND autonomy_enabled=true); stale 'update EC-013' instruction corrected. All other 'EC-013 = 3-condition AND' references inside architecture-delta annotated or corrected. §8.34 propagation list added (D-025/D-026/P20-002 obligations). Emitter pseudocode bumped to v1.9. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
@@ -78,6 +79,7 @@ asm_004_validation: .factory/phase-f2-spec-evolution/asm-004-validation.md
 | D-024 | **RESOLVED** | §3.4 rule 2 = create+link (human decision 2026-07-23, P19-004/P22-002). Interpretation (b) confirmed: when processing an alert with no prior ticket and dedup finds a related-but-different-root-cause open ticket, the action is CREATE a new ticket for the current alert THEN LINK it to the related one — parallel to rule 4 (create+link for closed tickets). Each root cause gets its own ticket; the existing related ticket is NOT commented upon. PC#7b must be updated to the create+link model (PO obligation — see §8.35). |
 | D-026 | **RESOLVED** | Orphan-link reconciliation predicate (P20-003): stateless §3.4 correlation rule (option b) — new rule evaluated BEFORE rule 1: 'open ticket O with same root cause as Closed/Resolved ticket C AND no Relates(O,C) link exists → issue link-only verdict; do not comment.' Precedence over rule 1 explicit. Stateless (no persisted artifact beyond watermarks). Verifiable predicate for VP-HOOK-036/SM-68. **Link-read mechanism (P21-006):** the `Relates(O,C)` absence predicate is computed from `jr issue view <candidate-key> --output json` issuelinks output (allowlisted read per BC-3.01.001 PC#3 — `jr issue view` plain + `--output json` forms both covered). PO obligation: add this mechanism to BC-10.01.001 §3.4 D-026 rule text and confirm allowlist coverage in BC-3.01.001. **D-027 reconciliation:** D-026 orphan-link recovery on hard-floor alerts NOW SUCCEEDS — the link verdict is review-class when hard_floor_applies()=true (D-027), so the Relates link is created on hard-floor alerts; the "self-healing" claim in BC-10.01.001 EC-010/Stage-8 becomes true for hard-floor orphans. |
 | D-027 | **RESOLVED** | Link verdict is review-class when hard_floor_applies()=true (P22-003, human decision 2026-07-27). When hook-computed `hard_floor_applies()`=TRUE AND `ticket_action_type=="link"`: the link verdict is EXEMPT from STEP-4 hard-floor DENY and EXEMPT from STEP-5 kill switch. The `["link"]` marker is issued via STEP 3b carve-out; same anti-fungible scope, same O7 charset validation on both keys — nothing changes on the consumer side. Rationale: linking a review/escalation ticket to its predecessor IS part of review surfacing; a Relates link authorizes no triage decision, changes no ticket state; exemption condition is hook-recomputable (hard_floor_applies() + action==link — O6-safe); blast radius if LLM forges hard-floor fields = one Relates link (accepted bounded risk). Non-hard-floor links remain REGULAR scope (STEP-4 N/A by definition, STEP-5 kill-switch gated). |
+| D-028 | **RESOLVED** | Completes D-027's defensive half — fail-loud + org-binding for the STEP-3b-entered link path (P23-001 MAJOR + P23-005 MEDIUM, burst 20). Three sub-decisions: (1) **Marker-write fail-closed**: hard-floor link path extended to fail-closed on WRITE_MARKER failure — `is_link_hard_floor` flag passed from `EMIT_LINK_MARKER(is_hard_floor_link=true)`; `is_review_path` condition at WRITE_MARKER extended to `(action in {create-review, comment-review}) OR is_link_hard_floor`; on write failure → MARKER-WRITE-FAILED audit entry + DENY. MARKER-WRITE-FAILED already in Gate-2 grep set (BC-10.01.001 §D-DEC-003 cron wrapper) — no new grep pattern needed. Non-hard-floor (REGULAR) link keeps allow-without-marker on write failure (P10-003 asymmetry unchanged). (2) **Null-binding fail-loud**: on STEP 3b path (is_hard_floor_link=true), `ticket_id==null` OR `link_target_ticket_id==null` → HARD-FLOOR-UNBINDABLE deny + audit with machine-actionable corrective reason; NOT allow-without-marker. Mirrors P8-001 (create-review null project_key / comment-review null ticket_id) — same D-DEC-012 clause-2 fail-loud rationale. (3) **Org/project binding** (P23-005): at `EMIT_LINK_MARKER` (BOTH entry paths), after O7 charset validation, KEY1 and KEY2 validated against org's resolved `jira_project_key` prefix (CONFIG-side per-org lookup with global fallback per P10-009/D-DEC-008; NOT verdict-influenceable — O6-safe). Non-conformant → LINK-PROJECT-BINDING-DENY new audit code + deny with corrective reason. Closes forged-hard-floor abuse for cross-project/cross-org link pairs. Residual (bounded, accepted per D-027): forged hard-floor can still create a same-project Relates link under kill switch. P23-004 (MEDIUM): GOTO-into-ELIF-ladder replaced by named subroutine `EMIT_LINK_MARKER(verdict, recomputed_severity, is_hard_floor_link)` — bash shell function; STEP 3b calls directly after null-binding checks; STEP 6 ELIF link calls same; STEP6_LINK label removed. |
 
 ---
 
@@ -1683,8 +1685,43 @@ IF action in {"create-review", "comment-review"}:
 # Does NOT bypass STEP 1/1a validation (already passed before this point).
 # Does NOT interact with STEP 4b close gate (action=="link" ≠ "close").
 IF action == "link" AND hard_floor_applies(verdict, recomputed_severity):
-  GOTO STEP6_LINK  # skip STEP 4 hard-floor DENY and STEP 5 kill switch;
-                   # O7 charset validation + marker issuance run at STEP6_LINK label below
+  # ── D-028 (P23-001): null-binding fail-loud on the hard-floor link path ──────
+  # On the review-class link path, null KEY1 or KEY2 is an UNBINDABLE condition.
+  # D-DEC-012 clause 2 mandates explicit deny + audit — NOT allow-without-marker.
+  # This mirrors the P8-001 HARD-FLOOR-UNBINDABLE paths for create-review (null
+  # jira_project_key) and comment-review (null ticket_id).
+  ticket_id_step3b   = verdict.ticket_id
+  ticket_id_b_step3b = verdict.link_target_ticket_id
+  IF ticket_id_step3b is null:
+    WRITE audit entry:
+      "HARD-FLOOR-UNBINDABLE: hard-floor link verdict with null ticket_id (KEY1)" +
+      "; missing_field=ticket_id" +
+      "; corrective_action=populate verdict.ticket_id with the primary Jira ticket key" +
+      "; verdict Write denied by disposition-guard (D-028/P23-001/D-DEC-012 clause 2)"
+    emit deny(
+      "HARD-FLOOR-UNBINDABLE: cannot bind hard-floor link marker without ticket_id (KEY1). " +
+      "hard_floor_trigger=" + identify_hard_floor_trigger(verdict) + ". " +
+      "missing_field=ticket_id. " +
+      "Re-issue this Write with ticket_id populated in the verdict."
+    )
+    RETURN
+  IF ticket_id_b_step3b is null:
+    WRITE audit entry:
+      "HARD-FLOOR-UNBINDABLE: hard-floor link verdict with null link_target_ticket_id (KEY2)" +
+      "; missing_field=link_target_ticket_id" +
+      "; corrective_action=populate verdict.link_target_ticket_id with the target Jira ticket key" +
+      "; verdict Write denied by disposition-guard (D-028/P23-001/D-DEC-012 clause 2)"
+    emit deny(
+      "HARD-FLOOR-UNBINDABLE: cannot bind hard-floor link marker without link_target_ticket_id (KEY2). " +
+      "hard_floor_trigger=" + identify_hard_floor_trigger(verdict) + ". " +
+      "missing_field=link_target_ticket_id. " +
+      "Re-issue this Write with link_target_ticket_id populated in the verdict."
+    )
+    RETURN
+  # Null checks passed. Delegate to EMIT_LINK_MARKER with is_hard_floor_link=true.
+  # P23-004: subroutine replaces GOTO STEP6_LINK — no GOTO into ELIF ladder.
+  EMIT_LINK_MARKER(verdict, recomputed_severity, is_hard_floor_link=true)
+  RETURN
 
 # ── STEP 4: Hard-floor check — DENY-THE-WRITE on under-label (ADV-F2-P7-001) [POSITIONED BEFORE KILL SWITCH — ADV-F2-P6-002] ──
 # At this point action is a regular type (comment/create/assign/none/close) because review
@@ -1880,45 +1917,16 @@ ELIF action == "assign":
   ops = ["assign"]
 
 ELIF action == "link":
-  STEP6_LINK:  # D-027: reached from STEP 3b GOTO (hard-floor link — review-class, exempt from
-               # STEP 4+5) OR from normal STEP-6 flow (non-hard-floor, autonomy-enabled).
-               # O7 charset validation below applies in BOTH cases. Consumer side is unchanged.
-  # ── D-020 (P18-001) / D-027: link scope ──────────────────────────────────────────────
-  # Two ticket IDs required: ticket_id_a (primary ticket — verdict.ticket_id) and
-  # ticket_id_b (link target — verdict.link_target_ticket_id, new non-ICD-203 field).
-  # Command: jr issue link KEY1 KEY2  (default link-type "Relates"; no --type arg)
-  # Iron Law: the monitoring loop MUST call `jr issue link KEY1 KEY2` WITHOUT --type.
-  # Compound §3.4 actions (rule 2: create+link — D-024; rule 4: create+link) use TWO sequential
-  # verdict Writes; this branch handles the second Write only (D-022 option b).
-  ticket_id = verdict.ticket_id     # KEY1 — the primary ticket (outward/this-alert ticket)
-  IF ticket_id is null: emit allow without marker; RETURN
-  # O7 FIX (D-020) — CHARSET VALIDATE ticket_id_a (KEY1) BEFORE interpolation into regex
-  IF NOT regex_match("^[A-Z][A-Z0-9]+-[0-9]+$", ticket_id):
-    WRITE audit entry:
-      "TICKET-ID-CHARSET-DENY: ticket_id (KEY1) '" + strip_control_chars(ticket_id) + "'" +
-      " fails Jira-key charset validation; verdict Write denied (D-020/O7)"
-    emit deny("TICKET-ID-CHARSET-DENY: ticket_id (link KEY1) must match ^[A-Z][A-Z0-9]+-[0-9]+$. Re-issue with valid ticket_id.")
-    RETURN
-  ticket_id_safe = regex_escape(ticket_id)   # defense-in-depth per O7
-  ticket_id_b = verdict.link_target_ticket_id   # KEY2 — the target ticket (inward/related)
-  IF ticket_id_b is null:
-    # link_target_ticket_id is REQUIRED for link scope; absent → fail closed
-    WRITE audit entry:
-      "LINK-TARGET-MISSING: link action requires link_target_ticket_id in verdict" +
-      "; verdict Write denied by disposition-guard (D-020/P18-001)"
-    emit deny("LINK-TARGET-MISSING: ticket_action_type=link requires link_target_ticket_id to be populated in the verdict. Re-issue with link_target_ticket_id set to the target Jira ticket key.")
-    RETURN
-  # O7 FIX (D-020) — CHARSET VALIDATE ticket_id_b (KEY2) BEFORE interpolation into regex
-  IF NOT regex_match("^[A-Z][A-Z0-9]+-[0-9]+$", ticket_id_b):
-    WRITE audit entry:
-      "LINK-TARGET-CHARSET-DENY: link_target_ticket_id (KEY2) '" + strip_control_chars(ticket_id_b) + "'" +
-      " fails Jira-key charset validation; verdict Write denied (D-020/O7)"
-    emit deny("LINK-TARGET-CHARSET-DENY: link_target_ticket_id (link KEY2) must match ^[A-Z][A-Z0-9]+-[0-9]+$. Re-issue with valid link_target_ticket_id.")
-    RETURN
-  ticket_id_b_safe = regex_escape(ticket_id_b)   # defense-in-depth per O7
-  # Pattern: KEY1 and KEY2 in fixed positional order; trailing ( |$) guards against KEY2 prefix-extension
-  pattern = "^jr (--output json )?issue link " + ticket_id_safe + " " + ticket_id_b_safe + "( |$)"
-  ops = ["link"]
+  # ── D-020 (P18-001) / D-027 / D-028 / P23-004: REGULAR link scope (non-hard-floor path) ─
+  # Reached from STEP-6 normal flow only (non-hard-floor, autonomy_enabled=true).
+  # Hard-floor link path: handled by STEP 3b (D-027) via EMIT_LINK_MARKER with
+  # is_hard_floor_link=true; it never reaches this ELIF.
+  # P23-004: GOTO-into-ELIF-ladder replaced with named subroutine EMIT_LINK_MARKER;
+  # the STEP6_LINK label is removed — there is no longer a jump target inside this branch.
+  # O7 charset validation, org-binding (D-028/P23-005), and marker construction all
+  # reside in EMIT_LINK_MARKER, which is the single implementation for both entry paths.
+  EMIT_LINK_MARKER(verdict, recomputed_severity, is_hard_floor_link=false)
+  RETURN
 
 ELIF action == "close":
   # ── D-021 (P18-005): close scope ──────────────────────────────────────────────
@@ -2002,16 +2010,128 @@ ELIF action == "close":
   pattern = "^jr (--output json )?issue move " + ticket_id_safe + " " + close_state_safe + "( |$)"
   ops = ["close"]
 
-# ── WRITE_MARKER: common path for all marker types ───────────────────────────
+# ── EMIT_LINK_MARKER(verdict, recomputed_severity, is_hard_floor_link) ───────────────────
+# P23-004: Named subroutine replacing the GOTO-into-ELIF dual-entry pattern. Bash-implementable
+# as a shell function. Called from:
+#   - STEP 3b (hard-floor link, D-027/D-028): is_hard_floor_link=true; KEY1/KEY2 already null-
+#     checked by the D-028 HARD-FLOOR-UNBINDABLE guards before this call.
+#   - STEP 6 ELIF action=="link" (regular STEP-6 path, non-hard-floor): is_hard_floor_link=false;
+#     null checks performed inline below (allow-without-marker on null for regular path).
+# Both paths have already passed STEP 1/1a enum + severity consistency validation.
+# STEP6_LINK label is removed — there is no jump target in a subroutine-based design.
+#
+# Subroutine sets is_link_hard_floor = is_hard_floor_link and falls through to WRITE_MARKER.
+# WRITE_MARKER uses is_link_hard_floor to extend is_review_path (D-028 fail-closed).
+FUNCTION EMIT_LINK_MARKER(verdict, recomputed_severity, is_hard_floor_link):
+  # ── O7 charset validation KEY1 ──────────────────────────────────────────────
+  # D-020 (P18-001): ticket_id_a (KEY1) = primary ticket
+  # Iron Law: jr issue link KEY1 KEY2 WITHOUT --type.
+  # Compound §3.4 actions (rule 2: create+link D-024; rule 4: create+link) use TWO sequential
+  # verdict Writes; this subroutine handles the second Write only (D-022 option b).
+  ticket_id = verdict.ticket_id     # KEY1 — the primary ticket (outward/this-alert ticket)
+  IF ticket_id is null:
+    # Regular path only: STEP 3b null-checked before call; is_hard_floor_link=true cannot reach here.
+    emit allow without marker; RETURN
+  IF NOT regex_match("^[A-Z][A-Z0-9]+-[0-9]+$", ticket_id):
+    WRITE audit entry:
+      "TICKET-ID-CHARSET-DENY: ticket_id (KEY1) '" + strip_control_chars(ticket_id) + "'" +
+      " fails Jira-key charset validation; verdict Write denied (D-020/O7)"
+    emit deny("TICKET-ID-CHARSET-DENY: ticket_id (link KEY1) must match ^[A-Z][A-Z0-9]+-[0-9]+$. Re-issue with valid ticket_id.")
+    RETURN
+  ticket_id_safe = regex_escape(ticket_id)   # defense-in-depth per O7
+
+  # ── O7 charset validation KEY2 ──────────────────────────────────────────────
+  ticket_id_b = verdict.link_target_ticket_id   # KEY2 — the target ticket (inward/related)
+  IF ticket_id_b is null:
+    # Regular path only: STEP 3b null-checked before call.
+    # link_target_ticket_id is REQUIRED for link scope; absent → fail closed (regular path).
+    WRITE audit entry:
+      "LINK-TARGET-MISSING: link action requires link_target_ticket_id in verdict" +
+      "; verdict Write denied by disposition-guard (D-020/P18-001)"
+    emit deny("LINK-TARGET-MISSING: ticket_action_type=link requires link_target_ticket_id to be populated in the verdict. Re-issue with link_target_ticket_id set to the target Jira ticket key.")
+    RETURN
+  IF NOT regex_match("^[A-Z][A-Z0-9]+-[0-9]+$", ticket_id_b):
+    WRITE audit entry:
+      "LINK-TARGET-CHARSET-DENY: link_target_ticket_id (KEY2) '" + strip_control_chars(ticket_id_b) + "'" +
+      " fails Jira-key charset validation; verdict Write denied (D-020/O7)"
+    emit deny("LINK-TARGET-CHARSET-DENY: link_target_ticket_id (link KEY2) must match ^[A-Z][A-Z0-9]+-[0-9]+$. Re-issue with valid link_target_ticket_id.")
+    RETURN
+  ticket_id_b_safe = regex_escape(ticket_id_b)   # defense-in-depth per O7
+
+  # ── D-028/P23-005: org/project binding check (BOTH entry paths) ─────────────
+  # Validates KEY1 and KEY2 each carry the org's resolved Jira project-key prefix.
+  # Source: per-org jira_project_key from CONFIG with global-key fallback (P10-009/D-DEC-008).
+  # NOT verdict-influenceable — config-side only (O6-safe).
+  # Purpose: closes the P23-005 forged-hard-floor abuse to cross-project/cross-org pairs.
+  #   All specified link scenarios (EC-008/EC-011/EC-013, D-026 recovery) are within one
+  #   org's project by construction.
+  # Residual (bounded, accepted per D-027): a forged hard-floor verdict can still create
+  #   a same-project Relates link while the kill switch is ON — one Relates link within
+  #   the org's own project, accepted per D-027 blast-radius analysis.
+  resolved_project_key = read_org_project_key(verdict.org_slug)
+  # read_org_project_key: per-org jira_project_key; global fallback if per-org not set.
+  IF resolved_project_key is null OR resolved_project_key == "":
+    WRITE audit entry:
+      "LINK-PROJECT-BINDING-DENY: jira_project_key not configured for org_slug='" +
+      strip_control_chars(verdict.org_slug) + "'" +
+      "; cannot verify KEY1/KEY2 project binding" +
+      "; verdict Write denied by disposition-guard (D-028/P23-005)"
+    emit deny(
+      "LINK-PROJECT-BINDING-DENY: cannot verify KEY1/KEY2 project binding — " +
+      "jira_project_key not configured for org '" + strip_control_chars(verdict.org_slug) + "'. " +
+      "Configure jira_project_key via onboard-customer or activate and retry."
+    )
+    RETURN
+  resolved_project_key_safe = regex_escape(resolved_project_key)   # O7 defense-in-depth
+  expected_key_pattern = "^" + resolved_project_key_safe + "-[0-9]+$"
+  IF NOT regex_match(expected_key_pattern, ticket_id):
+    WRITE audit entry:
+      "LINK-PROJECT-BINDING-DENY: ticket_id (KEY1) '" + strip_control_chars(ticket_id) + "'" +
+      " does not belong to project '" + resolved_project_key + "'" +
+      "; verdict Write denied by disposition-guard (D-028/P23-005)"
+    emit deny(
+      "LINK-PROJECT-BINDING-DENY: ticket_id (KEY1) must belong to project " + resolved_project_key + ". " +
+      "All link keys must be within the org's configured Jira project (same-project constraint). " +
+      "corrective_reason=verify ticket_id matches " + resolved_project_key + "-NNN format."
+    )
+    RETURN
+  IF NOT regex_match(expected_key_pattern, ticket_id_b):
+    WRITE audit entry:
+      "LINK-PROJECT-BINDING-DENY: link_target_ticket_id (KEY2) '" + strip_control_chars(ticket_id_b) + "'" +
+      " does not belong to project '" + resolved_project_key + "'" +
+      "; verdict Write denied by disposition-guard (D-028/P23-005)"
+    emit deny(
+      "LINK-PROJECT-BINDING-DENY: link_target_ticket_id (KEY2) must belong to project " + resolved_project_key + ". " +
+      "All link keys must be within the org's configured Jira project (same-project constraint). " +
+      "corrective_reason=verify link_target_ticket_id matches " + resolved_project_key + "-NNN format."
+    )
+    RETURN
+
+  # ── marker parameters set; fall through to WRITE_MARKER ─────────────────────
+  # Pattern: KEY1 and KEY2 in fixed positional order; trailing ( |$) guards against KEY2 prefix-extension
+  pattern = "^jr (--output json )?issue link " + ticket_id_safe + " " + ticket_id_b_safe + "( |$)"
+  ops = ["link"]
+  # D-028: pass fail-loud flag to WRITE_MARKER to extend is_review_path for hard-floor links.
+  # is_link_hard_floor=true  → marker-write failure → MARKER-WRITE-FAILED deny (fail-closed).
+  # is_link_hard_floor=false → marker-write failure → allow-without-marker (P10-003 asymmetry).
+  is_link_hard_floor = is_hard_floor_link
+  GOTO WRITE_MARKER
+END FUNCTION EMIT_LINK_MARKER
+
+# ── WRITE_MARKER: common path for all non-link marker types ───────────────────────────────
+# Link markers use EMIT_LINK_MARKER above (which falls through to this block via GOTO).
 # P10-003: marker-write FAILURE is handled differently for review vs regular paths.
-# On the hard-floor review path (create-review/comment-review), a write failure MUST fail
-# closed: WRITE audit entry MARKER-WRITE-FAILED + emit deny (mirroring HARD-FLOOR-UNBINDABLE).
-# On regular marker paths (comment/create/assign), allow-without-marker is acceptable:
-# require-review will deny the jr call (no marker in store = human gate still holds).
+# On the hard-floor review path (create-review/comment-review) AND the hard-floor link
+# path (D-028): a write failure MUST fail closed — WRITE audit entry MARKER-WRITE-FAILED
+# + emit deny. On regular marker paths (comment/create/assign/non-hard-floor-link):
+# allow-without-marker is acceptable — require-review denies the jr call (human gate holds).
 # Rationale: a silently-dropped hard-floor finding (no ticket, no error) contradicts D-DEC-012
 # fail-loud invariant. The regular path's allow-without-marker is safe because the absence of
 # a marker causes require-review to deny the Jira write — the human gate is preserved.
-# is_review_path is TRUE when the GOTO WRITE_MARKER was from STEP 3 (create-review/comment-review).
+# is_review_path is TRUE when:
+#   (a) GOTO WRITE_MARKER was from STEP 3 (create-review/comment-review), OR
+#   (b) action=="link" AND is_link_hard_floor==true (D-028 extension).
+# For non-link paths, is_link_hard_floor is not set (defaults false).
 WRITE_MARKER:
 expires_at = now() + 120s             # absolute expiry (schema v2.0)
 # D-020: link_target_ticket_id is populated only for action=="link"; null for all other scopes
@@ -2033,26 +2153,34 @@ marker = {
     ticket_action_type: action          # for audit trail (includes link/close)
   }
 }
-is_review_path = (action in {"create-review", "comment-review"})
+# D-028 (P23-001): is_review_path extended to cover hard-floor link path.
+# is_link_hard_floor is set by EMIT_LINK_MARKER; not set (= false) for non-link paths.
+# Approach: pass the flag (not recompute hard_floor_applies() here) to avoid a second
+# invocation and to keep the fail-closed condition as a simple boolean at WRITE_MARKER time.
+# Gate-2 observability: MARKER-WRITE-FAILED is already in the BC-10.01.001 Gate-2 grep set
+# (§D-DEC-003 cron wrapper audit.log grep pattern) — no new grep pattern needed; the link-path
+# MARKER-WRITE-FAILED audit code is identical and immediately greppable (P23-001 verification).
+is_review_path = (action in {"create-review", "comment-review"}) OR (action == "link" AND is_link_hard_floor)
 write_ok = write_marker(marker, "${CLAUDE_PLUGIN_DATA}/markers/${marker.marker_id}.marker.json")
 IF NOT write_ok:
   IF is_review_path:
-    # P10-003 CRITICAL FIX — hard-floor review path MUST fail closed on marker-write failure
+    # P10-003 CRITICAL FIX (create-review/comment-review) + D-028 extension (hard-floor link):
+    # hard-floor path MUST fail closed on marker-write failure.
     WRITE audit entry:
-      "MARKER-WRITE-FAILED: hard-floor review marker could not be written to " +
+      "MARKER-WRITE-FAILED: hard-floor marker could not be written to " +
       "${CLAUDE_PLUGIN_DATA}/markers/${marker.marker_id}.marker.json" +
-      "; verdict Write denied by disposition-guard (P10-003/D-DEC-012 clause 2)" +
+      "; verdict Write denied by disposition-guard (P10-003/D-028/D-DEC-012 clause 2)" +
       "; hard_floor_trigger=" + identify_hard_floor_trigger(verdict)
     emit deny(
-      "MARKER-WRITE-FAILED: disposition-guard could not write the review marker to the " +
+      "MARKER-WRITE-FAILED: disposition-guard could not write the hard-floor marker to the " +
       "marker store (disk full, read-only volume, or permissions error). " +
-      "Hard-floor finding cannot be silently dropped (D-DEC-012 fail-loud invariant). " +
+      "Hard-floor finding cannot be silently dropped (D-DEC-012 / D-028 fail-loud invariant). " +
       "Investigate ${CLAUDE_PLUGIN_DATA}/markers/ filesystem access and retry."
     )
     RETURN
   ELSE:
-    # Regular (non-review) path: allow-without-marker; require-review denies jr call (no marker)
-    # This is safe: the human gate (require-review) still prevents the Jira write.
+    # Regular (non-review, non-hard-floor-link) path: allow-without-marker;
+    # require-review denies jr call (no marker). Human gate preserved.
     emit allow without marker
     RETURN
 emit allow
@@ -7272,3 +7400,109 @@ closing text. P22-001 (MAJOR): investigation-markdown kill-switch ordering fixed
 autonomy_enabled check removed; disposition routing runs first; Key guarantee #2 updated;
 VP-HOOK-031 markdown-path vector added. Architect does NOT edit BCs, verification-delta,
 prd-delta, spec-changelog, or STATE.md.*
+
+---
+
+## 8.36 PROPAGATION LIST (pass 23 — P23-001/P23-002/P23-004/P23-005 / D-028)
+
+> **Owner (§8.36 items 1–4):** Product owner and formal verifier as marked. Architect does NOT
+> edit BCs, verification-delta, prd-delta, spec-changelog, or STATE.md. All changes below are
+> the sole responsibility of the product owner (PO) and formal verifier (FV).
+>
+> **Architectural decisions recorded here:** D-028 (defensive half of D-027 — fail-loud +
+> org-binding for STEP-3b-entered link — P23-001 MAJOR + P23-005 MEDIUM, burst 20). P23-004
+> (MEDIUM): GOTO-into-ELIF replaced with EMIT_LINK_MARKER subroutine.
+
+---
+
+### 8.36.1 PO — BC-3.03.001 (emitter): STEP 3b null-binding + EMIT_LINK_MARKER + WRITE_MARKER
+
+**Required change 1 — STEP 3b null-binding fail-loud (D-028/P23-001):**
+
+Insert HARD-FLOOR-UNBINDABLE guards immediately after the `IF action == "link" AND hard_floor_applies():` check and before the subroutine call. For each of KEY1 (`ticket_id`) and KEY2 (`link_target_ticket_id`): if null → `HARD-FLOOR-UNBINDABLE` audit entry + deny with machine-actionable corrective reason (`missing_field`, `corrective_action`, `hard_floor_trigger`). This mirrors the P8-001 patterns at STEP 3 (create-review + null `jira_project_key`; comment-review + null `ticket_id`).
+
+**Required change 2 — STEP 3b call site (P23-004):**
+
+Replace `GOTO STEP6_LINK` with `EMIT_LINK_MARKER(ticket_action_type="link", is_hard_floor_link=true)` followed by `RETURN`. The `STEP6_LINK:` label is removed from the STEP 6 ELIF block.
+
+**Required change 3 — STEP 6 link branch (P23-004):**
+
+Replace the entire ELIF body (O7 KEY1/KEY2 validation + pattern construction) with:
+```
+EMIT_LINK_MARKER(verdict, is_hard_floor_link=false)
+RETURN
+```
+Remove the `STEP6_LINK:` label. Add a comment: "REGULAR link path — hard-floor link handled by STEP 3b."
+
+**Required change 4 — EMIT_LINK_MARKER subroutine (P23-004 / D-028/P23-005):**
+
+Define `EMIT_LINK_MARKER` as a named block (bash shell function) containing, in order:
+1. O7 charset validation KEY1 (`ticket_id`) — deny on null (regular path) or invalid charset
+2. O7 charset validation KEY2 (`link_target_ticket_id`) — deny on null or invalid charset
+3. Org/project binding check (D-028/P23-005): resolve `jira_project_key` from CONFIG (per-org with global fallback, P10-009); validate KEY1 and KEY2 match `^<project_key>-[0-9]+$`; on non-conformant → `LINK-PROJECT-BINDING-DENY` audit code + deny with corrective reason. On unconfigured org key → `LINK-PROJECT-BINDING-DENY` deny.
+4. Pattern construction: `^jr (--output json )?issue link <KEY1_safe> <KEY2_safe>( |$)`; `ops = ["link"]`
+5. Set `is_link_hard_floor = is_hard_floor_link`
+6. Fall through to `WRITE_MARKER`
+
+**Required change 5 — WRITE_MARKER is_review_path extension (D-028/P23-001):**
+
+Change:
+```
+is_review_path = (action in {"create-review", "comment-review"})
+```
+to:
+```
+is_review_path = (action in {"create-review", "comment-review"}) OR (action == "link" AND is_link_hard_floor)
+```
+Add annotation: `is_link_hard_floor` is set by `EMIT_LINK_MARKER`; not set (defaults false) for non-link paths. Update the P10-003 WRITE_MARKER comment to note D-028 extension covers hard-floor link path.
+
+**Gate-2 observability note (no BC change required):**
+
+`MARKER-WRITE-FAILED` is already enumerated in BC-10.01.001 §3 cron-wrapper Gate-2 audit grep pattern (D-DEC-003 cron wrapper). The D-028 hard-floor link write-failure emits the same audit code; no new grep pattern is needed. Verify and annotate in BC-10.01.001 Gate-2 comment that `MARKER-WRITE-FAILED` now covers both review-path (create-review/comment-review) and hard-floor-link failures.
+
+---
+
+### 8.36.2 PO — BC-3.03.001 (emitter): D-027 invariant update for D-028
+
+Update the D-027 two-tier link invariant text (§8.35.2 Required change 2) to add:
+- "Hard-floor link path additionally requires non-null KEY1 and KEY2 (HARD-FLOOR-UNBINDABLE deny on null — D-028) and same-project org-binding for both keys (LINK-PROJECT-BINDING-DENY deny — D-028/P23-005)."
+- "On marker-write failure: hard-floor link path → MARKER-WRITE-FAILED deny (fail-closed, D-028); REGULAR link path → allow-without-marker (P10-003 asymmetry unchanged)."
+
+---
+
+### 8.36.3 FV — VP/SM obligations (P23-001/P23-003/P23-005)
+
+> **Do NOT mint VP or SM IDs here.** FV allocates IDs with occupancy verification in
+> verification-delta.
+
+1. **P23-001 hard-floor link fail-closed path (new VP or VP-HOOK-033 extension):**
+   Allocate a VP (or extend VP-HOOK-033 / a sibling VP — occupancy-check first) covering:
+   - **Scenario A — marker-write failure on hard-floor link:** Mock alert with `hard_floor_applies()=TRUE` + `ticket_action_type=link` + valid KEY1/KEY2 + injected WRITE_MARKER failure. Assert: `MARKER-WRITE-FAILED` audit code emitted; verdict Write DENIED (not allow-without-marker). Paired mutant: `is_link_hard_floor=false` for hard-floor link → alert `MARKER-WRITE-FAILED` IS NOT emitted; instead allow-without-marker → mutant dies when D-028 is present (distinguishes hard-floor from regular).
+   - **Scenario B — null KEY1 on STEP 3b:** Mock hard-floor link verdict with `ticket_id=null`. Assert: `HARD-FLOOR-UNBINDABLE` audit code + deny. Paired mutant: remove null check → allow-without-marker → silent loss → mutant dies when D-028 is present.
+   - **Scenario C — null KEY2 on STEP 3b:** Mock hard-floor link verdict with `link_target_ticket_id=null`. Assert: `HARD-FLOOR-UNBINDABLE` audit code + deny. Paired mutant symmetric to Scenario B.
+   - **SM for non-hard-floor (REGULAR) link write failure:** REGULAR link + marker-write failure → allow-without-marker (P10-003 asymmetry unchanged); NOT MARKER-WRITE-FAILED. Assert this is unchanged by D-028.
+
+2. **P23-005 org-binding deny (new VP or extension):**
+   Allocate a VP (or extend existing VP-HOOK-034 O7 charset VP) covering:
+   - **Scenario D — cross-project KEY1:** Hard-floor OR regular link with KEY1 from a different project (e.g., `OTHERPROJ-42` when `resolved_project_key=PRISMDEMO`). Assert: `LINK-PROJECT-BINDING-DENY` audit code + deny. Paired mutant: remove org-binding check → link issued with cross-project key → mutant dies.
+   - **Scenario E — cross-project KEY2:** Same as D but for KEY2.
+   - **Scenario F — unconfigured org key:** `read_org_project_key()` returns null. Assert: `LINK-PROJECT-BINDING-DENY` + deny.
+   - **Positive vector:** Same-project KEY1 + KEY2 with configured org key → org-binding check passes; O7 charset validation is the only gate (no spurious deny on valid same-project pair). Required to confirm the check is not over-broad.
+
+3. **P23-003 VP-SKILL-065 kill-switch invariant re-scope (carried forward from P23 perimeter):**
+   Extend VP-SKILL-065 to:
+   - Include `link` and `close` in the "ZERO REGULAR" enumeration (both are REGULAR scope actions subject to the kill switch when `hard_floor_applies()=FALSE`).
+   - Add a positive exemption vector for hard-floor link under `autonomy_enabled=false`: a hard-floor link verdict (`hard_floor_applies()=TRUE`) → STEP 3b → `["link"]` marker issued and consumed, even when `autonomy_enabled=false`. Mirrors the existing create-review/comment-review positive exemption vectors.
+   - Paired mutant: remove STEP 3b D-027 carve-out AND remove D-028 null/binding checks → hard-floor link under `autonomy_enabled=false` denied by STEP 5 kill switch → mutant dies when D-027 + D-028 are present.
+
+---
+
+*Pass-23 propagation list (§8.36) complete. Architecture-delta v1.25 is final for pass-23
+remediation burst 20. D-028 (defensive half of D-027 — P23-001 MAJOR + P23-005 MEDIUM):
+(1) HARD-FLOOR-UNBINDABLE null-binding guards added to STEP 3b; (2) is_review_path extended
+at WRITE_MARKER to cover hard-floor link (is_link_hard_floor flag); (3) EMIT_LINK_MARKER
+subroutine introduced with org/project binding check (LINK-PROJECT-BINDING-DENY). P23-004
+(MEDIUM): GOTO-into-ELIF replaced by EMIT_LINK_MARKER subroutine; STEP6_LINK label removed;
+implementable as bash shell function. Gate-2 observability: MARKER-WRITE-FAILED already in
+grep set — no new grep pattern. Architect does NOT edit BCs, verification-delta, prd-delta,
+spec-changelog, or STATE.md.*

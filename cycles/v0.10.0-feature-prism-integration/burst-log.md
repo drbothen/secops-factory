@@ -11,6 +11,14 @@ are archived here when the 5-row limit is reached.
 
 ---
 
+## Archived Step: F2 pass-22 remediation burst 19 (rotated 2026-07-29)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-22 remediation burst 19 | architect / product-owner / formal-verifier / state-manager | DONE | P22-003 (CRITICAL) → D-027 two-tier link posture: STEP 3b (new, between STEP 3 and STEP 4) review-class carve-out (hard-floor link exempt from STEP-4 hard-floor deny AND STEP-5 kill switch, GOTO STEP6_LINK dual-entry, O7 at STEP6_LINK both entries); EC-008/EC-011/EC-013 link legs now reachable; D-026 self-healing now TRUE for hard-floor orphans. P22-001 (MAJOR): markdown path reordered — disposition routing FIRST, non-FP/PARSE_FAIL → MARKDOWN_REVIEW_PATH kill-switch-exempt (D-DEC-012 Option A), FP → allow-without-marker (kill switch irrelevant); old GATE-1 step-1 kill switch removed. P22-002 (MAJOR): D-024 decision row recorded in arch-delta; L152/L1848/L6785 comment+link purged; §8.33.2/§8.33.3 rewritten RESOLVED; BC-4.02.001 citation repointed to D-024/§8.35.1. P22-004 (MED): VP-SKILL-062 restated to real mechanism (no jr issue move to non-close state on Closed/Resolved; jr issue reopen doesn't exist). P22-005 (m): EC-026(A) mechanism tidied. FV: VP-HOOK-036 hard-floor BLIND-SPOT create+link vector + D-026 hard-floor orphan-recovery vector; VP-HOOK-033 two-tier re-scope + consumer ALLOW vector; VP-HOOK-031 disposition-routing-first re-scope + a3-nonFP vector; SM-72 (STEP-3b-carve-out-removed) + SM-73 (markdown-gate1-kill-switch-restored) allocated; SM-50 RETIRED-in-place (inverted into SM-73); SM-51/SM-52 remain valid. Versions: arch-delta v1.24, verif-delta v1.24, prd-delta v1.22, BC-3.03.001 v1.31, BC-10.01.001 v1.25, BC-3.01.001 v1.25, BC-4.02.001 v1.17. VP 41 / SM 66 allocated (65 live) / ~435 tests. Clean streak 0/3. |
+
+---
+
 ## Archived Step: F2 adversarial pass 22 (rotated 2026-07-29)
 
 | Step | Agent | Status | Output |

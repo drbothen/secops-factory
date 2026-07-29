@@ -11,6 +11,14 @@ are archived here when the 5-row limit is reached.
 
 ---
 
+## Archived Step: F2 adversarial pass 23 (rotated 2026-07-29)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 23 | adversary | DONE | 0C/1M/5med/1m/2obs — NOT CLEAN, novelty HIGH (D-027 incomplete blast radius). P23-001 (MAJOR): review-class link got the permissive half of D-027 but not the defensive half — WRITE_MARKER is_review_path excludes link, so hard-floor link marker-write-failure → allow-without-marker with NO audit (vs MARKER-WRITE-FAILED deny for create-review/comment-review); null-KEY1 also silently dropped (no HARD-FLOOR-UNBINDABLE); EC-011 loss is permanent (D-026 doesn't cover open-related pairs); Gate-2 grep blind; no covering VP/SM. P23-002 (MED, process-gap): dtu-assessment v1.3 has no hard-floor-link-under-kill-switch scenario and no TP-close-denied scenario. P23-003 (MED): VP-SKILL-065 kill-switch invariant stale (link/close missing from REGULAR set; hard-floor-link exemption uncovered). P23-004 (MED): STEP6_LINK label before ELIF = ill-formed GOTO target; bash has no goto; refactor to named subroutine. P23-005 (MED): STEP 3b lacks org-binding — forged hard-floor (LLM scored_priority) + LLM-chosen KEY1/KEY2 = arbitrary/cross-org Relates links under kill switch. P23-006 (MED, process-gap): spec-changelog 3 bursts stale (missing D-025/D-026/D-027, SM roster stops at SM-68) — note file lives at .factory/spec-changelog.md. P23-007 (m) wording; P23-008 (obs) perimeter path note. Report persisted. Clean streak 0/3. |
+
+---
+
 ## Archived Step: F2 pass-22 remediation burst 19 (rotated 2026-07-29)
 
 | Step | Agent | Status | Output |

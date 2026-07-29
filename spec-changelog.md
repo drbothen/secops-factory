@@ -11,6 +11,28 @@ Track all spec version changes. Most recent version first.
 
 ## [1.1.0] - 2026-07-20 (patch edits 2026-07-21/22 — not a version bump)
 
+### F2 Pass-25 Remediation Edits — Burst 22 (2026-07-29) — spec remains 1.1.0
+
+Remediation edits within the F2 adversarial convergence cycle (burst 22). Root findings:
+D-029 (HUMAN DECISION, P25-001 MAJOR): markdown/investigation Write ALWAYS succeeds (Document-Before-Action); GATE 1/GATE 2 hard-floor triggers converted from deny signals to review-routing signals — the Write always succeeds; hard-floor conditions surface via MARKDOWN_REVIEW_PATH (kill-switch exempt per D-007); GATE 1/GATE 2 denies → 'MARKDOWN-HARD-FLOOR: <reason>; routed to review (D-029)' audit annotation + hard_floor_triggered=true, NO deny; routing redesign: FP AND no-hard-floor → allow-without-marker; else (hard-floor OR non-FP OR PARSE_FAIL/incomplete) → allow + MARKDOWN_REVIEW_PATH (hard floor wins over FP); MARKDOWN-HARD-FLOOR-UNBINDABLE → allow-without-marker + operator annotation; MARKDOWN-HARD-FLOOR intentionally NOT in Gate-2 error grep set (BC-10.01.001 v1.28 adjudication — hard-floor conditions are routing signals, not silent-escalation-drop signals),
+P25-002 (MED, process-gap): VP-HOOK-031 re-scoped in BOTH anchors (L1167 row + L1103 inline paragraph — orchestrator caught missed inline anchor mid-burst); SM-50 cite → SM-73; VP-HOOK-031 vectors b1-b6 all encode allow-path; SM-73 CONFIRMED valid (wrong-ROUTING mutant); SM-77 allocated (wrong-DECISION mutant: deny restored → analyst save denied),
+P25-003 (obs): stale cross-version cites in BC-5.01.001 / BC-4.02.001 — Inv#7 / PC#4 re-verified + cite sweep; save-always-succeeds now holds structurally under D-029 (follow-on expectation → review-marker model),
+P25-004 (obs): function-definition-order implementer note added to BC-4.02.001 v1.18.
+SM-9..SM-77 (70 allocated / 69 live; SM-32=32a+32b+32-ext; SM-55 reserved-skipped; SM-50 retired).
+41 VPs (unchanged) / 70 allocated (69 live) / ~447 tests.
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-f2-spec-evolution/architecture-delta.md | v1.26 | v1.27 | P25-001/D-029: markdown-path redesign — Write ALWAYS succeeds; GATE 1/GATE 2 hard-floor → audit annotation (MARKDOWN-HARD-FLOOR: <reason>; routed to review D-029) + hard_floor_triggered=true + allow + MARKDOWN_REVIEW_PATH; FP AND no-hard-floor → allow-without-marker; PARSE_FAIL/incomplete → route to review; MARKDOWN-HARD-FLOOR-UNBINDABLE → allow-without-marker + operator annotation; hard floor wins over FP |
+| phase-f2-spec-evolution/verification-delta.md | v1.26 | v1.27 | P25-002: VP-HOOK-031 re-scoped — both anchors updated (L1167 row + L1103 inline paragraph); SM-50 cite → SM-73; b1-b6 vectors all encode allow-path; SM-77 (wrong-DECISION: deny restored → analyst save denied) allocated; SM-73 CONFIRMED valid; SM-51/52 outcome-space checked valid; §5 headline reconciled (~447); per-BC rows deferred to version-coherence sweep |
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.33 | v1.34 | P25-001/D-029: markdown-path pseudocode redesign (GATE 1/GATE 2 → audit annotation + allow + MARKDOWN_REVIEW_PATH; FP+no-hard-floor → allow-without-marker; PARSE_FAIL/incomplete → route to review; MARKDOWN-HARD-FLOOR-UNBINDABLE → allow-without-marker + operator annotation); SM-77 kill vector (wrong-DECISION: GATE1/GATE2 deny restored → analyst save denied) |
+| phase-0-ingestion/behavioral-contracts/BC-5.01.001.md | v1.12 | v1.13 | P25-003: Inv#7 cross-version cites updated (BC-3.03.001 v1.33→v1.34, BC-3.01.001 v1.25 confirmed); "MUST NOT be denied" structurally preserved — D-029 Write-always-succeeds model satisfies the invariant |
+| phase-0-ingestion/behavioral-contracts/BC-4.02.001.md | v1.17 | v1.18 | P25-003: PC#4 cross-version cites updated (BC-3.03.001 v1.33→v1.34); "MUST NOT be denied" structurally preserved; P25-004: function-definition-order implementer note added |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.27 | v1.28 | P25-001/D-029 adjudication: MARKDOWN-HARD-FLOOR intentionally NOT in Gate-2 error grep set — hard-floor conditions are routing signals, not silent-escalation-drop signals; D-029 routing policy noted; EC-013/EC-022 close-branch grep set unchanged |
+| phase-f2-spec-evolution/prd-delta.md | v1.24 | v1.25 | Version-coherence: burst-22 post-note added; BC-3.03.001 v1.33→v1.34, BC-5.01.001 v1.12→v1.13, BC-4.02.001 v1.17→v1.18, BC-10.01.001 v1.27→v1.28; §5 Live-BC version anchors updated |
+
+---
+
 ### F2 Pass-24 Remediation Edits — Burst 21 (2026-07-29) — spec remains 1.1.0
 
 Remediation edits within the F2 adversarial convergence cycle (burst 21). Root findings:

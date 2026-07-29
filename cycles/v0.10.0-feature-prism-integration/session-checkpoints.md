@@ -10,6 +10,19 @@ Superseded checkpoints rotated out of STATE.md.
 
 ---
 
+## Checkpoint — Pass-25 COMPLETE, burst-22 pending (2026-07-29)
+
+**Superseded by:** Pass-25 remediation COMPLETE checkpoint (2026-07-29)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-07-29 |
+| **Position** | Pass 25 COMPLETE. D-029 decided (route-to-review-never-deny). NEXT: burst 22 (architect: D-029 record + markdown-path redesign arch-delta v1.27; PO: BC-3.03.001 v1.34 markdown pseudocode+vectors+VP-HOOK-031 row, BC-5.01.001 v1.13 Inv#7 re-verify, BC-4.02.001 v1.18 PC#4, cite sweep P25-003, P25-004 note; FV: VP-HOOK-031 re-scope + MARKDOWN-HARD-FLOOR deny retirement + SM adjudication; state-manager: spec-changelog burst-22). Clean streak 0/3. |
+| **Context** | Artifact versions: arch-delta v1.26, verif-delta v1.26, prd-delta v1.24, dtu-assessment v1.5, BC-3.03.001 v1.33, BC-3.01.001 v1.25, BC-10.01.001 v1.27, BC-4.02.001 v1.17, BC-6.01.001 v1.8, BC-5.01.001 v1.12, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 69 allocated, 68 live (SM-9..SM-76; SM-32=32a+32b+32-ext; SM-55 skipped; SM-50 retired). Pass-25 report: .factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass25.md. NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. |
+| **Convergence counter** | 0/3 clean passes |
+
+---
+
 ## Checkpoint — Pass-24 COMPLETE, burst-21 pending (2026-07-29)
 
 **Superseded by:** Pass-24 remediation COMPLETE checkpoint (2026-07-29)

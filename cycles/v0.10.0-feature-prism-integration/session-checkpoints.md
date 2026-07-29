@@ -222,3 +222,16 @@ Superseded checkpoints rotated out of STATE.md.
 | **Position** | Pass 17 COMPLETE (0C/3M, report persisted). Substance pass (coherence pre-swept clean by the census). BLOCKED on human decision: P17-001 known-FP high-severity auto-close — route-to-review (Option A, no gate change, most secure) vs deterministic store-hash exemption in disposition-guard (Option B). P17-002/003 clear retired-mechanism-residue fixes queued for burst 14. NOTE: P17-001 traces to D-016; both prior human decisions D-016 and the census's axis-7/8 PASS did not catch it — census scans drift, adversary re-derives semantics (run both). Clean streak 0/3. |
 | **Context** | Artifact versions: arch-delta v1.18, verif-delta v1.18, prd-delta v1.17, BC-3.03.001 v1.25, BC-4.02.001 v1.12, BC-5.01.001 v1.12, BC-10.01.001 v1.19, BC-3.01.001 v1.22, BC-6.01.003 v1.7, BC-6.01.001 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2, BC-6.01.004 v1.1. VPs 37 / SM 48 (SM-9..SM-54, SM-32=32a+32b+32-ext; SM-55 skipped). Pass-17 report: phase-f2-spec-evolution/adversarial-spec-delta-review-pass17.md (141 lines). |
 | **Convergence counter** | 0/3 clean passes |
+
+---
+
+## Checkpoint archived 2026-07-29 (displaced by pass-26 complete)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-07-29 |
+| **Position** | Pass-25 remediation COMPLETE (burst 22 — D-029 route-to-review-never-deny). NEXT: adversarial pass 26 (fresh adversary context; carry D-023..D-029 as settled; severity trend pass22 1C/2M → pass23 0C/1M/5med → pass24 0C/0M/4med → pass25 0C/1M/1med; known deferred cosmetic: verif-delta §5 per-BC rows). Clean streak 0/3. |
+| **Context** | Artifact versions: arch-delta v1.27, verif-delta v1.27, prd-delta v1.25, dtu-assessment v1.5, BC-3.03.001 v1.34, BC-3.01.001 v1.25, BC-10.01.001 v1.28, BC-4.02.001 v1.18, BC-5.01.001 v1.13, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 70 allocated, 69 live (SM-9..SM-77; SM-32=32a+32b+32-ext; SM-55 skipped; SM-50 retired). NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. |
+| **Convergence counter** | 0/3 clean passes |
+
+---

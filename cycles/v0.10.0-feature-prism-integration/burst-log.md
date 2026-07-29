@@ -1047,3 +1047,13 @@ F2: pass-16 remediation burst 12 already archived at "Archived Current Phase Ste
 | F2: pass-21 remediation burst 18 | architect / product-owner / formal-verifier / state-manager | DONE | P21-001: canonical test vectors D-025-synced in BOTH BCs — close-gate vectors now attribute STEP 4b with audit provenance (D-025/D-023/P20-001); stale STEP-6/(D-023/P19-001) form removed from live vectors; SM-69 kill vector (TP+close+autonomy_enabled=false → CLOSE-DISPOSITION-DENY at STEP 4b) added to BC-3.03.001 + BC-10.01.001. P21-002: dtu-assessment v1.3 rule-2 create+link (D-024 sync). P21-003: never-auto-reopen assertion corrected to jr issue move non-close-state (jr issue transition doesn't exist). P21-004: dedup pinned jr issue list --jql (jr issue search doesn't exist; CLI-verified); BC-10.01.001 Inv#8 pinned; BC-3.01.001 allowlist coverage confirmed + annotated (no entries added/removed). P21-006: D-026 link-read mechanism pinned = jr issue view <key> --output json issuelinks inspection (arch-delta v1.23); VP-HOOK-036 extended (fail-closed on unconfirmed read) + SM-71 allocated (link-read-predicate-skipped-or-inverted; kill vector: seeded existing Relates(O,C) → D-026 does NOT fire). P21-005: verif-delta SM recap reconciled. P21-007: BC-4.02.001 Inv#1 allow/deny-only terminology fix. Versions: BC-3.03.001 v1.30, BC-10.01.001 v1.24, BC-3.01.001 v1.24, BC-4.02.001 v1.16, dtu-assessment v1.3, arch-delta v1.23, verif-delta v1.23, prd-delta v1.21. VP 41 / SM 64 (~432 tests). Clean streak 0/3. |
 
 ---
+
+---
+
+## Archived Step: F2 pass-23 remediation burst 20 (rotated 2026-07-29)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-23 remediation burst 20 | architect / product-owner / formal-verifier / state-manager | DONE | D-028 recorded (arch-delta v1.25): hard-floor link fail-loud (is_review_path + is_link_hard_floor flag; MARKER-WRITE-FAILED deny; HARD-FLOOR-UNBINDABLE null guards), EMIT_LINK_MARKER subroutine (P23-004 GOTO removed), org/project binding LINK-PROJECT-BINDING-DENY (P23-005; same-project residual accepted). dtu-assessment v1.4: blind-spot-closed-compound + tp-close-denied scenarios (P23-002). VP-SKILL-065 re-scoped (link/close in REGULAR set; hard-floor-link positive exemption) (P23-003). P23-007 wording fixed. spec-changelog caught up bursts 17-20 (P23-006). FV: VP-HOOK-033 fail-loud vectors (4), VP-HOOK-034 org-binding vectors (4), SM-74 (fail-loud-removed) + SM-75 (project-binding-removed); stale STEP6_LINK refs swept. Versions: BC-3.03.001 v1.32, BC-10.01.001 v1.26, arch-delta v1.25, verif-delta v1.25, prd-delta v1.23, dtu-assessment v1.4. VP 41 / SM 68 alloc (67 live) / ~441 tests. Clean streak 0/3. |
+
+---

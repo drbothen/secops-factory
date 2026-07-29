@@ -11,6 +11,14 @@ are archived here when the 5-row limit is reached.
 
 ---
 
+## Archived Step: F2 adversarial pass 25 (rotated 2026-07-29)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 25 | adversary | DONE | 0C/1M/1med/0m/2obs — NOT CLEAN. Link/close/O7/org-binding machinery all re-derived INTACT (bursts 19-21 churn held). P25-001 (MAJOR): P22-001 reorder made markdown GATE 1/GATE 2 hard-floor DENIES fire on ALL writers — human analyst saving a compliant 12-field investigation with T1003 techniques / Indeterminate disposition / degraded sensor gets MARKDOWN-HARD-FLOOR deny, contradicting BC-5.01.001 Inv#7 + BC-4.02.001 PC#4 ('MUST NOT be denied'); blocks investigate-event for the most serious alert classes. HUMAN DECISION (2026-07-29): D-029 = route-to-review-never-deny — Write ALWAYS succeeds (Document-Before-Action); hard-floor/non-FP markdown surfaces via MARKDOWN_REVIEW_PATH (kill-switch exempt); GATE 1/GATE 2 denies converted to routing signals; no guarantee lost (D-017 already eliminated autonomous markdown actions). P25-002 (MED, process-gap): VP-HOOK-031 row in BC-3.03.001 L1167 still encodes pre-P22-001 kill-switch routing + cites RETIRED SM-50, omits SM-73 (prose swept, verification row not — aggregate P22-001 propagation failure spans 3 artifacts). P25-003 (obs): stale cross-version cites in BC-5.01.001/BC-4.02.001. P25-004 (obs): function-definition-order implementer note. Report persisted. Clean streak 0/3. |
+
+---
+
 ## Archived Step: F2 pass-24 remediation burst 21 (rotated 2026-07-29)
 
 | Step | Agent | Status | Output |

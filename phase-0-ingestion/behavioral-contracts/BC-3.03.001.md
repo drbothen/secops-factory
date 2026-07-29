@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.36"
+version: "1.37"
 status: draft
 producer: product-owner
 timestamp: 2026-07-20T00:00:00
@@ -15,7 +15,7 @@ subsystem: enforcement-hooks
 capability: CAP-ENFORCEMENT-03
 lifecycle_status: active
 introduced: v0.7.0
-modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-501-ADV-0-507-2026-07-19", "v1.3-ADV-0-605-ADV-0-606-2026-07-19", "v1.4-ADV-0-B01-2026-07-19", "v1.5-RESYNC-PR17-2026-07-19", "v1.6-D-DEC-001-ICD-203-2026-07-20", "v1.7-FV-VP-HOOK-025-FINALIZED-2026-07-20", "v1.8-ADV-F2-001-003-004-016-2026-07-20", "v1.9-ADV-F2-P2-001-emitter-ordering-2026-07-20", "v1.10-ADV-F2-P3-001-002-003-011-2026-07-20", "v1.11-FV-VP-026-025-ANCHORS-2026-07-20", "v1.12-P4-001-P4-002-P4-005-P4-006-D-DEC-012-2026-07-21", "v1.13-FV-VP-028-025-026-029-ANCHORS-2026-07-21", "v1.14-ADV-F2-P5-001-P5-002-P5-003-2026-07-21", "v1.15-ADV-F2-P6-001-P6-002-2026-07-21", "v1.16-ADV-F2-P7-001-2026-07-21 [SM-ID-sync per FV]", "v1.17-ADV-F2-P8-001-OBS-2-2026-07-21", "v1.18-ADV-F2-P10-001-P10-003-P10-004-P10-008-2026-07-22 [ID-sync per FV]", "v1.19-ADV-F2-P11-001-P11-002-P11-003-P11-004-2026-07-22 [ID-sync per FV]", "v1.20-ADV-F2-P12-001-P12-002-P12-003-2026-07-22 [ID-sync per FV]", "v1.21-ADV-F2-P13-001-002-003-004-2026-07-22 [ID-sync per FV]", "v1.22-ADV-F2-P14-004-garbled-test-vector-parenthetical-2026-07-22", "v1.23-ADV-F2-P15-002-evidence-types-18field-2026-07-22", "v1.24-ADV-F2-P16-003-pc1-vphook028-18field-2026-07-22", "v1.25-CV-010-evidence-types-path-dispatch-annotation-2026-07-23", "v1.26-ADV-F2-P17-003-EC-005-L814-markdown-no-comment-marker-2026-07-23", "v1.27-ADV-F2-P18-001-003-005-D-020-021-022-link-close-scope-2026-07-23", "v1.28-ADV-F2-P19-001-P19-003-D023-close-disposition-gate-emit-time-validation-2026-07-23", "v1.29-ADV-F2-P20-001-D025-STEP4b-close-disposition-hoist-2026-07-27", "v1.30-ADV-F2-P21-001-D025-canonical-vector-sync-SM69-kill-vector-2026-07-27", "v1.31-ADV-F2-P22-003-P22-001-D027-STEP3b-markdown-reorder-2026-07-28", "v1.32-ADV-F2-P23-001-P23-004-P23-005-P23-007-D028-EMIT_LINK_MARKER-STEP3b-null-binding-org-binding-2026-07-29", "v1.33-ADV-F2-P24-001-P24-002-P24-003-EMIT_LINK_MARKER-invocation-O7-site10-L1107-precondition-2026-07-29", "v1.34-ADV-F2-P25-001-P25-002-P25-003-P25-004-D029-markdown-hard-floor-routing-VP-HOOK-031-rewrite-2026-07-29", "v1.35-ADV-F2-P26-001-P26-002-P26-003-P26-004-pc2-d029-routing-rewrite-qualify-no-deny-kill-switch-residual-gate-grammars-2026-07-29", "v1.36-ADV-F2-P27-001-P27-002-P27-003-structural-deny-disposition-parse-path-aware-WRITE_MARKER-2026-07-29"]
+modified: ["v1.1-ADV-0-403-2026-07-19", "v1.2-ADV-0-501-ADV-0-507-2026-07-19", "v1.3-ADV-0-605-ADV-0-606-2026-07-19", "v1.4-ADV-0-B01-2026-07-19", "v1.5-RESYNC-PR17-2026-07-19", "v1.6-D-DEC-001-ICD-203-2026-07-20", "v1.7-FV-VP-HOOK-025-FINALIZED-2026-07-20", "v1.8-ADV-F2-001-003-004-016-2026-07-20", "v1.9-ADV-F2-P2-001-emitter-ordering-2026-07-20", "v1.10-ADV-F2-P3-001-002-003-011-2026-07-20", "v1.11-FV-VP-026-025-ANCHORS-2026-07-20", "v1.12-P4-001-P4-002-P4-005-P4-006-D-DEC-012-2026-07-21", "v1.13-FV-VP-028-025-026-029-ANCHORS-2026-07-21", "v1.14-ADV-F2-P5-001-P5-002-P5-003-2026-07-21", "v1.15-ADV-F2-P6-001-P6-002-2026-07-21", "v1.16-ADV-F2-P7-001-2026-07-21 [SM-ID-sync per FV]", "v1.17-ADV-F2-P8-001-OBS-2-2026-07-21", "v1.18-ADV-F2-P10-001-P10-003-P10-004-P10-008-2026-07-22 [ID-sync per FV]", "v1.19-ADV-F2-P11-001-P11-002-P11-003-P11-004-2026-07-22 [ID-sync per FV]", "v1.20-ADV-F2-P12-001-P12-002-P12-003-2026-07-22 [ID-sync per FV]", "v1.21-ADV-F2-P13-001-002-003-004-2026-07-22 [ID-sync per FV]", "v1.22-ADV-F2-P14-004-garbled-test-vector-parenthetical-2026-07-22", "v1.23-ADV-F2-P15-002-evidence-types-18field-2026-07-22", "v1.24-ADV-F2-P16-003-pc1-vphook028-18field-2026-07-22", "v1.25-CV-010-evidence-types-path-dispatch-annotation-2026-07-23", "v1.26-ADV-F2-P17-003-EC-005-L814-markdown-no-comment-marker-2026-07-23", "v1.27-ADV-F2-P18-001-003-005-D-020-021-022-link-close-scope-2026-07-23", "v1.28-ADV-F2-P19-001-P19-003-D023-close-disposition-gate-emit-time-validation-2026-07-23", "v1.29-ADV-F2-P20-001-D025-STEP4b-close-disposition-hoist-2026-07-27", "v1.30-ADV-F2-P21-001-D025-canonical-vector-sync-SM69-kill-vector-2026-07-27", "v1.31-ADV-F2-P22-003-P22-001-D027-STEP3b-markdown-reorder-2026-07-28", "v1.32-ADV-F2-P23-001-P23-004-P23-005-P23-007-D028-EMIT_LINK_MARKER-STEP3b-null-binding-org-binding-2026-07-29", "v1.33-ADV-F2-P24-001-P24-002-P24-003-EMIT_LINK_MARKER-invocation-O7-site10-L1107-precondition-2026-07-29", "v1.34-ADV-F2-P25-001-P25-002-P25-003-P25-004-D029-markdown-hard-floor-routing-VP-HOOK-031-rewrite-2026-07-29", "v1.35-ADV-F2-P26-001-P26-002-P26-003-P26-004-pc2-d029-routing-rewrite-qualify-no-deny-kill-switch-residual-gate-grammars-2026-07-29", "v1.36-ADV-F2-P27-001-P27-002-P27-003-structural-deny-disposition-parse-path-aware-WRITE_MARKER-2026-07-29", "v1.37-ADV-F2-P28-001-P28-002-WRITE_MARKER-per-path-definedness-org_slug-validate_enums-2026-07-29"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -27,6 +27,7 @@ removal_reason: null
 # Behavioral Contract BC-3.03.001: disposition-guard Hook — Alternatives-Required Gate and ICD-203 Validator / Marker Emitter
 
 > **Revision history:**
+> - v1.37 (2026-07-29): Pass-28 adversarial remediation burst 25 — P28-001 WRITE_MARKER per-path variable definedness; P28-002 org_slug roster + validate_enums; arch-delta v1.30. **(1) P28-001 (MEDIUM) — WRITE_MARKER markdown-path variable definedness:** Added `markdown_parsed_disposition = parsed_disposition` to BOTH markdown setup blocks (MARKDOWN_COMMENT_REVIEW_PATH and MARKDOWN_CREATE_REVIEW_PATH) to make WRITE_MARKER's `is_markdown_path` ternary read a defined variable; added explicit `link_target = null` to both setup blocks (action is NEVER "link" on markdown path; ticket_id_b is undefined here; EMIT_LINK_MARKER is never called on this path — the "self-computing in EMIT_LINK_MARKER" comment was false); removed dead `asset_type_field = null` from both setup blocks (WRITE_MARKER computes this inline as `null IF is_markdown_path ELSE verdict.asset_type`; the pre-assignment was never consumed from the setup block); fixed false setup-block comments: replaced "markdown_parsed_disposition already set by parse_disposition_from_markdown() above" with the actual explicit assignment + accurate description; replaced "link_target: null on markdown path; self-computing in EMIT_LINK_MARKER" with explicit `link_target = null` assignment; updated setup block header from "P27-002" to "P27-002/P28-001". Added per-path variable-definedness table to WRITE_MARKER header comment covering all three entry paths (verdict GOTO, markdown GOTO, EMIT_LINK_MARKER direct-invoke) and all variables WRITE_MARKER reads. Updated TP-investigation-markdown review vector to specify emitted marker field values (disposition.verdict="TP", org_slug from config, severity=null, asset_type=null, link_target_ticket_id=null). **(2) P28-002 (MINOR) — org_slug field roster + validate_enums presence check:** Added `org_slug` to the NON-ICD-203 operational-metadata field roster in STEP 5 comment (alongside autonomy_enabled, jira_project_key, confidence_score); added `verdict.org_slug` presence check to `validate_enums()` (fail-closed on absent/empty, analogous to native_severity check at P10-001); added ASM-008-class residual note (org_slug is LLM-supplied; D-028 org-binding provides bounded containment — forged org_slug can only mis-route to a different configured org's project key, which still fails-closed for cross-org writes); cross-referenced DI-017.
 > - v1.36 (2026-07-29): Pass-27 adversarial remediation burst 24 — P27-001 structural-deny vs disposition-value-parse distinction; P27-002 path-aware WRITE_MARKER; P27-003 annotation; [ID per FV]→SM-77 resolved. **(1) P27-001 (MAJOR) — structural-deny vs disposition-value-parse distinction (D-029 item-1 arch error corrected):** Made the STRUCTURAL vs DISPOSITION-VALUE distinction explicit throughout: (a) missing any of the 12 ICD-203 headings OR missing Alternatives-Considered OR charset fail → structural DENY (EC-004/EC-010) — this is pre-D-029-routing gating, NOT a D-029-covered routing case; (b) all 12 headings PRESENT but Disposition heading VALUE non-canonical → PARSE_FAIL on value → allow + MARKDOWN_REVIEW_PATH. Removed "missing heading" from the PARSE_FAIL list in the parse grammar comment (missing heading = structural DENY, not PARSE_FAIL); updated Separate Human-Comment Marker Path intro prose to note that D-029 save-always-succeeds applies ONLY to structurally complete investigations. **(2) P27-002 (MAJOR) — path-aware WRITE_MARKER + markdown-path marker-write fail-loud:** Added markdown-path variable setup blocks (MARKDOWN_COMMENT_REVIEW_PATH / MARKDOWN_CREATE_REVIEW_PATH) with: `is_markdown_path=true`; `org_slug=get_org_slug_from_config()`; `action="comment-review"` or `"create-review"` (explicit, not from STEP 2); `recomputed_severity=null`; `asset_type_field=null`. Updated WRITE_MARKER section to add `is_markdown_path` initialization (false on verdict path), conditional field sources (`org_slug`, `verdict/markdown_parsed_disposition`, `asset_type`), and MARKER-WRITE-FAILED audit entry update to use is_markdown_path-conditional disposition. Removed false claim from L565 that link_target "is initialized here so WRITE_MARKER always has this variable defined." Markdown review path marker-write failure = MARKER-WRITE-FAILED deny (infrastructure-failure deny, P10-003 harm class), distinct from D-029 content/disposition guarantee. **(3) P27-003 (MINOR) — parse_autonomy_enabled_from_markdown annotation:** Annotated as "retained for defense-in-depth / P13-003 adversarial-masquerade detection only; NOT consulted in D-029 routing." **(4) [ID per FV] → SM-77 resolved:** D-029 deny-restoration kill target in VP-HOOK-031 paragraph updated from `[ID per FV]` to `SM-77`. **(5) Consumed-by citations updated:** BC-5.01.001 v1.13 → v1.14; BC-4.02.001 v1.18 → v1.20 in both VP-HOOK-031 paragraph and table row. **(6) Three new canonical test vectors added:** (a) missing Timeline Events heading → structural DENY (P27-001/EC-010; NOT D-029-covered); (b) all 12 headings + Disposition value "probably TP" → allow + MARKDOWN_REVIEW_PATH (P27-001 positive routing case); (c) markdown review path + injected WRITE_MARKER failure → MARKER-WRITE-FAILED deny (P27-002). P27-001, P27-002, P27-003.
 > - v1.35 (2026-07-29): Pass-26 adversarial remediation burst 23 — P26-001/P26-002/P26-003/P26-004. **(1) P26-001 (MAJOR) — PC#2 routing rewrite to D-029 model:** Stale `[UPDATED v1.10/P13-001]` routing text with (a) GATE 1 kill-switch-first and (b) MARKDOWN-HARD-FLOOR deny replaced with D-029 model: hard floors → routing annotation + hard_floor_triggered=true (no deny); autonomy_enabled is NOT a routing gate on this path (P22-001); FP+no-hard-floor → allow-without-marker; FP+hard-floor/non-FP/PARSE_FAIL → MARKDOWN_REVIEW_PATH. Old (a)/(b) text moved to Previous (v1.10/P13-001) blockquote. **(2) P26-002 (MEDIUM) — qualify "no deny possible" claims:** "no deny is possible on the markdown path" at PC#2 body (L986) and pseudocode comment (L994) qualified to "no disposition-/hard-floor-based deny is possible; structural ICD-203 completeness, Alternatives-Considered, and charset-injection guards (TICKET-ID-CHARSET-DENY / PROJECT-KEY-CHARSET-DENY) are retained and can still deny." **(3) P26-003 (MEDIUM) — kill-switch residual note added to Trust basis:** autonomy_enabled=false yields ZERO REGULAR writes; review-surface writes remain live (create-review/comment-review from verdict path, MARKDOWN_REVIEW_PATH from markdown path, hard-floor link via STEP 3b); markdown-path review markers issued WITHOUT hard_floor_applies() cross-validation (ACCEPTED RESIDUAL — 12-field markdown lacks the fields; bounded to review surface, operator-visible); see architecture-delta v1.28 §8.39. **(4) P26-004 (MINOR) — GATE 1/GATE 2 heading-anchored grammar specs mirrored into pseudocode:** three heading-anchored grammar specs added: disposition_section_contains evaluates via parse_disposition_from_markdown() (Disposition heading only); attack_techniques_contains_forbidden reads only canonical Attack Techniques heading value list (exact token match); sensor_health_status_is reads only canonical Sensor Health Status heading value. Free-text prose mentions MUST NOT trigger floors. Canonical negative vector added. P26-001, P26-002, P26-003, P26-004. **(5) Legacy Gate-1 vector wording sweep (burst-23 self-check):** Pre-P22-001 test vector rows (P12-002 TP+autonomy_enabled=true, P13-003 PARSE_FAIL+autonomy_enabled=true) updated — "Gate 1 passes (autonomy_enabled=true); Gates 2/3 floors pass" replaced with P22-001/D-029 mechanism language (GATE 1/2 floor checks pass; autonomy_enabled not a routing gate); routing outcomes unchanged.
 > - v1.34 (2026-07-29): Pass-25 adversarial remediation burst 22 — D-029 markdown hard-floor routing model, VP-HOOK-031 rewrite, cite sweep, implementer note. **(1) P25-001/D-029 — Markdown hard-floor deny eliminated (save-always-succeeds):** GATE 1/GATE 2 hard-floor checks now write `"MARKDOWN-HARD-FLOOR: <reason>; routed to review (D-029)"` audit annotation and set `hard_floor_triggered=true` — NO deny, NO RETURN. FP dispatch updated to `parsed_disposition == "FP" AND hard_floor_triggered == false`; FP+hard_floor falls through to MARKDOWN_REVIEW_PATH (review marker, not allow-without-marker). HARD-FLOOR-UNBINDABLE converted from deny to allow-without-marker + audit annotation (D-029: Write permitted, review marker not issued, operator flagged). Routing model: FP + no hard floor → allow-without-marker; everything else (non-FP, PARSE_FAIL, any hard floor) → allow + MARKDOWN_REVIEW_PATH review marker. Canonical vectors L1135/L1136 (Indeterminate with and without autonomy_enabled) rewritten: deny → allow + MARKDOWN_REVIEW_PATH + MARKDOWN-HARD-FLOOR annotation. New vectors added: (a) T1003 technique save → allow + review marker; (b) FP + forbidden technique → allow + review marker (hard floor wins over FP disposition); (c) incomplete/PARSE_FAIL save → allow + review marker; (d) FP + clean → allow-without-marker. Trust basis updated to D-029 routing model. **(2) P25-002 — VP-HOOK-031 row rewrite:** Route rule updated for D-029 save-always-succeeds model; hard-floor entries → MARKDOWN_REVIEW_PATH (no deny); FP + no hard floor → allow-without-marker; FP + hard floor → MARKDOWN_REVIEW_PATH. SM-50 citation (retired) replaced with SM-73 ("markdown-gate1-kill-switch-restored", introduced P22-001 — tests that restoring autonomy_enabled Gate 1 causes non-FP+autonomy_enabled_absent → allow-without-marker instead of MARKDOWN_REVIEW_PATH). Kill-switch path route rule removed (autonomy_enabled is not a routing gate in D-029 model). **(3) P25-003 — Cite sweep:** All stale "BC-3.03.001 v1.24 Invariant #4" citations in consuming BCs updated to v1.34; "verification-delta v1.18" → "verification-delta (VP-HOOK-031, D-029 scope)". **(4) P25-004 — Implementer note:** Added one-line note that functions (EMIT_LINK_MARKER, WRITE_MARKER, etc.) are defined before their first call in the actual script; forward references in BC pseudocode are not runtime-ordering constraints. P25-001, P25-002, P25-003, P25-004, D-029. **Inline VP-HOOK-031 paragraph sweep (same burst, follow-up):** Header tag updated to include D-029 SCOPE UPDATE; "MARKDOWN-HARD-FLOOR deny" language replaced with D-029 routing-annotation model (audit annotation + hard_floor_triggered=true; NO deny); FP routing updated to D-029 conditional (FP + hard_floor_triggered==false → allow-without-marker; FP + hard floor → MARKDOWN_REVIEW_PATH); "P22-001 SM target (TBD)" → SM-73 kill target + D-029 deny-restoration kill target [ID per FV]; consumed-by citations updated to BC-5.01.001 v1.13 / BC-4.02.001 v1.18.
@@ -211,6 +212,16 @@ removal_reason: null
      # P11-002: validate field 18 scored_priority — fail-closed on non-member
      IF verdict.scored_priority NOT IN SCORED_PRIORITY_ENUM:
        RETURN (False, "scored_priority '" + verdict.scored_priority + "' not in {CRIT,HIGH,MED,LOW} (P11-002)")
+     # P28-002: org_slug is a required operational-metadata field (alongside autonomy_enabled,
+     # jira_project_key, confidence_score). Fail-closed on absent/empty value.
+     # ASM-008-class residual: org_slug is LLM-supplied on the verdict path (same class as
+     # native_severity/asset_type/scored_priority); D-028 org-binding provides bounded containment
+     # — forged org_slug can only mis-route to a different configured org's project key, which
+     # still fails-closed for cross-org writes (no escaping cross-org). DI-017 cross-reference.
+     # Note: full membership-against-[[orgs]] config check deferred to ASM-008 resolution;
+     # presence check closes null-dereference risk in read_org_project_key() lookup.
+     IF verdict.org_slug IS NULL OR verdict.org_slug == "":
+       RETURN (False, "org_slug is absent or empty — required operational field (P28-002/DI-017)")
      RETURN (True, "")
 
    (enum_ok, enum_err) = validate_enums(verdict)
@@ -543,8 +554,8 @@ removal_reason: null
    # (STEP 4b, D-025).
    # The kill switch fires exclusively for regular-action, non-hard-floor, coherent verdicts.
    # autonomy_enabled is a NON-ICD-203 operational metadata field in the verdict JSON
-   # (alongside jira_project_key and confidence_score). Disposition-guard reads it
-   # directly from the verdict file (not delegated to the monitoring-loop LLM).
+   # (alongside jira_project_key, confidence_score, and org_slug — P28-002/v1.37).
+   # Disposition-guard reads it directly from the verdict file (not delegated to the LLM).
    # Default-false (conservative): if field is absent, null, or non-boolean → treat as false.
    # This makes the kill switch deterministic — not delegated to LLM reasoning.
    # VP-HOOK-026 cross-reference (v1.15): Step 5 (formerly STEP 4) is the autonomy_enabled
@@ -829,6 +840,32 @@ removal_reason: null
    # Regular (non-review) path retains the existing allow-without-marker behavior.
    # D-028: is_review_path extended to hard-floor link path.
    # is_link_hard_floor is set GLOBALLY by EMIT_LINK_MARKER (P24-001; no local qualifier).
+   #
+   # P28-001/v1.37 — PER-PATH VARIABLE DEFINEDNESS TABLE (all three entry paths):
+   #
+   #   Variable              | Path A: Verdict GOTO      | Path B: Markdown GOTO      | Path C: EMIT_LINK_MARKER
+   #                         | (STEP 3 or STEP 6)        | (MARKDOWN_*_REVIEW_PATH)   | (direct-invoke, action="link")
+   #   ----------------------|---------------------------|----------------------------|-------------------------------
+   #   is_markdown_path      | false (unset/default)     | TRUE (setup block)         | false (unset/default)
+   #   action                | set by STEP 3/6 branch    | set by routing pseudocode  | "link" (set in func body)
+   #   org_slug              | N/A (see verdict.org_slug)| get_org_slug_from_config() | N/A (see verdict.org_slug)
+   #   verdict.org_slug      | present (verdict field)   | ABSENT — no verdict object | present (global from verdict)
+   #   markdown_parsed_      | N/A (verdict.disposition  | parsed_disposition         | N/A (verdict.disposition
+   #     disposition         |   used via ternary)       |   (setup block, P28-001)   |   used via ternary)
+   #   verdict.disposition   | present (verdict field)   | ABSENT — no verdict object | present (global from verdict)
+   #   recomputed_severity   | NORMALIZE_SEVERITY output | null (setup block)         | NORMALIZE_SEVERITY output
+   #                         | (STEP 1a, before GOTO)    |                            | (global, set before call)
+   #   verdict.asset_type    | present (field 14)        | ABSENT — no verdict object | present (global from verdict)
+   #   link_target           | null (action != "link"    | null (setup block, P28-001 | ticket_id_b (set in func
+   #                         |   for all GOTO paths)     |   explicit; ticket_id_b    |   body before WRITE_MARKER)
+   #                         |                           |   undefined on this path)  |
+   #   is_link_hard_floor    | false (unset)             | false (unset)              | true or false (is_hard_floor_link
+   #                         |                           |                            |   arg set globally before call)
+   #   is_review_path        | computed inside WRITE_MARKER as: (action in {"create-review","comment-review"})
+   #                         |   OR (action=="link" AND is_link_hard_floor)
+   #                         | Path A review: TRUE for STEP 3 GOTOs (action ∈ {create-review,comment-review})
+   #                         | Path B:        TRUE always (action ∈ {create-review,comment-review})
+   #                         | Path C:        TRUE only when is_link_hard_floor=true (D-028)
    WRITE_MARKER:
    expires_at = now() + 120s
    # D-028 (P23-001): is_review_path extended to cover hard-floor link path.
@@ -1107,15 +1144,26 @@ removal_reason: null
    IF ticket_id is NOT null:
      ops = ["comment-review"]
      pattern = "^jr (--output json )?issue comment " + ticket_id + " "
-     # P27-002: MARKDOWN_COMMENT_REVIEW_PATH — markdown-path variable setup REQUIRED before WRITE_MARKER
-     # These fields are undefined on the markdown path (no verdict object, no STEP 2 dispatch).
+     # P27-002/P28-001: MARKDOWN_COMMENT_REVIEW_PATH — ALL variables WRITE_MARKER reads must
+     # be explicitly assigned on this path (no verdict object, no STEP 2 dispatch).
      is_markdown_path    = true
      action              = "comment-review"   # explicit: action not set by STEP 2 on this path
      org_slug            = get_org_slug_from_config()   # NOT verdict.org_slug (no verdict object)
-     # markdown_parsed_disposition already set by parse_disposition_from_markdown() above
+     # P28-001: CANONICAL DISPOSITION SOURCE for the markdown path.
+     # parsed_disposition was set by parse_disposition_from_markdown(content) above.
+     # WRITE_MARKER reads markdown_parsed_disposition via its is_markdown_path ternary.
+     # Explicit assignment here makes definedness unambiguous; do NOT use verdict.disposition
+     # (there is no verdict object on this path).
+     markdown_parsed_disposition = parsed_disposition
      recomputed_severity = null   # STEP 1a absent on markdown path
-     asset_type_field    = null   # field 14 absent from 12-field markdown ICD-203
-     # link_target: null on markdown path (action never "link"); self-computing in EMIT_LINK_MARKER
+     # P28-001: link_target — EXPLICIT NULL. action is NEVER "link" on this path;
+     # ticket_id_b is undefined here. Explicit assignment removes undefined-reference risk.
+     # EMIT_LINK_MARKER is never called on the markdown path — the prior "self-computing in
+     # EMIT_LINK_MARKER" comment was false and has been removed.
+     link_target         = null
+     # asset_type_field: WRITE_MARKER computes this inline (null IF is_markdown_path ELSE
+     # verdict.asset_type). No pre-assignment needed on this path. (P28-001: removed the
+     # dead asset_type_field=null that was here — WRITE_MARKER never read it from setup block.)
      GOTO WRITE_MARKER
    ELSE:
      project_key = get_jira_project_key_from_config()
@@ -1128,14 +1176,26 @@ removal_reason: null
        project_key = regex_escape(project_key)
        ops = ["create-review"]
        pattern = "^jr (--output json )?issue create --project " + project_key + " --label (REVIEW-REQUIRED|BLIND-SPOT)( |$)"
-       # P27-002: MARKDOWN_CREATE_REVIEW_PATH — markdown-path variable setup REQUIRED before WRITE_MARKER
+       # P27-002/P28-001: MARKDOWN_CREATE_REVIEW_PATH — ALL variables WRITE_MARKER reads must
+       # be explicitly assigned on this path (no verdict object, no STEP 2 dispatch).
        is_markdown_path    = true
        action              = "create-review"   # explicit: action not set by STEP 2 on this path
        org_slug            = get_org_slug_from_config()   # NOT verdict.org_slug (no verdict object)
-       # markdown_parsed_disposition already set by parse_disposition_from_markdown() above
+       # P28-001: CANONICAL DISPOSITION SOURCE for the markdown path.
+       # parsed_disposition was set by parse_disposition_from_markdown(content) above.
+       # WRITE_MARKER reads markdown_parsed_disposition via its is_markdown_path ternary.
+       # Explicit assignment here makes definedness unambiguous; do NOT use verdict.disposition
+       # (there is no verdict object on this path).
+       markdown_parsed_disposition = parsed_disposition
        recomputed_severity = null   # STEP 1a absent on markdown path
-       asset_type_field    = null   # field 14 absent from 12-field markdown ICD-203
-       # link_target: null on markdown path (action never "link"); self-computing in EMIT_LINK_MARKER
+       # P28-001: link_target — EXPLICIT NULL. action is NEVER "link" on this path;
+       # ticket_id_b is undefined here. Explicit assignment removes undefined-reference risk.
+       # EMIT_LINK_MARKER is never called on the markdown path — the prior "self-computing in
+       # EMIT_LINK_MARKER" comment was false and has been removed.
+       link_target         = null
+       # asset_type_field: WRITE_MARKER computes this inline (null IF is_markdown_path ELSE
+       # verdict.asset_type). No pre-assignment needed on this path. (P28-001: removed the
+       # dead asset_type_field=null that was here — WRITE_MARKER never read it from setup block.)
        GOTO WRITE_MARKER
      ELSE:
        # D-029: MARKDOWN-HARD-FLOOR-UNBINDABLE — allow-without-marker + audit annotation.
@@ -1180,7 +1240,7 @@ removal_reason: null
 | `/tmp/readme.md` → any | `permissionDecision: allow` | happy-path |
 | `investigation-ALERT-001.md` → "# Alert Details\nEvidence..." (no Disposition) | `permissionDecision: allow` **(HOOK-ISOLATED: in aggregate, enrichment-completeness BC-3.02.001 would deny this file — missing 3 of 4 required sections)** | hook-isolated-allow |
 | `investigation-ALERT-001.md` → "# Disposition\nTrue Positive\n# Evidence\n..." (no Alternatives) | `permissionDecision: deny`, reason contains "Alternatives Considered" | error |
-| `investigation-ALERT-001.md` → all 12 mandatory headings present (investigation-markdown path), disposition=TP, tuning_signal=null, non-hard-floor, **autonomy_enabled absent** (common human-save case) | **P22-001 routing (disposition-routing-first):** `permissionDecision: allow`; GATE 1/2 floors pass (non-hard-floor TP); parsed_disposition=TP ≠ "FP" → MARKDOWN_REVIEW_PATH; ticket_id charset-validated; comment-review marker written (EXEMPT from kill switch per D-DEC-012 Option A — `autonomy_enabled` absent is NOT a routing gate in P22-001 sequence); NO autonomous `["comment"]` marker (P13-001 MARKDOWN_COMMENT_PATH ELIMINATED). Verdict emitter NOT entered; `validate_enums` NOT called; STEP 1a NOT called. **Previous (v1.26/P17-003):** "GATE 1 fires — `autonomy_enabled` absent → allow-without-marker for ALL dispositions" — this was the P22-001 defect; TP+autonomy_enabled_absent should route to MARKDOWN_REVIEW_PATH per D-DEC-012 Option A. **Previous (v1.10/v1.20):** "marker file written (comment-scoped, ticket-bound pattern)" — retired MARKDOWN_COMMENT_PATH behavior; eliminated at P13-001. | happy-path (P22-001 — TP + autonomy_enabled absent → MARKDOWN_REVIEW_PATH; D-DEC-012 Option A exempt from kill switch) |
+| `investigation-ALERT-001.md` → all 12 mandatory headings present (investigation-markdown path), disposition=TP, tuning_signal=null, non-hard-floor, ticket_id=SEC-123 (present in markdown), config org_slug="ACME", **autonomy_enabled absent** (common human-save case) | **P22-001 routing (disposition-routing-first):** `permissionDecision: allow`; GATE 1/2 floors pass (non-hard-floor TP); parsed_disposition=TP ≠ "FP" → MARKDOWN_REVIEW_PATH; ticket_id charset-validated; MARKDOWN_COMMENT_REVIEW_PATH setup: `is_markdown_path=true`, `action="comment-review"`, `org_slug="ACME"` (from get_org_slug_from_config()), `markdown_parsed_disposition="TP"` (= parsed_disposition, P28-001), `recomputed_severity=null`, `link_target=null` (P28-001 explicit null); comment-review marker written (EXEMPT from kill switch per D-DEC-012 Option A). **Emitted marker fields (P28-001 verification):** `disposition.verdict="TP"` (from markdown_parsed_disposition), `org_slug="ACME"` (from config, NOT verdict.org_slug), `disposition.severity=null` (recomputed_severity=null, no STEP 1a), `disposition.asset_type=null` (is_markdown_path→null), `link_target_ticket_id=null` (link_target=null, action never "link"). NO autonomous `["comment"]` marker (P13-001 MARKDOWN_COMMENT_PATH ELIMINATED). Verdict emitter NOT entered; `validate_enums` NOT called; STEP 1a NOT called. **Previous (v1.26/P17-003):** "GATE 1 fires — `autonomy_enabled` absent → allow-without-marker for ALL dispositions" — this was the P22-001 defect; TP+autonomy_enabled_absent should route to MARKDOWN_REVIEW_PATH per D-DEC-012 Option A. **Previous (v1.10/v1.20):** "marker file written (comment-scoped, ticket-bound pattern)" — retired MARKDOWN_COMMENT_PATH behavior; eliminated at P13-001. | happy-path (P22-001 — TP + autonomy_enabled absent → MARKDOWN_REVIEW_PATH; D-DEC-012 Option A exempt from kill switch; P28-001 marker field verification) |
 | `investigation-ALERT-001.md` → "# disposition\nFalse Positive" (lowercase) | `permissionDecision: deny` | edge-case |
 | `investigation-ALERT-001.md` → "# Disposition\nTrue Positive\nNo Alternatives Considered were required." | `permissionDecision: deny` (RESOLVED — PR #17 heading-anchored check; body-text negation no longer passes) | edge-case |
 | `verdict-ALERT-001.json` → JSON with all 18 keys present, disposition=FP, tuning_signal={"rule_id":"R-001","asset":"host-42","reason":"benign scanner"}, severity=LOW, scored_priority=LOW, asset_type=standard, ticket_action_type=comment, non-hard-floor | `permissionDecision: allow`; comment-scoped marker file written with ticket-bound command_pattern | happy-path (v1.8 JSON path) |

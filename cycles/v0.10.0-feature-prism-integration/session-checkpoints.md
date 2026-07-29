@@ -235,3 +235,14 @@ Superseded checkpoints rotated out of STATE.md.
 | **Convergence counter** | 0/3 clean passes |
 
 ---
+
+## Checkpoint archived 2026-07-29 (displaced by burst-23 complete)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-07-29 |
+| **Position** | Pass 26 COMPLETE. NEXT: burst 23 (architect: P26-003 accepted-residual documentation + kill-switch section note + P26-004 heading-anchored grammars, arch-delta v1.28; PO: BC-3.03.001 v1.35 PC#2 rewrite + L994 qualification + grammar mirror, BC-4.02.001 v1.19 PC#4 qualification, prd-delta v1.26 incl. EC-012; FV: verif-delta v1.28 VP-HOOK-031 residual note + stale-string sweep; state-manager: P26-006 lessons entry + spec-changelog). Clean streak 0/3. |
+| **Context** | Artifact versions: arch-delta v1.27, verif-delta v1.27, prd-delta v1.25, dtu-assessment v1.5, BC-3.03.001 v1.34, BC-3.01.001 v1.25, BC-10.01.001 v1.28, BC-4.02.001 v1.18, BC-5.01.001 v1.13, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 70 allocated, 69 live (SM-9..SM-77; SM-32=32a+32b+32-ext; SM-55 skipped; SM-50 retired). NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. |
+| **Convergence counter** | 0/3 clean passes |
+
+---

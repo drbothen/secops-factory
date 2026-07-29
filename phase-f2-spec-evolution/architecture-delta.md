@@ -1,10 +1,11 @@
 ---
 document_type: architecture-delta
 producer: architect
-version: "1.27"
+version: "1.28"
 date: 2026-07-29
 input-hash: COMPUTE-AT-COMMIT
 changelog:
+  - "1.28 (2026-07-29): Pass-26 adversarial remediation burst 23. P26-003 (MEDIUM — orchestrator adjudication: option a, ACCEPTED RESIDUAL): markdown-path kill-switch residual documented. The markdown path issues kill-switch-exempt create-review/comment-review markers WITHOUT hard_floor_applies() cross-validation (structurally impossible from a 12-field markdown — scored_priority/asset_type are absent); therefore autonomy_enabled=false does NOT suppress markdown-path review markers; an agent can masquerade findings as investigation-*.md (PARSE_FAIL trivially inducible) to mint review markers under the kill switch. Blast radius bounded to review surface only (create-review with REVIEW-REQUIRED label / comment-review comment — no close, no triage state change, no regular comment/create/assign/link); org-binding and O7 charset still apply; review tickets are human-facing by construction so abuse is self-surfacing; no hook-side dedup means repeated-save review-ticket flooding is part of the residual, with operator-visibility as compensating control. Cross-reference D-DEC-012 Option A (intended trade-off, extended by P22-001/D-029); asymmetry vs verdict-path STEP 3 O3 over-label gate is INHERENT (verdict has hook-recomputable fields; markdown does not). ACCEPTED RESIDUAL block added near key guarantees section; D-DEC-012 Inv#11/VP-SKILL-065 carve-out updated: accurate statement is zero REGULAR writes under autonomy_enabled=false (not zero all writes); review-surface writes from BOTH verdict path and markdown path remain live; D-029 Decision Summary Table annotated. P26-004 (MINOR): heading-anchored parse grammars added for three GATE 1/GATE 2 hard-floor reads in the Parse grammar specifications block, mirroring P13-003 discipline: disposition_section_contains('Indeterminate') → canonical Disposition heading value only (parse_disposition_from_markdown output); attack_techniques_contains_forbidden() → canonical Attack Techniques heading value list only; sensor_health_status_is() → canonical Sensor Health Status heading value only. Effect: markdown whose prose mentions 'Indeterminate' but whose Disposition heading is False Positive does NOT trip the floor. PO note to mirror into BC-3.03.001; FV note that VP-HOOK-031 gets a negative grammar vector. §8.39 propagation list added (PO: BC-3.03.001 PC#2 L98 rewrite to D-029 model with Previous-blockquote P26-001; L994 + BC-4.02.001 PC#4 qualified 'no deny' wording P26-002; grammar mirror P26-004; kill-switch residual note in BC-3.03.001 + BC-10.01.001 VP-SKILL-065 area; prd-delta EC-012 row fix P26-005. FV: VP-HOOK-031 negative grammar vector; residual doc check; stale-string sweep). Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.27 (2026-07-29): Pass-25 adversarial remediation burst 22. D-029 (P25-001 MAJOR — human decision 2026-07-29): markdown-path GATE 1/GATE 2 hard-floor DENIES eliminated — converted to ROUTING SIGNALS. The Write ALWAYS succeeds for any investigation-*.md (ALL dispositions, ALL techniques, ALL sensor states, ALL writers). Rationale: D-017 eliminated all autonomous markdown actions; the deny only ever blocked documentation; the hard floor's purpose (human sees it) is BETTER served by save+surface than by deny; consistent with Document-Before-Action and BC-5.01.001 Inv#7 / BC-4.02.001 PC#4. New routing model (disposition-routing-first per P22-001, unchanged): FP with NO markdown-evaluable hard floor → allow-without-marker (no Jira action authorized). Non-FP OR PARSE_FAIL OR any hard floor (Indeterminate disposition, forbidden techniques T1003/T1068/T1021/T1041, degraded/silent sensor) OR FP+hard-floor (hard floor wins) → allow the Write AND issue MARKDOWN_REVIEW_PATH review marker (create-review/comment-review, kill-switch exempt per D-DEC-012 Option A). Completeness adjudication: incomplete saves (< 12 fields / PARSE_FAIL) also succeed + route to review — denying a save loses the analyst's work. MARKDOWN-HARD-FLOOR audit code: retired as a DENY code; REPURPOSED as routing-annotation audit entry (written on routing trigger, no deny). MARKDOWN-HARD-FLOOR-UNBINDABLE: deny converted to allow-without-marker (Write succeeds; review marker cannot be issued without binding keys; audit entry retained). Updated: gating sequence, hard-floor step 2, pseudocode, 'If a floor fires' note, key guarantees, VP-HOOK-031 scope note. §8.38 propagation list added (PO: BC-3.03.001 markdown pseudocode + canonical vectors + BC-5.01.001 Inv#7 + BC-4.02.001 PC#4; FV: VP-HOOK-031 re-scope, SM-73 validity, new SM for 'hard-floor deny restored → analyst save denied', MARKDOWN-HARD-FLOOR code disposition; also P25-002 VP-HOOK-031 table row + SM-73 cite; P25-003 stale cross-version cites; P25-004 function-definition-order implementer note). Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.26 (2026-07-29): Pass-24 adversarial remediation burst 21. P24-001 (MEDIUM): EMIT_LINK_MARKER control-flow contradiction resolved — adopted bash-faithful invocation model: EMIT_LINK_MARKER is a shell function receiving is_hard_floor_link as positional arg $1 (verdict and recomputed_severity accessed as globals); function invokes WRITE_MARKER directly as its final statement (replaces GOTO WRITE_MARKER + contradictory END-FUNCTION frame + 'falls through' comment); call sites become `EMIT_LINK_MARKER true; RETURN` / `EMIT_LINK_MARKER false; RETURN`; marker variables including is_link_hard_floor set globally (no local qualifier — bash-visible to WRITE_MARKER). SM-74 kill-vector mechanism note updated: FV must confirm is_link_hard_floor=true reaches WRITE_MARKER via direct invocation (not GOTO or fall-through) and sets is_review_path=TRUE. §8.36.1 item 6 corrected: PO instruction updated from 'fall through to WRITE_MARKER' to 'invoke WRITE_MARKER directly as final statement'. P24-002 (MEDIUM): O7 site 10 — emit-time charset re-validation of resolved_project_key. Inside EMIT_LINK_MARKER, after read_org_project_key() and null check and BEFORE regex construction: (a) re-validate resolved_project_key against ^[A-Z][A-Z0-9]+$ — non-conformant → LINK-PROJECT-KEY-CHARSET-DENY audit code + deny (fail-closed; mirrors close_state three-layer treatment; corrective reason points at config); (b) regex_escape(resolved_project_key) already present — explicitly labeled defense-in-depth, no-op after (a) passes but guards drift. O7 inventory updated: site 10 = resolved_project_key (1 site: EMIT_LINK_MARKER org-binding regex construction, CONFIG-side); total active O7 sites: 9. FV obligation: SM for malformed resolved key → broadened binding regex must be denied. P24-005 (OBS): D-026 stable-key spec note added to D-026 decision record — D-026 self-healing assumes stable per-org jira_project_key; after project re-key, historical Closed/Resolved tickets carry old prefix; org-binding denies recovery link with LINK-PROJECT-BINDING-DENY; operator remediation is manual linking or config-driven allowance; accepted bounded residual. §8.37 propagation list added (P24-001/P24-002/P24-005 obligations for PO + FV). dtu-assessment bumped to v1.5 (separate artifact — P24-004 tp-close-denied scored_priority pinning). PO obligation (P24-003, BC owner): BC-3.03.001 regular-link happy-path vector L1107 must add org-binding precondition (config: resolved_project_key=SEC) to match the D-028 gate that fires on both entry paths. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.25 (2026-07-29): Pass-23 adversarial remediation burst 20. D-028 (P23-001 MAJOR + P23-005 MEDIUM): completes D-027's defensive half. (1) WRITE_MARKER fail-closed extended to hard-floor link path: is_link_hard_floor flag passed from EMIT_LINK_MARKER; is_review_path condition extended to `(action in {create-review, comment-review}) OR is_link_hard_floor`; marker-write failure on a hard-floor link → MARKER-WRITE-FAILED audit entry + DENY (matches create-review/comment-review; MARKER-WRITE-FAILED already in Gate-2 grep set — no new grep pattern needed). (2) Null-binding fail-loud on STEP 3b path: ticket_id==null OR link_target_ticket_id==null → HARD-FLOOR-UNBINDABLE deny + audit with machine-actionable corrective reason (mirrors P8-001 create-review/comment-review paths); allow-without-marker on null key is NOT acceptable for hard-floor link. (3) Org/project binding (P23-005 folded): at EMIT_LINK_MARKER (both entry paths — hard-floor and REGULAR), after O7 charset validation, KEY1 and KEY2 validated against org's resolved jira_project_key prefix (per-org CONFIG lookup, not verdict-influenceable); non-conformant → LINK-PROJECT-BINDING-DENY audit code + deny with corrective reason. Residual: forged hard-floor still enables same-project Relates link under kill switch — bounded, accepted per D-027. P23-004 (MEDIUM): GOTO-into-ELIF replaced with named subroutine EMIT_LINK_MARKER(verdict, recomputed_severity, is_hard_floor_link) — bash-implementable shell function; STEP 3b calls it directly after null-binding checks; STEP 6 ELIF link branch calls same subroutine; no GOTO; STEP6_LINK label removed. PO obligations: BC-3.03.001 (STEP 3b + STEP 6 link branch + WRITE_MARKER), BC-10.01.001 (Gate-2 note unchanged). FV obligations: VP/SM for hard-floor link fail-closed (marker-write-failure path), org-binding deny, VP-SKILL-065 kill-switch invariant re-scope for link/close (P23-003). Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
@@ -82,7 +83,7 @@ asm_004_validation: .factory/phase-f2-spec-evolution/asm-004-validation.md
 | D-026 | **RESOLVED** | Orphan-link reconciliation predicate (P20-003): stateless §3.4 correlation rule (option b) — new rule evaluated BEFORE rule 1: 'open ticket O with same root cause as Closed/Resolved ticket C AND no Relates(O,C) link exists → issue link-only verdict; do not comment.' Precedence over rule 1 explicit. Stateless (no persisted artifact beyond watermarks). Verifiable predicate for VP-HOOK-036/SM-68. **Link-read mechanism (P21-006):** the `Relates(O,C)` absence predicate is computed from `jr issue view <candidate-key> --output json` issuelinks output (allowlisted read per BC-3.01.001 PC#3 — `jr issue view` plain + `--output json` forms both covered). PO obligation: add this mechanism to BC-10.01.001 §3.4 D-026 rule text and confirm allowlist coverage in BC-3.01.001. **D-027 reconciliation:** D-026 orphan-link recovery on hard-floor alerts NOW SUCCEEDS — the link verdict is review-class when hard_floor_applies()=true (D-027), so the Relates link is created on hard-floor alerts; the "self-healing" claim in BC-10.01.001 EC-010/Stage-8 becomes true for hard-floor orphans. **Stable-key assumption (P24-005):** D-026 self-healing assumes a stable per-org `jira_project_key`. After a project re-key, historical Closed/Resolved tickets carry the old prefix; the org-binding at EMIT_LINK_MARKER (D-028/P24-002) correctly denies the recovery link with `LINK-PROJECT-BINDING-DENY` because KEY2 (the closed ticket) no longer matches the current `^resolved_project_key-[0-9]+$` binding pattern. This permanently defeats D-026 self-healing for older tickets created before the re-key. Operator remediation is manual linking or a config-driven allowance for the old prefix. This is an **accepted bounded residual** — project re-keys are discouraged and rare; D-026 self-healing is best-effort when the project key has been stable throughout the alert lifecycle. |
 | D-027 | **RESOLVED** | Link verdict is review-class when hard_floor_applies()=true (P22-003, human decision 2026-07-27). When hook-computed `hard_floor_applies()`=TRUE AND `ticket_action_type=="link"`: the link verdict is EXEMPT from STEP-4 hard-floor DENY and EXEMPT from STEP-5 kill switch. The `["link"]` marker is issued via STEP 3b carve-out; same anti-fungible scope, same O7 charset validation on both keys — nothing changes on the consumer side. Rationale: linking a review/escalation ticket to its predecessor IS part of review surfacing; a Relates link authorizes no triage decision, changes no ticket state; exemption condition is hook-recomputable (hard_floor_applies() + action==link — O6-safe); blast radius if LLM forges hard-floor fields = one Relates link (accepted bounded risk). Non-hard-floor links remain REGULAR scope (STEP-4 N/A by definition, STEP-5 kill-switch gated). |
 | D-028 | **RESOLVED** | Completes D-027's defensive half — fail-loud + org-binding for the STEP-3b-entered link path (P23-001 MAJOR + P23-005 MEDIUM, burst 20). Three sub-decisions: (1) **Marker-write fail-closed**: hard-floor link path extended to fail-closed on WRITE_MARKER failure — `is_link_hard_floor` flag passed from `EMIT_LINK_MARKER(is_hard_floor_link=true)`; `is_review_path` condition at WRITE_MARKER extended to `(action in {create-review, comment-review}) OR is_link_hard_floor`; on write failure → MARKER-WRITE-FAILED audit entry + DENY. MARKER-WRITE-FAILED already in Gate-2 grep set (BC-10.01.001 §D-DEC-003 cron wrapper) — no new grep pattern needed. Non-hard-floor (REGULAR) link keeps allow-without-marker on write failure (P10-003 asymmetry unchanged). (2) **Null-binding fail-loud**: on STEP 3b path (is_hard_floor_link=true), `ticket_id==null` OR `link_target_ticket_id==null` → HARD-FLOOR-UNBINDABLE deny + audit with machine-actionable corrective reason; NOT allow-without-marker. Mirrors P8-001 (create-review null project_key / comment-review null ticket_id) — same D-DEC-012 clause-2 fail-loud rationale. (3) **Org/project binding** (P23-005): at `EMIT_LINK_MARKER` (BOTH entry paths), after O7 charset validation, KEY1 and KEY2 validated against org's resolved `jira_project_key` prefix (CONFIG-side per-org lookup with global fallback per P10-009/D-DEC-008; NOT verdict-influenceable — O6-safe). Non-conformant → LINK-PROJECT-BINDING-DENY new audit code + deny with corrective reason. Closes forged-hard-floor abuse for cross-project/cross-org link pairs. Residual (bounded, accepted per D-027): forged hard-floor can still create a same-project Relates link under kill switch. P23-004 (MEDIUM): GOTO-into-ELIF-ladder replaced by named subroutine `EMIT_LINK_MARKER(verdict, recomputed_severity, is_hard_floor_link)` — bash shell function; STEP 3b calls directly after null-binding checks; STEP 6 ELIF link calls same; STEP6_LINK label removed. |
-| D-029 | **RESOLVED** | Markdown-path hard-floor DENIES eliminated — converted to ROUTING SIGNALS (P25-001 MAJOR, human decision 2026-07-29). The investigation-*.md Write ALWAYS succeeds for ALL dispositions, ALL techniques, ALL sensor states, ALL writers. Prior design (post-P22-001) ran GATE 1/GATE 2 hard-floor checks as deny conditions, blocking an analyst's save when Disposition=Indeterminate, attack_techniques contains T1003/T1068/T1021/T1041, or sensor=degraded/silent. D-017 already eliminated all autonomous markdown actions; the deny only ever blocked documentation, not autonomous Jira writes. The hard floor's purpose — ensuring a human sees the finding — is better served by save+surface than deny. Routing model (disposition-routing-first per P22-001, unchanged): **(a) FP with NO hard floor** → allow-without-marker (no Jira action authorized); **(b) non-FP OR PARSE_FAIL OR any hard floor OR FP+hard-floor** → allow the Write AND issue MARKDOWN_REVIEW_PATH review marker (create-review/comment-review, kill-switch exempt per D-DEC-012 Option A). Hard floor wins over FP: FP+hard-floor → review. **Completeness adjudication:** incomplete saves (< 12 fields / PARSE_FAIL) also succeed + route to review — denying a save loses the analyst's work-in-progress. PARSE_FAIL continues to be treated as non-FP (review path), and the Write is never denied for completeness failures. **Audit code disposition:** `MARKDOWN-HARD-FLOOR` is retired as a DENY code and REPURPOSED as a routing-annotation audit entry written on routing trigger (Write still permitted). `MARKDOWN-HARD-FLOOR-UNBINDABLE` deny is converted to allow-without-marker with audit annotation (Write succeeds; review marker cannot be issued without binding keys). No guarantee is lost: BC-5.01.001 Inv#7 / BC-4.02.001 PC#4 'MUST NOT be denied' contract is now structurally satisfied; the follow-on jr comment expectation in those BCs updates to the review-marker model. |
+| D-029 | **RESOLVED** | Markdown-path hard-floor DENIES eliminated — converted to ROUTING SIGNALS (P25-001 MAJOR, human decision 2026-07-29). The investigation-*.md Write ALWAYS succeeds for ALL dispositions, ALL techniques, ALL sensor states, ALL writers. Prior design (post-P22-001) ran GATE 1/GATE 2 hard-floor checks as deny conditions, blocking an analyst's save when Disposition=Indeterminate, attack_techniques contains T1003/T1068/T1021/T1041, or sensor=degraded/silent. D-017 already eliminated all autonomous markdown actions; the deny only ever blocked documentation, not autonomous Jira writes. The hard floor's purpose — ensuring a human sees the finding — is better served by save+surface than deny. Routing model (disposition-routing-first per P22-001, unchanged): **(a) FP with NO hard floor** → allow-without-marker (no Jira action authorized); **(b) non-FP OR PARSE_FAIL OR any hard floor OR FP+hard-floor** → allow the Write AND issue MARKDOWN_REVIEW_PATH review marker (create-review/comment-review, kill-switch exempt per D-DEC-012 Option A). Hard floor wins over FP: FP+hard-floor → review. **Completeness adjudication:** incomplete saves (< 12 fields / PARSE_FAIL) also succeed + route to review — denying a save loses the analyst's work-in-progress. PARSE_FAIL continues to be treated as non-FP (review path), and the Write is never denied for completeness failures. **Audit code disposition:** `MARKDOWN-HARD-FLOOR` is retired as a DENY code and REPURPOSED as a routing-annotation audit entry written on routing trigger (Write still permitted). `MARKDOWN-HARD-FLOOR-UNBINDABLE` deny is converted to allow-without-marker with audit annotation (Write succeeds; review marker cannot be issued without binding keys). No guarantee is lost: BC-5.01.001 Inv#7 / BC-4.02.001 PC#4 'MUST NOT be denied' contract is now structurally satisfied; the follow-on jr comment expectation in those BCs updates to the review-marker model. **P26-003 ACCEPTED RESIDUAL (P26-003 MEDIUM, orchestrator adjudication 2026-07-29):** The markdown path issues kill-switch-exempt create-review/comment-review markers WITHOUT hard_floor_applies() cross-validation. This asymmetry vs the verdict-path STEP 3 O3 over-label gate is INHERENT — the markdown path cannot compute hard_floor_applies() from a 12-field markdown (scored_priority/asset_type absent). Therefore autonomy_enabled=false does NOT suppress markdown-path review markers. Blast radius: review surface only. See ACCEPTED RESIDUAL block in Separate Human-Comment Marker Path section and D-DEC-012 Inv#11 note (§8.39). |
 
 ---
 
@@ -2366,6 +2367,57 @@ All rows produce `permissionDecision: allow`. No row produces deny.
 - Return `false` for: absent field, `false` value, empty value, ambiguous value, or the `autonomy_enabled: true` token appearing inside a code fence, evidence block, or quoted log line.
 - Safe direction: any non-explicit-true → false (GATE 1 remains closed).
 
+**GATE 1/GATE 2 hard-floor read grammars (P26-004 — heading-anchored):**
+
+The three hard-floor evaluation functions in the GATE 1/GATE 2 sequence (gating step 2 above)
+MUST use heading-anchored reads, mirroring the P13-003 discipline established for
+`parse_disposition_from_markdown`. Free-text scanning of the document body is PROHIBITED
+for all three functions. Authoritative grammars:
+
+`disposition_section_contains("Indeterminate")` — **replaced by heading-anchored read:**
+- Evaluate by calling `parse_disposition_from_markdown(content)` (the authoritative grammar
+  is the P13-003 spec above). If `parse_disposition_from_markdown` returns `Indeterminate`,
+  set `hard_floor_triggered = true` and write the MARKDOWN-HARD-FLOOR audit annotation.
+- Free-text mentions of "Indeterminate" elsewhere in the document (e.g., in an evidence
+  section: "we ruled out Indeterminate") MUST NOT trigger the floor.
+- **Effect:** a markdown whose canonical `Disposition` heading value is `False Positive`
+  but whose prose body mentions "Indeterminate" does NOT trip this floor.
+
+`attack_techniques_contains_forbidden()` — **heading-anchored value-list read:**
+- Read ONLY the value of the canonical `Attack Techniques` heading (e.g., `## Attack Techniques`
+  or `**Attack Techniques:**`). Do NOT scan the full document body for technique identifiers.
+- Parse the heading's value as a list of technique identifiers (comma-separated or
+  newline-separated entries). Match against the forbidden-technique set
+  `{T1003, T1068, T1021, T1041}` using exact token matching on each list entry.
+- A technique identifier appearing in a log excerpt, code fence, evidence section, or
+  prose commentary that is NOT part of the canonical `Attack Techniques` heading's value
+  MUST NOT match.
+- If the `Attack Techniques` heading is absent or empty, the function returns false
+  (no floor triggered; missing data does not trigger a floor).
+- **Effect:** a markdown that discusses T1003 in its investigation notes but whose
+  `Attack Techniques` heading lists only benign techniques does NOT trip this floor.
+
+`sensor_health_status_is("degraded")` / `sensor_health_status_is("silent")` — **heading-anchored value read:**
+- Read ONLY the value of the canonical `Sensor Health Status` heading (e.g.,
+  `## Sensor Health Status` or `**Sensor Health Status:**`). Do NOT scan the full document.
+- Match the heading's value against the exact allowlist `{"degraded", "silent"}`,
+  case-insensitive.
+- Any of the following → function returns false (floor NOT triggered): absent heading,
+  empty value, the word "degraded" or "silent" appearing only in prose outside the
+  heading's value, ambiguous multi-valued field.
+- **Effect:** a markdown that mentions "sensor was degraded previously" in its narrative
+  but whose `Sensor Health Status` heading value is `healthy` does NOT trip this floor.
+
+**PO note (P26-004):** Mirror these three heading-anchored grammar specs into
+BC-3.03.001 GATE 1/GATE 2 pseudocode (around L1014–1016 per pass-26 perimeter).
+**FV note (P26-004):** VP-HOOK-031 MUST receive a negative grammar vector for each
+function: a markdown whose prose mentions the floor-triggering value but whose canonical
+heading does NOT contain it → floor does NOT fire → FP+clean → allow-without-marker
+(not MARKDOWN_REVIEW_PATH). Example: `Disposition: False Positive` heading + prose
+mentions "Indeterminate" → `parse_disposition_from_markdown` returns FP → hard_floor_triggered
+= false → allow-without-marker (not a review marker). This is the P26-004 grammar-anchor
+negative vector obligation for VP-HOOK-031.
+
 **Adversarial vectors (FV obligation — P13-003):** See §8.29 item 3.
 
 **MARKDOWN_COMMENT_REVIEW_PATH / MARKDOWN_CREATE_REVIEW_PATH (non-FP dispositions):**
@@ -2457,6 +2509,65 @@ are routing signals, never deny conditions." SM-52 (FP-comment-marker revert, P1
 unchanged: "FP markdown with autonomy_enabled=true MUST NOT emit a [\"comment\"] marker."
 Additionally: FV must add a NEW SM covering the regressed "hard-floor deny restored → analyst
 save denied" scenario (SM for D-029 revert) — see §8.38.2.
+
+> **ACCEPTED RESIDUAL — P26-003 (MEDIUM, orchestrator adjudication 2026-07-29):**
+>
+> The markdown path issues kill-switch-exempt `create-review` / `comment-review` markers
+> WITHOUT a `hard_floor_applies()` cross-validation gate. This is the asymmetry vs the
+> verdict-path STEP 3 O3 over-label gate: the verdict path issues a review marker ONLY IF
+> `hard_floor_applies()=TRUE` (non-hard-floor over-labeled review verdicts are rejected with
+> allow-without-marker); the markdown path applies NO such gate — every non-FP / PARSE_FAIL
+> save yields a review marker, kill-switch-exempt.
+>
+> **Root cause (structural, not fixable within the current 12-field markdown model):**
+> The markdown path CANNOT compute `hard_floor_applies()` because `scored_priority` (field 18)
+> and `asset_type` (field 14) are absent from a 12-field investigation markdown. Therefore
+> narrowing the markdown route-to-review gate to require a hook-computed hard floor is
+> architecturally infeasible without expanding the markdown field schema — a change that would
+> contradict D-017 / D-DEC-012 Option A and the existing propagation of D-029. Per orchestrator
+> adjudication, option (b) (narrowing the gate) would contradict the settled D-015/P12-002
+> decision that ALL non-FP markdown findings route to review.
+>
+> **Consequence:** `autonomy_enabled=false` does NOT suppress markdown-path review markers.
+> An autonomous agent running with the kill switch engaged can write an `*investigation-*.md`
+> file with any non-FP or ambiguous `Disposition` value (PARSE_FAIL is trivially inducible
+> from any unrecognized Disposition value) and thereby obtain a kill-switch-exempt
+> `create-review` / `comment-review` marker, causing `jr issue create --label REVIEW-REQUIRED`
+> or `jr issue comment <ticket_id>` writes to execute while the kill switch is nominally engaged.
+>
+> **Blast radius (bounded):**
+> - Scoped to the review/escalation surface ONLY: `create-review` (with `REVIEW-REQUIRED`
+>   label) and `comment-review` (ticket comment). No close, no triage state change, no
+>   regular `comment`/`create`/`assign`/`link` actions are reachable from this path.
+> - Org-binding (D-028/P23-005) and O7 charset validation still apply; a forged
+>   `investigation-*.md` cannot escape into cross-org or cross-project writes.
+> - Review tickets are human-facing by construction: every `REVIEW-REQUIRED` ticket is
+>   immediately visible to the operator; abuse is self-surfacing.
+>
+> **Residual flood risk:** No hook-side dedup exists for repeated review-ticket creation
+> from repeated saves of the same `investigation-*.md` file. An agent in a buggy loop
+> or under an injected instruction could flood the Jira project with `REVIEW-REQUIRED`
+> tickets. This is part of the accepted residual; operator-visibility (a flood of
+> `REVIEW-REQUIRED` tickets is visible to the operator) is the compensating control.
+>
+> **Cross-references:**
+> - D-DEC-012 Option A: this residual IS the intended trade-off of D-DEC-012 Option A,
+>   extended to the markdown path by P22-001 and D-029. The review surface was always
+>   kill-switch-exempt for genuine hard floors; D-029 widened this by converting former
+>   markdown hard-floor denies into review-marker issuance, making the markdown path
+>   a viable (though limited) route to review writes under the kill switch.
+> - P22-001 / D-029: D-029 converted hard-floor DENIES to routing signals, which means
+>   former Indeterminate saves (previously denied → no Jira action) now reach the review
+>   marker path (Jira action reachable). This widening is the direct origin of the residual.
+> - Verdict-path STEP 3 O3 over-label gate: the asymmetry is INHERENT. The verdict path
+>   has hook-recomputable `hard_floor_applies()` fields (scored_priority, asset_type in
+>   the 18-field verdict); the markdown path does not. No amount of hook logic on the
+>   markdown path can replicate the verdict-path gate without the missing fields.
+>
+> **Propagation:** PO must mirror this residual note into BC-3.03.001 kill-switch section
+> and BC-10.01.001 VP-SKILL-065 area if either claims zero Jira writes under kill switch
+> (the accurate statement is zero REGULAR writes). FV must add a residual documentation
+> check. See §8.39 for full propagation obligations.
 
 **Hard floor binding (§3.9 — unconditional code branches) [v2.0 — ADV-F2-001 fix; v2.1 — P10-001 trust-basis correction; v2.2 — P11-001/P11-002 two-field model]:**
 
@@ -3077,21 +3188,39 @@ Rationale: the kill switch halts "automation producing unexpected output" (brief
 Suppressing review tickets when the kill switch is ON would silently drop hard-floor findings,
 which is exactly the failure mode the kill switch is designed to prevent at the human level.
 
-**Inv#11 / VP-SKILL-065 carve-out language (ADV-F2-P6-003 MAJOR — normative):**
+**Inv#11 / VP-SKILL-065 carve-out language (ADV-F2-P6-003 MAJOR — normative; updated P26-003):**
 Under `autonomy_enabled=false`: ZERO REGULAR (comment/create/assign) markers are consumed and
 ZERO regular `jr issue comment/create/assign` write operations for non-review tickets are
-executed. EXCEPTION: `create-review` and `comment-review` escalation writes for GENUINE
-hard-floor verdicts (`hard_floor_applies(verdict)=TRUE`, verified by disposition-guard STEP 3
-and STEP 4 gates) STILL execute per D-DEC-012 Option A. The kill switch suppresses ONLY
+executed. EXCEPTION: `create-review` and `comment-review` escalation writes STILL execute
+per D-DEC-012 Option A. These review-surface writes originate from TWO paths:
+1. **Verdict path (STEP 3 + STEP 4):** for GENUINE hard-floor verdicts
+   (`hard_floor_applies(verdict)=TRUE`, verified by disposition-guard gates).
+2. **Markdown path (MARKDOWN_REVIEW_PATH, D-029):** for ALL non-FP / PARSE_FAIL /
+   hard-floor investigation-*.md saves — WITHOUT `hard_floor_applies()` cross-validation
+   (structurally unavailable from a 12-field markdown). These markdown-path review markers
+   are kill-switch-exempt per D-DEC-012 Option A regardless of autonomy_enabled.
+
+Additionally, hard-floor links via STEP 3b (`ticket_action_type=="link"` when
+`hard_floor_applies()=TRUE`, per D-027) remain live under the kill switch.
+
+**Accurate statement:** `autonomy_enabled=false` yields ZERO REGULAR autonomous Jira writes.
+It does NOT yield zero ALL Jira writes. Review-surface writes (create-review/comment-review
+from either the verdict path or the markdown path) and hard-floor links (STEP 3b) remain live.
+This is the D-DEC-012 Option A intended trade-off; the markdown path's absence of
+`hard_floor_applies()` gating is an ACCEPTED RESIDUAL (P26-003 — see ACCEPTED RESIDUAL block
+in Separate Human-Comment Marker Path section and §8.39). The kill switch suppresses ONLY
 autonomous triage; it does NOT suppress human-escalation ticket creation or updates.
 
 BC-10.01.001 Invariant #11 MUST carry this carve-out: replace "all autonomous Jira actions
 halted" with "all REGULAR (non-review) autonomous Jira actions halted; create-review and
-comment-review escalation writes for genuine hard-floor verdicts (hard_floor_applies()=TRUE)
-are EXEMPT per D-DEC-012 Option A." VP-SKILL-065 MUST be re-scoped: the prior assertion
+comment-review escalation writes (from verdict path for genuine hard-floor verdicts, and from
+markdown path for all non-FP/PARSE_FAIL/hard-floor investigation saves per D-029) are EXEMPT
+per D-DEC-012 Option A." VP-SKILL-065 MUST be re-scoped: the prior assertion
 "zero jr create/comment/assign calls under autonomy_enabled=false" is overly broad; the correct
 assertion is "zero REGULAR (non-review) jr create/comment/assign calls under autonomy_enabled=false."
-See §8.15 FV propagation list for the re-scoping obligation and required test vectors.
+Any BC or VP text that claims `autonomy_enabled=false` suppresses ALL Jira writes (including
+review surface) is INCORRECT and must be updated. See §8.15 FV propagation list for the prior
+re-scoping obligation; §8.39 for P26-003 residual propagation.
 
 **Fail-loud invariant (deterministically enforced at hook layer — ADV-F2-P5-001):**
 Hard-floor or Indeterminate verdicts MUST result in exactly one of:
@@ -7932,4 +8061,195 @@ converted to allow-without-marker with audit annotation; completeness failures s
 to review. P25-002 (MEDIUM): VP-HOOK-031 row in BC-3.03.001 SM-50/SM-73 correction recorded as
 PO obligation. P25-003 (OBS): stale cross-version cites in BC-5.01.001 Inv#7 / BC-4.02.001 PC#4
 recorded as PO obligation. P25-004 (OBS): function-definition-order implementer note recorded.
+Architect does NOT edit BCs, verification-delta, prd-delta, spec-changelog, or STATE.md.*
+
+---
+
+## 8.39 PROPAGATION LIST (pass 26 — P26-001/P26-002/P26-003/P26-004/P26-005)
+
+> **Owner:** Product owner and formal verifier as marked. Architect does NOT edit BCs,
+> verification-delta, prd-delta, or STATE.md.
+
+> **Architectural decisions recorded here:** P26-003 ACCEPTED RESIDUAL (markdown-path
+> kill-switch-exempt review marker issuance without hard_floor_applies() gate — documented,
+> bounded, operator-visible). P26-004 heading-anchored grammar specs for GATE 1/GATE 2
+> hard-floor reads (disposition_section_contains, attack_techniques_contains_forbidden,
+> sensor_health_status_is).
+
+---
+
+### 8.39.1 PO — BC-3.03.001: PC#2 routing rewrite to D-029 model (P26-001 MAJOR)
+
+> **BC owner obligation — BC-3.03.001.**
+
+Rewrite PC#2 line 98 to the D-029 routing model. The current text (tagged `[UPDATED v1.10]`)
+describes pre-P22-001 / pre-D-029 semantics: (a) GATE 1 kill-switch-first short-circuit and
+(b) MARKDOWN-HARD-FLOOR deny for Indeterminate/forbidden-technique/degraded-sensor. Both are
+superseded. Required rewrite:
+
+- Replace the (a)/(b) routing summary with the D-029 model: hard floors → routing annotation
+  + `hard_floor_triggered=true` (no deny, no RETURN); `autonomy_enabled` is NOT a routing gate
+  on this path (P22-001 removed it); FP+no-hard-floor → allow-without-marker; all other cases
+  (non-FP, PARSE_FAIL, any hard floor, FP+hard-floor) → MARKDOWN_REVIEW_PATH
+  (create-review/comment-review, kill-switch exempt per D-DEC-012 Option A).
+- Move the current (a)/(b) text into a `> Previous (v1.10/P13-001)` blockquote following the
+  pattern of adjacent `Previous` blockquotes at lines 100–106.
+- Ensure PC#2 references Invariant #4's authoritative pseudocode by anchor rather than
+  duplicating routing logic.
+
+---
+
+### 8.39.2 PO — BC-3.03.001 L994 + BC-4.02.001 PC#4: qualify the 'no deny possible' claim (P26-002 MEDIUM)
+
+> **BC owner obligation — BC-3.03.001 and BC-4.02.001.**
+
+The absolute "no deny is possible on the markdown path" claim at BC-3.03.001:994 and
+BC-4.02.001 PC#4 is incorrect. The markdown path retains deny branches for:
+1. `TICKET-ID-CHARSET-DENY` (BC-3.03.001:~1064) — parsed `ticket_id` failing `^[A-Z][A-Z0-9]+-[0-9]+$`.
+2. `PROJECT-KEY-CHARSET-DENY` (BC-3.03.001:~1080) — config `jira_project_key` failing `^[A-Z][A-Z0-9]+$`.
+3. 12-field ICD-203 completeness deny (BC-3.03.001:~98 / EC-010:~1118) — markdown missing any mandatory heading.
+4. Alternatives-Considered heading deny (BC-3.03.001:~97).
+
+Required wording for both artifacts (reconcile to one canonical phrase):
+
+> "no **disposition-/hard-floor-based** deny is possible on the markdown path; structural
+> ICD-203 completeness, Alternatives-Considered, and charset-injection guards are retained."
+
+BC-5.01.001 Inv#7's existing narrower scope ("regardless of disposition or sensor state")
+already survives — no change needed to BC-5.01.001 for P26-002.
+
+---
+
+### 8.39.3 PO — BC-3.03.001: heading-anchored grammar mirror for GATE 1/GATE 2 (P26-004 MINOR)
+
+> **BC owner obligation — BC-3.03.001.**
+
+Mirror the three heading-anchored grammar specs added to architecture-delta §8.39 (and the
+Parse grammar specifications block) into BC-3.03.001 GATE 1/GATE 2 pseudocode (around
+L1014–1016 per pass-26 perimeter):
+
+1. `disposition_section_contains("Indeterminate")` — evaluate by delegating to
+   `parse_disposition_from_markdown(content)`; trigger only when the return value IS
+   `Indeterminate`. Free-text mentions of "Indeterminate" outside the canonical `Disposition`
+   heading MUST NOT trigger this floor.
+2. `attack_techniques_contains_forbidden()` — read the canonical `Attack Techniques` heading
+   value list only; exact token matching against `{T1003, T1068, T1021, T1041}`; technique
+   identifiers in log excerpts, code fences, or prose outside the heading MUST NOT match.
+3. `sensor_health_status_is("degraded"/"silent")` — read the canonical `Sensor Health Status`
+   heading value only; exact match against `{"degraded", "silent"}`; prose mentions outside
+   the heading MUST NOT match.
+
+**Effect to document:** a markdown whose canonical `Disposition` heading is `False Positive`
+but whose body prose mentions "Indeterminate" does NOT trip the Indeterminate floor → parsed
+as FP with no hard floor → allow-without-marker (not MARKDOWN_REVIEW_PATH).
+
+---
+
+### 8.39.4 PO — BC-3.03.001 kill-switch section + BC-10.01.001 VP-SKILL-065 area: residual note (P26-003)
+
+> **BC owner obligation — BC-3.03.001 and BC-10.01.001.**
+
+Add a note in BC-3.03.001's kill-switch section (wherever it discusses `autonomy_enabled`
+and the markdown path) and in BC-10.01.001's VP-SKILL-065 area (wherever it describes
+the kill-switch invariant) clarifying:
+
+- `autonomy_enabled=false` does NOT suppress markdown-path review markers.
+- The accurate statement: zero REGULAR writes (comment/create/assign); review-surface writes
+  (create-review/comment-review from EITHER the verdict path or the markdown path) remain
+  live; hard-floor links via STEP 3b also remain live.
+- If any text claims `autonomy_enabled=false` yields zero autonomous Jira writes (without
+  qualification), replace with: "zero REGULAR autonomous Jira writes; review-surface writes
+  (create-review/comment-review) from both verdict path and markdown path, and hard-floor
+  links via STEP 3b, remain live per D-DEC-012 Option A."
+- Cross-reference the P26-003 ACCEPTED RESIDUAL: the markdown path's absence of
+  `hard_floor_applies()` gating is documented, bounded to the review surface, and
+  operator-visible; see architecture-delta §8.39.
+
+---
+
+### 8.39.5 PO — prd-delta §8 EC-012 row fix (P26-005 MINOR)
+
+> **BC owner obligation — prd-delta.**
+
+Update prd-delta §8 EC-012 row (around :234) from "hard floor blocks marker issuance" (stale
+pre-P7-001 language) to the current semantics: under-labeled hard-floor verdict → DENY-THE-WRITE
+(BC-3.03.001 STEP 4); correctly-labeled hard-floor verdict → review marker issued
+(create-review/comment-review). No behavioral change — doc-summary staleness only.
+
+---
+
+### 8.39.6 FV — VP-HOOK-031 negative grammar vectors (P26-004 MINOR)
+
+> **FV obligation — verification-delta.**
+
+VP-HOOK-031 MUST receive at minimum three negative grammar vectors (one per heading-anchored
+grammar function), each asserting that a prose-only mention does NOT trigger the corresponding
+floor:
+
+1. **Negative Disposition grammar vector:** Input markdown with `Disposition: False Positive`
+   heading (canonical) + prose body mentioning "Indeterminate" in evidence text (e.g.,
+   "initial triage was Indeterminate"). Assert: `parse_disposition_from_markdown` returns FP;
+   `hard_floor_triggered = false`; routing → allow-without-marker (NOT MARKDOWN_REVIEW_PATH).
+   This kills a mutant that runs a free-text scan instead of heading-anchored parse.
+
+2. **Negative Attack Techniques grammar vector:** Input markdown with `Attack Techniques:
+   T1078` (canonical heading — not in forbidden set) + prose discussing T1003 in investigation
+   notes. Assert: `attack_techniques_contains_forbidden()` returns false; `hard_floor_triggered
+   = false` (no technique floor fires); routing driven by disposition only.
+
+3. **Negative Sensor Health Status grammar vector:** Input markdown with `Sensor Health Status:
+   healthy` (canonical heading) + prose mentioning "sensor was degraded last week." Assert:
+   `sensor_health_status_is()` returns false; no sensor floor triggered; routing driven by
+   disposition only.
+
+Each negative vector MUST have a paired mutant that removes the heading-anchor constraint
+(replacing with a free-text scan) and asserts the floor fires incorrectly → mutant dies when
+the anchored grammar is present.
+
+---
+
+### 8.39.7 FV — residual documentation check (P26-003)
+
+> **FV obligation — verification-delta.**
+
+Verify that BC-3.03.001 and BC-10.01.001 carry the P26-003 residual note (§8.39.4 above)
+after the PO burst. Specifically:
+
+- No BC text should claim `autonomy_enabled=false` yields zero Jira writes without
+  the "zero REGULAR writes" qualification.
+- VP-SKILL-065's scope must reflect that markdown-path review markers are outside its
+  assertion perimeter (VP-SKILL-065 asserts zero REGULAR writes; markdown-path
+  create-review/comment-review are not REGULAR and are not asserted to be zero).
+- Confirm that BC-3.03.001 kill-switch section does not contain the stale claim
+  "autonomy_enabled=false → allow-without-marker for all dispositions on the markdown path"
+  (this was superseded by P22-001 and must not be reintroduced).
+
+---
+
+### 8.39.8 FV — stale-string sweep (P26-006 process-gap)
+
+> **FV obligation — verification-delta.**
+
+Per P26-006 (process-gap observation in pass-26 adversarial review), sweep verification-delta
+for the following stale strings that indicate pre-D-029 semantics have been re-embedded:
+
+- `MARKDOWN-HARD-FLOOR.*deny` — `MARKDOWN-HARD-FLOOR` is now a routing annotation, not a
+  deny code; any assertion that `MARKDOWN-HARD-FLOOR` produces a deny is incorrect.
+- `GATE 1.*autonomy_enabled.*allow-without-marker` — GATE 1 kill-switch-first check was
+  removed at P22-001; any assertion modeling this check is pre-P22-001 and incorrect.
+
+If either string appears in a VP or SM that has not been marked as testing a REGRESSION
+scenario (i.e., it is not testing "what happens if we revert"), flag for PO to update.
+Add this sweep as a post-burst gate in the P26 burst checklist.
+
+---
+
+*Pass-26 propagation list (§8.39) complete. Architecture-delta v1.28 is final for pass-26
+remediation burst 23. P26-003 (MEDIUM): markdown-path kill-switch residual documented as
+ACCEPTED per orchestrator adjudication — blast radius bounded to review surface; operator-
+visible; D-DEC-012 Inv#11/VP-SKILL-065 carve-out updated to clarify zero REGULAR writes.
+P26-004 (MINOR): heading-anchored grammars specified for all three GATE 1/GATE 2 hard-floor
+read functions (disposition, attack techniques, sensor health status); negative grammar
+vectors added to VP-HOOK-031 obligation. P26-001/P26-002/P26-005 (PO obligations already
+owned by PO from pass-26 adversarial review) captured in §8.39.1/8.39.2/8.39.5.
 Architect does NOT edit BCs, verification-delta, prd-delta, spec-changelog, or STATE.md.*

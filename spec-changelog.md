@@ -11,6 +11,21 @@ Track all spec version changes. Most recent version first.
 
 ## [1.1.0] - 2026-07-20 (patch edits 2026-07-21/22 — not a version bump)
 
+### F2 Pass-26 Remediation Edits — Burst 23 (2026-07-29) — spec remains 1.1.0
+
+Burst 23 (2026-07-29, pass-26 remediation): P26-001 PC#2 rewritten to D-029 model (Previous-blockquote pattern); P26-002 'no deny possible' qualified (disposition-/hard-floor-based deny impossible; structural ICD-203/Alternatives-Considered/charset guards retained); P26-003 ACCEPTED RESIDUAL documented (markdown-path review markers not hard_floor_applies()-gated; kill switch = zero REGULAR writes, not zero all writes; VP-SKILL-065 re-scoped + positive side-check); P26-004 heading-anchored hard-floor read grammars + g1/g2/g3 negative vectors + SM-78 (free-text-scan mutant); P26-005 prd-delta EC-012 row fixed; legacy Gate-1 vector wording swept; SM-77 ID-mapping recorded ([ID per FV] in BC-3.03.001 → SM-77, PO to resolve on next touch). Versions: BC-3.03.001 v1.35, BC-4.02.001 v1.19, BC-10.01.001 v1.29; arch-delta v1.28, verif-delta v1.28, prd-delta v1.26. SM roster line → "SM-9..SM-78 (71 allocated / 70 live; SM-32=32a+32b+32-ext; SM-55 reserved-skipped; SM-50 retired)".
+
+| File | Old Version | New Version | Root Finding |
+|------|-------------|-------------|--------------|
+| phase-0-ingestion/behavioral-contracts/BC-3.03.001.md | v1.34 | v1.35 | P26-001: PC#2 rewritten to D-029 model (superseded text → Previous blockquote). P26-002: 'no deny possible' qualified at L994 + PC#2 (structural ICD-203/Alternatives-Considered/charset guards retained and can still deny). P26-003: kill-switch section note — autonomy_enabled=false = ZERO REGULAR writes; live carve-outs: verdict-path review markers (hard-floor-gated), markdown-path review markers (NOT gated — inherent, bounded, operator-visible, no dedup), STEP-3b hard-floor link. SM-77 ID-mapping recorded. Legacy Gate-1 vector wording swept (2 cells). |
+| phase-0-ingestion/behavioral-contracts/BC-4.02.001.md | v1.18 | v1.19 | P26-002: PC#4 'no deny possible' qualified (structural guards retained and can still deny). |
+| phase-0-ingestion/behavioral-contracts/BC-10.01.001.md | v1.28 | v1.29 | P26-003: ACCEPTED RESIDUAL note — markdown-path review markers inherently not hard_floor_applies()-gated; Inv#11/VP-SKILL-065 re-scoped + positive side-check vector. P26-004: heading-anchored grammars for 3 hard-floor reads + g1/g2/g3 negative vectors + SM-78 (free-text-scan mutant; distinct from SM-77 decision / SM-73 ordering / SM-53 direction). |
+| phase-f2-spec-evolution/architecture-delta.md | v1.27 | v1.28 | P26-003: ACCEPTED RESIDUAL documented (3 sites) — markdown-path review markers not gated; bounded to review surface (create-review/comment-review only); operator-visible; no dedup concern. |
+| phase-f2-spec-evolution/verification-delta.md | v1.27 | v1.28 | VP-HOOK-031 residual note (P26-003 accepted residual); SM-78 allocated (free-text-scan mutant); SM recap 70→71; SM-77 ID confirmed. |
+| phase-f2-spec-evolution/prd-delta.md | v1.25 | v1.26 | P26-005: EC-012 row fixed. Version-coherence: BC-3.03.001 v1.34→v1.35, BC-4.02.001 v1.18→v1.19, BC-10.01.001 v1.28→v1.29; §5 Live-BC version anchors updated. |
+
+---
+
 ### F2 Pass-25 Remediation Edits — Burst 22 (2026-07-29) — spec remains 1.1.0
 
 Remediation edits within the F2 adversarial convergence cycle (burst 22). Root findings:

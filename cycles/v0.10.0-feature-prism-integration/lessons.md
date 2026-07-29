@@ -655,3 +655,10 @@ Recommendation: add a "reachability-of-guarantee" axis to the adversarial emitte
 
 Codification follow-up owed at cycle close (S-7.02 step 3): follow-up story in STORY-INDEX or justified deferral in STATE.md Drift Items.
     _Discovered: F2 adversarial pass 20 (P20-009 [process-gap]), burst-17, 2026-07-27_
+
+---
+
+### Lesson 48 — P26-006 [process-gap] Normative routing duplicated across 3+ anchors per BC — single-source-of-truth rule needed (pass 26, 2026-07-29)
+
+P26-006 [process-gap] (pass 26, 2026-07-29): normative routing is duplicated across 3+ anchors per BC (postcondition prose, invariant pseudocode, VP rows, canonical vectors) plus consumer BCs — a single decision (D-029) requires 4+ synchronized edits per BC and misses are systemic (P25-002 VP row, P26-001 PC prose, both missed by their bursts' sweeps). Recommendations: (1) single-source-of-truth rule — routing described once in pseudocode; prose anchors reference it rather than restating; (2) per-burst stale-string grep gate on decision-specific patterns (e.g. 'MARKDOWN-HARD-FLOOR.*deny', 'GATE 1.*autonomy_enabled') — bursts 22/23 began applying this manually with success. Codification follow-up owed at cycle close (S-7.02 step 3): follow-up story in STORY-INDEX or justified deferral.
+    _Discovered: F2 adversarial pass 26 (P26-006 [process-gap]), 2026-07-29_

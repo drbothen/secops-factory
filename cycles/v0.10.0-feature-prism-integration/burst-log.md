@@ -1013,3 +1013,13 @@ F2: pass-16 remediation burst 12 already archived at "Archived Current Phase Ste
 - `.factory/phase-0-ingestion/dtu-assessment.md` → v1.3
 - `.factory/STATE.md` → v2.22
 - `.factory/cycles/v0.10.0-feature-prism-integration/burst-log.md` → this entry
+
+---
+
+## Archived Step: F2 pass-21 remediation burst 18 (rotated 2026-07-29)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-21 remediation burst 18 | architect / product-owner / formal-verifier / state-manager | DONE | P21-001: canonical test vectors D-025-synced in BOTH BCs — close-gate vectors now attribute STEP 4b with audit provenance (D-025/D-023/P20-001); stale STEP-6/(D-023/P19-001) form removed from live vectors; SM-69 kill vector (TP+close+autonomy_enabled=false → CLOSE-DISPOSITION-DENY at STEP 4b) added to BC-3.03.001 + BC-10.01.001. P21-002: dtu-assessment v1.3 rule-2 create+link (D-024 sync). P21-003: never-auto-reopen assertion corrected to jr issue move non-close-state (jr issue transition doesn't exist). P21-004: dedup pinned jr issue list --jql (jr issue search doesn't exist; CLI-verified); BC-10.01.001 Inv#8 pinned; BC-3.01.001 allowlist coverage confirmed + annotated (no entries added/removed). P21-006: D-026 link-read mechanism pinned = jr issue view <key> --output json issuelinks inspection (arch-delta v1.23); VP-HOOK-036 extended (fail-closed on unconfirmed read) + SM-71 allocated (link-read-predicate-skipped-or-inverted; kill vector: seeded existing Relates(O,C) → D-026 does NOT fire). P21-005: verif-delta SM recap reconciled. P21-007: BC-4.02.001 Inv#1 allow/deny-only terminology fix. Versions: BC-3.03.001 v1.30, BC-10.01.001 v1.24, BC-3.01.001 v1.24, BC-4.02.001 v1.16, dtu-assessment v1.3, arch-delta v1.23, verif-delta v1.23, prd-delta v1.21. VP 41 / SM 64 (~432 tests). Clean streak 0/3. |
+
+---

@@ -1,10 +1,11 @@
 ---
 document_type: architecture-delta
 producer: architect
-version: "1.23"
-date: 2026-07-27
+version: "1.24"
+date: 2026-07-28
 input-hash: COMPUTE-AT-COMMIT
 changelog:
+  - "1.24 (2026-07-28): Pass-22 adversarial remediation burst 19. D-027 (P22-003 CRITICAL — human decision 2026-07-27): link verdict is REVIEW-CLASS when hard_floor_applies()=TRUE — EXEMPT from STEP-4 hard-floor DENY and STEP-5 kill switch (mirroring D-007/D-DEC-012 Option-A). Rationale: a Relates link records relationship metadata for the human reviewer; it authorizes no triage decision and changes no ticket state; both keys remain charset-validated + anti-fungible; exemption condition is hook-recomputable (hard_floor_applies() + action==link — O6-safe); blast radius if forged = one Relates link (accepted). New STEP 3b carve-out inserted between STEP 3 and STEP 4; STEP 6 link branch serves as common emission path (reached from STEP 3b for hard-floor OR from STEP 6 normal flow for non-hard-floor). Non-hard-floor links remain REGULAR scope (STEP-4 N/A by definition, STEP-5 gated). D-026 self-healing claim now TRUE: orphan-link recovery on hard-floor alerts succeeds. D-024 (P22-002 MAJOR — RESOLVED from HUMAN-GATE-CONFIRM P19-004, human decision 2026-07-23): §3.4 rule 2 = create+link (interpretation b), parallel to rule 4; each root cause gets its own ticket; existing related ticket is NOT commented upon. Decision record added; stale comment+link text at L152, L1848, §8.32.1 item 6, §8.32.4 item 1, §8.32.5 item 1, §8.33.2 item 3, §8.33.3, and pass-19 closing text all updated. P22-001 (MAJOR): investigation-markdown kill-switch ordering defect fixed — disposition routing now runs BEFORE the autonomy_enabled kill switch; non-FP/PARSE_FAIL → MARKDOWN_REVIEW_PATH (exempt from kill switch per D-DEC-012 Option A) regardless of autonomy_enabled; kill switch is removed from step 1 of the markdown gating sequence (P13-001 eliminates all autonomous-comment paths, making it redundant and harmful); L2037 'behaves identically to STEP 5' claim removed; Key guarantee #2 updated. Emitter pseudocode bumped to v2.0. PO obligations: BC-3.03.001 (emitter STEPs for STEP 3b + markdown reorder), BC-10.01.001 (link scope description, EC-008/011/013 postconditions reachable, D-026 rule now self-healing, §3.4 rule 2 = create+link + PC#7b update + D-024 record). FV obligations: VP-HOOK-036 hard-floor link vector (BLIND-SPOT closed→new+link with hard-floor mock alert asserting [\"link\"] marker issued and consumed), mutant for D-027 exemption, markdown-path non-FP+autonomy_enabled=false vector. BC-4.02.001 L83 citation fix: PO must repoint from §8.33.3 (which said 'do NOT change PC#7b') to the new D-024 decision record. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.23 (2026-07-27): Pass-21 adversarial remediation burst 18 — D-026 link-read mechanism pinned (P21-006). D-026 decision record updated to specify that the Relates(O,C) absence predicate is computed from `jr issue view <candidate-key> --output json` issuelinks output, which is an allowlisted read per BC-3.01.001 PC#3. PO obligation added: add the D-026 link-read mechanism to BC-10.01.001 §3.4/D-026 rule text and verify `jr issue view` (plain + `--output json` forms) allowlist coverage in BC-3.01.001. dtu-assessment bumped to v1.3 (separate artifact). Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.22 (2026-07-27): Pass-20 adversarial remediation burst 17. D-025 (P20-001 MAJOR — human decision 2026-07-27): D-023 close-disposition gate HOISTED to fire as STEP 4b — BEFORE the STEP-5 autonomy_enabled kill switch. Root cause: D-023 gate was placed inside the STEP-6 ELIF action==\"close\" branch, which is only reached after STEP 5 returns; with autonomy_enabled=false (default), a TP close verdict exited at STEP 5 with allow-without-marker and never reached D-023, silently omitting the CLOSE-DISPOSITION-DENY audit entry and corrective feedback. The gate now fires as an unconditional early guard for ALL ticket_action_type=close verdicts where disposition∉{FP,BTP}, regardless of autonomy_enabled or scored_priority. D-023's 'fires regardless of autonomy_enabled' mandate is now structurally guaranteed. The STEP-6 close branch retains the disposition check as defense-in-depth only (explicitly annotated); authoritative gate is STEP 4b. SECURITY RECAP comment and self-contradicting narrative at v1.21 L1848/L1860 corrected. Decision record D-025 added. Decision record D-023 updated to reference D-025 hoist. D-026 (P20-003 MEDIUM): orphan-link reconciliation predicate adjudicated and recorded. Chose option (b) — explicit stateless §3.4 correlation rule (precedence over rule 1): 'open ticket O + closed/resolved ticket C + same root cause + no Relates(O,C) link → issue link-only verdict; do not comment.' Rationale: stateless (no new persisted artifact beyond watermarks); definable Jira-query predicate; self-healing on repeated failure; avoids second-order orphaned-pending-link failure mode of option (a). Rule-1 precedence interaction specified explicitly. §8.33.2 item 2 updated with precise predicate. VP-HOOK-036/SM-68 now have a verifiable predicate. Decision record D-026 added. P20-002 (MEDIUM): §8.33.2 item 1 EC-013 dangling anchor fixed — instruction now directs PO to ALLOCATE A NEW EC-022 in BC-10.01.001 encoding the close 3-condition AND (disposition∈{FP,BTP} AND hard_floor_applies()=false AND autonomy_enabled=true); stale 'update EC-013' instruction corrected. All other 'EC-013 = 3-condition AND' references inside architecture-delta annotated or corrected. §8.34 propagation list added (D-025/D-026/P20-002 obligations). Emitter pseudocode bumped to v1.9. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.21 (2026-07-23): Pass-19 adversarial remediation burst 16. D-023 (P19-001 CRITICAL): disposition↔action coherence gate added to emitter close branch — hook MUST cross-validate verdict.disposition∈{FP,BTP} before issuing a close marker, regardless of autonomy_enabled. A TP/Indeterminate verdict with ticket_action_type=close previously flowed through STEP 4 (no floor) → STEP 5 (kill switch passes) → close branch unguarded; CLOSE-DISPOSITION-DENY gate now fires as FIRST check in the close branch (before ticket_id null check), analogous to STEP 3 gating review-surfacing on hard_floor_applies() entry. Gate fires regardless of autonomy_enabled — a TP/Indeterminate close is wrong even with kill switch ON. NOT covered by ASM-008 (disposition↔action coherence, not value-truthfulness). EC-013 constraint restored to full 3-condition AND: disposition∈{FP,BTP} AND hard_floor_applies()=false AND autonomy_enabled=true. O3 table extended with P19-001/D-023 row. Emitter pseudocode bumped to v1.8. P19-002 (MINOR): D-022 partial-failure orphan-link reconciliation spec added — if verdict-1 (create or comment) succeeds but verdict-2 (link) never lands (process interruption or denied Write), a ticket/comment may exist unlinked to its companion ticket; idempotent reconciliation: on subsequent loop run, when §3.4 dedup finds open ticket lacking expected Relates link to matching closed/related ticket, loop re-issues the link verdict only; FV obligation to extend VP-HOOK-036 or allocate new VP in §8.33. P19-003 (OBS): emit-time CLOSE_STATE_ALLOWLIST re-check and regex_escape(close_state) added to close branch as belt-and-suspenders per O7; missing-config default explicitly set to 'Done' (documented decision). P19-004 (OBS): HUMAN-GATE-CONFIRM — brief §3.4 rule 2 is genuinely ambiguous on whether the current alert needs a CREATE before linking; see §8.33.2 item 3 for specific question; rule 2 left as-is (comment+link) pending human confirmation. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
@@ -74,7 +75,9 @@ asm_004_validation: .factory/phase-f2-spec-evolution/asm-004-validation.md
 | D-DEC-012 | **RESOLVED** | Review-ticket surfacing path for hard-floor verdicts: `create-review` and `comment-review` restricted marker types; exempt from hard-floor no-marker rule and autonomy_enabled kill switch; fail-loud invariant — hard-floor verdicts never silently dropped; BC-10.01.001 Inv#10 must be narrowed (PO); BC-3.01.001 must map create-review/comment-review to authorized operations (PO) |
 | D-023 | **RESOLVED** | Disposition↔action coherence gate: close verdict MUST cross-validate verdict.disposition∈{FP,BTP}; CLOSE-DISPOSITION-DENY fires for TP/Indeterminate; O3 annotated — ticket_action_type=close is LLM-supplied routing granting a state-change control that MUST be cross-validated against hook-computed disposition invariant (P19-001). **Gate placement: STEP 4b per D-025** — authoritative check fires before STEP-5 kill switch; STEP-6 check is defense-in-depth. |
 | D-025 | **RESOLVED** | Close-disposition gate hoisted to STEP 4b (before STEP-5 autonomy_enabled kill switch) — human decision 2026-07-27 (P20-001). Rationale: D-023 gate inside STEP-6 was unreachable when autonomy_enabled=false (default), contradicting the 'fires regardless of autonomy_enabled' mandate. Hoist mirrors STEP-4 hard-floor placement; D-008 deny-the-write + O3 standing rule. STEP-6 defense-in-depth retained. |
-| D-026 | **RESOLVED** | Orphan-link reconciliation predicate (P20-003): stateless §3.4 correlation rule (option b) — new rule evaluated BEFORE rule 1: 'open ticket O with same root cause as Closed/Resolved ticket C AND no Relates(O,C) link exists → issue link-only verdict; do not comment.' Precedence over rule 1 explicit. Stateless (no persisted artifact beyond watermarks). Verifiable predicate for VP-HOOK-036/SM-68. **Link-read mechanism (P21-006):** the `Relates(O,C)` absence predicate is computed from `jr issue view <candidate-key> --output json` issuelinks output (allowlisted read per BC-3.01.001 PC#3 — `jr issue view` plain + `--output json` forms both covered). PO obligation: add this mechanism to BC-10.01.001 §3.4 D-026 rule text and confirm allowlist coverage in BC-3.01.001. |
+| D-024 | **RESOLVED** | §3.4 rule 2 = create+link (human decision 2026-07-23, P19-004/P22-002). Interpretation (b) confirmed: when processing an alert with no prior ticket and dedup finds a related-but-different-root-cause open ticket, the action is CREATE a new ticket for the current alert THEN LINK it to the related one — parallel to rule 4 (create+link for closed tickets). Each root cause gets its own ticket; the existing related ticket is NOT commented upon. PC#7b must be updated to the create+link model (PO obligation — see §8.35). |
+| D-026 | **RESOLVED** | Orphan-link reconciliation predicate (P20-003): stateless §3.4 correlation rule (option b) — new rule evaluated BEFORE rule 1: 'open ticket O with same root cause as Closed/Resolved ticket C AND no Relates(O,C) link exists → issue link-only verdict; do not comment.' Precedence over rule 1 explicit. Stateless (no persisted artifact beyond watermarks). Verifiable predicate for VP-HOOK-036/SM-68. **Link-read mechanism (P21-006):** the `Relates(O,C)` absence predicate is computed from `jr issue view <candidate-key> --output json` issuelinks output (allowlisted read per BC-3.01.001 PC#3 — `jr issue view` plain + `--output json` forms both covered). PO obligation: add this mechanism to BC-10.01.001 §3.4 D-026 rule text and confirm allowlist coverage in BC-3.01.001. **D-027 reconciliation:** D-026 orphan-link recovery on hard-floor alerts NOW SUCCEEDS — the link verdict is review-class when hard_floor_applies()=true (D-027), so the Relates link is created on hard-floor alerts; the "self-healing" claim in BC-10.01.001 EC-010/Stage-8 becomes true for hard-floor orphans. |
+| D-027 | **RESOLVED** | Link verdict is review-class when hard_floor_applies()=true (P22-003, human decision 2026-07-27). When hook-computed `hard_floor_applies()`=TRUE AND `ticket_action_type=="link"`: the link verdict is EXEMPT from STEP-4 hard-floor DENY and EXEMPT from STEP-5 kill switch. The `["link"]` marker is issued via STEP 3b carve-out; same anti-fungible scope, same O7 charset validation on both keys — nothing changes on the consumer side. Rationale: linking a review/escalation ticket to its predecessor IS part of review surfacing; a Relates link authorizes no triage decision, changes no ticket state; exemption condition is hook-recomputable (hard_floor_applies() + action==link — O6-safe); blast radius if LLM forges hard-floor fields = one Relates link (accepted bounded risk). Non-hard-floor links remain REGULAR scope (STEP-4 N/A by definition, STEP-5 kill-switch gated). |
 
 ---
 
@@ -149,8 +152,8 @@ allow.
     scope marker (gated by hard_floor_applies() STEP 4 and autonomy_enabled kill switch STEP 5).
     Introduced by D-021 (P18-005).
   - Both tokens preserve the "Never multi-element" invariant — compound §3.4 actions
-    (comment+link, create+link) use TWO sequential verdict Writes (D-022), each producing a
-    separate single-element marker.
+    (create+link for both rule 2 and rule 4 — D-024 confirmed rule 2 = create+link, parallel to rule 4)
+    use TWO sequential verdict Writes (D-022), each producing a separate single-element marker.
 - `link_target_ticket_id` ADDED (optional, non-ICD-203 operational metadata): the second Jira
   ticket key for link operations. Required when `authorized_operations=["link"]`; null for all
   other marker types. Like `jira_project_key`, this field does NOT count against the 18 mandatory
@@ -1281,7 +1284,7 @@ A create marker authorizes exactly one ticket creation; any attempt to reuse it 
 | `["create"]` | `null` | `^jr (--output json )?issue create --project <jira_project_key>( \|$)` | ADV-F2-P4-002: `--project` is FIRST arg in fixed position; trailing `( \|$)` prevents project-KEY prefix-extension (`PROD` does not match `PRODUCTION`). **P8-003:** bash `[[ =~ ]]` is NOT tail-anchored — this pattern DOES match a review-labeled `jr issue create --project KEY --label REVIEW-REQUIRED ...` at consumer step 5. `( \|$)` guards ONLY against prefix extension; anti-fungibility direction A (regular create marker cannot authorize review-labeled command) is enforced EXCLUSIVELY at step 6a (`structural_label_check`). |
 | `["create-review"]` | `null` | `^jr (--output json )?issue create --project <jira_project_key> --label (REVIEW-REQUIRED\|BLIND-SPOT)( \|$)` | **ADV-F2-P6-001 fix (unified with P6-004):** structurally DISTINCT from `["create"]` — `--label (REVIEW-REQUIRED\|BLIND-SPOT)` in FIXED second position after `--project <key>` (mirrors P4-002 Iron Law); a regular `jr issue create --project X` without `--label` cannot match this pattern; consumer STEP 6a enforces anti-fungibility in both directions. P6-004 unified: single PRISMDEMO project key makes per-org project-key isolation infeasible; review-label binding is the primary cross-org protection for create-review operations |
 | `["comment-review"]` | `"SEC-123"` | `^jr (--output json )?issue comment SEC-123 ` | D-DEC-012: ticket_id-bound (same as `["comment"]`); consumer STEP 6a enforces that `["comment"]` markers cannot be consumed by a `["comment-review"]`-context command and vice versa. Structural `--label` check for comment-type commands pending ASM-014 empirical validation of `jr issue comment --label` support |
-| `["link"]` | `"SEC-42"` (KEY1) + `link_target_ticket_id="SEC-99"` (KEY2) | `^jr (--output json )?issue link SEC-42 SEC-99( \|$)` | **D-020/P18-001.** Both KEY1 and KEY2 are charset-validated against `^[A-Z][A-Z0-9]+-[0-9]+$` + regex-escaped before interpolation (O7 sites 6 and 7 — see D-DEC-012 audit). **Iron Law:** loop MUST call `jr issue link KEY1 KEY2` WITHOUT `--type` (uses jr default "Relates"); `--type` is never loop-influenceable. Trailing `( \|$)` guards against KEY2 prefix-extension. REGULAR scope (not review-exempt): gated by hard_floor_applies() + kill switch. Anti-fungibility: `["link"]` marker authorizes ONLY a `jr issue link KEY1 KEY2` command; any other jr subcommand pattern does not match. |
+| `["link"]` | `"SEC-42"` (KEY1) + `link_target_ticket_id="SEC-99"` (KEY2) | `^jr (--output json )?issue link SEC-42 SEC-99( \|$)` | **D-020/P18-001/D-027.** Both KEY1 and KEY2 are charset-validated against `^[A-Z][A-Z0-9]+-[0-9]+$` + regex-escaped before interpolation (O7 sites 6 and 7 — see D-DEC-012 audit). **Iron Law:** loop MUST call `jr issue link KEY1 KEY2` WITHOUT `--type` (uses jr default "Relates"); `--type` is never loop-influenceable. Trailing `( \|$)` guards against KEY2 prefix-extension. **TWO-TIER scope (D-027):** when `hard_floor_applies()`=TRUE, treated as review-class — EXEMPT from STEP-4 hard-floor DENY and STEP-5 kill switch (issued via STEP 3b carve-out); when `hard_floor_applies()`=FALSE, REGULAR scope (STEP-4 N/A by definition; STEP-5 kill-switch gated). Anti-fungibility: `["link"]` marker authorizes ONLY a `jr issue link KEY1 KEY2` command; any other jr subcommand pattern does not match. Nothing changes on the consumer side between the two tiers. |
 | `["close"]` | `"SEC-42"` | `^jr (--output json )?issue move SEC-42 Done( \|$)` | **D-021/P18-005.** Close target state (`Done`) is CONFIG-driven (`jira_close_state`, validated at onboard against `CLOSE_STATE_ALLOWLIST={"Done","Closed","Resolved"}`) — NOT verdict-influenceable; no LLM-injection surface for the state token. ticket_id charset-validated against `^[A-Z][A-Z0-9]+-[0-9]+$` + regex-escaped (O7 site 8). `jr issue move` is already in the write-block list; `["close"]` is the new marker scope that authorizes it. REGULAR scope: gated by hard_floor_applies() STEP 4 (HIGH/CRIT → DENY-THE-WRITE → routes to comment-review) and autonomy_enabled kill switch STEP 5. Anti-fungibility: `["close"]` marker authorizes ONLY a `jr issue move <ticket_id> <close_state>` pattern; a comment/create/assign/link marker does NOT authorize close, and vice versa. |
 
 > **ADV-F2-P4-002 create-scope anchored pattern:** The `.*` between `create ` and `--project`
@@ -1353,14 +1356,19 @@ verdict.ticket_action_type values (v1.7 — D-020/D-021/P18-001/P18-005 addition
                      EXEMPT from hard_floor_applies() + autonomy_enabled kill switch
   "link"           → disposition-guard issues link marker (ticket_id = ticket_id_a from verdict;
                      link_target_ticket_id = ticket_id_b from verdict — new non-ICD-203 field)
-                     (D-020/P18-001) REGULAR scope: gated by hard_floor_applies() (STEP 4) +
-                     autonomy_enabled kill switch (STEP 5).
-                     Used for: §3.4 rule 2 (related open ticket) second write (after comment);
-                               §3.4 rule 4 (closed→new ticket) second write (after create).
+                     (D-020/P18-001/D-027) TWO-TIER scope:
+                       — when hard_floor_applies()=TRUE: REVIEW-CLASS (D-027) — EXEMPT from
+                         STEP-4 hard-floor DENY and STEP-5 kill switch; issued via STEP 3b
+                         carve-out; O7 validation still runs; consumer side unchanged.
+                       — when hard_floor_applies()=FALSE: REGULAR scope (STEP-4 N/A by
+                         definition; STEP-5 kill-switch gated).
+                     Used for: §3.4 rule 2 (related open ticket) second write (after create — D-024);
+                               §3.4 rule 4 (closed→new ticket) second write (after create);
+                               §3.4 D-026 orphan-link recovery (link-only verdict).
                      Compound §3.4 actions use TWO sequential verdict Writes — D-022 (option b).
                      The second (link) verdict MUST carry the ticket_id populated from the
-                     just-completed preceding Jira action (for rule 4: ticket_id returned by
-                     jr issue create; for rule 2: the existing related ticket_id).
+                     just-completed preceding Jira action (for rule 4 and rule 2: ticket_id
+                     returned by jr issue create; for D-026 recovery: the existing open ticket_id).
   "close"          → disposition-guard issues close marker (ticket_id from verdict)
                      (D-021/D-023/P18-005/P19-001) REGULAR scope: gated by 3-condition AND:
                      (1) STEP 6 disposition gate (D-023): verdict.disposition∈{FP,BTP} — FIRST
@@ -1646,9 +1654,41 @@ IF action in {"create-review", "comment-review"}:
     ops = ["comment-review"]
     GOTO WRITE_MARKER
 
+# ── STEP 3b: link review-class carve-out when hard_floor_applies() (D-027) ──────────────────────
+# When action=="link" AND hard_floor_applies() returns TRUE, the link verdict is treated as
+# review-class — EXEMPT from STEP-4 hard-floor DENY and EXEMPT from STEP-5 kill switch.
+# This mirrors the D-007/D-DEC-012 Option-A pattern: creating a relationship that aids human
+# review must not be blocked by the hard-floor or the kill switch.
+#
+# Rationale (D-027):
+#   - A Relates link records relationship metadata that aids the human reviewer.
+#   - A link verdict authorizes NO triage decision and changes NO ticket state.
+#   - Both KEY1 and KEY2 remain charset-validated against ^[A-Z][A-Z0-9]+-[0-9]+$ and
+#     regex-escaped at the STEP6_LINK block (O7 still enforced — nothing skipped).
+#   - Anti-fungibility is unchanged: the ["link"] marker authorizes only jr issue link KEY1 KEY2.
+#   - The exemption condition is hook-recomputable (hard_floor_applies() + action==link) —
+#     no LLM-supplied compound-sequence flag; O6-safe.
+#   - Blast radius if an LLM forges hard-floor fields to sneak a link through the kill switch:
+#     one Relates link only — bounded, accepted risk.
+#
+# Non-hard-floor links remain REGULAR scope: STEP 4 does NOT fire for them (hard_floor_applies()
+# returns FALSE), and STEP 5 kill switch gates them normally.
+#
+# D-026 reconciliation (P22-003): D-026 orphan-link recovery on hard-floor alerts NOW SUCCEEDS.
+# Previously, D-026 fired a link-only verdict for a hard-floor (O, C) pair → STEP 4 denied it →
+# link never created → rule-1 duplicate comments accumulated permanently. With D-027, the link
+# verdict is review-class on hard-floor alerts → link marker issued → Relates link created →
+# D-026 "self-healing" claim in BC-10.01.001 EC-010/Stage-8 is now TRUE for hard-floor orphans.
+#
+# Does NOT bypass STEP 1/1a validation (already passed before this point).
+# Does NOT interact with STEP 4b close gate (action=="link" ≠ "close").
+IF action == "link" AND hard_floor_applies(verdict, recomputed_severity):
+  GOTO STEP6_LINK  # skip STEP 4 hard-floor DENY and STEP 5 kill switch;
+                   # O7 charset validation + marker issuance run at STEP6_LINK label below
+
 # ── STEP 4: Hard-floor check — DENY-THE-WRITE on under-label (ADV-F2-P7-001) [POSITIONED BEFORE KILL SWITCH — ADV-F2-P6-002] ──
-# At this point action is a regular type (comment/create/assign/none) because review
-# types were fully resolved at STEP 3.
+# At this point action is a regular type (comment/create/assign/none/close) because review
+# types were fully resolved at STEP 3 and hard-floor link verdicts were resolved at STEP 3b (D-027).
 #
 # ADV-F2-P6-002 FIX — STEP REORDER (retained): this step executes BEFORE the autonomy_enabled
 # kill switch (STEP 5). EC-012 case (d) semantics updated to deny-the-Write:
@@ -1840,12 +1880,15 @@ ELIF action == "assign":
   ops = ["assign"]
 
 ELIF action == "link":
-  # ── D-020 (P18-001): link scope ──────────────────────────────────────────────
+  STEP6_LINK:  # D-027: reached from STEP 3b GOTO (hard-floor link — review-class, exempt from
+               # STEP 4+5) OR from normal STEP-6 flow (non-hard-floor, autonomy-enabled).
+               # O7 charset validation below applies in BOTH cases. Consumer side is unchanged.
+  # ── D-020 (P18-001) / D-027: link scope ──────────────────────────────────────────────
   # Two ticket IDs required: ticket_id_a (primary ticket — verdict.ticket_id) and
   # ticket_id_b (link target — verdict.link_target_ticket_id, new non-ICD-203 field).
   # Command: jr issue link KEY1 KEY2  (default link-type "Relates"; no --type arg)
   # Iron Law: the monitoring loop MUST call `jr issue link KEY1 KEY2` WITHOUT --type.
-  # Compound §3.4 actions (rule 2: comment+link; rule 4: create+link) use TWO sequential
+  # Compound §3.4 actions (rule 2: create+link — D-024; rule 4: create+link) use TWO sequential
   # verdict Writes; this branch handles the second Write only (D-022 option b).
   ticket_id = verdict.ticket_id     # KEY1 — the primary ticket (outward/this-alert ticket)
   IF ticket_id is null: emit allow without marker; RETURN
@@ -2028,32 +2071,34 @@ markdown path "reaches the same emitter" is an authoring error (see PO obligatio
 
 **Gating sequence (evaluated in order; first failure exits with deny or allow-without-marker):**
 
-1. **autonomy_enabled kill switch (P12-002 NEW):** Read `autonomy_enabled` from the markdown
-   content (e.g., `Autonomy Enabled: true/false` heading, or from a config field if not present
-   in markdown). If absent or not exactly `true`: emit allow-without-marker (matching the
-   kill-switch semantics of the regular verdict path — STEP 5). The Write succeeds; no Jira action
-   is authorized. **This closes the autonomous-loop-masquerade bypass:** the loop cannot use the
-   markdown path to issue a live autonomous comment when the kill switch is engaged. When
-   autonomy_enabled=false, the markdown path behaves identically to the regular path's STEP 5.
+> **P22-001 REORDER:** The former step 1 (autonomy_enabled kill switch check) is REMOVED from
+> the upfront gating sequence. It was placed before disposition routing, making the D-DEC-012
+> Option-A review-surfacing guarantee unreachable for non-FP/PARSE_FAIL findings under
+> autonomy_enabled=false (the default). With P13-001 eliminating MARKDOWN_COMMENT_PATH, no
+> autonomous comment path remains on any markdown disposition; the kill switch check was
+> redundant for FP (allow-without-marker is the result regardless) and harmful for non-FP
+> (it blocked review markers that D-DEC-012 mandates). Disposition routing now runs FIRST.
+> The kill switch is now implicit: FP → allow-without-marker (same result as kill switch);
+> non-FP/PARSE_FAIL → MARKDOWN_REVIEW_PATH (exempt from kill switch per D-DEC-012 Option A).
 
-2. **12-field completeness:** all 12 ICD-203 headings present (heading-anchored grep).
+1. **12-field completeness:** all 12 ICD-203 headings present (heading-anchored grep).
 
-3. **Markdown-evaluable hard floors:** check for (a) `Disposition: Indeterminate`, (b) any
+2. **Markdown-evaluable hard floors:** check for (a) `Disposition: Indeterminate`, (b) any
    forbidden technique from {T1003, T1068, T1021, T1041} in the Attack Techniques heading,
    (c) `Sensor Health Status: degraded` or `Sensor Health Status: silent`. If any fires: deny
    with an explicit audit entry (e.g., "MARKDOWN-HARD-FLOOR: Disposition=Indeterminate;
    human investigation cannot authorize autonomous comment; route to human review").
 
-4. **DO NOT execute:** validate_enums, STEP 1a (fields absent in 12-field markdown); scored_priority
+3. **DO NOT execute:** validate_enums, STEP 1a (fields absent in 12-field markdown); scored_priority
    floor; asset_type critical-asset floor.
 
-**P13-001/P12-002 disposition routing AFTER all floors pass — MARKDOWN PATH NEVER ISSUES A COMMENT MARKER:**
+**P13-001/P12-002/P22-001 disposition routing AFTER all floors pass — MARKDOWN PATH NEVER ISSUES A COMMENT MARKER:**
 
 Because the hook CANNOT evaluate `scored_priority` (field 18) or `asset_type` (field 14) from
 a 12-field markdown — and there is no known-FP store cross-check on this path — the markdown path
 MUST NEVER issue an autonomous `["comment"]` marker for any disposition. Per P13-001 (human
-decision 2026-07-22), MARKDOWN_COMMENT_PATH is eliminated. Deterministic rule (P13-001 supersedes
-the P12-002 FP-branch):
+decision 2026-07-22), MARKDOWN_COMMENT_PATH is eliminated. Deterministic rule (P13-001/P22-001 —
+disposition routing now runs BEFORE any kill-switch check, mirroring verdict STEP 3 before STEP 5):
 
 ```
 parsed_disposition = parse_disposition_from_markdown(content)
@@ -2061,6 +2106,11 @@ parsed_disposition = parse_disposition_from_markdown(content)
 # Returns exactly one of {"TP","FP","BTP","Indeterminate"} or PARSE_FAIL.
 # PARSE_FAIL on any ambiguous/multi-valued/missing/unrecognized value.
 # Safe direction: PARSE_FAIL → non-FP routing (review, not allow-without-marker).
+#
+# P22-001: disposition routing runs FIRST (before any kill-switch check). This is the
+# correct ordering — it mirrors how verdict STEP 3 (review surfacing) runs before STEP 5
+# (kill switch). A non-FP/PARSE_FAIL finding must reach MARKDOWN_REVIEW_PATH regardless of
+# autonomy_enabled; review markers are EXEMPT from the kill switch per D-DEC-012 Option A.
 
 IF parsed_disposition == "FP":
   # FP: allow-without-marker. The hook cannot evaluate scored_priority/asset_type from
@@ -2069,12 +2119,16 @@ IF parsed_disposition == "FP":
   # The analyst's Write succeeds; no Jira action is authorized.
   # P11-004 intent preserved: the Write is NOT denied. An FP comment the analyst wants
   # to surface must use the review path or the normal 18-field verdict flow.
+  # Kill switch: irrelevant for FP — allow-without-marker is the result regardless of
+  # autonomy_enabled. No autonomous action occurs; human gate is preserved.
   emit allow-without-marker
   RETURN
 ELSE:
   # Non-FP (TP/BTP/Indeterminate-already-gated-above) or PARSE_FAIL (safe direction).
   # MARKDOWN_REVIEW_PATH: same semantics as STEP 3 create-review/comment-review.
-  # This path is EXEMPT from the autonomy_enabled kill switch (same as regular STEP 3 path).
+  # EXEMPT from the autonomy_enabled kill switch (same as regular STEP 3 path, D-DEC-012
+  # Option A): review markers execute even when autonomy_enabled=false. This is correct —
+  # creating a [REVIEW-REQUIRED] ticket is human escalation, not autonomous triage.
   ticket_id = parse_ticket_id_from_markdown(content)
   IF ticket_id IS NOT NULL:
     GOTO MARKDOWN_COMMENT_REVIEW_PATH   # existing review ticket → comment-review marker
@@ -2152,10 +2206,16 @@ The analyst receives actionable feedback; the Write is blocked only for that har
    path emits allow-without-marker for FP. The analyst's evidence is preserved.
    (P11-004 intent: analysts are not blocked. P13-001: the autonomous comment marker is removed;
    the analyst surfaces an FP comment via the review path or normal 18-field verdict flow.)
-2. The autonomous loop CANNOT use the markdown path to bypass the kill switch:
-   `autonomy_enabled=false` → allow-without-marker for FP; STEP 3-equivalent review markers
-   still route non-FP/PARSE_FAIL findings to review under the kill switch.
-   (P12-002: kill switch semantics honored on markdown path.)
+2. The autonomous loop CANNOT use the markdown path to bypass the kill switch for autonomous actions:
+   FP → allow-without-marker regardless of `autonomy_enabled` (no autonomous comment possible;
+   kill switch is irrelevant for FP). Non-FP/PARSE_FAIL → MARKDOWN_REVIEW_PATH which issues a
+   review marker (create-review/comment-review) — this marker is EXEMPT from the kill switch per
+   D-DEC-012 Option A (review surfacing is not autonomous triage and must execute even when
+   autonomy_enabled=false). The former step-1 kill switch check has been removed from the markdown
+   gating sequence (P22-001): it erroneously blocked review markers for non-FP findings
+   (contradicting the D-DEC-012 Option-A guarantee verified for the regular verdict path) while
+   providing no protection (P13-001 already eliminated all autonomous-comment paths on this path).
+   (P22-001: ordering pathology fixed; P12-002 masquerade concern is covered by P13-001 instead.)
 3. The autonomous loop CANNOT use the markdown path to obtain ANY autonomous comment marker:
    no disposition (FP or non-FP) yields a `["comment"]` marker from this path.
    FP → allow-without-marker; non-FP/PARSE_FAIL → review marker.
@@ -6744,7 +6804,7 @@ or STATE.md. hard_floor_applies() requires NO implementation change — it was c
 
 5. **hard_floor/kill-switch gating for close**: confirm in BC-3.03.001 emitter invariants that `action=="close"` passes through STEP 4 (hard_floor_applies()) and STEP 5 (autonomy_enabled kill switch) identically to `comment`/`create`/`assign`. No new exemption. Explicitly state: "close action with hard_floor_applies()=true → STEP 4 DENY-THE-WRITE fires; required_token=comment-review if ticket_id present; close marker is NEVER issued for a hard-floor verdict."
 
-6. **D-022 compound-action model** (BC-10.01.001 Stage 7 + BC-3.03.001): document that compound §3.4 actions (comment+link for rule 2; create+link for rule 4) are authorized via TWO sequential Stage-7 verdict Writes, each producing a single-element marker. Iron Law for rule 4: the loop MUST populate `link_target_ticket_id` in the second (link) verdict with the actual ticket_id returned by the preceding `jr issue create` call. The loop MUST NOT write the link verdict until the create has succeeded and returned a valid ticket key.
+6. **D-022 compound-action model** (BC-10.01.001 Stage 7 + BC-3.03.001): document that compound §3.4 actions (create+link for rule 2 — D-024; create+link for rule 4) are authorized via TWO sequential Stage-7 verdict Writes, each producing a single-element marker. Iron Law for both rules 2 and 4: the loop MUST populate `link_target_ticket_id` in the second (link) verdict with the actual ticket_id returned by the preceding `jr issue create` call. The loop MUST NOT write the link verdict until the create has succeeded and returned a valid ticket key. **[D-024 UPDATE — rule 2 is now create+link, NOT comment+link; see §8.35 item 1 for full PO instructions.]**
 
 7. **Iron Law for link type**: the monitoring loop MUST call `jr issue link KEY1 KEY2` WITHOUT `--type` (uses jr CLI default "Relates"). `--type` is not in the link verdict schema; it is not influenceable by the LLM. Propagate to BC-10.01.001 Stage 8 link instruction and BC-3.03.001 link command_pattern notes.
 
@@ -6782,7 +6842,7 @@ or STATE.md. hard_floor_applies() requires NO implementation change — it was c
 
 ### 8.32.4 PO — BC-10.01.001 (§3.4 correlation rules + Stage 8 + EC-008/011/013/new-EC-022)
 
-1. **§3.4 rule 2 (related — comment+link)**: update Stage 7 to reflect the two-Write model (D-022): verdict-1 ticket_action_type=comment → comment marker issued → Stage 8 executes `jr issue comment SEC-42 "..."` (marker consumed); verdict-2 ticket_action_type=link, ticket_id=SEC-42, link_target_ticket_id=SEC-99 → link marker issued → Stage 8 executes `jr issue link SEC-42 SEC-99` (marker consumed). Both stages are individually gated by require-review.
+1. **§3.4 rule 2 (related — create+link, D-024)**: update Stage 7 to reflect the two-Write model (D-022/D-024): verdict-1 ticket_action_type=create → create marker issued → Stage 8 executes `jr issue create --project PRISMDEMO ...` → returns new PRISMDEMO-NNN (the current alert's new ticket); verdict-2 ticket_action_type=link, ticket_id=PRISMDEMO-NNN, link_target_ticket_id=SEC-99 → link marker issued → Stage 8 executes `jr issue link PRISMDEMO-NNN SEC-99` (marker consumed). Both stages are individually gated by require-review. **[D-024: rule 2 is create+link, NOT comment+link — the current alert gets its OWN new ticket; the existing related ticket (SEC-99) is NOT commented upon. Update PC#7b to the create+link model (parallel to PC#7d).]**
 
 2. **§3.4 rule 4 (closed→new+link)**: update Stage 7 similarly: verdict-1 ticket_action_type=create → create marker → Stage 8 executes `jr issue create --project PRISMDEMO ...` → returns new PRISMDEMO-NNN; verdict-2 ticket_action_type=link, ticket_id=PRISMDEMO-NNN, link_target_ticket_id=PRISMDEMO-old → link marker → Stage 8 executes `jr issue link PRISMDEMO-NNN PRISMDEMO-old`. Iron Law: verdict-2 MUST be written AFTER the create has returned a valid ticket key.
 
@@ -6802,7 +6862,7 @@ or STATE.md. hard_floor_applies() requires NO implementation change — it was c
 
 ### 8.32.5 PO — dtu-assessment.md (jr-mock scenarios): add link and close
 
-1. For the `related-open` scenario: update the jr-mock assertion to assert `jr issue link` IS called (in addition to the comment). Scenario: disposition=TP, §3.4 rule 2 → verdict-1 comment marker → `jr issue comment` asserted called; verdict-2 link marker → `jr issue link KEY1 KEY2` asserted called.
+1. For the `related-open` scenario: update the jr-mock assertion to reflect the D-024 create+link model. **[D-024 UPDATE — was comment+link, now create+link]** Scenario: disposition=TP, §3.4 rule 2 → verdict-1 ticket_action_type=create → create marker → `jr issue create --project PRISMDEMO ...` asserted called (returns new ticket PRISMDEMO-NNN); verdict-2 ticket_action_type=link, ticket_id=PRISMDEMO-NNN, link_target_ticket_id=SEC-99 → link marker → `jr issue link PRISMDEMO-NNN SEC-99` asserted called. Assert `jr issue comment` is NOT called for the related ticket (SEC-99). **Also add a hard-floor variant for this scenario (D-027):** disposition=TP/Indeterminate, scored_priority=HIGH (hard-floor) → verdict-1 create-review issued (hard floor fires, routes to create-review); verdict-2 link with hard_floor_applies()=TRUE → D-027 carve-out: link marker issued (review-class, exempt from kill switch); `jr issue link NEW_KEY SEC-99` asserted called. This verifies the EC-008 BLIND-SPOT→create+link postcondition is reachable.
 
 2. For the `closed-same` scenario: update to assert `jr issue create` IS called AND `jr issue link` IS called (two-step sequence per D-022).
 
@@ -6921,16 +6981,21 @@ edit BCs, verification-delta, prd-delta, spec-changelog, or STATE.md.*
    - **Idempotency**: `jr issue link KEY1 KEY2` when a "Relates" link already exists is a no-op or benign warning; confirm with DTU mock scenario and add assertion to the `related-open` DTU scenario.
    - **Non-security**: finding exists; only the link is absent. Operational/audit integrity issue, not a security regression.
 
-3. **§3.4 rule-2 adjudication — HUMAN-GATE-CONFIRM** (P19-004 OBS): The brief §3.4 rule 2 states: "Related (same asset/IOC, open ticket, different root cause): Link as related (Jira 'is related to' link type). Keep tickets separate; link at the case level." Two interpretations are equally plausible from the brief text alone:
-   - **(a) comment+link (no create — current model)**: the current alert either already has a ticket from a prior run or is expected to; the compound action is to comment on the related ticket and link the two existing tickets together. "Keep separate" means do not merge them.
-   - **(b) create+link (create for current alert, then link)**: "keep separate" means the current alert should get its OWN new ticket first; the action is create (for the current alert) + link to the related one. Parallel to rule 4 (create+link for closed tickets).
-   - **HUMAN-GATE-CONFIRM REQUIRED**: "In §3.4 rule 2, when processing an alert that has no prior ticket and dedup finds a related-but-different-root-cause open ticket, does 'keep tickets separate' mean (a) comment on the related ticket and link (no new ticket created for this alert — current model), or (b) create a NEW ticket for the current alert and link it to the related one? If (b), PC#7b must be updated to the create+link model (parallel to PC#7d)." Leave rule 2 as-is (comment+link) until human confirms. Do NOT change PC#7b until HUMAN-GATE-CONFIRM resolves.
+3. **§3.4 rule-2 adjudication — RESOLVED (D-024, human decision 2026-07-23)** (was P19-004 OBS HUMAN-GATE-CONFIRM; resolved P22-002): The human confirmed interpretation **(b) create+link** for §3.4 rule 2. "Keep tickets separate" means the current alert should get its OWN new ticket first; the action is create (for the current alert) + link to the related one. This is exactly parallel to rule 4 (create+link for closed tickets). The existing related ticket is NOT commented upon.
+   - **Decision record:** D-024 — §3.4 rule 2 = create+link, human decision 2026-07-23.
+   - **PO obligations (see §8.35 item 1 for full instructions):**
+     - Update PC#7b in BC-4.02.001 to the create+link model (parallel to PC#7d). Citation fix: BC-4.02.001 L83 currently cites "architecture-delta v1.21 §8.33.3" as the authority for PC#7b — repoint to the D-024 decision record (§8.35 and Decision Summary Table D-024 row).
+     - Update BC-10.01.001 §3.4 rule 2 from the comment+link model to create+link (two-Write: verdict-1 ticket_action_type=create, verdict-2 ticket_action_type=link).
+     - EC-008 (BLIND-SPOT closed→new+link), EC-011 (link to closed ticket as related), and EC-013 (closed ticket same-root-cause → create+link) postconditions previously unreachable on hard-floor alerts are now REACHABLE via D-027 link review-class carve-out; confirm postconditions in BC-10.01.001 are updated to reflect reachability.
+   - **[HISTORICAL NOTE — for traceability only]:** The prior deferral language in §8.33.3 ("No change required until HUMAN-GATE-CONFIRM resolves") and the P19-004 text ("Leave rule 2 as-is (comment+link) until human confirms. Do NOT change PC#7b") are now superseded by D-024. Do NOT act on the deferral instructions; act on D-024.
 
 ---
 
-### 8.33.3 PO — BC-4.02.001 (PC#7b/d: defer until rule-2 adjudication)
+### 8.33.3 PO — BC-4.02.001 (PC#7b: RESOLVED — D-024 create+link for rule 2)
 
-No change required until the HUMAN-GATE-CONFIRM on P19-004 rule-2 adjudication resolves. If human confirms interpretation (b) (create+link for rule 2), PO must update PC#7b to reference the create+link model, symmetric with PC#7d (D-022). If human confirms interpretation (a) (comment+link, no create), PC#7b remains unchanged from the §8.32.3 update.
+**[SUPERSEDED — P19-004 HUMAN-GATE-CONFIRM is RESOLVED as of 2026-07-23 (D-024). The "no change required" and "do NOT change PC#7b" instructions below are WITHDRAWN. Act on D-024 and §8.35 item 1 instead.]**
+
+D-024 resolution: human confirmed interpretation (b) — §3.4 rule 2 = create+link. PO MUST update BC-4.02.001 PC#7b to the create+link model (parallel to PC#7d per D-022). The prior deferral ("No change required until HUMAN-GATE-CONFIRM resolves") is now withdrawn. See §8.35 item 1 for the full PC#7b update obligation and the BC-4.02.001 L83 citation fix.
 
 ---
 
@@ -6952,8 +7017,9 @@ No change required until the HUMAN-GATE-CONFIRM on P19-004 rule-2 adjudication r
 remediation burst 16. D-023 (close disposition gate — P19-001 CRITICAL): gate enforced.
 D-022 orphan-link reconciliation (P19-002 MINOR): spec added to §8.32.4 item 8 and §8.33.2
 item 2. Close-state emit-time validation (P19-003 OBS): pseudocode and O7 audit updated.
-P19-004 (OBS): HUMAN-GATE-CONFIRM flagged for §3.4 rule-2 adjudication; rule 2 left as-is
-(comment+link) pending human confirmation. Architect does NOT edit BCs, verification-delta,
+P19-004 (OBS): HUMAN-GATE-CONFIRM on §3.4 rule-2 adjudication RESOLVED as of 2026-07-23
+(D-024): rule 2 = create+link (interpretation b — parallel to rule 4). §8.33.2 item 3 and
+§8.33.3 updated to record the resolution in v1.24. Architect does NOT edit BCs, verification-delta,
 prd-delta, spec-changelog, or STATE.md.*
 
 ---
@@ -7044,3 +7110,165 @@ stateless §3.4 rule with rule-1 precedence adopted; predicate specified; VP-HOO
 P20-002 (EC-013 anchor — MEDIUM): §8.33.2 item 1 corrected; EC-022 designated for the close
 3-condition AND. Architect does NOT edit BCs, verification-delta, prd-delta, spec-changelog,
 or STATE.md.*
+
+---
+
+## 8.35 PROPAGATION LIST (pass 22 — P22-001/P22-002/P22-003 / D-024/D-027)
+
+> **Owner (§8.35 items 1–5):** Product owner and formal verifier as marked. Architect does NOT
+> edit BCs, verification-delta, prd-delta, spec-changelog, or STATE.md. All changes below are
+> the sole responsibility of the product owner (PO) and formal verifier (FV).
+>
+> **Architectural decisions recorded here:** D-027 (link verdict is review-class when
+> hard_floor_applies()=TRUE — P22-003 CRITICAL, human decision 2026-07-27). D-024 (§3.4 rule 2
+> = create+link — P22-002 MAJOR, human decision 2026-07-23, resolving P19-004). P22-001 (MAJOR):
+> investigation-markdown kill-switch ordering defect fixed — disposition routing now runs FIRST.
+
+---
+
+### 8.35.1 PO — BC-4.02.001 (PC#7b + L83 citation fix): D-024 create+link for rule 2
+
+**Required changes (D-024 — rule 2 = create+link):**
+
+1. **PC#7b update**: rewrite BC-4.02.001 PC#7b from the comment+link model to the create+link
+   model, parallel to PC#7d. The updated PC#7b should read:
+   > "For §3.4 rule 2 (related alert — different root cause, open ticket exists for a related
+   > alert), the loop issues TWO sequential Stage-7 verdict Writes: verdict-1
+   > ticket_action_type=create → new ticket created for the CURRENT alert; verdict-2
+   > ticket_action_type=link, ticket_id=<new ticket>, link_target_ticket_id=<related ticket>
+   > → Relates link between the two tickets. The existing related ticket is NOT commented upon.
+   > D-022 Iron Law: verdict-2 MUST NOT be written until verdict-1 create has returned a valid
+   > ticket key."
+
+2. **BC-4.02.001 L83 citation fix**: the current citation "architecture-delta v1.21 §8.33.3"
+   points to text that says "Do NOT change PC#7b until HUMAN-GATE-CONFIRM resolves" — this
+   is now withdrawn (D-024). Repoint the citation to the D-024 decision record:
+   "architecture-delta v1.24 D-024 (§Decision Summary Table) and §8.35.1."
+
+---
+
+### 8.35.2 PO — BC-3.03.001 (emitter): STEP 3b carve-out (D-027) + markdown path reorder (P22-001)
+
+**Required change 1 — STEP 3b (D-027 link review-class carve-out):**
+
+Insert a new guard block between the existing STEP 3 (create-review/comment-review handling)
+and the existing STEP 4 (hard-floor DENY-THE-WRITE):
+
+```
+# ── STEP 3b: link review-class carve-out when hard_floor_applies() (D-027) ──
+IF ticket_action_type == "link" AND hard_floor_applies():
+  # Exempt from STEP-4 hard-floor DENY and STEP-5 kill switch.
+  # Both KEY1 (ticket_id) and KEY2 (link_target_ticket_id) still charset-validated + regex-escaped.
+  [proceed to link KEY1+KEY2 validation and marker issuance — same O7 checks as STEP 6 link]
+  GOTO link marker emission
+RETURN
+```
+
+Note: this guard fires BEFORE STEP 4 and BEFORE STEP 5. It DOES NOT bypass STEP 1/1a
+(already passed). It DOES NOT interact with STEP 4b close gate (ticket_action_type=="link" ≠ "close").
+
+Update the STEP 4 comment to note: "hard-floor link verdicts resolved at STEP 3b (D-027)."
+Update the STEP 6 link branch to note: "reached from STEP 3b GOTO (hard-floor, review-class)
+OR from normal STEP-6 flow (non-hard-floor, autonomy-enabled)."
+
+**Required change 2 — emitter invariant update (D-027):**
+Update BC-3.03.001 hard_floor/kill-switch gating invariants for `ticket_action_type="link"`:
+- Prior: "link action passes through STEP 4 (hard_floor_applies()) and STEP 5 (autonomy_enabled
+  kill switch) identically to comment/create/assign."
+- Corrected: "link action is TWO-TIER: when hard_floor_applies()=TRUE, treated as review-class
+  (EXEMPT from STEP 4 deny + STEP 5 kill switch — issued via STEP 3b); when
+  hard_floor_applies()=FALSE, REGULAR scope (STEP-4 N/A by definition; STEP-5 kill-switch gated)."
+This replaces the §8.32.1 item 5 note about "close action with hard floor" — add a parallel note
+for "link action when hard-floor."
+
+**Required change 3 — markdown path reorder (P22-001):**
+Remove the `autonomy_enabled` kill switch check from step 1 of the markdown gating sequence.
+The new gating sequence is:
+1. 12-field completeness (heading-anchored grep)
+2. Markdown-evaluable hard floors (Indeterminate, forbidden technique, degraded/silent sensor)
+3. Disposition routing runs FIRST (before any kill-switch check):
+   - FP → allow-without-marker (kill switch irrelevant)
+   - Non-FP/PARSE_FAIL → MARKDOWN_REVIEW_PATH (create-review/comment-review — exempt from kill switch per D-DEC-012 Option A)
+
+Update any BC-3.03.001 text that describes the old step 1 kill switch check, including any
+reference to "when autonomy_enabled=false, the markdown path behaves identically to the regular
+path's STEP 5" (this claim was the P22-001 defect; remove it).
+
+---
+
+### 8.35.3 PO — BC-10.01.001 (link scope, EC-008/011/013 reachability, D-026 self-healing, §3.4 rule 2)
+
+1. **Link scope description (L623-625 or equivalent):** Update any text asserting link is
+   "REGULAR scope — subject to STEP 4 hard floor + STEP 5 kill switch" to the two-tier posture
+   (D-027): "link verdict is review-class when hard_floor_applies()=TRUE (EXEMPT from STEP 4
+   + STEP 5); REGULAR scope when hard_floor_applies()=FALSE."
+
+2. **EC-008 (BLIND-SPOT closed→new+link):** Update postcondition and any "unreachable" or
+   "pending authorization" language. EC-008 is NOW REACHABLE: a BLIND-SPOT finding
+   (disposition=Indeterminate, sensor_health_status=silent → hard_floor_applies()=TRUE) issues
+   verdict-1 create-review (review-class, exempt) → new BLIND-SPOT ticket created; verdict-2 link
+   (hard-floor, review-class per D-027, exempt) → `jr issue link NEW_KEY CLOSED_KEY` executed.
+   The compound create+link sequence completes on hard-floor alerts.
+
+3. **EC-011 (link to closed ticket as related):** Confirm reachable for hard-floor scored_priority
+   HIGH/CRIT cases: verdict-2 link with hard_floor_applies()=TRUE → D-027 carve-out → link issued.
+
+4. **EC-013 (closed ticket same-root-cause → create+link, D-022 rule 4):** Confirm reachable
+   for hard-floor cases (same logic as EC-011 — D-027 makes the link verdict reachable).
+
+5. **D-026 rule + Stage-8 annotation:** Update the D-026 orphan-link recovery rule text and
+   Stage-8 annotation to note: "The self-healing claim is now TRUE for hard-floor orphans (D-027):
+   on a subsequent loop run, D-026 fires → link verdict issued → hard_floor_applies()=TRUE →
+   STEP 3b carve-out → link marker issued → Relates link created. Rule-1 duplicate comments
+   are no longer permanently starved for hard-floor orphan pairs."
+
+6. **§3.4 rule 2 = create+link (D-024):** Update BC-10.01.001 §3.4 rule 2 from comment+link
+   to create+link, consistent with §8.35.1 PC#7b update. See §8.33.2 item 3 for the full
+   description.
+
+---
+
+### 8.35.4 FV — VP obligations (D-027/P22-001/D-024)
+
+> **Do NOT mint VP or SM IDs here.** FV allocates IDs with occupancy verification in
+> verification-delta.
+
+1. **D-027 hard-floor link vector (VP-HOOK-036 extension):** Add a test vector to VP-HOOK-036
+   (or allocate a new VP, occupancy-check) using a genuinely hard-floor mock alert:
+   - Scenario: BLIND-SPOT closed→new+link. Mock alert: disposition=Indeterminate,
+     sensor_health_status=silent (→ hard_floor_applies()=TRUE unconditionally).
+     verdict-1 ticket_action_type=create-review → create-review marker issued + `jr issue create
+     --project PRISMDEMO --label BLIND-SPOT` asserted called; verdict-2 ticket_action_type=link,
+     hard_floor_applies()=TRUE → D-027 carve-out → `["link"]` marker issued + `jr issue link
+     NEW_KEY CLOSED_KEY` asserted called.
+   - Assertion: the `["link"]` marker IS issued (not denied); `jr issue link` IS authorized and
+     called; the BLIND-SPOT ticket IS linked to the closed predecessor ticket.
+   - Paired mutant: "remove STEP 3b D-027 carve-out (revert to STEP 4 denying all hard-floor
+     links)" → assert `jr issue link` is DENIED (no marker) for the hard-floor BLIND-SPOT
+     closed→new+link scenario → mutant dies when D-027 is present.
+
+2. **D-026 hard-floor orphan recovery vector:** Extend VP-HOOK-036 (or sibling VP) to assert
+   D-026 self-healing on hard-floor alerts — a second loop run after a D-022 partial failure
+   on a hard-floor (O, C) pair produces the link (not a comment). Paired mutant: "remove D-027
+   exemption" → second run produces deny on link verdict → orphan persists → rule-1 comment fires.
+
+3. **P22-001 markdown reorder vector:** Add a vector to VP-HOOK-031: non-FP markdown
+   (e.g., disposition=TP) with `autonomy_enabled=false` must produce a review marker
+   (create-review or comment-review) — NOT allow-without-marker. This is the exact scenario
+   that was unreachable under the old step-1 kill switch ordering and must now be confirmed
+   reachable. Paired mutant: "reintroduce step-1 kill switch check before disposition routing"
+   → non-FP markdown with autonomy_enabled=false exits with allow-without-marker → no review
+   marker issued → mutant dies when P22-001 reorder is present.
+
+---
+
+*Pass-22 propagation list (§8.35) complete. Architecture-delta v1.24 is final for pass-22
+remediation burst 19. D-027 (link verdict review-class when hard_floor_applies() — P22-003
+CRITICAL): STEP 3b carve-out inserted; two-tier link scope established; D-026 self-healing
+restored for hard-floor orphans. D-024 (§3.4 rule 2 = create+link — P22-002 MAJOR, resolving
+P19-004 HUMAN-GATE-CONFIRM): decision recorded; stale comment+link text purged from L152,
+L1848, §8.32.1 item 6, §8.32.4 item 1, §8.32.5 item 1, §8.33.2 item 3, §8.33.3, pass-19
+closing text. P22-001 (MAJOR): investigation-markdown kill-switch ordering fixed — step-1
+autonomy_enabled check removed; disposition routing runs first; Key guarantee #2 updated;
+VP-HOOK-031 markdown-path vector added. Architect does NOT edit BCs, verification-delta,
+prd-delta, spec-changelog, or STATE.md.*

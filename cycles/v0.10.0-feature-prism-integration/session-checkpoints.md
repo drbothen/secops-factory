@@ -10,6 +10,19 @@ Superseded checkpoints rotated out of STATE.md.
 
 ---
 
+## Checkpoint — Pass-22 COMPLETE, burst-19 pending (2026-07-27)
+
+**Superseded by:** Pass-22 remediation COMPLETE checkpoint (2026-07-28)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-07-27 |
+| **Position** | Pass 22 COMPLETE (1C/2M/1med/1m — NOT CLEAN, novelty HIGH). P22-003 CRITICAL awaiting human decision on link hard-floor/kill-switch posture. NEXT: burst 19 after human decision (architect: D-027 link exemption + P22-001 markdown reorder + P22-002 D-024 record; PO: BC propagation; FV: hard-floor VP-HOOK-036 vector + VP-SKILL-062 fix). Clean streak 0/3. |
+| **Context** | Artifact versions: arch-delta v1.23, verif-delta v1.23, prd-delta v1.21, dtu-assessment v1.3, BC-3.03.001 v1.30, BC-3.01.001 v1.24, BC-10.01.001 v1.24, BC-4.02.001 v1.16, BC-6.01.001 v1.8, BC-5.01.001 v1.12, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 64 (SM-9..SM-71, SM-32=32a+32b+32-ext; SM-55 skipped). Pass-22 report: .factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass22.md. NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. |
+| **Convergence counter** | 0/3 clean passes |
+
+---
+
 ## Checkpoint 4 — Pass-7 remediation COMPLETE, pass 8 pending (2026-07-21)
 
 **Superseded by:** Pass-8 COMPLETE checkpoint (2026-07-21)

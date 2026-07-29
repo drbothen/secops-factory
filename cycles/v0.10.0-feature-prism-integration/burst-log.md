@@ -11,6 +11,14 @@ are archived here when the 5-row limit is reached.
 
 ---
 
+## Archived Step: F2 adversarial pass 20 (rotated 2026-07-28)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 20 | adversary | DONE | 0C/1M/3med/3m/2obs — NOT CLEAN. P20-001 (MAJOR): D-023 close-disposition gate placed inside STEP 6, unreachable when autonomy_enabled≠true — contradicts 'fires regardless of autonomy_enabled' narrative in BC-3.03.001 L578-579 / arch-delta L1848-vs-L1860 / VP-HOOK-035; TP-never-auto-closed still holds via require-review defense-in-depth (hence MAJOR not CRITICAL); fix = hoist gate before STEP 5 (mirror STEP 4) OR correct narrative. P20-002 (MED): 'EC-013 = close 3-condition AND' is a dangling mis-anchor — BC-10.01.001 EC-013 is the closed-ticket create+link edge case; no BC EC encodes the 3-condition AND. P20-003 (MED): orphan-link reconciliation predicate (BC-10.01.001 L627-636) unimplementable from stateless loop state; §3.4 rule-1 would misroute orphan as duplicate-open → link permanently lost. P20-004 (MED): prd-delta §5 New Version cells stale (v1.27/v1.21/v1.13 vs actual v1.28/v1.22/v1.14). Minors: P20-005 BC-6.01.003 v1.6/v1.7 undocumented in prd-delta; P20-006 prd-delta changelog missing v1.19 row; P20-007 BC-4.02.001 Inv#1 non-close jr-issue-move claim unsupported. Obs: P20-008 verif-delta L2812 stale rule-2 comment+link in historical block; P20-009 [process-gap] reachability-of-guarantee review axis recommended. Report persisted. Clean streak 0/3. |
+
+---
+
 ## Archived Step: F2 pass-19 remediation burst 16 (rotated 2026-07-27)
 
 | Field | Value |

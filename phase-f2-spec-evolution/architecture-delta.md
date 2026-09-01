@@ -1,10 +1,11 @@
 ---
 document_type: architecture-delta
 producer: architect
-version: "1.30"
+version: "1.31"
 date: 2026-07-29
 input-hash: COMPUTE-AT-COMMIT
 changelog:
+  - "1.31 (2026-07-29): Pass-29 adversarial remediation burst 26. P29-001 (MEDIUM): WRITE_MARKER link_target definedness fixed COMPREHENSIVELY across ALL entry paths. Root cause: self-computing form `link_target = ticket_id_b IF action == 'link' ELSE null` referenced `ticket_id_b`, which is undefined on STEP-3 create-review GOTO and STEP-3 comment-review GOTO paths (those paths GOTO WRITE_MARKER before STEP 6; ticket_id_b is only set inside EMIT_LINK_MARKER). Same undefined-reference risk exists on STEP-6 non-link fall-through paths (comment/create/assign/close). Fix: (1) replaced self-computing form with defined()-guarded backstop `link_target = defined(link_target) ? link_target : null` inside WRITE_MARKER — mirrors BC-3.03.001 L876/L877 treatment of is_link_hard_floor and is_markdown_path; (2) added explicit `link_target = ticket_id_b` to EMIT_LINK_MARKER body (global, no local qualifier) before the WRITE_MARKER direct-invocation, so the EMIT_LINK_MARKER path sees link_target pre-assigned and the guard preserves it. Coverage per path: STEP-3 create-review GOTO — link_target never pre-assigned → guard sets null ✓; STEP-3 comment-review GOTO — same → null ✓; STEP-6 non-link fall-throughs (comment/create/assign/close) — link_target never pre-assigned → guard sets null ✓; markdown GOTO — link_target = null (setup block, P28-001) → guard preserves null ✓; EMIT_LINK_MARKER direct-invoke — link_target = ticket_id_b (explicit P29-001) → guard preserves ticket_id_b ✓. Full WRITE_MARKER-read-variable audit performed (reported in §8.42 audit table): {expires_at — computed inside WRITE_MARKER ✓; action — assigned on all paths ✓; ticket_id — assigned in STEP 3/6 branches, EMIT_LINK_MARKER, and markdown routing pseudocode ✓; is_markdown_path — boolean, unset=false correct for non-markdown paths ✓; org_slug — non-markdown paths read verdict.org_slug, not-reached via ternary on those paths ✓; verdict.org_slug — present verdict/link paths; not-reached on markdown path ✓; markdown_parsed_disposition — setup block on markdown path; not-reached elsewhere ✓; verdict.disposition — present verdict/link paths; not-reached on markdown path ✓; recomputed_severity — STEP 1a output on verdict/link paths; null in setup block on markdown path ✓; verdict.asset_type — present verdict/link paths; not-reached on markdown path ✓; link_target — NOW guarded (P29-001) ✓; is_link_hard_floor — boolean, unset=false correct for non-link paths ✓; pattern — assigned in STEP 3/6 branches, EMIT_LINK_MARKER, and markdown routing pseudocode ✓; ops — same as pattern ✓}. No other undefined-reference siblings found. Per-path table split: Path A (STEP 3 or STEP 6) split into Path A1 (STEP-3 create-review/comment-review GOTOs) and Path A2 (STEP-6 non-link fall-throughs) — these have different link_target assignment sets (neither pre-assigns link_target; both now covered by backstop). Table now has 4 columns: A1/A2/B/C. P29-OBS-1 (process-gap): §8.41.4 WRITE_MARKER-path-definedness grep gate rewritten to enumerate every GOTO WRITE_MARKER site and the direct invocation by name (STEP-3 create-review GOTO, STEP-3 comment-review GOTO, MARKDOWN_CREATE_REVIEW_PATH GOTO, MARKDOWN_COMMENT_REVIEW_PATH GOTO, STEP-6 non-link fall-throughs ×4, EMIT_LINK_MARKER direct-invoke). Gate now asserts all-sites coverage, not just the site patched in the current burst — closes the one-per-pass definedness-miss cycle. §8.42 propagation list added. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.30 (2026-07-29): Pass-28 adversarial remediation burst 25. P28-001 (MEDIUM): WRITE_MARKER markdown-path variable definedness fixed. Canonical disposition-source variable for the markdown path: markdown_parsed_disposition (assigned in setup block as `markdown_parsed_disposition = parsed_disposition`; parsed_disposition was already set by parse_disposition_from_markdown(content) in the routing pseudocode). Removed dead alias `markdown_org_slug_field = org_slug` from setup block (WRITE_MARKER reads `org_slug` directly via its ternary; the alias was never consumed). Removed dead `markdown_asset_type = null` from setup block (WRITE_MARKER computes `asset_type_field = null IF is_markdown_path` inline; the setup-block assignment was never read). Added explicit `link_target = null` to setup block (action is NEVER 'link' on markdown path; ticket_id_b is undefined on this path — explicit assignment removes any undefined-reference risk; WRITE_MARKER self-computing form kept for verdict/link paths). Fixed misleading comment in setup block ('# disposition for audit trail: use markdown-parsed value' was placed above the org_slug assignment — corrected to accurately describe org_slug). Full per-path variable-definedness table added to WRITE_MARKER header comment covering all three entry paths (verdict STEP-6 GOTO, markdown review GOTO, EMIT_LINK_MARKER direct-invoke) and all variables WRITE_MARKER reads: {is_markdown_path, action, org_slug source, verdict.org_slug, markdown_parsed_disposition, verdict.disposition, recomputed_severity, verdict.asset_type, link_target / ticket_id_b, is_link_hard_floor}. P28-002 (MINOR): org_slug added to operational-metadata field roster (alongside autonomy_enabled, jira_project_key, confidence_score) as a required verdict field; ASM-008-class residual noted — org_slug is LLM-supplied on the verdict path, same class as native_severity/asset_type/scored_priority; the D-028 org-binding keys on it, so a forged org_slug can only bind KEY1/KEY2 to a different configured org's project key, which still fails-closed for cross-org writes; bounded residual. §8.41 PO obligation: add org_slug to BC-3.03.001 verdict-schema field roster + validate_enums() presence check. DI-017 cross-referenced. Obs-1 (multi-org): one-sentence note added to P26-003 ACCEPTED RESIDUAL block — on the markdown path, org_slug is sourced via get_org_slug_from_config() which has no basis to disambiguate in a multi-org deployment; since markdown-path org_slug feeds only the audit line and the marker's org_slug field (NOT authorization — command_pattern is the authority), the impact is bounded to audit-attribution fidelity; accepted residual. Obs-2 (process-gap): §8.41 FV obligation added — mechanical grep gate recommended: for each BC pseudocode GOTO WRITE_MARKER path, assert every variable WRITE_MARKER reads is assigned on that path (P28-001 is an instance of this class; SM-80 vector iv depends on the fix). §8.41 propagation list added. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.29 (2026-07-29): Pass-27 adversarial remediation burst 24. P27-001 (MAJOR): structural-deny vs disposition-value-parse distinction drawn. D-029 item-1 rewritten: an investigation-*.md Write that FAILS structural ICD-203 completeness (missing any of the 12 required headings, missing Alternatives-Considered, or failing charset validation) → structural DENY (EC-004/EC-010 semantics; disposition-guard side) — fully consistent with D-029, which scopes save-always-succeeds to DISPOSITION and HARD-FLOOR reasons only. DISPOSITION-VALUE parse failure (all 12 headings present but disposition value non-canonical, e.g. 'probably TP') → PARSE_FAIL on the value → allow + MARKDOWN_REVIEW_PATH routing (safe direction). D-029 rationale restated: 'Document-Before-Action means a STRUCTURALLY COMPLETE investigation is never denied for its disposition/technique/sensor content; structural completeness itself remains gated, enforced consistently by both disposition-guard (EC-010) and the enrichment-completeness hook (BC-3.02.001 PC#3).' Key guarantee #1 updated: 'complete or incomplete' removed; 'structurally complete' qualifier added; structural completeness gates explicitly retained. Routing outcomes table header annotated: table applies only to Writes that have passed the structural completeness gate. PARSE_FAIL row split: (a) value-only PARSE_FAIL → allow + MARKDOWN_REVIEW_PATH; (b) structural incompleteness → structural DENY (pre-table). Note for PO: BC-5.01.001 Inv#7 'always succeeds for ALL dispositions' absolute phrasing and BC-4.02.001 PC#4 absolute phrasing must be re-scoped to 'no disposition-/hard-floor-based deny; structural ICD-203 completeness + Alternatives-Considered + charset guards retained and can still deny.' BC-3.03.001 PC#2/EC-004/EC-010 already say structural deny — they are correct; the fix is aligning the arch-delta D-029 item 1, BC-5.01.001 Inv#7, and BC-4.02.001 PC#4 to them. P27-002 (MEDIUM): WRITE_MARKER made path-aware. Markdown review path enters WRITE_MARKER with undefined verdict fields (verdict.org_slug, recomputed_severity, verdict.disposition, verdict.asset_type — absent on 12-field markdown path). Path-specific variable setup defined at MARKDOWN_COMMENT_REVIEW_PATH / MARKDOWN_CREATE_REVIEW_PATH: is_markdown_path=true; org_slug = get_org_slug_from_config() (not verdict.org_slug — config/org context is the available source); markdown_parsed_disposition carries the parsed value (from parse_disposition_from_markdown, not verdict.disposition); recomputed_severity = null (no STEP 1a on markdown path); asset_type = null (absent from 12-field markdown). WRITE_MARKER updated with is_markdown_path-conditional field sources. link_target = ticket_id_b IF action=='link' ELSE null is already self-computing and correct on both paths (action is never 'link' on markdown path → link_target=null). P27-002 markdown-path marker-write-failure adjudication: FAIL-LOUD (MARKER-WRITE-FAILED deny) — (1) review-class markers (create-review/comment-review) must fail closed per P10-003/D-DEC-012 clause 2; (2) silent loss of a review escalation is the P10-003 harm class — an analyst's T1003/Indeterminate/TP finding would silently disappear from human review; (3) infrastructure-failure deny is DISTINCT from content/disposition deny — D-029's save-always-succeeds does not apply to infrastructure failures (disk full, permissions error); (4) BC-5.01.001 Inv#7 'MUST NOT be denied' must be scoped to no disposition-/hard-floor-based deny — infrastructure-failure denies were never in D-029's guarantee; (5) is_review_path = TRUE on markdown path (action ∈ {create-review, comment-review}) — the existing P10-003 MARKER-WRITE-FAILED logic at WRITE_MARKER already handles this correctly once undefined fields are resolved. PO note: BC-3.03.001 MARKDOWN_COMMENT_REVIEW_PATH / MARKDOWN_CREATE_REVIEW_PATH must add path-specific variable setup matching arch-delta v1.29 spec; delete false 'L565 initialized link_target' claim. P27-003 (OBS): parse_autonomy_enabled_from_markdown grammar annotated 'retained for defense-in-depth / P13-003 adversarial-masquerade detection only; NOT consulted in D-029 routing.' P27-004 (OBS): note for state-manager/FV — verification-delta §4 SM-catalog recap line (~L2822) stale-cites 'SM-9..SM-71' and should read SM-9..SM-78 (version-coherence; SM-78 was allocated at v1.28); FV obligation in §8.40. §8.40 propagation list added. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.28 (2026-07-29): Pass-26 adversarial remediation burst 23. P26-003 (MEDIUM — orchestrator adjudication: option a, ACCEPTED RESIDUAL): markdown-path kill-switch residual documented. The markdown path issues kill-switch-exempt create-review/comment-review markers WITHOUT hard_floor_applies() cross-validation (structurally impossible from a 12-field markdown — scored_priority/asset_type are absent); therefore autonomy_enabled=false does NOT suppress markdown-path review markers; an agent can masquerade findings as investigation-*.md (PARSE_FAIL trivially inducible) to mint review markers under the kill switch. Blast radius bounded to review surface only (create-review with REVIEW-REQUIRED label / comment-review comment — no close, no triage state change, no regular comment/create/assign/link); org-binding and O7 charset still apply; review tickets are human-facing by construction so abuse is self-surfacing; no hook-side dedup means repeated-save review-ticket flooding is part of the residual, with operator-visibility as compensating control. Cross-reference D-DEC-012 Option A (intended trade-off, extended by P22-001/D-029); asymmetry vs verdict-path STEP 3 O3 over-label gate is INHERENT (verdict has hook-recomputable fields; markdown does not). ACCEPTED RESIDUAL block added near key guarantees section; D-DEC-012 Inv#11/VP-SKILL-065 carve-out updated: accurate statement is zero REGULAR writes under autonomy_enabled=false (not zero all writes); review-surface writes from BOTH verdict path and markdown path remain live; D-029 Decision Summary Table annotated. P26-004 (MINOR): heading-anchored parse grammars added for three GATE 1/GATE 2 hard-floor reads in the Parse grammar specifications block, mirroring P13-003 discipline: disposition_section_contains('Indeterminate') → canonical Disposition heading value only (parse_disposition_from_markdown output); attack_techniques_contains_forbidden() → canonical Attack Techniques heading value list only; sensor_health_status_is() → canonical Sensor Health Status heading value only. Effect: markdown whose prose mentions 'Indeterminate' but whose Disposition heading is False Positive does NOT trip the floor. PO note to mirror into BC-3.03.001; FV note that VP-HOOK-031 gets a negative grammar vector. §8.39 propagation list added (PO: BC-3.03.001 PC#2 L98 rewrite to D-029 model with Previous-blockquote P26-001; L994 + BC-4.02.001 PC#4 qualified 'no deny' wording P26-002; grammar mirror P26-004; kill-switch residual note in BC-3.03.001 + BC-10.01.001 VP-SKILL-065 area; prd-delta EC-012 row fix P26-005. FV: VP-HOOK-031 negative grammar vector; residual doc check; stale-string sweep). Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
@@ -2036,6 +2037,9 @@ ELIF action == "close":
 #   - verdict, recomputed_severity: accessed as globally visible bash variables — no arg needed.
 #   - Marker variables set inside this function (pattern, ops, link_target, is_link_hard_floor)
 #     are NOT declared local — they are globally visible to WRITE_MARKER in bash semantics.
+#     P29-001: link_target is now EXPLICITLY assigned (`link_target = ticket_id_b`) before
+#     the WRITE_MARKER invocation, so the defined()-guarded backstop in WRITE_MARKER correctly
+#     preserves the KEY2 value. (Previously relied on the self-computing form inside WRITE_MARKER.)
 #   - Function invokes WRITE_MARKER directly as its final statement (no GOTO, no fall-through).
 #     WRITE_MARKER uses is_link_hard_floor to extend is_review_path (D-028 fail-closed).
 #   - Call sites: `EMIT_LINK_MARKER true; RETURN` / `EMIT_LINK_MARKER false; RETURN`.
@@ -2149,6 +2153,12 @@ FUNCTION EMIT_LINK_MARKER(is_hard_floor_link):
   # Pattern: KEY1 and KEY2 in fixed positional order; trailing ( |$) guards against KEY2 prefix-extension
   pattern = "^jr (--output json )?issue link " + ticket_id_safe + " " + ticket_id_b_safe + "( |$)"
   ops = ["link"]
+  # P29-001/v1.31: explicit global assignment of link_target before WRITE_MARKER invocation.
+  # ticket_id_b is set in this function body (KEY2 from verdict.link_target_ticket_id, charset-
+  # validated). Assigning it globally here (no local qualifier — bash-visible to WRITE_MARKER)
+  # ensures the defined()-guarded backstop in WRITE_MARKER sees a defined value and preserves it.
+  # This replaces the reliance on the self-computing form inside WRITE_MARKER for this path.
+  link_target = ticket_id_b   # P29-001: explicit; KEY2 for jr issue link KEY1 KEY2
   # D-028/P24-001: set is_link_hard_floor globally (no local qualifier — bash-visible to
   # WRITE_MARKER). Pass fail-loud flag to WRITE_MARKER to extend is_review_path for hard-floor links.
   # is_link_hard_floor=true  → marker-write failure → MARKER-WRITE-FAILED deny (fail-closed).
@@ -2159,38 +2169,48 @@ END FUNCTION EMIT_LINK_MARKER
 
 # ── WRITE_MARKER: common path for all marker types ────────────────────────────────────────
 # Entry paths:
-#   Verdict emitter path: GOTO WRITE_MARKER from STEP 3 (create-review/comment-review)
-#     and STEP 6 (comment/create/assign/close). Link path: EMIT_LINK_MARKER invokes
-#     WRITE_MARKER directly as its final statement (P24-001 — NOT a fall-through; NOT a GOTO).
-#   Markdown review path (P27-002/v1.29; P28-001/v1.30): GOTO WRITE_MARKER from
-#     MARKDOWN_COMMENT_REVIEW_PATH or MARKDOWN_CREATE_REVIEW_PATH, AFTER the path-specific
-#     variable setup block (P28-001: all variables defined explicitly — see setup block).
+#   Path A1 — STEP-3 GOTO: GOTO WRITE_MARKER from STEP 3 create-review or comment-review
+#     branch. Does NOT pass through STEP 6; STEP 6 variable setup (link_target=null at L577
+#     in BC-3.03.001) is skipped on this path.
+#   Path A2 — STEP-6 fall-through: GOTO WRITE_MARKER (implicit fall-through after STEP 6
+#     IF/ELIF ladder) for action ∈ {comment, create, assign, close}. Does not pre-assign
+#     link_target; EMIT_LINK_MARKER RETURN before this point for the link ELIF.
+#   Path B  — Markdown GOTO: GOTO WRITE_MARKER from MARKDOWN_COMMENT_REVIEW_PATH or
+#     MARKDOWN_CREATE_REVIEW_PATH, AFTER the path-specific variable setup block
+#     (P27-002/v1.29; P28-001/v1.30 — all variables defined explicitly).
+#   Path C  — EMIT_LINK_MARKER direct-invoke: WRITE_MARKER invoked as final statement of
+#     EMIT_LINK_MARKER (P24-001 — NOT a fall-through; NOT a GOTO).
 #
-# P28-001/v1.30 — PER-PATH VARIABLE DEFINEDNESS TABLE (all three entry paths):
+# P29-001/v1.31 — PER-PATH VARIABLE DEFINEDNESS TABLE (all FOUR entry paths):
+# P28-001 original; split Path A → A1/A2 at P29-001; link_target backstop added.
 #
-#   Variable              | Path A: Verdict GOTO      | Path B: Markdown GOTO      | Path C: EMIT_LINK_MARKER
-#                         | (STEP 3 or STEP 6)        | (MARKDOWN_*_REVIEW_PATH)   | (direct-invoke, action="link")
-#   ----------------------|---------------------------|----------------------------|-------------------------------
-#   is_markdown_path      | false (unset/default)     | TRUE (setup block)         | false (unset/default)
-#   action                | set by STEP 3/6 branch    | set by routing pseudocode  | "link" (set in func body)
-#   org_slug              | N/A (see verdict.org_slug)| get_org_slug_from_config() | N/A (see verdict.org_slug)
-#   verdict.org_slug      | present (verdict field)   | ABSENT — no verdict object | present (global from verdict)
-#   markdown_parsed_      | N/A (verdict.disposition  | parsed_disposition         | N/A (verdict.disposition
-#     disposition         |   used via ternary)       |   (setup block, P28-001)   |   used via ternary)
-#   verdict.disposition   | present (verdict field)   | ABSENT — no verdict object | present (global from verdict)
-#   recomputed_severity   | NORMALIZE_SEVERITY output | null (setup block)         | NORMALIZE_SEVERITY output
-#                         | (STEP 1a, before GOTO)    |                            | (global, set before call)
-#   verdict.asset_type    | present (field 14)        | ABSENT — no verdict object | present (global from verdict)
-#   link_target /         | null (action != "link"    | null (setup block, P28-001 | ticket_id_b (set in func
-#     ticket_id_b         |   for all GOTO paths)     |   explicit; ticket_id_b    |   body before WRITE_MARKER)
-#                         |                           |   undefined on this path)  |
-#   is_link_hard_floor    | false (unset)             | false (unset)              | true or false (is_hard_floor_link
-#                         |                           |                            |   arg set globally before call)
+#   Variable              | Path A1: STEP-3 GOTO      | Path A2: STEP-6 GOTO      | Path B: Markdown GOTO      | Path C: EMIT_LINK_MARKER
+#                         | (create-review/            | (comment/create/assign/   | (MARKDOWN_*_REVIEW_PATH)   | (direct-invoke, action="link")
+#                         |  comment-review)           |  close fall-through)      |                            |
+#   ----------------------|---------------------------|---------------------------|----------------------------|-------------------------------
+#   is_markdown_path      | false (unset/default)     | false (unset/default)     | TRUE (setup block)         | false (unset/default)
+#   action                | set by STEP 3 branch      | set by STEP 6 IF/ELIF     | set by routing pseudocode  | "link" (set in func body)
+#                         | (create-review or         | (comment/create/assign/   | (create-review or          |
+#                         |  comment-review)          |  close)                   |  comment-review)           |
+#   org_slug              | N/A (verdict.org_slug)    | N/A (verdict.org_slug)    | get_org_slug_from_config() | N/A (verdict.org_slug)
+#   verdict.org_slug      | present (verdict field)   | present (verdict field)   | ABSENT — no verdict object | present (global from verdict)
+#   markdown_parsed_      | N/A (verdict.disposition  | N/A (verdict.disposition  | parsed_disposition         | N/A (verdict.disposition
+#     disposition         |   used via ternary)       |   used via ternary)       |   (setup block, P28-001)   |   used via ternary)
+#   verdict.disposition   | present (verdict field)   | present (verdict field)   | ABSENT — no verdict object | present (global from verdict)
+#   recomputed_severity   | NORMALIZE_SEVERITY output | NORMALIZE_SEVERITY output | null (setup block)         | NORMALIZE_SEVERITY output
+#                         | (STEP 1a, before GOTO)    | (STEP 1a, before GOTO)    |                            | (global, set before call)
+#   verdict.asset_type    | present (field 14)        | present (field 14)        | ABSENT — no verdict object | present (global from verdict)
+#   link_target           | NOT pre-assigned;         | NOT pre-assigned;         | null (setup block,         | ticket_id_b (explicit global
+#                         | defined()-guard →null     | defined()-guard → null    |   P28-001 explicit)        |   assignment, P29-001)
+#                         | (P29-001 fix)             | (P29-001 fix)             | guard preserves null       | guard preserves ticket_id_b
+#   is_link_hard_floor    | false (unset/default)     | false (unset/default)     | false (unset/default)      | true or false (is_hard_floor_link
+#                         |                           |                           |                            |   arg set globally before call)
 #   is_review_path        | computed inside WRITE_MARKER as: (action in {"create-review","comment-review"})
 #                         |   OR (action=="link" AND is_link_hard_floor)
-#                         | Path A review: TRUE for STEP 3 GOTOs (action ∈ {create-review,comment-review})
-#                         | Path B:        TRUE always (action ∈ {create-review,comment-review} — (a) covers this)
-#                         | Path C:        TRUE only when is_link_hard_floor=true (D-028)
+#                         | Path A1: TRUE always (action ∈ {create-review,comment-review} by definition)
+#                         | Path A2: FALSE (action ∈ {comment,create,assign,close}; is_link_hard_floor=false)
+#                         | Path B:  TRUE always (action ∈ {create-review,comment-review} — (a) covers this)
+#                         | Path C:  TRUE only when is_link_hard_floor=true (D-028)
 #
 # P10-003: marker-write FAILURE is handled differently for review vs regular paths.
 # On the hard-floor review path (create-review/comment-review) AND the hard-floor link
@@ -2214,15 +2234,20 @@ END FUNCTION EMIT_LINK_MARKER
 WRITE_MARKER:
 expires_at = now() + 120s             # absolute expiry (schema v2.0)
 # D-020: link_target_ticket_id is populated only for action=="link"; null for all other scopes.
-# P28-001/v1.30: self-computing form for verdict/link paths (Path A/C in per-path table above).
-#   Path A (verdict GOTO): action is never "link" for direct GOTOs — link_target = null.
-#   Path C (EMIT_LINK_MARKER): action == "link" and ticket_id_b is set → link_target = ticket_id_b.
-#   Path B (markdown GOTO): link_target = null was set EXPLICITLY in the setup block; action is
-#     NEVER "link" on this path and ticket_id_b is undefined here. The setup block's explicit
-#     null (and action != "link") means this form also evaluates to null — consistent.
-#   This self-computing form is kept for verdict/link paths (Path A/C); the markdown path
-#   (Path B) pre-initializes link_target=null in the setup block to avoid any undefined-reference risk.
-link_target = ticket_id_b IF action == "link" ELSE null
+# P29-001/v1.31: defined()-guarded backstop (replaces self-computing form from P28-001/v1.30).
+#   RATIONALE: the self-computing form `ticket_id_b IF action=="link" ELSE null` referenced
+#   ticket_id_b which is undefined on STEP-3 GOTO paths (A1) and STEP-6 non-link paths (A2)
+#   — those paths never enter EMIT_LINK_MARKER where ticket_id_b is assigned. In pseudocode
+#   without guaranteed lazy evaluation, the undefined reference is a defect.
+#   BACKSTOP: check whether link_target was pre-assigned by the calling path; if not, default null.
+#     Path A1 (STEP-3 GOTO): link_target not pre-assigned → defined()=false → null
+#     Path A2 (STEP-6 non-link): link_target not pre-assigned → defined()=false → null
+#     Path B  (markdown GOTO): link_target=null in setup block (P28-001) → defined()=true → null
+#     Path C  (EMIT_LINK_MARKER): link_target=ticket_id_b explicit global (P29-001) → defined()=true → ticket_id_b
+#   MIRRORS: BC-3.03.001 L876/L877 treatment of is_link_hard_floor and is_markdown_path.
+#   Keep the explicit assignments where they already exist (markdown setup block, EMIT_LINK_MARKER
+#   body) — this guard is the backstop for paths that never pre-assign.
+link_target = defined(link_target) ? link_target : null
 # P27-002 path-aware field assignment (v1.29):
 #   org_slug_field:      verdict path → verdict.org_slug; markdown path → org_slug (from config)
 #   disposition_verdict: verdict path → verdict.disposition; markdown path → markdown_parsed_disposition
@@ -8722,30 +8747,52 @@ MARKDOWN_CREATE_REVIEW_PATH` section (the `> ``` … > ``` ` blockquote updated 
 
 ---
 
-### 8.41.4 FV — process-gap grep gate recommendation (Obs-2 process-gap)
+### 8.41.4 FV — process-gap grep gate (P29-OBS-1 hardened, v1.31)
 
 > **FV obligation — verification-delta + lessons.**
+> **Updated P29-OBS-1:** Gate rewritten to enumerate EVERY GOTO WRITE_MARKER site and the
+> direct invocation, not just the site patched in the current burst. This closes the
+> one-per-pass definedness-miss cycle identified at P28-OBS-2/P29-OBS-1.
 
-**Recommended mechanical gate (to be codified in lessons and raised as a §8.41 FV obligation):**
+**Standing mechanical gate (codified in lessons, required FV pre-implementation check):**
 
-For each BC pseudocode block that contains `GOTO WRITE_MARKER` (or a direct `WRITE_MARKER`
-invocation), the FV pre-implementation checklist should include a static assertion:
+Enumerate all `GOTO WRITE_MARKER` sites and the direct invocation in BC-3.03.001 pseudocode.
+For **each** of the following sites, assert every variable WRITE_MARKER reads is either:
+(a) assigned in that path's setup block/branch code, OR
+(b) covered by a `defined()`-guarded default inside WRITE_MARKER, OR
+(c) provably not-reached on that path (with inline comment explaining why).
 
-> "For entry path X into WRITE_MARKER: confirm every variable that WRITE_MARKER reads by
-> name is either: (a) assigned in the setup block for that path, OR (b) assigned inside
-> WRITE_MARKER itself (e.g., computed ternaries), OR (c) provably not-reached on that path
-> (with a comment explaining why)."
+**Enumerated sites (v1.31):**
 
-P28-001 is a concrete instance of a failure of this gate: the markdown path GOTOed
-WRITE_MARKER with `markdown_parsed_disposition` unassigned (WRITE_MARKER read it; the setup
-block only assigned `parsed_disposition` under a different name). SM-80 vector iv was
-recognized as UNSATISFIABLE until this burst because the undefined variable made the vector
-unreachable.
+| Site | Location | GOTO or Direct | Variables needing assertion |
+|------|----------|----------------|----------------------------|
+| **S1** STEP-3 create-review | BC-3.03.001 STEP 3 create-review branch | `GOTO WRITE_MARKER` | link_target (guard ✓), ticket_id (=null ✓), action, pattern, ops |
+| **S2** STEP-3 comment-review | BC-3.03.001 STEP 3 comment-review branch | `GOTO WRITE_MARKER` | link_target (guard ✓), ticket_id (=verdict.ticket_id ✓), action, pattern, ops |
+| **S3** MARKDOWN_CREATE_REVIEW_PATH | BC-3.03.001 markdown routing pseudocode | `GOTO WRITE_MARKER` | link_target (=null setup block ✓), all setup-block vars ✓, ticket_id (routing pseudocode sets null ✓) |
+| **S4** MARKDOWN_COMMENT_REVIEW_PATH | BC-3.03.001 markdown routing pseudocode | `GOTO WRITE_MARKER` | link_target (=null setup block ✓), all setup-block vars ✓, ticket_id (routing pseudocode extracts+validates ✓) |
+| **S5** STEP-6 comment fall-through | BC-3.03.001 STEP 6 comment ELIF | implicit fall-through | link_target (guard ✓), ticket_id (=verdict.ticket_id ✓), action, pattern, ops |
+| **S6** STEP-6 create fall-through | BC-3.03.001 STEP 6 create ELIF | implicit fall-through | link_target (guard ✓), ticket_id (=null ✓), action, pattern, ops |
+| **S7** STEP-6 assign fall-through | BC-3.03.001 STEP 6 assign ELIF | implicit fall-through | link_target (guard ✓), ticket_id (=verdict.ticket_id ✓), action, pattern, ops |
+| **S8** STEP-6 close fall-through | BC-3.03.001 STEP 6 close ELIF | implicit fall-through | link_target (guard ✓), ticket_id (=verdict.ticket_id ✓), action, pattern, ops |
+| **S9** EMIT_LINK_MARKER | BC-3.03.001 EMIT_LINK_MARKER function | direct invocation (NOT GOTO) | link_target (=ticket_id_b explicit P29-001 ✓), ticket_id (=verdict.ticket_id ✓), action (="link" ✓), pattern (✓), ops (✓), is_link_hard_floor (✓) |
 
-**Codification:** Add this gate to lessons.md (prism-integration cycle) and carry it as a
-standing FV pre-implementation check for all future bursts. The per-path variable-definedness
-table in arch-delta §8.41 (WRITE_MARKER header comment) is the authoritative spec that the
-grep gate validates against.
+**Gate invocation rule:** This gate MUST be run at EVERY burst that touches WRITE_MARKER,
+GOTO WRITE_MARKER, the EMIT_LINK_MARKER direct-invoke, or the markdown path setup block.
+The check is not satisfied by confirming "the site I just patched is OK" — it must confirm
+ALL NINE sites in one pass.
+
+**Grep pattern for BC-3.03.001 to enumerate sites:**
+```
+grep -n "GOTO WRITE_MARKER\|WRITE_MARKER" BC-3.03.001.md | grep -v "^#.*\(comment\)"
+```
+Count of `GOTO WRITE_MARKER` lines + direct `WRITE_MARKER` invocations must equal 9 (or be
+explained if the count changes due to BC edits).
+
+P28-001 and P29-001 are both concrete failures of this gate: markdown-path GOTOed
+WRITE_MARKER with `markdown_parsed_disposition` unassigned (P28-001); STEP-3 review GOTOs
+entered WRITE_MARKER with `link_target` undefined (P29-001). The per-path variable-definedness
+table in arch-delta WRITE_MARKER header comment (§8.29/v1.31) is the authoritative spec
+that the grep gate validates against.
 
 ---
 
@@ -8757,4 +8804,137 @@ added to operational-metadata roster + ASM-008-class residual documented. Obs-1:
 disambiguation sentence added to P26-003 ACCEPTED RESIDUAL. Obs-2 (process-gap): grep-gate
 recommendation codified as FV obligation in §8.41.4. Architect does NOT edit BCs,
 verification-delta, prd-delta, or STATE.md.*
+
+---
+
+## 8.42 PROPAGATION LIST (pass 29 — P29-001/P29-OBS-1)
+
+> **Owner:** Product owner and formal verifier as marked. Architect does NOT edit BCs,
+> verification-delta, prd-delta, or STATE.md.
+
+> **Architectural decisions recorded here:** P29-001 WRITE_MARKER link_target comprehensive
+> definedness fix (defined()-guarded backstop replacing self-computing form; EMIT_LINK_MARKER
+> explicit `link_target = ticket_id_b` pre-assignment; per-path table split A → A1/A2;
+> full WRITE_MARKER-read-variable audit; class closed by backstop covering all entry paths
+> present and future); P29-OBS-1 process-gap §8.41.4 grep gate hardened to enumerate all
+> 9 GOTO WRITE_MARKER sites and the direct invocation.
+
+---
+
+### 8.42.1 PO — BC-3.03.001: link_target defined()-guard + per-path table split (P29-001 MEDIUM)
+
+> **BC owner obligation — BC-3.03.001.**
+
+Apply the following changes to BC-3.03.001 to match arch-delta v1.31:
+
+1. **Replace the self-computing form with the defined()-guarded backstop.** In BC-3.03.001
+   WRITE_MARKER (immediately after `WRITE_MARKER:` label), replace:
+   ```
+   link_target = ticket_id_b IF action == "link" ELSE null
+   ```
+   with:
+   ```
+   link_target = defined(link_target) ? link_target : null
+   # P29-001: defined()-guarded backstop — mirrors L876/L877 treatment of is_link_hard_floor
+   # and is_markdown_path. Paths that pre-assign link_target (EMIT_LINK_MARKER, markdown
+   # setup block) keep their value; paths that do not (STEP-3 GOTOs, STEP-6 non-link
+   # fall-throughs) safely default to null.
+   ```
+   Keep all pre-existing explicit assignments: `link_target = null` in the markdown setup block
+   and (after item 3 below) in EMIT_LINK_MARKER. These are the belt-and-suspenders; the
+   defined()-guard is the backstop.
+
+2. **Optional belt-and-suspenders: add explicit `link_target = null` at STEP-3 branches.**
+   In both the STEP 3 create-review branch (before `GOTO WRITE_MARKER`) and the STEP 3
+   comment-review branch (before `GOTO WRITE_MARKER`), add:
+   ```
+   link_target = null   # P29-001: explicit null — action is never "link" on this path
+   ```
+   This is belt-and-suspenders alongside the defined()-guard; not required for correctness
+   (the backstop covers it) but makes the definedness explicit on these paths.
+
+3. **Add explicit `link_target = ticket_id_b` to EMIT_LINK_MARKER.** In BC-3.03.001
+   EMIT_LINK_MARKER function body, in the "marker parameters set" block (after O7 validation
+   and org-binding, before the final `WRITE_MARKER` invocation), add:
+   ```
+   link_target = ticket_id_b   # P29-001: explicit global; KEY2 for jr issue link KEY1 KEY2
+   ```
+   Update the function's header comment to confirm `link_target` is now explicitly set by
+   EMIT_LINK_MARKER (not computed by a self-computing form inside WRITE_MARKER).
+
+4. **Split the per-path variable-definedness table Path A → A1/A2.** The current table has
+   a single "Path A: Verdict GOTO (STEP 3 or STEP 6)" column. Split into:
+   - Path A1: STEP-3 GOTO (create-review/comment-review)
+   - Path A2: STEP-6 GOTO (comment/create/assign/close fall-through)
+   These two sub-paths have different link_target pre-assignment status. Use arch-delta v1.31
+   per-path table (4 columns: A1/A2/B/C) as the authoritative model.
+
+5. **Remove the false "L565 initialized link_target" claim** if still present (identified at
+   P27-002). Verify no residual reference to a self-computing form remains in WRITE_MARKER.
+
+---
+
+### 8.42.2 FV — VP-HOOK-031 STEP-3-review-path vector + SM + gate (P29-001 MEDIUM)
+
+> **FV obligation — verification-delta.**
+
+1. **Add a STEP-3-review-path link_target-definedness vector to VP-HOOK-031.** The existing
+   VP-HOOK-031 covers markdown-path variable definedness (SM-80 vector iv, P28-001). Add a
+   parallel vector for the STEP-3 review GOTO path:
+
+   > **VP-HOOK-031 vector [NEW-P29]:** Hard-floor verdict with action=create-review enters
+   > WRITE_MARKER via STEP-3 GOTO (no STEP 6 execution). Assert: marker.link_target_ticket_id
+   > is null (not empty-string, not unbound/undefined). Mirror vector for comment-review path.
+   > Mechanism: defined()-guarded backstop inside WRITE_MARKER sets link_target=null when
+   > the variable is not pre-assigned (P29-001).
+
+2. **Allocate and adjudicate an SM for "link_target defined-guard removed."**
+
+   > **SM-NEW (propose allocation):** "link_target defined()-guarded backstop removed from
+   > WRITE_MARKER (reversion to `ticket_id_b IF action=='link' ELSE null`) → STEP-3
+   > create-review or comment-review GOTO into WRITE_MARKER → `ticket_id_b` evaluated while
+   > undefined → marker.link_target_ticket_id potentially emits empty/unbound value rather
+   > than null."
+   >
+   > **Adjudication:** Implementation-language-dependent.
+   > - In **bash**: reference to undefined `$ticket_id_b` evaluates to empty string `""` — the
+   >   marker emits `link_target_ticket_id: ""` instead of `null`. Consumer (require-review)
+   >   passes the non-null value to `jr issue link KEY1 ""` — a malformed command. ALLOCATE SM,
+   >   mark CONFIRMED with a bash test harness.
+   > - In a **Python-style lazy-ternary** implementation: `ticket_id_b if action=='link' else None`
+   >   never evaluates `ticket_id_b` when action != "link" → null result regardless. Mark
+   >   PROVABLY-SAFE under that language contract, document the language invariant inline.
+   > FV must clarify target implementation language in verification-delta and adjudicate accordingly.
+
+3. **Confirm the §8.41.4 nine-site enumeration gate is codified in verification-delta.**
+   Add a note to VP-HOOK-031 test-harness guidance: "Before merging any change that touches
+   WRITE_MARKER or a GOTO WRITE_MARKER site, run the §8.41.4 nine-site enumeration gate
+   (all 9 sites must pass the per-path variable-definedness assertion)."
+
+---
+
+### 8.42.3 FV — VP-HOOK-031 per-path table update (P29-001 — table split)
+
+> **FV obligation — verification-delta.**
+
+Update all verification-delta references to the WRITE_MARKER per-path variable-definedness
+table to reflect the 4-column (A1/A2/B/C) structure from arch-delta v1.31:
+
+- Any VP-HOOK-031 comment citing "Path A (STEP 3 or STEP 6)" must be updated to distinguish
+  Path A1 (STEP-3 GOTO) and Path A2 (STEP-6 fall-through).
+- SM-80 vector iv (markdown-path defined()-guard) is unchanged; confirm its mechanism
+  description still matches the v1.31 per-path table Path B column.
+- Any SM whose mechanism description references the Path-A column must be updated to the
+  specific sub-path (A1 or A2) for precision.
+
+---
+
+*Pass-29 propagation list (§8.42) complete. Architecture-delta v1.31 is final for pass-29
+remediation burst 26 (prism-integration cycle). P29-001 (MEDIUM): WRITE_MARKER link_target
+definedness fixed comprehensively — defined()-guarded backstop; EMIT_LINK_MARKER explicit
+pre-assignment; per-path table split to 4 columns; full WRITE_MARKER-read-variable audit.
+Class is now closed: the backstop covers ALL present and future GOTO WRITE_MARKER entry paths
+without requiring per-path-per-burst patches. P29-OBS-1 (process-gap): §8.41.4 grep gate
+hardened to enumerate all 9 entry sites. Architect does NOT edit BCs, verification-delta,
+prd-delta, or STATE.md.*
 Architect does NOT edit BCs, verification-delta, prd-delta, spec-changelog, or STATE.md.*

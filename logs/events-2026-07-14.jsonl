@@ -1,0 +1,5 @@
+{"type":"hook.block","hook":"verify-git-push","reason":"git_push_protected","ts":"2026-07-14T17:57:20-0500","ts_epoch":1784069840,"schema_version":1}
+{"type":"hook.block","hook":"destructive-command-guard","reason":"git_reset_hard","ts":"2026-07-14T17:57:46-0500","ts_epoch":1784069866,"schema_version":1}
+{"type":"hook.block","hook":"verify-git-push","reason":"git_push_force","ts":"2026-07-14T17:58:03-0500","ts_epoch":1784069883,"schema_version":1}
+{"type":"hook.block","hook":"destructive-command-guard","reason":"git_restore_dot","ts":"2026-07-14T18:41:08-0500","ts_epoch":1784072468,"schema_version":1}
+{"type":"hook.block","hook":"destructive-command-guard","reason":"git_restore_dot","ts":"2026-07-14T18:41:16-0500","ts_epoch":1784072476,"schema_version":1}

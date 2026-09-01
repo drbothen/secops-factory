@@ -4,7 +4,7 @@ level: ops
 version: "2.23"
 status: active
 producer: state-manager
-timestamp: 2026-07-29T23:00:00Z
+timestamp: 2026-09-01T00:00:00Z
 phase: F2
 pipeline: FEATURE-CYCLE
 inputs: []
@@ -12,7 +12,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "F2 adversarial convergence — pass-28 remediation COMPLETE (burst 25), pass 29 pending — CLEAN STREAK 1/3 in progress"
+current_step: "F2 adversarial convergence — pass-28 remediation COMPLETE (burst 25), pass 29 pending — CLEAN STREAK 1/3 in progress — D-chain cite D-029 latest brownfield"
 awaiting: "F2-adversarial-pass-29"
 current_cycle: v0.10.0-feature-prism-integration
 dtu_required: true
@@ -22,9 +22,9 @@ dtu_services: [prism-demo-server, jr-mock]
 ---
 
 <!--
-  STATE.md SIZE BUDGET: Keep this file under 200 lines.
+  STATE.md SIZE BUDGET: 183 lines (wc-l) | soft-target: 185 | margin from soft-target: 2 under | margin from actual: 17 under hard cap (200).
   Historical content belongs in cycle files, NOT here.
-  Run /vsdd-factory:compact-state if this file grows past 200 lines.
+  Run /vsdd-factory:compact-state if this file grows past 185 lines.
 -->
 
 # Pipeline State: secops-factory
@@ -40,7 +40,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | **Target Workspace** | /Users/jmagady/Dev/secops-factory |
 | **Engine** | /Users/jmagady/Dev/dark-factory (vsdd-factory plugin) |
 | **Started** | 2026-07-19 |
-| **Last Updated** | 2026-07-29 |
+| **Last Updated** | 2026-09-01 |
 | **Current Phase** | F2: Spec Evolution (prism-integration cycle) |
 | **Current Step** | F2 adversarial convergence — pass-28 remediation COMPLETE (burst 25), pass 29 pending — CLEAN STREAK 1/3 in progress |
 
@@ -49,14 +49,24 @@ dtu_services: [prism-demo-server, jr-mock]
 | Phase | Status | Started | Completed | Gate | Finding Progression |
 |-------|--------|---------|-----------|------|---------------------|
 | pre-0: Pre-pipeline | PASSED | 2026-07-19 | 2026-07-19 | PASS | — |
-| 0: Codebase Ingestion + Remediation | COMPLETE | 2026-07-19 | 2026-07-20 | PASS | 12→11→7→8(1FP)→6→6→6→6(CRITICAL)→4→5→2→1→0; ADV-R1-4 CLEAN |
+| 0: Codebase Ingestion + Remediation | COMPLETE | 2026-07-19 | 2026-07-20 | PASS | →5→2→1→0; ADV-R1-4 CLEAN |
 | F1: Delta Analysis | PASSED | 2026-07-19 | 2026-07-20 | PASS | consistency: 7→0 |
 | F2: Spec Evolution | in-progress — pass28 remediated, pass29 pending | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated → pass10 1C/2M → pass10 remediated → pass11 1C/3M → pass11 remediated → pass12 2C/2M → pass12 remediated → pass13 2C/1M → pass13 remediated → pass14 0C/2M/3m → pass14 remediated → pass15 0C/1M/2m → pass15 remediated → pass16 0C/1M/2m → pass16 remediated → consistency-audit remediated (12 findings, all coherence) → pass17 0C/3M → pass17 remediated → pass18 0C/2M/1med → pass18 remediated → pass19 1C/1m → pass19 remediated → pass20 0C/1M/3med/3m → pass20 remediated → pass21 0C/2M/2med/1m → pass21 remediated → pass22 1C/2M/1med/1m → pass22 remediated → pass23 0C/1M/5med/1m → pass23 remediated → pass24 0C/0M/4med → pass24 remediated → pass25 0C/1M/1med → pass25 remediated → pass26 0C/1M/2med → pass26 remediated → pass27 remediated → pass28 0C/0M/1med → pass28 remediated |
+| F2 adversary pass-29 | pending | | | | — |
+| F2 fix burst 26 | not-started | | | | — |
 | F3: Incremental Stories | not-started | | | | |
 | F4: Delta Implementation | not-started | | | | |
 | F5: Scoped Adversarial | not-started | | | | |
 | F6: Targeted Hardening | not-started | | | | |
 | F7: Delta Convergence | not-started | | | | |
+
+## Convergence Status
+
+| Metric | Value |
+|--------|-------|
+| Clean passes | 0/3 |
+| Last adversary pass | pass-28 (0C/0M/1med) REMEDIATED |
+| Next action | adversary pass-29 |
 
 ## Current Phase Steps
 
@@ -140,6 +150,8 @@ dtu_services: [prism-demo-server, jr-mock]
 | DI-015 | Known-FP store integrity residual (P12-003 / D-016 / D-019): a poisoned known-FP store entry could suppress a real LOW/MED-severity alert via the fast-path floor exemption. Mitigations in place: store is not LLM-writable, is audited at every use, and is subject to periodic operator review. D-019 further bounds this residual: HIGH/CRIT-native known-FPs now route to human review (comment-review) rather than auto-close — a poisoned high-sev store entry gets a human glance, NOT silent auto-close. Risk accepted per D-016/D-019; bounded by store governance, not LLM trust model. | MEDIUM | pre-production / store-governance | ADV-F2-P12-003 | OPEN — KNOWN-DEFERRED |
 | DI-017 | verdict.org_slug is LLM-supplied but unvalidated where it selects config (read_org_project_key lookup key) and is written into marker.org_slug for downstream org scoping; validate_enums() never checks org_slug format or membership against the configured [[orgs]] set. ASM-008-class residual, bounded by the D-028 org-binding (KEY1/KEY2 still constrained to SOME configured org's project key). Recommended hardening: validate org_slug against configured [[orgs]] before resolution. | MEDIUM | ASM-008 resolution / pre-production | ADV-F2-P24-006 | OPEN — KNOWN-DEFERRED |
 
+| MIG-001 | Engine uplift to vsdd-factory 1.0.0-rc.24 + .factory/ artifact-path canonicalization deferred to F3 cycle boundary. Health check (this session) found: (1) .claude/settings.json enable key is BROKEN — `vsdd-factory@vsdd-factory` should be `vsdd-factory@claude-mp` (marketplace `vsdd-factory` does not exist); (2) project ran on rc.22 (now purged from cache); newest cached engine = rc.24; no project pin in installed_plugins.json; (3) relocate-artifact --dry-run = 126 path violations vs rc.24 canonical registry: 48 MAPPABLE (22 BCs -> specs/behavioral-contracts/ss-NN/, 26 adversarial passes -> cycles/{id}/), 78 UNMAPPED (holdout-scenarios, phase-0 ingestion outputs, F1/F2 delta docs, dtu-assessment, session-handoff, spec-changelog — no canonical target in engine-owned registry); (4) rc.24 validate-artifact-path deny-hook appears fail-open/non-blocking (on_error=continue; not enumerated in active hooks.json; project wrote all 126 files fine on rc.22) but not statically proven. F3-boundary task: fix enable key -> vsdd-factory@claude-mp; relocate the 48 mappable files w/ cross-ref + index updates; resolve EC-007 bc_id/subsystem frontmatter gap on the 22 BCs; decide handling for the 78 unmapped (engine-registry support vs accept-as-is). | MEDIUM | F3 cycle boundary (pre-F3-story-decomposition) | orchestrator health-check 2026-09-01 | OPEN — DEFERRED (human-approved: finish F2 on current engine first) |
+
 ## Blocking Issues
 
 <!-- Open issues only. Move resolved issues to cycles/<cycle>/blocking-issues-resolved.md. -->
@@ -153,8 +165,12 @@ dtu_services: [prism-demo-server, jr-mock]
 |-------|-------|
 | **Date** | 2026-07-29 |
 | **Position** | Pass-28 remediation COMPLETE (burst 25). Severity trend: p22 1C/2M → p23 0C/1M/5med → p24 0C/0M/4med → p25 0C/1M/1med → p26 0C/1M/2med → p27 0C/1M/1med → p28 0C/0M/1med — CONVERGING; pass 28 had zero MAJOR, findings confined to the just-changed P27-002 WRITE_MARKER edit. NEXT: adversarial pass 29 (fresh context; carry D-023..D-029 as settled). If pass 29 is clean (0C/0M/0med), that is the FIRST of 3 required clean passes. Clean streak 0/3. |
-| **Context** | Artifact versions: arch-delta v1.30, verif-delta v1.30, prd-delta v1.28, dtu-assessment v1.5, BC-3.03.001 v1.37, BC-3.01.001 v1.25, BC-10.01.001 v1.29, BC-4.02.001 v1.20, BC-5.01.001 v1.14, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 74 allocated, 73 live (SM-9..SM-81; SM-32=32a+32b+32-ext; SM-55 skipped; SM-50 retired). NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. |
+| **Context** | Artifact versions: arch-delta v1.30, verif-delta v1.30, prd-delta v1.28, dtu-assessment v1.5, BC-3.03.001 v1.37, BC-3.01.001 v1.25, BC-10.01.001 v1.29, BC-4.02.001 v1.20, BC-5.01.001 v1.14, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 74 allocated, 73 live (SM-9..SM-81; SM-32=32a+32b+32-ext; SM-55 skipped; SM-50 retired). NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. Health check 2026-09-01: engine=unpinned/floats-to-rc.24; enable key broken (see MIG-001); rc.24 uplift + artifact relocation DEFERRED to F3 boundary; F2 convergence continues on current engine. Durability push done (factory-artifacts @ 36f3291). |
 | **Convergence counter** | 0/3 clean passes |
+
+## Concurrent Cycles
+
+None — single active cycle: v0.10.0-feature-prism-integration
 
 ## Historical Content
 

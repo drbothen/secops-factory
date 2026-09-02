@@ -37,6 +37,51 @@ assert_same_json() {
     done
 }
 
+@test "parity: every .ps1 hook has a .sh sibling" {
+    for ps_hook in "$PLUGIN_ROOT"/hooks/*.ps1; do
+        base=$(basename "$ps_hook" .ps1)
+        [ -f "$PLUGIN_ROOT/hooks/$base.sh" ]
+    done
+}
+
+@test "parity: every script in scripts/ that is .sh or has no extension has a .ps1 sibling" {
+    # SCRIPTS_ROOT is two levels up from the plugin: secops-factory/scripts/
+    SCRIPTS_ROOT="$(cd "$PLUGIN_ROOT/../.." && pwd)/scripts"
+    [ -d "$SCRIPTS_ROOT" ] || skip "scripts/ directory not found at $SCRIPTS_ROOT"
+    for script in "$SCRIPTS_ROOT"/*; do
+        [ -f "$script" ] || continue
+        fname=$(basename "$script")
+        # Skip .ps1 files (they are the counterparts we are checking FOR)
+        [[ "$fname" == *.ps1 ]] && continue
+        # Only enforce parity for .sh scripts and extension-less scripts
+        if [[ "$fname" == *.sh ]]; then
+            base="${fname%.sh}"
+        else
+            # Extension-less: treat as needing a .ps1 sibling
+            [[ "$fname" == *.* ]] && continue  # skip other extensions (e.g., .py, .env)
+            base="$fname"
+        fi
+        if [ ! -f "$SCRIPTS_ROOT/$base.ps1" ]; then
+            echo "MISSING .ps1 counterpart for: scripts/$fname" >&2
+            false
+        fi
+    done
+}
+
+@test "parity: every .ps1 script in scripts/ has a .sh or extension-less sibling" {
+    SCRIPTS_ROOT="$(cd "$PLUGIN_ROOT/../.." && pwd)/scripts"
+    [ -d "$SCRIPTS_ROOT" ] || skip "scripts/ directory not found at $SCRIPTS_ROOT"
+    for ps_script in "$SCRIPTS_ROOT"/*.ps1; do
+        [ -f "$ps_script" ] || continue
+        base=$(basename "$ps_script" .ps1)
+        # Accept either a .sh counterpart or an extension-less counterpart
+        if [ ! -f "$SCRIPTS_ROOT/$base.sh" ] && [ ! -f "$SCRIPTS_ROOT/$base" ]; then
+            echo "MISSING .sh or extension-less counterpart for: scripts/$base.ps1" >&2
+            false
+        fi
+    done
+}
+
 @test "parity: hooks.json and hooks.json.windows declare the same hook set" {
     unix_hooks=$(jq -r '[.hooks[][].hooks[].command] | length' "$PLUGIN_ROOT/hooks/hooks.json")
     win_hooks=$(jq -r '[.hooks[][].hooks[].command] | length' "$PLUGIN_ROOT/hooks/hooks.json.windows")

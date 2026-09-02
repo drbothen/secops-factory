@@ -70,6 +70,26 @@ Verify all 15 checklists exist in `${CLAUDE_PLUGIN_ROOT}/checklists/`. Missing �
 
 Verify all skill directories under `${CLAUDE_PLUGIN_ROOT}/skills/` contain a `SKILL.md` file. Missing → FAIL with list.
 
+### 7. Windows Prerequisites (win32 only)
+
+Run this check only on Windows (`process.platform === 'win32'` in Node, or detect via
+`$IsWindows` in PowerShell, or `[[ "$OSTYPE" == "msys"* ]]` in bash). Skip silently on
+macOS/Linux — do not emit a row for non-Windows hosts.
+
+Check each item in order and print **guided remediation** for any missing item:
+
+| # | Check | Command | PASS condition | Remediation on FAIL |
+|---|-------|---------|----------------|---------------------|
+| 1 | **PowerShell 7.4+** | `pwsh -NoProfile -Command '$PSVersionTable.PSVersion.Major'` | Output ≥ 7 | `winget install -e --id Microsoft.PowerShell` |
+| 2 | **Native bash (Git Bash / MSYS2)** | `Get-Command bash -ErrorAction SilentlyContinue` in pwsh | Command found AND path does NOT contain `System32` | `winget install -e --id Git.Git` |
+| 3 | **direnv on PATH** | `direnv version` | Exits 0, version string returned | `winget install -e --id direnv.direnv` |
+| 4 | **direnv bash_path pinned** | `direnv status` | Output contains a bash path that does NOT contain `System32` | Edit `~/.config/direnv/direnv.toml` — see `direnv.toml.example` in the repo root |
+| 5 | **Node.js 18+** | `node --version` | Output starts with `v` and major version ≥ 18 | `winget install -e --id OpenJS.NodeJS.LTS` |
+| 6 | **prism binary present** | Check `${CLAUDE_PLUGIN_DATA}/prism.exe` exists | File found | Run the `activate` skill: `/secops-factory:activate` |
+
+Report each as PASS or FAIL with the remediation command inline.
+If CLAUDE_PLUGIN_DATA is not set, report WARN and note that `activate` must run first.
+
 ## Output Format
 
 Emit a markdown table:
@@ -82,6 +102,7 @@ Emit a markdown table:
 | Templates | PASS/FAIL | ... |
 | Checklists | PASS/FAIL | ... |
 | Skills | PASS/FAIL | ... |
+| Windows Prereqs | PASS/FAIL/SKIP | ... (SKIP on non-Windows) |
 
 Overall: **HEALTHY** if all required checks PASS; **DEGRADED** if any WARN; **UNHEALTHY** if any FAIL.
 

@@ -50,4 +50,16 @@ Verify all 15 checklists exist in `${CLAUDE_PLUGIN_ROOT}/checklists/`.
 
 Verify all 13 skill directories exist with SKILL.md files.
 
+### 7. Windows Prerequisites (win32 only — SKIP on macOS/Linux)
+
+On Windows hosts only, check for each prereq in order and print guided remediation for any missing item:
+
+1. **PowerShell 7.4+**: `pwsh -NoProfile -Command '$PSVersionTable.PSVersion.Major'` — must be ≥ 7. Remediation: `winget install -e --id Microsoft.PowerShell`
+2. **Native bash (Git Bash / MSYS2)**: `Get-Command bash` — must exist and path must NOT contain `System32`. Remediation: `winget install -e --id Git.Git`
+3. **direnv on PATH**: `direnv version` — must exit 0. Remediation: `winget install -e --id direnv.direnv`
+4. **direnv bash_path pinned**: `direnv status` — bash path must NOT contain `System32`. Remediation: Edit `~/.config/direnv/direnv.toml` — see `direnv.toml.example` in repo root.
+5. **Node.js 18+**: `node --version` — major version must be ≥ 18. Remediation: `winget install -e --id OpenJS.NodeJS.LTS`
+6. **prism.exe present**: `${CLAUDE_PLUGIN_DATA}/prism.exe` must exist. Remediation: Run `/secops-factory:activate`
+
 Report: PASS/FAIL/WARN for each category with specific missing items.
+Windows Prereqs row is SKIP on non-Windows hosts.

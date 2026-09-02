@@ -1,8 +1,10 @@
 .factory/
 .reference/
 
-# Local environment & MCP configs (contain API keys — never commit)
-.envrc
+# Local environment overrides — committed template is .envrc.secrets.example
+.envrc.secrets
+.envrc.backup-*
+
+# Other local-only files
 .env
-.mcp.json
 .claude/settings.local.json

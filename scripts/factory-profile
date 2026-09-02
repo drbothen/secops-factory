@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+# factory-profile — switch secops-factory between local / hybrid / cloud model backends.
+#
+#   factory-profile                 show active profile + resolved tier mapping
+#   factory-profile local           switch to DGX Spark via Tailscale
+#   factory-profile hybrid          switch to frontier judgment + local execution
+#   factory-profile cloud           switch to all-cloud (Claude Platform on AWS)
+#   factory-profile doctor          health-check the active profile end to end
+#
+# Env vars are read by Claude Code at process start, so a switch takes effect on
+# the next `claude` launch. This script tells you when a restart is needed.
+
+set -uo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+MARKER="$ROOT/.factory-profile"
+PROFILES="$ROOT/profiles"
+VALID=(local hybrid cloud)
+
+c_r=$'\033[31m'; c_g=$'\033[32m'; c_y=$'\033[33m'; c_b=$'\033[1m'; c_0=$'\033[0m'
+ok(){ printf '  %s+%s %s\n' "$c_g" "$c_0" "$1"; }
+bad(){ printf '  %sx%s %s\n' "$c_r" "$c_0" "$1"; }
+warn(){ printf '  %s!%s %s\n' "$c_y" "$c_0" "$1"; }
+
+active(){ [ -f "$MARKER" ] && tr -d '[:space:]' < "$MARKER" || echo hybrid; }
+
+is_valid(){ local p="$1"; for v in "${VALID[@]}"; do [ "$p" = "$v" ] && return 0; done; return 1; }
+
+show(){
+  local p; p="$(active)"
+  printf '%sactive profile:%s %s%s%s\n\n' "$c_b" "$c_0" "$c_b" "$p" "$c_0"
+  # shellcheck disable=SC1090
+  ( set +u; . "$PROFILES/$p.env" 2>/dev/null
+    printf '  endpoint  %s\n' "${ANTHROPIC_BASE_URL:-<provider default: AWS>}"
+    printf '  opus      %s\n' "${ANTHROPIC_DEFAULT_OPUS_MODEL:-<provider default>}"
+    printf '  sonnet    %s\n' "${ANTHROPIC_DEFAULT_SONNET_MODEL:-<provider default>}"
+    printf '  haiku     %s\n' "${ANTHROPIC_DEFAULT_HAIKU_MODEL:-<provider default>}"
+  )
+  case "$p" in
+    local)  printf '\n  requires: scripts/litellm-gateway.sh up  +  Tailscale connection\n' ;;
+    hybrid) printf '\n  requires: scripts/litellm-gateway.sh up\n' ;;
+  esac
+}
+
+doctor(){
+  local p; p="$(active)"; local fail=0
+  printf '%sdoctor — profile: %s%s\n\n' "$c_b" "$p" "$c_0"
+
+  # shellcheck disable=SC1090
+  ( set +u; . "$PROFILES/$p.env" 2>/dev/null
+
+    if [ -n "${ANTHROPIC_BASE_URL:-}" ]; then
+      # The LiteLLM gateway requires auth on /v1/models (401 without), so send the
+      # token. LM Studio does not require it but ignores it harmlessly.
+      if curl -sf -m 5 \
+           -H "Authorization: Bearer ${ANTHROPIC_AUTH_TOKEN:-none}" \
+           -H "x-api-key: ${ANTHROPIC_AUTH_TOKEN:-none}" \
+           "$ANTHROPIC_BASE_URL/v1/models" >/tmp/fp-models.json 2>/dev/null; then
+        ok "endpoint reachable: $ANTHROPIC_BASE_URL"
+      else
+        bad "endpoint UNREACHABLE: $ANTHROPIC_BASE_URL"
+        [ "$p" = hybrid ] && warn "start it: scripts/litellm-gateway.sh up"
+        [ "$p" = local ]  && warn "start it: scripts/litellm-gateway.sh up  (and verify Tailscale)"
+        exit 1
+      fi
+      local have; have=$(python3 -c "
+import json,sys
+try: print(' '.join(m['id'] for m in json.load(open('/tmp/fp-models.json')).get('data',[])))
+except Exception: pass" 2>/dev/null)
+      for tier in OPUS SONNET HAIKU; do
+        eval "m=\${ANTHROPIC_DEFAULT_${tier}_MODEL:-}"
+        [ -z "${m:-}" ] && continue
+        case " $have " in
+          *" $m "*) ok "$(printf '%-6s' "${tier,,}") $m" ;;
+          *)        bad "$(printf '%-6s' "${tier,,}") $m  — NOT SERVED"; fail=1 ;;
+        esac
+      done
+      # live round-trip on the sonnet tier
+      if [ -n "${ANTHROPIC_DEFAULT_SONNET_MODEL:-}" ]; then
+        if curl -sf -m 90 -X POST "$ANTHROPIC_BASE_URL/v1/messages" \
+             -H 'Content-Type: application/json' \
+             -H "x-api-key: ${ANTHROPIC_AUTH_TOKEN:-none}" \
+             -H 'anthropic-version: 2023-06-01' \
+             -d "{\"model\":\"$ANTHROPIC_DEFAULT_SONNET_MODEL\",\"max_tokens\":8,\"messages\":[{\"role\":\"user\",\"content\":\"Reply OK\"}]}" \
+             | tr -d ' \n' | grep -q '"type":"message"'; then
+          ok "/v1/messages round-trip"
+        else
+          bad "/v1/messages round-trip FAILED"; fail=1
+        fi
+      fi
+    else
+      ok "using provider default endpoint (AWS)"
+      [ -n "${ANTHROPIC_AWS_API_KEY:-}" ] && ok "AWS key present" || { bad "AWS key missing"; fail=1; }
+    fi
+    exit $fail
+  )
+  fail=$?
+  echo
+  [ $fail -eq 0 ] && printf '%sall checks passed%s\n' "$c_g" "$c_0" || printf '%schecks failed%s\n' "$c_r" "$c_0"
+  return $fail
+}
+
+case "${1:-show}" in
+  show|"") show ;;
+  doctor)  doctor ;;
+  local|hybrid|cloud)
+    prev="$(active)"
+    printf '%s' "$1" > "$MARKER"
+    printf '%sswitched:%s %s -> %s%s%s\n\n' "$c_b" "$c_0" "$prev" "$c_b" "$1" "$c_0"
+    show
+    if command -v direnv >/dev/null 2>&1; then
+      printf '\n  run %sdirenv reload%s (or cd out/in), then restart claude\n' "$c_b" "$c_0"
+    else
+      printf '\n  restart claude to pick this up\n'
+    fi
+    ;;
+  *) printf 'unknown: %s\nusage: factory-profile [local|hybrid|cloud|doctor]\n' "$1" >&2; exit 2 ;;
+esac

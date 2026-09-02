@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "prism": {
+      "command": "${CLAUDE_PLUGIN_DATA}/prism",
+      "args": ["--config-dir", "${CLAUDE_PROJECT_DIR}/.secops/prism", "start"],
+      "env": { "RUST_LOG": "off" }
+    },
+    "perplexity": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@perplexity-ai/mcp-server"],
+      "env": { "PERPLEXITY_API_KEY": "${PERPLEXITY_API_KEY}" }
+    },
+    "exa": {
+      "type": "http",
+      "url": "https://mcp.exa.ai/mcp?exaApiKey=${EXA_API_KEY}"
+    }
+  }
+}

@@ -50,12 +50,20 @@ if not moves:
     print("v .mcp.json already secret-free. Nothing to do.")
     sys.exit(0)
 
-# Append to the secrets file, replacing any stale line for the same var.
+# Write order is intentional: secrets file first, then .mcp.json.
+# If interrupted mid-run, the key is preserved in the secrets file
+# and .mcp.json still holds plaintext — a safe state that a re-run
+# will clean up (idempotent). Reversing the order would lose the key
+# on interruption, which is unrecoverable.
 with open(secrets_path) as f:
     lines = f.read().splitlines()
 for var, val in moves:
     lines = [l for l in lines if not re.match(rf"^\s*export\s+{var}=", l)]
-    lines.append(f'export {var}="{val}"')
+    # Single-quote wrapping with embedded-single-quote escaping (CWE-116).
+    # This prevents shell metacharacters in the key value from being
+    # interpreted when .envrc.secrets is sourced by bash/direnv.
+    escaped = val.replace("'", "'\\''")
+    lines.append(f"export {var}='{escaped}'")
 with open(secrets_path, "w") as f:
     f.write("\n".join(lines) + "\n")
 os.chmod(secrets_path, stat.S_IRUSR | stat.S_IWUSR)  # keep 600
@@ -69,7 +77,7 @@ for var, val in moves:
 
 # verify nothing secret-shaped remains
 with open(mcp_path) as f:
-    residue = re.findall(r"(pplx-|tvly-|ctx7sk-)[A-Za-z0-9_-]{8,}", f.read())
+    residue = re.findall(r"(pplx-|tvly-|ctx7sk-|exa_)[A-Za-z0-9_-]{8,}", f.read())
 print("x RESIDUE REMAINS in .mcp.json!" if residue else "v .mcp.json is secret-free; safe to track in git.")
 sys.exit(1 if residue else 0)
 PY

@@ -1,6 +1,7 @@
 {
   "mcpServers": {
     "prism": {
+      "type": "stdio",
       "command": "${CLAUDE_PLUGIN_DATA}/prism",
       "args": ["--config-dir", "${CLAUDE_PROJECT_DIR}/.secops/prism", "start"],
       "env": { "RUST_LOG": "off" }

@@ -49,6 +49,21 @@ jobs:
             Write-Host 'PSScriptAnalyzer: no errors or warnings'
           "
 
+      - name: PSScriptAnalyzer lint on scripts/*.ps1
+        run: |
+          set -euo pipefail
+          pwsh -NoProfile -Command "
+            Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+            Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser -ErrorAction Stop
+            \$results = Invoke-ScriptAnalyzer -Path 'scripts' -Recurse -Severity Error,Warning \`
+              -Settings '.github/PSScriptAnalyzerSettings.psd1'
+            if (\$results) {
+              \$results | Format-Table -AutoSize
+              exit 1
+            }
+            Write-Host 'PSScriptAnalyzer scripts/: no errors or warnings'
+          "
+
       - name: Run test suite
         run: cd plugins/secops-factory/tests && ./run-all.sh
 
@@ -141,6 +156,11 @@ jobs:
           done
           exit $status
 
+      - name: Check .mcp.json files for literal API-key residue
+        run: |
+          set -euo pipefail
+          bash scripts/check-mcp-no-secrets.sh
+
   shellcheck:
     name: Shellcheck Hooks
     runs-on: ubuntu-latest
@@ -155,3 +175,6 @@ jobs:
 
       - name: Run shellcheck on hook scripts
         run: shellcheck plugins/secops-factory/hooks/*.sh
+
+      - name: Run shellcheck on scripts/
+        run: shellcheck scripts/*.sh

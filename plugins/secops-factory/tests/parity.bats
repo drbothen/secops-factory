@@ -186,3 +186,55 @@ assert_same_json() {
     assert_same_json
     [[ "$SH_OUT" == *"Morgan here"* ]]
 }
+
+# ---------------------------------------------------------------------------
+# check-mcp-no-secrets parity tests
+# ---------------------------------------------------------------------------
+
+@test "check-mcp-no-secrets: .sh exits 0 on clean .mcp.json" {
+    SCRIPTS_ROOT="$(cd "$PLUGIN_ROOT/../.." && pwd)/scripts"
+    # Use template-based mktemp for macOS/Linux portability (no --suffix flag).
+    clean_mcp=$(mktemp /tmp/check-mcp-clean-XXXXXX)
+    printf '{"mcpServers":{"foo":{"type":"http","url":"https://api.example.com/mcp?key=${MY_KEY}"}}}\n' > "$clean_mcp"
+    run bash "$SCRIPTS_ROOT/check-mcp-no-secrets.sh" "$clean_mcp"
+    [ "$status" -eq 0 ]
+    rm -f "$clean_mcp"
+}
+
+@test "check-mcp-no-secrets: .sh exits 1 when pplx- literal is present" {
+    SCRIPTS_ROOT="$(cd "$PLUGIN_ROOT/../.." && pwd)/scripts"
+    dirty_mcp=$(mktemp /tmp/check-mcp-dirty-XXXXXX)
+    printf '{"mcpServers":{"perplexity":{"type":"http","headers":{"Authorization":"Bearer pplx-abc123defghijklmno"}}}}\n' > "$dirty_mcp"
+    run bash "$SCRIPTS_ROOT/check-mcp-no-secrets.sh" "$dirty_mcp"
+    [ "$status" -eq 1 ]
+    rm -f "$dirty_mcp"
+}
+
+@test "check-mcp-no-secrets: .sh exits 1 when sk- generic literal is present" {
+    SCRIPTS_ROOT="$(cd "$PLUGIN_ROOT/../.." && pwd)/scripts"
+    dirty_mcp=$(mktemp /tmp/check-mcp-dirty-XXXXXX)
+    printf '{"mcpServers":{"foo":{"type":"http","headers":{"Authorization":"Bearer sk-ABCDEFGHIJKLMNOPQRSTU"}}}}\n' > "$dirty_mcp"
+    run bash "$SCRIPTS_ROOT/check-mcp-no-secrets.sh" "$dirty_mcp"
+    [ "$status" -eq 1 ]
+    rm -f "$dirty_mcp"
+}
+
+@test "check-mcp-no-secrets: .ps1 exits 0 on clean .mcp.json" {
+    require_pwsh
+    SCRIPTS_ROOT="$(cd "$PLUGIN_ROOT/../.." && pwd)/scripts"
+    clean_mcp=$(mktemp /tmp/check-mcp-clean-XXXXXX)
+    printf '{"mcpServers":{"foo":{"type":"http","url":"https://api.example.com/mcp?key=${MY_KEY}"}}}\n' > "$clean_mcp"
+    run pwsh -NoProfile -File "$SCRIPTS_ROOT/check-mcp-no-secrets.ps1" "$clean_mcp"
+    [ "$status" -eq 0 ]
+    rm -f "$clean_mcp"
+}
+
+@test "check-mcp-no-secrets: .ps1 exits 1 when tvly- literal is present" {
+    require_pwsh
+    SCRIPTS_ROOT="$(cd "$PLUGIN_ROOT/../.." && pwd)/scripts"
+    dirty_mcp=$(mktemp /tmp/check-mcp-dirty-XXXXXX)
+    printf '{"mcpServers":{"tavily":{"type":"http","url":"https://api.tavily.com?tavilyApiKey=tvly-abc123defghijkl"}}}\n' > "$dirty_mcp"
+    run pwsh -NoProfile -File "$SCRIPTS_ROOT/check-mcp-no-secrets.ps1" "$dirty_mcp"
+    [ "$status" -eq 1 ]
+    rm -f "$dirty_mcp"
+}

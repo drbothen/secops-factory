@@ -213,7 +213,8 @@ Open `.envrc.secrets` in an editor and fill in your keys:
 | `EXA_API_KEY` | Required | exa MCP server (URL query parameter in `.mcp.json`) |
 | `TAVILY_API_KEY` | Optional | Tavily MCP server if you add it to `.mcp.json` |
 | `CONTEXT7_API_KEY` | Optional | Context7 MCP server if you add it to `.mcp.json` |
-| `ANTHROPIC_AWS_API_KEY` | Required for `cloud` profile | AWS Bedrock authentication, sourced by `profiles/cloud.env` |
+| `ANTHROPIC_AWS_API_KEY` | Required for `cloud`/`hybrid` profiles | AWS Bedrock authentication |
+| `ANTHROPIC_AWS_WORKSPACE_ID` | Required for `cloud`/`hybrid` profiles | AWS Bedrock workspace ID; consumed by `profiles/cloud.env` |
 
 `.envrc.secrets` is listed in `.gitignore` and must never be committed. Keep permissions
 at 600 (owner read/write only).
@@ -245,17 +246,18 @@ Three model-routing profiles are shipped in `profiles/`:
 ### `cloud` — all-frontier via AWS Bedrock (default for shipping)
 
 ```sh
-# Environment set by profiles/cloud.env:
+# Environment set by .envrc.secrets + profiles/cloud.env:
 CLAUDE_CODE_USE_ANTHROPIC_AWS=1
 AWS_REGION=us-east-1
-ANTHROPIC_AWS_WORKSPACE_ID=wrkspc_013c8SxC8cMTttFTyDDPchwq
+ANTHROPIC_AWS_WORKSPACE_ID=<from .envrc.secrets>
 ANTHROPIC_DEFAULT_OPUS_MODEL=claude-opus-4-8
 # ANTHROPIC_BASE_URL is unset — Claude Code resolves against AWS directly
 # ANTHROPIC_DEFAULT_SONNET_MODEL and _HAIKU_MODEL are unset (provider defaults)
 ```
 
-**Infrastructure required:** `ANTHROPIC_AWS_API_KEY` in `.envrc.secrets` (or in the macOS
-Keychain under service name `anthropic-aws-api-key`). No local gateway. No Tailscale.
+**Infrastructure required:** `ANTHROPIC_AWS_API_KEY` and `ANTHROPIC_AWS_WORKSPACE_ID` in
+`.envrc.secrets` (API key alternatively in the macOS Keychain under service name
+`anthropic-aws-api-key`). No local gateway. No Tailscale.
 
 ### `hybrid` — frontier judgment + local execution (recommended for development)
 

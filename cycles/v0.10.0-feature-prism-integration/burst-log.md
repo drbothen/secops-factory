@@ -1831,3 +1831,90 @@ BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.
 VP **21 FIN + 6 PROP = 27** (41 in registry) / SM 74 alloc, 73 live.
 BATS: 113 (unchanged — VP-SKILL-073 PROPOSED P1; no FINALIZED test added).
 Convergence-gate (P0 FINALIZED) count UNCHANGED at 21.
+
+---
+
+## Burst 40 — Pass-41 P41-001 + P41-002 + P41-003 Remediation (SUBSTANTIVE — Watermark Validation Guard + Field-18 Map + §6 Threshold Fix, 2026-09-03)
+
+**Trigger:** F2 adversarial pass-41 — NOT CLEAN (0C/1M/2med/0min/0obs). Three findings:
+- P41-001 (MAJOR — PARTIAL-FIX PROPAGATION MISS): verification-delta §6 L1949 strategy note + L1952 BATS-vector description still stated old unreachable `watermark−GRACE` threshold — internal contradiction vs corrected §1 row; burst-39/40 correction applied to §1 only.
+- P41-002 (MEDIUM — PRE-EXISTING P12-003 RESIDUAL): prd-delta field-18 known-FP fast-path set `scored_priority = raw NORMALIZE_SEVERITY` (SEVERITY_ENUM) — would fail `validate_enums()` (SCORED_PRIORITY_ENUM mismatch); must map via `SEVERITY_TO_SCORED_PRIORITY_MAP`.
+- P41-003 (MEDIUM — MISSING VALIDATION GUARD): DETECT_LATE_EVENT read raw watermark without READ_WATERMARK's RFC3339/future-date validation → corrupt/future watermark → LATE_EVENT_DETECTED flood (EC-002/EC-003 false-positive storm).
+
+**Agents:** architect (arch-delta v1.33 — validation guard + EC-024), product-owner (BC-10.01.001 v1.35 + prd-delta v1.38 + BC-3.03.001 cross-ref pin), formal-verifier (verification-delta v1.37 — §6 corrected + VP-SKILL-073 expanded + SM-82/SM-83 + 15 BC pins), state-manager.
+
+**Substantive change:** MULTI-PRONGED: (1) new validation guard on DETECT_LATE_EVENT watermark read path (P41-003 new behavior); (2) field-18 type-mapping correction (P41-002 precision fix); (3) §6 propagation alignment (P41-001 consistency fix). Second consecutive substantive burst; SM 74→76 alloc, 73→75 live.
+
+### F-001 — architecture-delta v1.32 → v1.33
+
+DETECT_LATE_EVENT now reuses READ_WATERMARK's RFC3339 + future-date validation before the watermark comparison:
+- Invalid RFC3339 → early-return `DETECT_LATE_EVENT_SUPPRESSED(WATERMARK_INVALID)`
+- Future-dated watermark → early-return `DETECT_LATE_EVENT_SUPPRESSED(WATERMARK_FUTURE)`
+- §8.43 propagation list updated with new suppression paths.
+input-hash: `d7bcab4` (primary input delta-analysis.md — unchanged; only arch-delta own content changed; CONFIRMED UNCHANGED since v1.32).
+
+### F-002 — BC-10.01.001 v1.34 → v1.35
+
+- Inv#14 DETECT_LATE_EVENT sub-step: added validation guard before comparison — WATERMARK_INVALID and WATERMARK_FUTURE early-return paths.
+- EC-023 unchanged (threshold already correct from burst-39).
+- EC-024 ADDED: `DETECT_LATE_EVENT_SUPPRESSED` (WATERMARK_INVALID / WATERMARK_FUTURE) — EC count 23→24.
+- VP Anchors footer — no change (VP-SKILL-073 boundary already correct from burst-39).
+input-hash: `a9a1c5c` (PO-set; BC-10.01.001 input files unchanged from burst-39; only own content changed).
+
+### F-003 — prd-delta v1.37 → v1.38
+
+- Field-18 known-FP fast-path description: `scored_priority = raw NORMALIZE_SEVERITY` → `scored_priority = SEVERITY_TO_SCORED_PRIORITY_MAP[NORMALIZE_SEVERITY(...)]` (P41-002 map fix).
+- EC counts: §1/§3 BC-10.01.001 EC cell 23→24; §1 sum 55→56; §8 EC subtotal 23→24, grand total 79→80.
+- §5 BC-10.01.001 "New Version" cell: v1.34 → v1.35 (cascade).
+input-hash: `3eaba2b` (PO-set; recomputed — BC-10.01.001 is an input to prd-delta and changed v1.34→v1.35).
+
+### F-004 — BC-3.03.001 v1.42 (NO BUMP — cross-ref pin only)
+
+Cross-ref pin to BC-10.01.001 updated v1.34 → v1.35 in BC-3.03.001 body. No semantic change; no version bump.
+input-hash: `de1ff1d` (recomputed — BC-10.01.001 is the primary cross-referenced input; changed v1.34→v1.35).
+
+### F-005 — verification-delta v1.36 → v1.37
+
+- §6 L1949 strategy note: threshold corrected `watermark−GRACE` → raw `stored_watermark` (P41-001 fix).
+- §6 L1952 BATS-vector description: vector corrected to `event_time < stored_watermark` AND `event_time ≥ stored_watermark−GRACE` (reachable; old unreachable condition retired).
+- VP-SKILL-073 expanded: added EC-002/EC-003 LATE_EVENT_DETECTED suppression vectors + 3 new BATS vectors covering WATERMARK_INVALID, WATERMARK_FUTURE, and suppression paths.
+- SM-82 + SM-83 allocated for VP-SKILL-073 EC-002/EC-003 suppression states (PROPOSED P1, NOT P0-counting).
+- SM tally 74→76 alloc, 73→75 live (SM-82/SM-83 PROPOSED P1; P0-live unchanged).
+- 15 BC-10.01.001 pins cascaded v1.34→v1.35 (all LIVE sites, same set as burst-38/39).
+- "no SM-82" org_slug notes reworded (editorial).
+input-hash: NONE (DI-018: verification-delta ~840KB FUEL_EXHAUSTED; no input-hash frontmatter field).
+
+### Files Committed in Burst-40
+
+| File | Change |
+|------|--------|
+| `.factory/phase-f2-spec-evolution/architecture-delta.md` | v1.32→v1.33: DETECT_LATE_EVENT validation guard + DETECT_LATE_EVENT_SUPPRESSED; input-hash d7bcab4 |
+| `.factory/phase-0-ingestion/behavioral-contracts/BC-10.01.001.md` | v1.34→v1.35: Inv#14 validation guard + EC-024; EC 23→24; input-hash a9a1c5c |
+| `.factory/phase-f2-spec-evolution/prd-delta.md` | v1.37→v1.38: field-18 map fix; EC counts §1/§3 24, totals 56, §8 grand 80; §5 BC-10.01.001→v1.35; input-hash 3eaba2b |
+| `.factory/phase-0-ingestion/behavioral-contracts/BC-3.03.001.md` | cross-ref pin v1.34→v1.35 (no version bump); input-hash de1ff1d |
+| `.factory/phase-f2-spec-evolution/verification-delta.md` | v1.36→v1.37: §6 threshold corrected; VP-SKILL-073 expanded (EC-002/EC-003 suppression + 3 BATS vectors); SM-82/SM-83 added; SM tally 74→76 alloc, 73→75 live; 15 BC-10.01.001 pins v1.34→v1.35 |
+| `.factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass41.md` | new — pass-41 report |
+| `.factory/STATE.md` | awaiting → F2-adversarial-pass-42; streak 0/3; arch-delta cite v1.32→v1.33; SM tally 74→76 alloc, 73→75 live; checkpoint updated; version 2.34 |
+| `.factory/cycles/.../burst-log.md` | this entry + 2 archived steps from Current Phase Steps |
+| `.factory/cycles/.../convergence-trajectory.md` | pass-41 row + narrative appended; trajectory shorthand updated |
+| `.factory/cycles/.../session-checkpoints.md` | pass-40→pass-41 checkpoint archived |
+
+### Archived Steps from STATE.md Current Phase Steps (5-row limit)
+
+The following two oldest rows were displaced by addition of pass-41 + burst-40:
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 39 | adversary | DONE | 0C/0M/1med/0min/4obs — NOT CLEAN (streak 0/3). P39-001 MEDIUM SUBSTANTIVE: DETECT_LATE_EVENT behavior entirely absent from BC-10.01.001 (D-DEC-002; 25+ pass PO propagation oversight). Substance CLEAN (3rd consec 0C/0M). Architect IN-SCOPE. REMEDIATED burst-38. |
+| F2: burst-38 (SUBSTANTIVE behavior-add + VP anchoring + version cascade) | product-owner / state-manager | DONE | BC-10.01.001 v1.32→v1.33 (DETECT_LATE_EVENT sub-step Inv#14, EC-023, VP-073/074 anchored); prd-delta v1.35→v1.36 (§1 VP 25→27, §3 EC 54→55, §8 78→79); verif-delta v1.34→v1.35 (15 BC pins). VP 21 FIN + 6 PROP = 27. Lesson 55 codified. |
+
+### Versions After Burst-40
+
+**arch-delta v1.33** (DETECT_LATE_EVENT validation guard + DETECT_LATE_EVENT_SUPPRESSED; input-hash d7bcab4), **verif-delta v1.37** (§6 threshold corrected; VP-SKILL-073 expanded — EC-002/EC-003 suppression + 3 BATS vectors + SM-82/SM-83; SM tally 74→76 alloc, 73→75 live; 15 BC-10.01.001 pins v1.34→v1.35),
+**prd-delta v1.38** (field-18 map fix; EC counts §1/§3 24, totals 56, §8 grand 80; input-hash 3eaba2b), dtu-assessment v1.7,
+**BC-10.01.001 v1.35** (Inv#14 validation guard + EC-024; EC 23→24; input-hash a9a1c5c),
+BC-3.03.001 v1.42 (cross-ref pin → v1.35; input-hash de1ff1d), BC-3.01.001 v1.25, BC-4.02.001 v1.21, BC-5.01.001 v1.15,
+BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2.
+VP **21 FIN + 6 PROP = 27** (41 in registry) / SM **76 alloc, 75 live** (SM-82/SM-83 PROPOSED P1 — NOT P0-counting).
+BATS: 113 (unchanged — VP-SKILL-073 PROPOSED P1; §5 FINALIZED BATS unchanged).
+Convergence-gate (P0 FINALIZED) count UNCHANGED at 21.

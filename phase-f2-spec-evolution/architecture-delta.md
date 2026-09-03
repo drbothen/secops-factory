@@ -1,10 +1,11 @@
 ---
 document_type: architecture-delta
 producer: architect
-version: "1.32"
+version: "1.33"
 date: 2026-09-03
 input-hash: "d7bcab4"
 changelog:
+  - "1.33 (2026-09-03): P41-003 (MEDIUM) — DETECT_LATE_EVENT reuses validated watermark + early-returns on invalid/future — prevents corrupt-watermark LATE_EVENT flood (EC-002/EC-003 interaction). Root cause: DETECT_LATE_EVENT obtained its threshold by raw-cat of the watermark file, bypassing READ_WATERMARK's RFC3339/future-date validation. Divergence on corrupt watermark: (EC-003) future-dated watermark — READ_WATERMARK falls back to 24h (returns events with _time ≤ now); DETECT_LATE_EVENT compared every event against the raw future timestamp → event_time < future_ts is TRUE for all events → LATE_EVENT_DETECTED flood; D-DEC-002 monotonic-write guard (max(stored,ts)) means the future watermark is never overwritten → flood persists indefinitely. (EC-002) non-RFC3339 watermark — DETECT_LATE_EVENT does lexicographic comparison against garbage → likely fires for all events. Fix: DETECT_LATE_EVENT now applies the SAME RFC3339 and future-date validation as READ_WATERMARK before using the stored watermark as a threshold. If the watermark is NONE / non-RFC3339 / future-dated → early-return with DETECT_LATE_EVENT_SUPPRESSED audit entry (no late-event evaluation for that run; no flood) — consistent with READ_WATERMARK's 24h-fallback semantics (when the query falls back to now−24h there is no valid stored baseline to compare against). Valid-watermark threshold (stored_watermark, P40-001) and log-not-drop semantics unchanged. Propagation obligation for PO: BC-10.01.001 Inv#14 DETECT_LATE_EVENT sub-step must state it uses the validated watermark and early-returns on invalid/future; EC-023 or new EC should capture the corrupt-watermark-suppression case. Propagation obligation for FV: VP-SKILL-073 must add clause about invalid-watermark suppression (both RFC3339-invalid and future-dated cases suppress detection; DETECT_LATE_EVENT_SUPPRESSED audit entry emitted). Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.32 (2026-09-03): P40-001 (GENUINE LOGIC DEFECT) — DETECT_LATE_EVENT threshold corrected to raw watermark; was unreachable double-GRACE. Root cause: INGEST query floor is stored_watermark-GRACE (events with event_time > stored_watermark-GRACE are fetched); DETECT_LATE_EVENT previously fired on event_time < stored_watermark-GRACE — exactly the complement of what the query returns. The two sets are disjoint, so LATE_EVENT_DETECTED could never fire. Fix: threshold = stored_watermark (the raw watermark). Fire set = (stored_watermark-GRACE, stored_watermark) — the grace re-fetch window — non-empty and reachable for every late arrival. Semantic: an ingested event with event_time < stored_watermark arrived below the last persisted watermark but was only surfaced by the grace extension — a genuine late/out-of-order arrival. Log message corrected: 'below grace floor' to 'event_time below stored watermark'. First-run guard (no stored watermark → early return) and log-not-drop semantics unchanged. READ_WATERMARK grace_ts computation UNCHANGED — query floor stays stored_watermark-GRACE; only the detector threshold changes. Propagation obligation for PO: BC-10.01.001 Inv#14 (~L622) and EC-023 (~L753) threshold updated from event_time < stored_watermark-GRACE to event_time < stored_watermark. Propagation obligation for FV: VP-SKILL-073 (~L792) updated with same corrected condition. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.31 (2026-07-29): Pass-29 adversarial remediation burst 26. P29-001 (MEDIUM): WRITE_MARKER link_target definedness fixed COMPREHENSIVELY across ALL entry paths. Root cause: self-computing form `link_target = ticket_id_b IF action == 'link' ELSE null` referenced `ticket_id_b`, which is undefined on STEP-3 create-review GOTO and STEP-3 comment-review GOTO paths (those paths GOTO WRITE_MARKER before STEP 6; ticket_id_b is only set inside EMIT_LINK_MARKER). Same undefined-reference risk exists on STEP-6 non-link fall-through paths (comment/create/assign/close). Fix: (1) replaced self-computing form with defined()-guarded backstop `link_target = defined(link_target) ? link_target : null` inside WRITE_MARKER — mirrors BC-3.03.001 L876/L877 treatment of is_link_hard_floor and is_markdown_path; (2) added explicit `link_target = ticket_id_b` to EMIT_LINK_MARKER body (global, no local qualifier) before the WRITE_MARKER direct-invocation, so the EMIT_LINK_MARKER path sees link_target pre-assigned and the guard preserves it. Coverage per path: STEP-3 create-review GOTO — link_target never pre-assigned → guard sets null ✓; STEP-3 comment-review GOTO — same → null ✓; STEP-6 non-link fall-throughs (comment/create/assign/close) — link_target never pre-assigned → guard sets null ✓; markdown GOTO — link_target = null (setup block, P28-001) → guard preserves null ✓; EMIT_LINK_MARKER direct-invoke — link_target = ticket_id_b (explicit P29-001) → guard preserves ticket_id_b ✓. Full WRITE_MARKER-read-variable audit performed (reported in §8.42 audit table): {expires_at — computed inside WRITE_MARKER ✓; action — assigned on all paths ✓; ticket_id — assigned in STEP 3/6 branches, EMIT_LINK_MARKER, and markdown routing pseudocode ✓; is_markdown_path — boolean, unset=false correct for non-markdown paths ✓; org_slug — non-markdown paths read verdict.org_slug, not-reached via ternary on those paths ✓; verdict.org_slug — present verdict/link paths; not-reached on markdown path ✓; markdown_parsed_disposition — setup block on markdown path; not-reached elsewhere ✓; verdict.disposition — present verdict/link paths; not-reached on markdown path ✓; recomputed_severity — STEP 1a output on verdict/link paths; null in setup block on markdown path ✓; verdict.asset_type — present verdict/link paths; not-reached on markdown path ✓; link_target — NOW guarded (P29-001) ✓; is_link_hard_floor — boolean, unset=false correct for non-link paths ✓; pattern — assigned in STEP 3/6 branches, EMIT_LINK_MARKER, and markdown routing pseudocode ✓; ops — same as pattern ✓}. No other undefined-reference siblings found. Per-path table split: Path A (STEP 3 or STEP 6) split into Path A1 (STEP-3 create-review/comment-review GOTOs) and Path A2 (STEP-6 non-link fall-throughs) — these have different link_target assignment sets (neither pre-assigns link_target; both now covered by backstop). Table now has 4 columns: A1/A2/B/C. P29-OBS-1 (process-gap): §8.41.4 WRITE_MARKER-path-definedness grep gate rewritten to enumerate every GOTO WRITE_MARKER site and the direct invocation by name (STEP-3 create-review GOTO, STEP-3 comment-review GOTO, MARKDOWN_CREATE_REVIEW_PATH GOTO, MARKDOWN_COMMENT_REVIEW_PATH GOTO, STEP-6 non-link fall-throughs ×4, EMIT_LINK_MARKER direct-invoke). Gate now asserts all-sites coverage, not just the site patched in the current burst — closes the one-per-pass definedness-miss cycle. §8.42 propagation list added. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
   - "1.30 (2026-07-29): Pass-28 adversarial remediation burst 25. P28-001 (MEDIUM): WRITE_MARKER markdown-path variable definedness fixed. Canonical disposition-source variable for the markdown path: markdown_parsed_disposition (assigned in setup block as `markdown_parsed_disposition = parsed_disposition`; parsed_disposition was already set by parse_disposition_from_markdown(content) in the routing pseudocode). Removed dead alias `markdown_org_slug_field = org_slug` from setup block (WRITE_MARKER reads `org_slug` directly via its ternary; the alias was never consumed). Removed dead `markdown_asset_type = null` from setup block (WRITE_MARKER computes `asset_type_field = null IF is_markdown_path` inline; the setup-block assignment was never read). Added explicit `link_target = null` to setup block (action is NEVER 'link' on markdown path; ticket_id_b is undefined on this path — explicit assignment removes any undefined-reference risk; WRITE_MARKER self-computing form kept for verdict/link paths). Fixed misleading comment in setup block ('# disposition for audit trail: use markdown-parsed value' was placed above the org_slug assignment — corrected to accurately describe org_slug). Full per-path variable-definedness table added to WRITE_MARKER header comment covering all three entry paths (verdict STEP-6 GOTO, markdown review GOTO, EMIT_LINK_MARKER direct-invoke) and all variables WRITE_MARKER reads: {is_markdown_path, action, org_slug source, verdict.org_slug, markdown_parsed_disposition, verdict.disposition, recomputed_severity, verdict.asset_type, link_target / ticket_id_b, is_link_hard_floor}. P28-002 (MINOR): org_slug added to operational-metadata field roster (alongside autonomy_enabled, jira_project_key, confidence_score) as a required verdict field; ASM-008-class residual noted — org_slug is LLM-supplied on the verdict path, same class as native_severity/asset_type/scored_priority; the D-028 org-binding keys on it, so a forged org_slug can only bind KEY1/KEY2 to a different configured org's project key, which still fails-closed for cross-org writes; bounded residual. §8.41 PO obligation: add org_slug to BC-3.03.001 verdict-schema field roster + validate_enums() presence check. DI-017 cross-referenced. Obs-1 (multi-org): one-sentence note added to P26-003 ACCEPTED RESIDUAL block — on the markdown path, org_slug is sourced via get_org_slug_from_config() which has no basis to disambiguate in a multi-org deployment; since markdown-path org_slug feeds only the audit line and the marker's org_slug field (NOT authorization — command_pattern is the authority), the impact is bounded to audit-attribution fidelity; accepted residual. Obs-2 (process-gap): §8.41 FV obligation added — mechanical grep gate recommended: for each BC pseudocode GOTO WRITE_MARKER path, assert every variable WRITE_MARKER reads is assigned on that path (P28-001 is an instance of this class; SM-80 vector iv depends on the fix). §8.41 propagation list added. Architect does NOT edit BCs, verification-delta, prd-delta, or STATE.md."
@@ -801,15 +802,60 @@ MUST emit an explicit auditable log entry. The event is processed normally (not 
 the operator is alerted that WATERMARK_GRACE_SECONDS may need tuning if this fires frequently
 (P40-001: threshold is the raw watermark, NOT watermark−GRACE).
 
+If the stored watermark is non-RFC3339 (EC-002) or future-dated (EC-003), late-event
+detection is suppressed for that run and a `DETECT_LATE_EVENT_SUPPRESSED` audit entry is
+written instead — consistent with READ_WATERMARK's 24h-fallback semantics (when the query
+falls back to now−24h, there is no valid stored baseline to compare against, so late-event
+detection is correctly suppressed). This alignment prevents the corrupt-watermark LATE_EVENT
+flood (P41-003): a future-dated watermark would otherwise cause LATE_EVENT_DETECTED to fire
+for every fetched event indefinitely, defeating the operator-calibration signal
+VP-SKILL-073 exists to validate.
+
 ```bash
 # Late-event detection — Stage 1 INGEST (ADV-F2-P6-007)
 # Called after NORMALIZE_PRISM_TIME() on each ingested event.
 DETECT_LATE_EVENT() {
   local event_time="$1"
-  local stored_watermark
-  stored_watermark=$(cat "${CLAUDE_PLUGIN_DATA}/watermarks/${ORG}/${SENSOR}" 2>/dev/null || echo "NONE")
 
-  if [ "${stored_watermark}" = "NONE" ]; then return 0; fi  # first run: no baseline
+  # P41-003: read and validate the raw watermark using the SAME RFC3339 + future-date
+  # checks that READ_WATERMARK() applies to the query floor, so both agree on whether
+  # the watermark is usable.  Raw cat bypassed these checks and caused two failure modes:
+  #   EC-002 (non-RFC3339): lexicographic comparison against garbage fires for all events.
+  #   EC-003 (future-dated): event_time < future_ts is TRUE for every fetched event →
+  #     LATE_EVENT_DETECTED flood; D-DEC-002 monotonic-write guard (max(stored,ts)) means
+  #     the future watermark is never overwritten → flood persists indefinitely.
+  # Alignment: when READ_WATERMARK falls back to now−24h (invalid/future watermark),
+  # there is no valid stored baseline to compare against, so late-event detection is
+  # correctly suppressed for that run.
+  if [ ! -f "${CLAUDE_PLUGIN_DATA}/watermarks/${ORG}/${SENSOR}" ]; then
+    return 0  # first run: no baseline
+  fi
+
+  local stored_watermark
+  stored_watermark=$(cat "${CLAUDE_PLUGIN_DATA}/watermarks/${ORG}/${SENSOR}" | tr -d '\n')
+
+  # Validate RFC3339 UTC-Z (same check as READ_WATERMARK ADV-F2-010)
+  if ! echo "${stored_watermark}" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z$'; then
+    # EC-002: non-RFC3339 watermark → READ_WATERMARK uses 24h fallback → no valid baseline.
+    # Suppress late-event evaluation; avoids all-events-fire via lexicographic garbage comparison.
+    echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) DETECT_LATE_EVENT_SUPPRESSED" \
+         " reason=WATERMARK_INVALID stored='${stored_watermark}'" \
+         " — late-event evaluation skipped for this run (P41-003; EC-002)" \
+      >> "${CLAUDE_PLUGIN_DATA}/watermarks/audit.log"
+    return 0
+  fi
+
+  # Reject future-dated watermark (same check as READ_WATERMARK ADV-F2-010)
+  if [[ "${stored_watermark}" > "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)" ]]; then
+    # EC-003: future watermark → READ_WATERMARK uses 24h fallback → no valid baseline.
+    # Suppress late-event evaluation; avoids LATE_EVENT_DETECTED flood for every event
+    # and the permanent-flood via D-DEC-002 monotonic-write guard.
+    echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) DETECT_LATE_EVENT_SUPPRESSED" \
+         " reason=WATERMARK_FUTURE stored='${stored_watermark}'" \
+         " — late-event evaluation skipped for this run (P41-003; EC-003)" \
+      >> "${CLAUDE_PLUGIN_DATA}/watermarks/audit.log"
+    return 0
+  fi
 
   # P40-001 fix: threshold = raw stored_watermark, NOT stored_watermark-GRACE.
   # The INGEST query floor is stored_watermark-GRACE; every ingested event satisfies
@@ -8941,3 +8987,120 @@ without requiring per-path-per-burst patches. P29-OBS-1 (process-gap): §8.41.4 
 hardened to enumerate all 9 entry sites. Architect does NOT edit BCs, verification-delta,
 prd-delta, or STATE.md.*
 Architect does NOT edit BCs, verification-delta, prd-delta, spec-changelog, or STATE.md.*
+
+---
+
+## 8.43 PROPAGATION LIST (pass 41 — P41-003 / burst F2-41)
+
+> **Owner:** See role-specific subsections below.
+>
+> **Live BC version map (frozen pass-41 baseline):** BC-10.01.001 (PO must confirm current version before edit).
+>
+> **Scope:** P41-003 (MEDIUM) — DETECT_LATE_EVENT corrupt-watermark validation gap. Fixes
+> the EC-002/EC-003 LATE_EVENT_DETECTED flood by aligning DETECT_LATE_EVENT's watermark
+> validation with READ_WATERMARK's validated result. Architecture-delta v1.33 is the
+> authoritative source of the corrected pseudocode.
+
+---
+
+### 8.43.1 PO — BC-10.01.001: DETECT_LATE_EVENT sub-step validated-watermark + early-return (P41-003 MEDIUM)
+
+> **PO obligation — BC-10.01.001.**
+
+1. **Invariant #14 DETECT_LATE_EVENT sub-step — add validated-watermark and early-return language.**
+
+   The DETECT_LATE_EVENT sub-step in BC-10.01.001 Invariant #14 currently describes the
+   threshold as `event_time < stored_watermark` (P40-001 correction). It must also specify:
+
+   > "DETECT_LATE_EVENT MUST apply the same RFC3339 UTC-Z validation and future-date rejection
+   > that READ_WATERMARK applies to the query floor (ADV-F2-010). If the stored watermark is
+   > absent, non-RFC3339, or future-dated, DETECT_LATE_EVENT MUST early-return (skip late-event
+   > evaluation for that run) and write a `DETECT_LATE_EVENT_SUPPRESSED` audit entry to
+   > `watermarks/audit.log` with the reason (`WATERMARK_INVALID` or `WATERMARK_FUTURE`).
+   > Rationale: when READ_WATERMARK falls back to now-24h, there is no valid stored baseline
+   > to compare against; late-event detection is correctly suppressed for that run. A
+   > future-dated watermark would otherwise cause LATE_EVENT_DETECTED to fire for every
+   > fetched event indefinitely (D-DEC-002 monotonic-write guard prevents overwrite). (P41-003)"
+
+2. **EC allocation — corrupt-watermark suppression case.**
+
+   Review whether EC-023 can carry the corrupt-watermark-suppression semantic or whether a
+   new EC is needed. EC-023 currently covers consumer anti-fungibility (create-review marker
+   requires review-labeled command). The corrupt-watermark suppression is a distinct class.
+   Recommended: allocate a **new EC** (e.g., EC-025 or next available) with the definition:
+
+   > "EC-NEW: DETECT_LATE_EVENT suppressed — stored watermark is non-RFC3339 or future-dated;
+   > late-event evaluation skipped for this run; `DETECT_LATE_EVENT_SUPPRESSED` audit entry
+   > written with `reason=WATERMARK_INVALID` or `reason=WATERMARK_FUTURE` (P41-003; EC-002/EC-003)."
+
+   Confirm the EC number does not collide with existing EC allocations in BC-10.01.001 before
+   assigning. If EC-025 is already taken, use the next available number.
+
+---
+
+### 8.43.2 FV — VP-SKILL-073: invalid-watermark suppression clause (P41-003 MEDIUM)
+
+> **FV obligation — verification-delta.**
+
+1. **VP-SKILL-073 proposed property expansion.**
+
+   The current VP-SKILL-073 property covers: "when an ingested event's `_time` is older than
+   `watermark - WATERMARK_GRACE_SECONDS`, DETECT_LATE_EVENT() emits an auditable log entry;
+   the event is NOT dropped but processed normally."
+
+   This must be expanded with an invalid-watermark suppression clause:
+
+   > "VP-SKILL-073 additional clause (P41-003): When the stored watermark file contains a
+   > non-RFC3339 value (EC-002 simulation) or a future-dated timestamp (EC-003 simulation),
+   > DETECT_LATE_EVENT() MUST NOT emit `LATE_EVENT_DETECTED`; it MUST emit
+   > `DETECT_LATE_EVENT_SUPPRESSED` with the appropriate reason field and return 0 (no-op for
+   > event processing). The event is still processed normally (not dropped). This suppression
+   > prevents the LATE_EVENT_DETECTED flood caused by invalid watermarks."
+
+2. **BATS test vectors for the suppression clause.**
+
+   Add to the VP-SKILL-073 BATS test harness:
+
+   ```bats
+   @test "VP-SKILL-073/P41-003/EC-002: DETECT_LATE_EVENT with non-RFC3339 watermark -> DETECT_LATE_EVENT_SUPPRESSED in audit.log, no LATE_EVENT_DETECTED"
+   # Setup: write a non-RFC3339 string (e.g., 'garbage-timestamp') to the watermark file
+   # Assert: DETECT_LATE_EVENT_SUPPRESSED with reason=WATERMARK_INVALID present in audit.log
+   # Assert: LATE_EVENT_DETECTED NOT present in audit.log
+
+   @test "VP-SKILL-073/P41-003/EC-003: DETECT_LATE_EVENT with future-dated watermark -> DETECT_LATE_EVENT_SUPPRESSED in audit.log, no LATE_EVENT_DETECTED"
+   # Setup: write a valid RFC3339 timestamp 24h in the future to the watermark file
+   # Assert: DETECT_LATE_EVENT_SUPPRESSED with reason=WATERMARK_FUTURE present in audit.log
+   # Assert: LATE_EVENT_DETECTED NOT present in audit.log
+
+   @test "VP-SKILL-073/P41-003: DETECT_LATE_EVENT with valid watermark still fires LATE_EVENT_DETECTED for event_time < stored_watermark (P40-001 regression guard)"
+   # Setup: write a valid RFC3339 past timestamp as the watermark; inject event with _time in grace window
+   # Assert: LATE_EVENT_DETECTED present in audit.log
+   # Assert: DETECT_LATE_EVENT_SUPPRESSED NOT present in audit.log
+   ```
+
+3. **SM allocations for the suppression guard.**
+
+   Propose allocation of two new SMs at the next available slots in the verification-delta
+   SM catalog (confirm current highest SM number before allocation; do not collide with SM-80
+   or any subsequent allocations from §8.41/§8.42):
+
+   > **SM-NEW-A (P41-003):** "RFC3339 validation guard removed from DETECT_LATE_EVENT
+   > (reversion to raw-cat without validation) — non-RFC3339 watermark — DETECT_LATE_EVENT
+   > does lexicographic comparison against garbage — LATE_EVENT_DETECTED fires for every
+   > fetched event (all-events-fire failure mode, EC-002). Mutant dies when EC-002 BATS
+   > vector detects LATE_EVENT_DETECTED presence."
+
+   > **SM-NEW-B (P41-003):** "Future-date rejection guard removed from DETECT_LATE_EVENT —
+   > future-dated watermark — LATE_EVENT_DETECTED fires for every fetched event — D-DEC-002
+   > monotonic-write guard prevents overwrite — flood persists indefinitely (EC-003). Mutant
+   > dies when EC-003 BATS vector detects LATE_EVENT_DETECTED presence."
+
+---
+
+*Pass-41 propagation list (§8.43) complete. Architecture-delta v1.33 is final for pass-41
+F2 burst (prism-integration cycle). P41-003 (MEDIUM): DETECT_LATE_EVENT corrupt-watermark
+validation gap — reuses READ_WATERMARK's RFC3339+future-date checks; early-returns on
+invalid/future watermark with DETECT_LATE_EVENT_SUPPRESSED audit entry; prevents
+LATE_EVENT_DETECTED flood (EC-002/EC-003 interaction). Valid-watermark threshold and
+log-not-drop semantics from P40-001 unchanged. Architect does NOT edit BCs,
+verification-delta, prd-delta, or STATE.md.*

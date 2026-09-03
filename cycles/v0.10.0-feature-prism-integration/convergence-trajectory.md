@@ -65,6 +65,7 @@ are in phase-f2-spec-evolution/.
 | 38 | 2026-09-03 | 0 | 1 | 0 | 0 | 1 | 2 | LOW | 0/3 | NOT CLEAN (streak RESET 0/3; P38-001 MAJOR VP-SKILL-075 partial-fix residual — burst-33 footer-only; body L192 + VP table L789 stale; REMEDIATED burst-37 6 sites/4 files) |
 | 39 | 2026-09-03 | 0 | 0 | 1 | 0 | 4 | 5 | MEDIUM | 0/3 | NOT CLEAN (streak 0/3; P39-001 MEDIUM SUBSTANTIVE — DETECT_LATE_EVENT behavior missing from BC-10.01.001; 25+ pass D-DEC-002 propagation oversight; architect IN-SCOPE; REMEDIATED burst-38 BC-10.01.001 v1.33 + VP-073/074 anchored) |
 | 40 | 2026-09-03 | 0 | 1 | 1 | 0 | 2 | 4 | HIGH | 0/3 | NOT CLEAN (streak 0/3; P40-001 MAJOR GENUINE LOGIC DEFECT — DETECT_LATE_EVENT double-GRACE unreachable dead code + VP-073 false-green; P40-002 MEDIUM §1 EC cell stale 22 vs 23; REMEDIATED burst-39 arch-delta v1.32 + BC-10.01.001 v1.34 + prd-delta v1.37 + verif-delta v1.36) |
+| 41 | 2026-09-03 | 0 | 1 | 2 | 0 | 0 | 3 | MEDIUM | 0/3 | NOT CLEAN (streak 0/3; P41-001 MAJOR verif-delta §6 partial-fix propagation miss (L1949+L1952 still watermark−GRACE); P41-002 MEDIUM prd-delta field-18 SEVERITY_ENUM→scored_priority map missing; P41-003 MEDIUM DETECT_LATE_EVENT missing READ_WATERMARK validation guard → corrupt/future watermark flood; REMEDIATED burst-40 arch-delta v1.33 + BC-10.01.001 v1.35 + prd-delta v1.38 + verif-delta v1.37; SM 74→76 alloc) |
 
 **Note on historical data:** Finding counts for passes 1–28 reconstructed from
 STATE.md Phase Progress finding-progression and burst-log.md entries. Per-pass
@@ -356,3 +357,21 @@ OBS-2 [process-gap]: all 5 prior coherence axes clean (version pins, EC counts, 
 Independent re-derivation: all spec substance confirmed clean (STEP ordering, kill-switch, hard-floor, marker mechanism, D-029, §3.4, NORMALIZE_SEVERITY, 12/18-split). 4th consecutive 0C/0M pass (substance).
 
 Versions after burst-39 (remediation): **arch-delta v1.32** (D-DEC-002 raw-watermark fix; input-hash d7bcab4), **BC-10.01.001 v1.34** (Inv#14/EC-023 threshold corrected; input-hash 650e111), **prd-delta v1.37** (§1 EC cell 22→23; input-hash 6908b94), **verif-delta v1.36** (VP-SKILL-073 vector corrected; 15 BC-10.01.001 pins v1.33→v1.34), BC-3.03.001 v1.42 (cross-ref pin v1.34; input-hash 96516f3). VP **21 FIN + 6 PROP = 27** (41 in registry); SM 74/73. BATS: 113 (unchanged).
+
+---
+
+### Pass 41 (2026-09-03) — **NOT CLEAN** (streak 0/3)
+
+**Findings:** 3 (0C / 1M / 2med / 0min / 0obs)
+**Novelty:** MEDIUM — P41-001 is a partial-fix propagation miss (verif-delta §6 not updated when §1 was corrected); P41-002 is a pre-existing P12-003 field-type residual; P41-003 is a new missing-validation-guard gap on the watermark-validation path
+**Convergence counter:** 0/3 (streak does not advance — P41-001 MAJOR blocks clean verdict)
+
+P41-001 (MAJ — PARTIAL-FIX PROPAGATION MISS): verification-delta §6 L1949 strategy note + L1952 BATS-vector description still stated old unreachable `watermark−GRACE` threshold after burst-39/40 corrected §1. Internal contradiction: §1 VP-SKILL-073 row correctly shows `event_time < stored_watermark`; §6 BATS vector guide still instructs testers to inject `event_time < stored_watermark − GRACE` (unreachable from INGEST floor). A BATS implementer reading §6 would write a vacuous test. **REMEDIATED burst-40 (FV §6 corrected).**
+
+P41-002 (MED — PRE-EXISTING RESIDUAL P12-003): prd-delta field-18 known-FP fast-path description specified `scored_priority = raw NORMALIZE_SEVERITY(SEVERITY_ENUM)` — but `validate_enums()` checks against `SCORED_PRIORITY_ENUM` = `{CRIT, HIGH, MED, LOW}` (uppercase, no `informational`). Raw `SEVERITY_ENUM` output fails `validate_enums()`. Fix: apply `SEVERITY_TO_SCORED_PRIORITY_MAP` before assigning `scored_priority`. **REMEDIATED burst-40 (PO field-18 corrected).**
+
+P41-003 (MED — MISSING VALIDATION GUARD): DETECT_LATE_EVENT read `stored_watermark` raw without applying `READ_WATERMARK`'s RFC3339 + future-date validation. A corrupt (non-parseable) watermark causes undefined comparison → all events treated as late → EC-002/EC-003 LATE_EVENT_DETECTED flood. A future-dated watermark (clock skew / initialization artifact) causes `event_time < stored_watermark` to fire for every ingested event → same flood. Both paths suppress legitimate security alerts (EC-002/EC-003 are suppression paths). **REMEDIATED burst-40 (validation guard + early-return + new EC-024 DETECT_LATE_EVENT_SUPPRESSED; arch-delta v1.33 + BC-10.01.001 v1.35).**
+
+Independent re-derivation: all spec substance confirmed clean (STEP ordering, kill-switch, hard-floor, marker mechanism, D-029, §3.4, NORMALIZE_SEVERITY, 12/18-split). 5th consecutive 0C/0M pass (substance).
+
+Versions after burst-40 (remediation): **arch-delta v1.33** (DETECT_LATE_EVENT validation guard + DETECT_LATE_EVENT_SUPPRESSED; input-hash d7bcab4), **BC-10.01.001 v1.35** (Inv#14 validation guard + EC-024; EC 23→24; input-hash a9a1c5c), **prd-delta v1.38** (field-18 map fix; EC counts §1/§3 24, totals 56, §8 grand 80; §5 pin→v1.35; input-hash 3eaba2b), **verif-delta v1.37** (§6 threshold corrected; VP-SKILL-073 expanded — EC-002/EC-003 suppression + 3 BATS vectors + SM-82/SM-83; SM tally 74→76 alloc, 73→75 live; 15 BC pins v1.34→v1.35), BC-3.03.001 v1.42 (cross-ref pin → v1.35; input-hash de1ff1d). VP **21 FIN + 6 PROP = 27** (41 in registry); SM **76 alloc / 75 live** (SM-82/SM-83 PROPOSED P1, NOT P0-counting). BATS: 113 (unchanged — §5 FINALIZED BATS unchanged).

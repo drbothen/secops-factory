@@ -225,3 +225,20 @@ BC-4.02.001/BC-5.01.001 + v1.33 changelog row), dtu-assessment v1.6 (scenario-co
 7→10 + template-drift cleanup), verification-delta v1.34 (no-bump §5 deferral-note
 narrowed). BC-3.03.001/BC-4.02.001/BC-5.01.001/BC-3.01.001/architecture-delta UNCHANGED.
 VP 41 / SM 74 alloc (73 live); tallies unchanged.
+
+---
+
+### Pass 34 (2026-09-03) — REMEDIATED burst-31
+
+**Findings:** 3 (0C / 0M / 2med / 0min / 1obs)
+**Novelty:** LOW — all mechanical count drift (EC/invariant tallies not re-derived from BC files for sub-burst-1 BCs); zero substantive logic defects
+**Convergence counter:** 0/3 (sixth consecutive 0C/0M pass)
+
+P34-001 (MED): prd-delta §1/§3/§8 EC counts stale for sub-burst-1 BCs. BC-6.01.003 EC 8→10 (EC-001..EC-010 confirmed); BC-10.01.001 EC 21→22 (EC-001..EC-022 confirmed). Cascading: §1 Totals EC 51→54; §3 footer 51→54; §8 sub-burst-1 51→54; grand total 75→78.
+
+P34-002 (MED): prd-delta §1 invariant count stale for BC-6.01.003: 5→6 (6 numbered list items in ## Invariants confirmed). §1 Totals invariants 36→37. All other sub-burst-1 BC invariant counts confirmed correct (BC-6.01.004: 8EC/6inv; BC-8.02.001: 6EC/4inv; BC-9.01.001: 8EC/5inv; BC-10.01.001: 22EC/16inv).
+
+P34-OBS [process-gap]: no automated recount gate re-derives §1/§3 per-BC EC/invariant counts from BC files for NEW (sub-burst-1) BCs receiving later-pass additions. Recurred 3×. Root cause structural: §8 addition-tracking was designed for pre-existing BCs, not newly authored sub-burst-1 BCs. Lesson 52 logged (count-analog of Lesson 51).
+
+Versions: prd-delta v1.34 (§1/§3/§8 counts re-derived; COMPUTE-AT-COMMIT resolved ec4fc30). All BCs UNCHANGED. VP 41 / SM 74 alloc (73 live); tallies unchanged. VP roster 26 unchanged.
+

@@ -698,3 +698,22 @@ Only after ZERO live-pin mismatches remain may the sweep be declared complete. T
 
 P28-001 [process-gap] (pass 28, 2026-07-29): a path-aware WRITE_MARKER edit (P27-002) landed the read-site + verification vector but left the markdown-path PRODUCER variable under its old name (parsed_disposition vs markdown_parsed_disposition) — the paired mutant SM-80 was therefore a VACUOUS kill (the vector was unsatisfiable against faithful pseudocode). Class: shared-sink pseudocode (GOTO WRITE_MARKER from multiple entry paths) where a read-site references a variable a given entry path never assigns. Recommendation (codified as standing FV pre-implementation check, verif-delta v1.30 §6): for each BC pseudocode GOTO-to-shared-block path, assert every variable the shared block reads is assigned on that path before writing the proof harness — catches vacuous kills pre-convergence. Codification follow-up owed at cycle close (S-7.02 step 3): follow-up story or justified deferral.
     _Discovered: F2 adversarial pass 28 (P28-001 [process-gap]), 2026-07-29_
+
+---
+
+### Lesson 52 — P34-OBS [process-gap] [codified] Coherence sweeps do not re-derive §1/§3 per-BC EC/invariant counts from BC files for NEW BCs receiving later-pass additions — a full recount is required (pass 34, burst 31, 2026-09-03)
+
+[process-gap] [codified] (pass 34, 2026-09-03): The version-agnostic coherence sweep (Lesson 51) reconciles version pins and §5 tracking-table cells from BC frontmatter. It does NOT re-derive §1/§3 per-BC EC/invariant COUNTS from the actual BC files. When a NEW (sub-burst-1) BC — authored during the feature cycle — receives additional ECs or invariants in a later adversary remediation pass, those additions are:
+
+1. NOT covered by §8's "additions" tracking (§8 tracks additions to pre-existing modified BCs only; sub-burst-1 BCs are counted whole in §8's sub-burst-1 subtotal, not tracked incrementally).
+2. NOT caught by version-agnostic version-pin sweeps (counts are prose integers, not `BC-<id> v<N.NN>` patterns).
+3. Visible ONLY by grep-counting EC rows (`^### EC-`) and invariant headings from the actual BC files.
+
+**Evidence:** Recurred 3× across F2 convergence: EC-021 addition (v1.7 prd-delta); EC-022 + EC-009/EC-010 additions; Inv#6 for BC-6.01.003 (this pass, P34-002). All three were caught by the adversary after the coherence sweep declared the document consistent.
+
+**Codified standing rule (effective immediately, all future bursts):** A coherence pass that changes any sub-burst-1 BC (or that changes §1/§3 in prd-delta for any reason) MUST include a full recount step: grep-count EC rows and invariant headings from EVERY BC listed in §1, compare against the §1 table cells and §3 footer, and reconcile §8 sub-burst-1 totals and cycle grand total. Patching flagged cells is NOT sufficient. This is the count-analog of Lesson 51's version-agnostic sweep rule.
+
+This lesson complements Lesson 51 (version-agnostic pins) with the count-domain equivalent: just as pins must be re-derived globally (not searched by specific stale string), counts must be re-derived from source (not patched by cell).
+    _tag: [codified]_
+    _Discovered: F2 adversarial pass 34 (P34-OBS [process-gap]), burst-31, 2026-09-03_
+

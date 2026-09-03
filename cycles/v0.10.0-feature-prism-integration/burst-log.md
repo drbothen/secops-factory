@@ -1335,3 +1335,64 @@ Pass-33 found 5 total findings (0C/0M/2med/1min/2obs). Both MEDs were tail gaps 
 **Versions after burst-30:** BC-3.03.001 v1.42, BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-10.01.001 v1.32, BC-3.01.001 v1.25, prd-delta v1.33, verification-delta v1.34, dtu-assessment v1.6, architecture-delta v1.31. VP 41 / SM 74 alloc, 73 live UNCHANGED.
 
 ---
+
+---
+
+## Archived Step: F2 pass-31 remediation burst 28 (rotated 2026-09-03)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-31 remediation burst 28 | formal-verifier / product-owner / state-manager | DONE | P31-001: verif-delta v1.33 — 3 enforced-enum sites corrected to 8-member `ticket_action_type`; VP-HOOK-033/034/035/036 confirmed; tallies unchanged VP 41 / SM 74 alloc 73 live. P31-002: BC-3.03.001 v1.41 (~L994) + BC-10.01.001 v1.32 Inv#9 + prd-delta v1.32 — producer-obligation-vs-consumer-enforcement clause; no behavioral change. DI-018 DEFERRED to F3 boundary (human-approved 2026-09-02). Clean streak 0/3. |
+
+---
+
+## Archived Step: F2 adversarial pass 32 (rotated 2026-09-03)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 32 | adversary | DONE | 0C/0M/1med/1min/1obs — NOT CLEAN. P32-001 (MED): prd-delta §5 BC-version tracking table stale (BC-3.03.001 cell v1.38→v1.42; BC-10.01.001 cell v1.29→v1.32). P32-002 (MIN): verif-delta §3(a) self-contradictory stale pin (BC-10.01.001 v1.14 "18-field"). P32-003 (OBS): verif-delta §3(a) ticket_action_type set-builder showed only 4-member base. Clean streak 0/3. 4th consecutive 0C/0M pass. |
+
+---
+
+## Burst 31: Pass-34 Exhaustive Count Re-Derivation (2026-09-03)
+
+**Steps from STATE.md Current Phase Steps (2 rotated in: burst-28 and pass-32 archived above):**
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 34 | adversary | DONE | 0C/0M/2med/1obs — NOT CLEAN. P34-001 (MED): prd-delta §1/§3/§8 EC counts stale — BC-6.01.003 8→10; BC-10.01.001 21→22; §1 Totals 51→54 EC; §3 footer 51→54; grand total 75→78. P34-002 (MED): prd-delta §1 BC-6.01.003 invariant count 5→6; §1 Totals 36→37 inv. P34-OBS [process-gap]: no recount gate for sub-burst-1 BCs receiving later-pass additions; recurred 3×. 6th consecutive 0C/0M pass; substance confirmed converged. Clean streak 0/3. |
+| F2: pass-34 remediation burst 31 | product-owner / state-manager | DONE | P34-001/P34-002: prd-delta v1.34 exhaustive count re-derivation — BC-6.01.003 10EC/6inv, BC-6.01.004 8EC/6inv, BC-8.02.001 6EC/4inv, BC-9.01.001 8EC/5inv, BC-10.01.001 22EC/16inv; sub-burst-1=54EC/37inv; grand total=78EC. §1/§3/§8 reconciled. VP roster 26 unchanged. VP/SM tallies unchanged (41/74/73). Lesson 52 [process-gap codified]. prd-delta input-hash: ec4fc30. Clean streak 0/3 (pass-35 pending). |
+
+**Narrative:**
+
+Pass-34 found 3 total findings (0C/0M/2med/1obs). Both MEDs were mechanical count drift: EC/invariant tallies in prd-delta §1/§3/§8 that were not re-derived from the actual BC files when sub-burst-1 BCs received additions during later adversary remediation passes. The adversary independently re-derived and confirmed correct all substantive design elements across the full surface (kill-switch/hard-floor/STEP-ordering/D-029/12-18-split/NORMALIZE_SEVERITY/marker anti-fungibility). Zero logic defects. Sixth consecutive 0C/0M pass.
+
+**Burst-31 (product-owner + state-manager):**
+
+Per-BC recount from BC files (exhaustive):
+
+| BC | EC Count (BC file) | Invariant Count (BC file) | prd-delta §1 before | prd-delta §1 after |
+|----|-------------------|--------------------------|--------------------|--------------------|
+| BC-6.01.003 | 10 (EC-001..EC-010) | 6 (6 numbered items in ## Invariants) | 8 EC / 5 inv | 10 EC / 6 inv |
+| BC-6.01.004 | 8 | 6 | 8 EC / 6 inv ✓ | unchanged |
+| BC-8.02.001 | 6 | 4 | 6 EC / 4 inv ✓ | unchanged |
+| BC-9.01.001 | 8 | 5 | 8 EC / 5 inv ✓ | unchanged |
+| BC-10.01.001 | 22 (EC-001..EC-022) | 16 | 21 EC / 16 inv | 22 EC / 16 inv |
+
+Sub-burst-1 totals: 54 EC / 37 inv (corrected from 51 EC / 36 inv).
+§3 edge-case footer: 54 (corrected from 51).
+Cycle grand total: 78 EC (54 sub-burst-1 new + 24 pre-existing; corrected from 75).
+
+- prd-delta v1.34: §1 table per-BC cells corrected; §1 Totals 51→54 EC / 36→37 inv; §3 footer 51→54; §8 sub-burst-1 51→54; grand 75→78. COMPUTE-AT-COMMIT resolved: ec4fc30.
+
+**Lesson 52 logged:** [process-gap] [codified] Full recount must grep-count EC rows and invariant headings from every BC file listed in §1 — the count-analog of Lesson 51. Recurred 3×.
+
+**Human decision (2026-09-03):** CONTINUE GRINDING — DI-018 stays deferred to F3 boundary; no substantive-convergence shortcut invoked.
+
+**Closes:**
+- P34-001 (MEDIUM): prd-delta §1/§3/§8 EC counts reconciled (BC-6.01.003 10EC, BC-10.01.001 22EC; totals 54EC/78 grand)
+- P34-002 (MEDIUM): prd-delta §1 BC-6.01.003 invariant count corrected 5→6; totals 37inv
+- P34-OBS: Lesson 52 codified; process-gap acknowledged as recurrent class
+
+**Versions after burst-31:** BC-3.03.001 v1.42, BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-10.01.001 v1.32, BC-3.01.001 v1.25, prd-delta v1.34, verification-delta v1.34, dtu-assessment v1.6, architecture-delta v1.31. VP 41 / SM 74 alloc, 73 live UNCHANGED.
+

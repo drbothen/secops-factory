@@ -1,7 +1,7 @@
 ---
 document_type: prd-delta
 producer: product-owner
-version: "1.33"
+version: "1.34"
 date: 2026-09-03
 cycle: v0.10.0-feature-prism-integration
 phase: f2
@@ -30,6 +30,7 @@ input-hash: "247135e"
 > at F7 convergence.
 
 > **Version history (recent):**
+> - v1.34 (2026-09-03): P34-001/P34-002 exhaustive count re-derivation — re-derived EVERY per-BC EC and invariant count from the actual BC files. BC-6.01.003: EC count 8→10 (EC-001..EC-010 confirmed), invariant count 5→6 (6 numbered list items in ## Invariants). BC-10.01.001: EC count 21→22 (EC-001..EC-022 confirmed). All other BCs unchanged (BC-6.01.004: 8 ECs/6 inv ✓; BC-8.02.001: 6 ECs/4 inv ✓; BC-9.01.001: 8 ECs/5 inv ✓). §1 table per-BC cells corrected; §1 Totals 36 inv/51 EC → 37 inv/54 EC. §3 table per-BC EC cells corrected; §3 footer 51→54. §8 sub-burst-1 total 51→54; cycle grand total 75→78 edge cases (54 new + 24 pre-existing, 24 confirmed correct). input-hash: ec4fc30.
 > - v1.33 (2026-09-03): P32-coherence-sweep (complete) — (GROUP A) §5 table BC-3.03.001 "New Version" updated v1.38→v1.42; v1.39/v1.40/v1.41/v1.42 summaries appended. BC-10.01.001 "New Version" updated v1.29→v1.32; v1.30/v1.31/v1.32 summaries appended. BC-4.02.001 "New Version" updated v1.20→v1.21 (P32-coherence-sweep: BC-3.03.001 v1.24→v1.42 + v1.36→v1.42 pin updates; BC-3.01.001 v1.22→v1.25 pin updates; no behavior change). BC-5.01.001 "New Version" updated v1.14→v1.15 (P32-coherence-sweep: BC-3.03.001 v1.36→v1.42 Invariant #7 pin updates; BC-3.01.001 v1.22→v1.25 Invariant #7 confidence footer pin; no behavior change). (GROUP B) §3 footer edge-case count corrected 50→51; §1 VP totals corrected from "4 assigned VPs, 12 proposed VPs" to "25 assigned VPs, 1 proposed VP" (recount of §1 table: 4+2+2+2+15 FINALIZED + 1 PROPOSED = 26 VPs across 5 new BCs). P32-coherence-sweep. [P33-001/P33-003 completion: BC-4.02.001/BC-5.01.001 cells missed in initial P32 sweep; corrected here per P33-001 findings; also see P33-002 BC-10.01.001 PC#8 annotation fix (v1.24→v1.12) in same burst.]
 > - v1.32 (2026-09-02): P31-001/P31-002 — ticket_action_type ACTION_ENUM 6→8 (link/close); ALWAYS-PRESENT producer-obligation note. (State-manager v1.32 note.)
 
@@ -41,13 +42,13 @@ Five new BC files written to `.factory/phase-0-ingestion/behavioral-contracts/`.
 
 | BC ID | Subject | Criticality (from architecture-delta) | Invariant Count | EC Count | VP Refs (assigned + proposed) |
 |-------|---------|---------------------------------------|-----------------|----------|-------------------------------|
-| BC-6.01.003 | onboard-customer skill — org slug/UUID-v7 provisioning, prism.toml [[orgs]] append, customers/<org_slug>/ dir creation, credential provisioning instructions (AD-017) | HIGH (C-2 skill; C-27/C-28 consumers) | 5 | 8 | VP-SKILL-052 (FINALIZED), VP-SKILL-053 (FINALIZED), VP-SKILL-076 (FINALIZED), VP-SKILL-077 (FINALIZED) |
+| BC-6.01.003 | onboard-customer skill — org slug/UUID-v7 provisioning, prism.toml [[orgs]] append, customers/<org_slug>/ dir creation, credential provisioning instructions (AD-017) | HIGH (C-2 skill; C-27/C-28 consumers) | 6 | 10 | VP-SKILL-052 (FINALIZED), VP-SKILL-053 (FINALIZED), VP-SKILL-076 (FINALIZED), VP-SKILL-077 (FINALIZED) |
 | BC-6.01.004 | onboard-sensor skill — sensor overlay TOML write, AD-017 piped-stdin credential walkthrough, prism_describe verification (not re-read), SELECT 1 connectivity check, --config-dir isolation | HIGH (C-28 onboard-sensor-helpers; AD-017 critical invariant) | 6 | 8 | VP-SKILL-054 (FINALIZED), VP-SKILL-055 (FINALIZED) |
 | BC-8.02.001 | sensor-metrics skill — per org×sensor last-seen/row-counts/error-rate via prism_sensor_health; D-DEC-006 naming (sensor-metrics, not metrics) | MEDIUM (C-25 prism-mcp consumer; distinct namespace) | 4 | 6 | VP-SKILL-056 (FINALIZED), VP-SKILL-057 (FINALIZED) |
 | BC-9.01.001 | scan-threats skill — predefined PrismQL hunting queries across all orgs; prism_describe-first table enumeration; findings grouped by severity; org_slug scoping invariant | MEDIUM (C-2 skill; C-25 consumer; D-DEC-005) | 5 | 8 | VP-SKILL-058 (FINALIZED), VP-SKILL-059 (FINALIZED) |
-| BC-10.01.001 | monitoring-loop — 8-stage per-alert pipeline (validate→known-FP/dedup→categorize→enrich→score→dispose→ticket-action→document); four-disposition enum; Indeterminate hard floor; §3.4 Jira rules; §3.5 SLA surface; §3.7 sensor-silence=positive-signal; §3.8 12-field ICD-203 schema; §3.9 hard floors + autonomy_enabled; watermark monotonicity; D-DEC-001..010; D-DEC-012 create-review/comment-review restricted markers for hard-floor/Indeterminate verdicts; autonomy_enabled operational metadata field (non-ICD-203; default false; kill switch exempt for create-review/comment-review) | CRITICAL (C-2 skill at CRITICAL tier; C-29 marker-store; C-30 watermark-store; require-review + disposition-guard both invoked) | 16 | 21 | VP-HOOK-024 (FINALIZED), VP-HOOK-025 (FINALIZED), VP-HOOK-026 (FINALIZED), VP-HOOK-027 (FINALIZED), VP-HOOK-028 (FINALIZED), VP-HOOK-029 (**FINALIZED P0** — re-FINALIZED verification-delta v1.10; consumer-boundary + unbindable-deny vectors per P8-001), VP-SKILL-050 (FINALIZED), VP-SKILL-060 (FINALIZED), VP-SKILL-061 (FINALIZED), VP-SKILL-062 (FINALIZED), VP-SKILL-063 (FINALIZED), VP-SKILL-064 (FINALIZED), VP-SKILL-065 (**PROPOSED** — re-scoped ADV-F2-P6-003; kill-switch carve-out for create-review/comment-review exemption), VP-SKILL-068 (FINALIZED), VP-SKILL-072 (FINALIZED), VP-SKILL-075 (**FINALIZED P0** — operator-boundary cron-exit, Gate 2 audit.log grep for fail-loud codes, P10-002) |
+| BC-10.01.001 | monitoring-loop — 8-stage per-alert pipeline (validate→known-FP/dedup→categorize→enrich→score→dispose→ticket-action→document); four-disposition enum; Indeterminate hard floor; §3.4 Jira rules; §3.5 SLA surface; §3.7 sensor-silence=positive-signal; §3.8 12-field ICD-203 schema; §3.9 hard floors + autonomy_enabled; watermark monotonicity; D-DEC-001..010; D-DEC-012 create-review/comment-review restricted markers for hard-floor/Indeterminate verdicts; autonomy_enabled operational metadata field (non-ICD-203; default false; kill switch exempt for create-review/comment-review) | CRITICAL (C-2 skill at CRITICAL tier; C-29 marker-store; C-30 watermark-store; require-review + disposition-guard both invoked) | 16 | 22 | VP-HOOK-024 (FINALIZED), VP-HOOK-025 (FINALIZED), VP-HOOK-026 (FINALIZED), VP-HOOK-027 (FINALIZED), VP-HOOK-028 (FINALIZED), VP-HOOK-029 (**FINALIZED P0** — re-FINALIZED verification-delta v1.10; consumer-boundary + unbindable-deny vectors per P8-001), VP-SKILL-050 (FINALIZED), VP-SKILL-060 (FINALIZED), VP-SKILL-061 (FINALIZED), VP-SKILL-062 (FINALIZED), VP-SKILL-063 (FINALIZED), VP-SKILL-064 (FINALIZED), VP-SKILL-065 (**PROPOSED** — re-scoped ADV-F2-P6-003; kill-switch carve-out for create-review/comment-review exemption), VP-SKILL-068 (FINALIZED), VP-SKILL-072 (FINALIZED), VP-SKILL-075 (**FINALIZED P0** — operator-boundary cron-exit, Gate 2 audit.log grep for fail-loud codes, P10-002) |
 
-**Totals (sub-burst 1):** 5 new BCs, 36 invariants, 51 edge cases, 25 assigned VPs, 1 proposed VP.
+**Totals (sub-burst 1):** 5 new BCs, 37 invariants, 54 edge cases, 25 assigned VPs, 1 proposed VP.
 
 ---
 
@@ -71,13 +72,13 @@ Summary cross-reference table:
 
 | BC ID | EC Count | Notable Edge Cases |
 |-------|----------|-------------------|
-| BC-6.01.003 | 8 | EC-003 (org_slug duplicate gate), EC-008 (credential-in-chat decline) |
+| BC-6.01.003 | 10 | EC-003 (org_slug duplicate gate), EC-008 (credential-in-chat decline) |
 | BC-6.01.004 | 8 | EC-004 (prism_describe not showing sensor after credential set), EC-005 (SELECT 1 failure = no success message), EC-006 (credential paste in chat = decline) |
 | BC-8.02.001 | 6 | EC-004 (last_seen > 24h flagged as SENSOR SILENCE warning), EC-006 (E-CRED-008 per sensor) |
 | BC-9.01.001 | 8 | EC-001 (no tables for org = skip), EC-003 (zero findings = explicit "not found" message) |
-| BC-10.01.001 | 21 | EC-006 (sensor-silence = BLIND-SPOT positive finding; create-review/comment-review ticket action), EC-009 (known-FP fast-exit: confidence="high" default, evidence_artifacts from Stage 1 INGEST), EC-014 (Indeterminate = [REVIEW-REQUIRED]; create-review/comment-review restricted marker, EXEMPT from autonomy_enabled kill switch), EC-015/016 (HIGH/T1003 = hard floor; create-review/comment-review), EC-018/019 (Tavily/Perplexity unavailable = degrade not abort), EC-021 (LOW+unknown+benign = hard floor [human-gate-confirm]) |
+| BC-10.01.001 | 22 | EC-006 (sensor-silence = BLIND-SPOT positive finding; create-review/comment-review ticket action), EC-009 (known-FP fast-exit: confidence="high" default, evidence_artifacts from Stage 1 INGEST), EC-014 (Indeterminate = [REVIEW-REQUIRED]; create-review/comment-review restricted marker, EXEMPT from autonomy_enabled kill switch), EC-015/016 (HIGH/T1003 = hard floor; create-review/comment-review), EC-018/019 (Tavily/Perplexity unavailable = degrade not abort), EC-021 (LOW+unknown+benign = hard floor [human-gate-confirm]) |
 
-**Total new edge cases across sub-burst 1:** 51.
+**Total new edge cases across sub-burst 1:** 54.
 
 ---
 
@@ -247,9 +248,9 @@ last existing EC in each file.
 **Totals (sub-burst 2):** 6 modified BCs, 24 new edge cases.
 
 **Grand total for v0.10.0-feature-prism-integration cycle:**
-- 5 new BCs (sub-burst 1): 51 edge cases
+- 5 new BCs (sub-burst 1): 54 edge cases
 - 6 modified BCs (sub-burst 2): 24 new edge cases
-- Cycle total: **10 distinct BC files touched** (not 11 — BC-10.01.001 was authored in sub-burst 1 as a new BC and further modified in sub-burst 2; it counts once); 75 edge cases (51 new + 24 added-to-existing)
+- Cycle total: **10 distinct BC files touched** (not 11 — BC-10.01.001 was authored in sub-burst 1 as a new BC and further modified in sub-burst 2; it counts once); 78 edge cases (54 new + 24 added-to-existing)
 - Note: BC-8.02.001 was also authored as a new BC in sub-burst 1 and further modified in burst 5 (pass-9 P9-005); it likewise counts as one distinct file. Pass-9 burst-5 modifications are tracked via version bumps in §5 and the burst-5 note above.
 
 ---
@@ -278,6 +279,7 @@ Dual-path enforcement (VP-HOOK-025): artifact-class branching — investigation 
 
 | Version | Date | Change |
 |---------|------|--------|
+| v1.34 | 2026-09-03 | P34-001/P34-002 exhaustive count re-derivation — re-derived every per-BC EC and invariant count from actual BC files. BC-6.01.003: EC 8→10 (EC-001..EC-010); invariant 5→6 (6 numbered list items in ## Invariants). BC-10.01.001: EC 21→22 (EC-001..EC-022). All other counts confirmed correct (BC-6.01.004: 8 ECs/6 inv; BC-8.02.001: 6 ECs/4 inv; BC-9.01.001: 8 ECs/5 inv). §1 table cells corrected; §1 Totals 36 inv/51 EC → 37 inv/54 EC. §3 table cells corrected; §3 footer 51→54. §8 sub-burst-1 51→54; cycle grand total 75→78 (54 new + 24 pre-existing; 24 confirmed correct). input-hash: ec4fc30. |
 | v1.33 | 2026-09-03 | P32-coherence-sweep (complete) — §5 "New Version" cells updated for all four BCs swept: BC-3.03.001 v1.38→v1.42 (v1.39/v1.40/v1.41/v1.42 summaries appended); BC-10.01.001 v1.29→v1.32 (v1.30/v1.31/v1.32 summaries appended); BC-4.02.001 v1.20→v1.21 (P32-coherence-sweep live-body pin updates: BC-3.03.001 v1.24→v1.42 + v1.36→v1.42, BC-3.01.001 v1.22→v1.25; no semantic change); BC-5.01.001 v1.14→v1.15 (P32-coherence-sweep live-body pin updates: BC-3.03.001 v1.36→v1.42 Invariant #7, BC-3.01.001 v1.22→v1.25 Invariant #7 confidence footer; BC-3.03.001 v1.34 NOTE pin intentionally unchanged; no semantic change). §3 edge-case footer count corrected 50→51 (EC-021 counted at EC total sweep). §1 VP totals corrected: "4 assigned VPs, 12 proposed VPs" → "25 assigned VPs, 1 proposed VP" (recount: 4+2+2+2+15 FINALIZED + 1 PROPOSED = 26 VPs total across 5 new BCs). Also: BC-10.01.001 PC#8 annotation corrected (P33-002): "JSON-first dispatch introduced at v1.24" → "introduced at v1.12 (P4-001)" (P4-001 was the actual introduction pass; v1.24 was an erroneous annotation propagated from P30-004). input-hash updated. P32-coherence-sweep/P33-001/P33-002/P33-003. |
 | v1.32 | 2026-09-02 | Pass-31 adversarial remediation — P31-002 (MINOR) ALWAYS-PRESENT producer-obligation annotation. §Verdict Schema Summary Presence split label updated: "ALWAYS-PRESENT" now explicitly annotated as a PRODUCER obligation (monitoring-loop MUST write each key regardless of `ticket_action_type`; consumer enforcement NOT symmetric — see Enforcement split). Previous label co-described `autonomy_enabled` and `org_slug` as "ALWAYS-PRESENT" without distinguishing that only `org_slug` is consumer-enforced (validate_enums() presence-deny — P28-002/DI-017) while `autonomy_enabled` absent is tolerated→false (kill-switch default — VP-HOOK-026/SM-33), not denied. The existing Enforcement split sentence from P30-001 is unchanged and consistent with this annotation; P31-002 note references it rather than duplicating enforcement detail. BC-3.03.001 v1.41 and BC-10.01.001 v1.32 updated in parallel. input-hash updated to reflect BC input changes. P31-002. |
 | v1.31 | 2026-09-02 | Pass-30 adversarial remediation — P30-003 (LOW) operational-metadata presence split clarified. §Verdict Schema Summary (~line 268) updated: added explicit **Presence split (P30-003)** annotation distinguishing the 4 ALWAYS-PRESENT fields (jira_project_key, confidence_score, autonomy_enabled, org_slug — presence not conditional on ticket_action_type) from the 1 CONDITIONAL field (link_target_ticket_id — non-null only when ticket_action_type=link; present-but-null for all other action scopes). Previous text implied the conditional vs always-present distinction but did not label it explicitly, causing divergence with BC rosters that listed only 4 fields. BC-3.03.001 v1.40 and BC-10.01.001 v1.31 updated in parallel to reconcile rosters. Pre-existing table pipe-escaping fixes in §5 BC change table (( \|$) patterns in BC-3.01.001 and BC-3.03.001 rows; REVIEW-REQUIRED\|BLIND-SPOT in BC-3.03.001 row; high\|medium\|low in BC-4.05.001 row). input-hash added (previously missing). P30-003. |

@@ -346,3 +346,13 @@ superseded/archived checkpoints only.
 | **Convergence counter** | 0/3 clean passes |
 
 ---
+
+---
+
+## Checkpoint archived 2026-09-03 (superseded by burst-32 pass-35 checkpoint)
+
+**Date:** 2026-09-03
+**Position:** Pass-34 remediation COMPLETE (burst 31 — exhaustive count re-derivation). P34-001 MEDIUM (prd-delta §1/§3/§8 EC counts stale: BC-6.01.003 8→10, BC-10.01.001 21→22; totals 51→54 EC; grand 75→78), P34-002 MEDIUM (prd-delta §1 BC-6.01.003 invariant count 5→6; totals 36→37 inv), P34-OBS [process-gap] (no recount gate for sub-burst-1 BCs; recurred 3×; Lesson 52) — ALL REMEDIATED. prd-delta v1.34; input-hash ec4fc30. VP 41 / SM 74 alloc, 73 live. Human decision 2026-09-03: CONTINUE GRINDING — DI-018 stays deferred F3, no substantive-convergence shortcut. NEXT: adversarial pass 35. Pass-34 NOT clean (0C/0M/2med/1obs); 6th consecutive 0C/0M pass. Clean streak 0/3. trajectory-tail →5→3→5→3
+**Context:** Artifact versions: arch-delta v1.31, verif-delta v1.34, prd-delta v1.34, dtu-assessment v1.6, BC-3.03.001 v1.42, BC-3.01.001 v1.25, BC-10.01.001 v1.32, BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 74 allocated, 73 live.
+**Convergence counter:** 0/3 clean passes
+

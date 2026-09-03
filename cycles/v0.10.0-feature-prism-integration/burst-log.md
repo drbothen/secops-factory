@@ -1396,3 +1396,31 @@ Cycle grand total: 78 EC (54 sub-burst-1 new + 24 pre-existing; corrected from 7
 
 **Versions after burst-31:** BC-3.03.001 v1.42, BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-10.01.001 v1.32, BC-3.01.001 v1.25, prd-delta v1.34, verification-delta v1.34, dtu-assessment v1.6, architecture-delta v1.31. VP 41 / SM 74 alloc, 73 live UNCHANGED.
 
+
+---
+
+**Burst-32 (state-manager — bookkeeping + P35-001 metadata reconciliation):**
+
+Pass-35 verdict persisted: 0C/0M/0med/1min/0obs — **CLEAN** (streak 1/3). Novelty LOW.
+
+Spec content independently re-derived clean by the adversary (BC-3.03.001 emitter + BC-3.01.001 consumer read top-to-bottom): STEP ordering, hard-floor legs, kill-switch, marker TTL/single-use/anti-fungibility, D-029 routing, 12/18-split, NORMALIZE_SEVERITY, §1/§3/§8 counts all confirmed correct.
+
+**P35-001 reconciliation (metadata-only):**
+
+| Site | Before | After | Notes |
+|------|--------|-------|-------|
+| prd-delta frontmatter `input-hash:` | 247135e | 247135e (already correct) | No change needed |
+| prd-delta blockquote v1.34 `input-hash:` | ec4fc30 | 247135e | Was COMPUTE-AT-COMMIT value from burst-31 pre-input-update |
+| prd-delta Document Changelog v1.34 `input-hash:` | ec4fc30 | 247135e | Same stale COMPUTE-AT-COMMIT value |
+
+Authoritative hash recomputed via `compute-input-hash .factory/phase-f2-spec-evolution/prd-delta.md` = **247135e**. All three sites now agree.
+
+**Spec-content freeze confirmed:** No BCs, prd-delta content sections, or verification-delta changed. Only the pass-35 report (new file) and the two input-hash metadata citations in prd-delta.
+
+**Versions after burst-32:** All artifact versions UNCHANGED (arch-delta v1.31, verif-delta v1.34, prd-delta v1.34, BC-3.03.001 v1.42, BC-3.01.001 v1.25, BC-10.01.001 v1.32, BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2, dtu-assessment v1.6). VP 41 / SM 74 alloc, 73 live UNCHANGED.
+
+**Closes:**
+- P35-001 (MINOR): input-hash metadata reconciled — all three prd-delta sites now agree on 247135e
+
+**New file:** .factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass35.md
+

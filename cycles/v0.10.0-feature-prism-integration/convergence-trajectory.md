@@ -242,3 +242,18 @@ P34-OBS [process-gap]: no automated recount gate re-derives §1/§3 per-BC EC/in
 
 Versions: prd-delta v1.34 (§1/§3/§8 counts re-derived; COMPUTE-AT-COMMIT resolved ec4fc30). All BCs UNCHANGED. VP 41 / SM 74 alloc (73 live); tallies unchanged. VP roster 26 unchanged.
 
+
+---
+
+### Pass 35 (2026-09-03) — **CLEAN** (streak 1/3)
+
+**Findings:** 1 (0C / 0M / 0med / 1min / 0obs)
+**Novelty:** LOW — sole finding is metadata inconsistency (input-hash mismatch in changelog citations); does not block clean verdict
+**Convergence counter:** 1/3 (first clean pass of 3-required streak)
+
+P35-001 (MIN): prd-delta v1.34 input-hash mismatch — frontmatter `input-hash: "247135e"` vs blockquote/changelog citations `ec4fc30`. Metadata-only; no spec content affected. **Non-blocking.** Reconciled this burst: authoritative hash `247135e` set at all three sites.
+
+Independent re-derivation: adversary read BC-3.03.001 (emitter) and BC-3.01.001 (consumer) top-to-bottom. STEP ordering, hard-floor legs, kill-switch, marker TTL/single-use/anti-fungibility, D-029 routing, 12/18-split, NORMALIZE_SEVERITY, and §1/§3/§8 EC/invariant counts all independently confirmed. Genuine convergence — spec content stable across two consecutive passes independently deriving the same results.
+
+Versions: prd-delta v1.34 (input-hash 247135e, metadata only). All BCs UNCHANGED. VP 41 / SM 74 alloc (73 live); tallies unchanged. Spec content FROZEN/STABLE.
+

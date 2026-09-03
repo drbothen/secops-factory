@@ -1424,3 +1424,52 @@ Authoritative hash recomputed via `compute-input-hash .factory/phase-f2-spec-evo
 
 **New file:** .factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass35.md
 
+
+---
+
+## Archived Step: F2 adversarial pass 34 (rotated 2026-09-03)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 34 | adversary | DONE | 0C/0M/2med/1obs — NOT CLEAN. P34-001 (MED): prd-delta §1/§3/§8 EC counts stale — BC-6.01.003 8→10; BC-10.01.001 21→22; totals 51→54 EC; grand 75→78. P34-002 (MED): prd-delta §1 BC-6.01.003 invariant count 5→6; totals 36→37 inv. P34-OBS [process-gap]: no recount gate for sub-burst-1 BCs; recurred 3×. 6th consecutive 0C/0M; substance confirmed converged. Clean streak 0/3. |
+
+---
+
+## Archived Step: F2 pass-34 remediation burst 31 (rotated 2026-09-03)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-34 remediation burst 31 | product-owner / state-manager | DONE | P34-001/P34-002: prd-delta v1.34 exhaustive count re-derivation — BC-6.01.003 10EC/6inv, BC-6.01.004 8EC/6inv, BC-8.02.001 6EC/4inv, BC-9.01.001 8EC/5inv, BC-10.01.001 22EC/16inv; sub-burst-1=54EC/37inv; grand=78EC. §1/§3/§8 reconciled. VP/SM tallies unchanged (41/74/73). Lesson 52 [codified]. prd-delta input-hash: ec4fc30. Clean streak 0/3 (pass-35 pending). |
+
+---
+
+**Burst-33 (comprehensive VP-ownership/traceability coherence audit — P36-001 + 7 companion defects):**
+
+P36-001 triggered a comprehensive VP-ownership/traceability audit. Product-owner re-derived ALL VP attributions in prd-delta §1 against verification-delta §1 ownership model and BC footer VP Anchors rows. Found 8 coherence defects total (3 of which were critical to convergence-gate VP accounting):
+
+**8 fixes applied:**
+
+| Item | Fix | Accounting impact |
+|------|-----|------------------|
+| A | Removed VP-HOOK-024 from prd-delta §1 BC-10.01.001 VP Refs — owned by BC-3.01.001 (verif-delta §1 L431) | CRITICAL to VP count |
+| C | VP-SKILL-075 corrected FINALIZED P0 → PROPOSED P1 in prd-delta §1 BC-10.01.001 VP-Refs + BC-10.01.001 v1.32 VP Anchors footer (no-bump) | CRITICAL to convergence-gate count |
+| D | VP-SKILL-076/077 corrected FINALIZED → PROPOSED P1 in prd-delta §1 BC-6.01.003 VP-Refs + BC-6.01.003 footer (no-bump) | CRITICAL to convergence-gate count |
+| B | prd-delta §1 VP Totals re-derived from BC footers: 21 FIN + 4 PROP = 25 (corrected from "25 FIN + 1 PROP = 26") | accounting fix |
+| E | BC-10.01.001 Subject §3.8: "12-field ICD-203 schema" → "18-field verdict schema (12-field investigation markdown)" | coherence |
+| F | BC-6.01.003 Criticality: "C-27/C-28 consumers" → "C-30 watermark-store" per BC Traceability Module L164 | coherence |
+| G | BC-6.01.001 EC-010 in prd-delta §8: "jr auth check fails" → "jr auth status fails (non-zero exit)" | coherence |
+| H | BC-3.03.001 v1.42 VP Anchors row added (VP-HOOK-030/031/032 — existed in verif-delta but missing from BC footer; no version bump) | coherence |
+
+**verification-delta CONFIRMED CORRECT AND UNCHANGED** — product-owner verified §1 ownership model is accurate; all VP-HOOK/VP-SKILL ownership and lifecycle status entries in verif-delta are the ground truth. No changes made to verification-delta v1.34.
+
+**prd-delta bumped v1.34→v1.35.** BC-10.01.001 v1.32 and BC-3.03.001 v1.42: VP Anchors footer corrections only (no content/semantic version bump).
+
+**COMPUTE-AT-COMMIT check:** prd-delta frontmatter shows `input-hash: "247135e"` (v1.34 hash — no COMPUTE-AT-COMMIT placeholder present; no-op per task instruction "if present"). Document Changelog v1.35 row absent from prd-delta — product-owner outstanding task.
+
+**VP/SM registry tallies UNCHANGED:** 41 VP / 74 SM alloc / 73 live. Only prd-delta's FINALIZED/PROPOSED split accounting corrected. Convergence-gate eligible FINALIZED P0 count: 21 (corrected from claimed 25 or 26).
+
+**Convergence-gate correction:** Prior passes tracked "25 FIN + 1 PROP = 26 VPs." Correct count: 21 FINALIZED + 4 PROPOSED = 25 total VPs. The 4 PROPOSED VPs (VP-SKILL-065/075/076/077) are deferred to P1 and do not count toward the convergence gate.
+
+**Clean streak RESET to 0/3** (pass-36 NOT CLEAN). Spec content FROZEN post-burst-33 for the pass-37 streak attempt.
+
+**Versions after burst-33:** arch-delta v1.31, verif-delta v1.34 (UNCHANGED), prd-delta v1.35 (input-hash 247135e — stale from v1.34; no placeholder to resolve), dtu-assessment v1.6, BC-3.03.001 v1.42 (footer only, no bump), BC-3.01.001 v1.25, BC-10.01.001 v1.32 (footer only, no bump), BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2.

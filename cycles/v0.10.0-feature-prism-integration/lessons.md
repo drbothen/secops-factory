@@ -717,3 +717,20 @@ This lesson complements Lesson 51 (version-agnostic pins) with the count-domain 
     _tag: [codified]_
     _Discovered: F2 adversarial pass 34 (P34-OBS [process-gap]), burst-31, 2026-09-03_
 
+
+---
+
+### Lesson 53 — P36-001 [process-gap] [codified] VP accounting coherence requires cross-checking against source-of-truth BC footers and the verification-delta ownership model — summary-table recounts miss both misattribution and lifecycle-status errors (pass 36, burst 33, 2026-09-03)
+
+[process-gap] [codified] (pass 36, 2026-09-03): VP accounting coherence requires cross-checking each VP listed in prd-delta §1 against (a) its OWNING-BC footer (VP Anchors row) and (b) the verification-delta §1 ownership model — AND checking VP LIFECYCLE STATUS (FINALIZED vs PROPOSED), which affects P0 convergence-gate counting. Prior recounts recomputed §1 from §1's own table, missing both misattribution (VP-HOOK-024 was attributed to BC-10.01.001 but is owned by BC-3.01.001) and status mislabels (VP-SKILL-075/076/077 were FINALIZED-labeled in §1 but are PROPOSED in verification-delta and BC footers). Even CLEAN pass-35 validated the wrong 26-VP count because it re-derived from the summary table, not the authority.
+
+**Evidence:** P36-001 triggered a comprehensive audit that found 8 coherence defects: 1 misattribution (VP-HOOK-024), 3 lifecycle-status errors (VP-SKILL-075/076/077 FINALIZED vs PROPOSED), 1 Totals arithmetic correction (26→25 total; 25→21 FINALIZED), and 3 additional coherence gaps (§3.8 field-count, criticality label, auth-command wording). Prior counts that declared §1 "reconciled" had done so by checking §1 against §1, not §1 against source-of-truth BC footers.
+
+**Codified standing rule (effective immediately):** A VP count audit of prd-delta §1 MUST:
+1. Extract every VP ID from the §1 VP-Refs column for each BC.
+2. For each VP ID: (a) verify the OWNING-BC matches via verification-delta §1 ownership column or BC footer VP Anchors row; (b) verify the LIFECYCLE STATUS matches (FINALIZED P0 / PROPOSED P1) against verification-delta §1 status column.
+3. Re-derive the FINALIZED count from BC footers (not from §1's Totals line) — the Totals line is a derived field that must agree with the bottom-up count.
+
+Summary-table recounts that skip steps 2 and 3 produce a false sense of consistency. This lesson complements Lessons 51 (version-agnostic pin sweeps) and 52 (per-BC EC/invariant count re-derivation): all three address the same root cause — re-deriving from a SUMMARY rather than from the SOURCE OF TRUTH.
+    _tag: [codified]_
+    _Discovered: F2 adversarial pass 36 (P36-001) → burst-33 comprehensive VP-ownership audit, 2026-09-03_

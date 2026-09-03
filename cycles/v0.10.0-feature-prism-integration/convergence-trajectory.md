@@ -257,3 +257,18 @@ Independent re-derivation: adversary read BC-3.03.001 (emitter) and BC-3.01.001 
 
 Versions: prd-delta v1.34 (input-hash 247135e, metadata only). All BCs UNCHANGED. VP 41 / SM 74 alloc (73 live); tallies unchanged. Spec content FROZEN/STABLE.
 
+| 36 | 2026-09-03 | 0 | 0 | 1 | 0 | 0 | 1 | LOW | 0/3 (RESET) | NOT CLEAN |
+
+---
+
+### Pass 36 (2026-09-03) — **NOT CLEAN** (streak RESET 0/3)
+
+**Findings:** 1 (0C / 0M / 1med / 0min / 0obs)
+**Novelty:** LOW — VP attribution/traceability coherence gap; substantive spec content independently re-derived clean (seventh consecutive 0C/0M pass)
+**Convergence counter:** 0/3 (streak RESET — P36-001 is a MEDIUM coherence defect)
+
+P36-001 (MED): prd-delta §1 VP-HOOK-024 misattributed to BC-10.01.001 (owned by BC-3.01.001 per verif-delta §1 L431). VP-SKILL-075/076/077 labeled FINALIZED in §1 but are PROPOSED P1 per verif-delta and BC footers. §1 VP Totals inflated: claimed "25 FIN + 1 PROP = 26"; correct "21 FIN + 4 PROP = 25". Impact: convergence-gate VP accounting was wrong in prior pass-35 CLEAN verdict — the 26-VP count was validating against the §1 summary, not against source-of-truth BC footers. **REMEDIATED burst-33** (comprehensive VP-ownership/traceability audit, 8 fixes).
+
+Independent re-derivation: STEP ordering, hard-floor legs, kill-switch, marker mechanism all confirmed correct. Genuine substantive convergence intact — P36-001 is a bookkeeping/traceability defect, not a logic defect.
+
+Versions: prd-delta v1.35 (8 VP-ownership/traceability fixes; convergence-gate count corrected to 21 FIN). verif-delta v1.34 UNCHANGED (confirmed correct source of truth). BC-3.03.001 v1.42 footer updated (VP Anchors added; no semantic bump). BC-10.01.001 v1.32 footer updated (VP Anchors corrected; no semantic bump). VP 21 FIN + 4 PROP = 25 total (41 in registry); SM 74 alloc / 73 live.

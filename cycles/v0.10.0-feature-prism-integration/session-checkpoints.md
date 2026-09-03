@@ -356,3 +356,14 @@ superseded/archived checkpoints only.
 **Context:** Artifact versions: arch-delta v1.31, verif-delta v1.34, prd-delta v1.34, dtu-assessment v1.6, BC-3.03.001 v1.42, BC-3.01.001 v1.25, BC-10.01.001 v1.32, BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 74 allocated, 73 live.
 **Convergence counter:** 0/3 clean passes
 
+
+---
+
+## Checkpoint archived 2026-09-03 (superseded by burst-33 pass-36 checkpoint)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-09-03 |
+| **Position** | Pass-35 CLEAN (burst-32 bookkeeping + P35-001 metadata reconciliation). P35-001 MINOR (prd-delta v1.34 changelog citations had ec4fc30; frontmatter had 247135e; authoritative hash recomputed as 247135e; all 3 sites now agree). Spec content independently re-derived clean: BC-3.03.001 emitter + BC-3.01.001 consumer read top-to-bottom; STEP ordering, hard floors, kill-switch, marker TTL/single-use/anti-fungibility, D-029 routing, 12/18-split, NORMALIZE_SEVERITY, §1/§3/§8 counts all confirmed. prd-delta v1.34 (input-hash 247135e); all BCs unchanged. Clean streak 1/3. NEXT: adversary pass-36 (fresh context; spec content FROZEN/STABLE; passes 36-37 bank 2/3 and 3/3). trajectory-tail →3→5→3→1 |
+| **Context** | Artifact versions: arch-delta v1.31, verif-delta v1.34, prd-delta v1.34, dtu-assessment v1.6, BC-3.03.001 v1.42, BC-3.01.001 v1.25, BC-10.01.001 v1.32, BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 74 allocated, 73 live. NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. Health check 2026-09-01: engine=unpinned/floats-to-rc.24; enable key broken (see MIG-001); rc.24 uplift DEFERRED F3. DI-018 (HIGH): verif-delta.md 811KB FUEL_EXHAUSTED; DEFERRED F3. |
+| **Convergence counter** | 1/3 clean passes |

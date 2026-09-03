@@ -46,6 +46,13 @@ c = servers.get("context7", {}).get("headers", {})
 if c.get("CONTEXT7_API_KEY") and not c["CONTEXT7_API_KEY"].startswith("${"):
     c["CONTEXT7_API_KEY"] = stash("CONTEXT7_API_KEY", c["CONTEXT7_API_KEY"])
 
+# exa: key embedded in the http url query string
+e = servers.get("exa", {})
+if e.get("url"):
+    m = re.search(r"exaApiKey=([^&\"$\{][^&\"]*)", e["url"])
+    if m and not m.group(1).startswith("${"):
+        e["url"] = e["url"].replace(m.group(1), stash("EXA_API_KEY", m.group(1)))
+
 if not moves:
     print("v .mcp.json already secret-free. Nothing to do.")
     sys.exit(0)

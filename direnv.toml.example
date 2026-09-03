@@ -1,0 +1,49 @@
+# direnv.toml.example — Windows direnv configuration reference
+#
+# Copy this to ~/.config/direnv/direnv.toml on your Windows machine to pin
+# direnv's bash interpreter to Git Bash and avoid the WSL-bash hijack
+# (see cross-platform-packaging-design.md §2.3).
+#
+# DO NOT commit ~/.config/direnv/direnv.toml — this file is an EXAMPLE ONLY.
+# The actual config file lives outside the repo at ~/.config/direnv/direnv.toml.
+#
+# --------------------------------------------------------------------------
+# OPTION A — Pin bash_path in direnv.toml (recommended)
+# --------------------------------------------------------------------------
+# Adjust the path if Git is installed to a different drive or directory.
+#
+# [global]
+# bash_path = "C:\\Program Files\\Git\\bin\\bash.exe"
+#
+# --------------------------------------------------------------------------
+# OPTION B — Set DIRENV_BASH in your PowerShell $PROFILE (alternative)
+# --------------------------------------------------------------------------
+# Add these lines to your $PROFILE before the direnv hook line:
+#
+#   $env:DIRENV_BASH = "C:\Program Files\Git\bin\bash.exe"
+#   Invoke-Expression "$(direnv hook pwsh)"
+#
+# --------------------------------------------------------------------------
+# Verify the pinning with: direnv status
+# The output will show the bash path in use. It must NOT point to
+# C:\Windows\System32\bash.exe (the WSL stub).
+# --------------------------------------------------------------------------
+#
+# Full $PROFILE setup for Windows (PowerShell 7 only — §2.2 of design brief):
+#
+#   # XDG dirs — direnv writes its cache here; must be set before the hook.
+#   $env:HOME             = $env:USERPROFILE
+#   $env:XDG_CACHE_HOME   = "$env:USERPROFILE\.cache"
+#   $env:XDG_DATA_HOME    = "$env:USERPROFILE\.local\share"
+#   $env:DIRENV_CONFIG    = "$env:USERPROFILE\.config\direnv"
+#
+#   # Bash path — pin to Git Bash, not the WSL stub in System32.
+#   $env:DIRENV_BASH = "C:\Program Files\Git\bin\bash.exe"
+#
+#   # direnv hook — must be last.
+#   Invoke-Expression "$(direnv hook pwsh)"
+#
+# See also: cross-platform-packaging-design.md §2 for gotcha table and citations.
+
+[global]
+bash_path = "C:\\Program Files\\Git\\bin\\bash.exe"

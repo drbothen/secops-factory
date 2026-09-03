@@ -376,6 +376,7 @@ Verifies MCP server availability, all 8 data files, 4 templates, 15 checklists, 
 
 ## Documentation
 
+- [Environment Setup](docs/environment-setup.md) — direnv, profiles, MCP servers, prism (macOS/Linux/Windows)
 - [Getting Started](docs/guide/getting-started.md)
 - [Vulnerability Enrichment Guide](docs/guide/vulnerability-enrichment.md)
 - [Event Investigation Guide](docs/guide/event-investigation.md)

@@ -63,6 +63,7 @@ are in phase-f2-spec-evolution/.
 | 36 | 2026-09-03 | 0 | 0 | 1 | 0 | 0 | 1 | LOW | 0/3 | NOT CLEAN (streak RESET 0/3; VP-HOOK-024 misattribution + VP-SKILL-075/076/077 lifecycle FINALIZED→PROPOSED; §1 VP total 26→25; REMEDIATED burst-33) |
 | 37 | 2026-09-03 | 0 | 0 | 0 | 2 | 0 | 2 | LOW | 1/3 | **CLEAN** (streak 1/3; P37-001/002 MINOR dtu editorial; substance all confirmed; REMEDIATED dtu v1.7 burst-35) |
 | 38 | 2026-09-03 | 0 | 1 | 0 | 0 | 1 | 2 | LOW | 0/3 | NOT CLEAN (streak RESET 0/3; P38-001 MAJOR VP-SKILL-075 partial-fix residual — burst-33 footer-only; body L192 + VP table L789 stale; REMEDIATED burst-37 6 sites/4 files) |
+| 39 | 2026-09-03 | 0 | 0 | 1 | 0 | 4 | 5 | MEDIUM | 0/3 | NOT CLEAN (streak 0/3; P39-001 MEDIUM SUBSTANTIVE — DETECT_LATE_EVENT behavior missing from BC-10.01.001; 25+ pass D-DEC-002 propagation oversight; architect IN-SCOPE; REMEDIATED burst-38 BC-10.01.001 v1.33 + VP-073/074 anchored) |
 
 **Note on historical data:** Finding counts for passes 1–28 reconstructed from
 STATE.md Phase Progress finding-progression and burst-log.md entries. Per-pass
@@ -74,14 +75,14 @@ are authoritative). Passes 6, 10, 20–26 include observations in the total; pas
 
 ## Trajectory Shorthand
 
-`10→4→5→6→3→10→5→3→2→11→4→4→3→5→3→3→3→3→2→9→8→7→9→5→6→7→4→2→3→4→5→3→5→3→1→1→2→2`
+`10→4→5→6→3→10→5→3→2→11→4→4→3→5→3→3→3→3→2→9→8→7→9→5→6→7→4→2→3→4→5→3→5→3→1→1→2→2→5`
 
-*(tail: →3→1→1→2→2, passes 34→35→36→37→38)*
+*(tail: →1→1→2→2→5, passes 35→36→37→38→39)*
 
 **Clean pass goal:** 3 consecutive passes with 0C/0M/0med/0min (OBS allowed).
-**Current clean streak:** 0/3 — pass-38 has 1M + 1obs (NOT clean; streak RESET).
-**Substance confirmed clean:** 2 consecutive passes (37 + 38 substance all re-derived clean).
-**Dimension now clean:** version pins, EC/invariant counts, VP attribution, VP lifecycle status.
+**Current clean streak:** 0/3 — pass-39 has 1med + 4obs (NOT clean; streak at 0/3 since pass-36).
+**Substance confirmed clean:** 3 consecutive passes (37 + 38 + 39 substance all re-derived clean).
+**Dimension now clean (post-burst-38):** version pins, EC/invariant counts, VP attribution, VP lifecycle status, architecture→BC behavior-propagation (all 5 codified per Lessons 51–55).
 
 ---
 
@@ -302,3 +303,36 @@ convergence sustained; spec content stable since burst-33 freeze.
 Versions: dtu-assessment v1.7 (P37-001/P37-002 editorial; input-hash 3cf5746).
 All BCs UNCHANGED. VP 21 FIN + 4 PROP = 25 total (41 in registry);
 SM 74 alloc / 73 live; tallies UNCHANGED. Spec content FROZEN/STABLE post-burst-33.
+
+---
+
+### Pass 38 (2026-09-03) — **NOT CLEAN** (streak RESET 0/3)
+
+**Findings:** 2 (0C / 1M / 0med / 0min / 1obs)
+**Novelty:** LOW — sole substantive finding is VP lifecycle status contradiction WITHIN a single BC; substance independently re-derived clean
+**Convergence counter:** 0/3 (streak RESET — P38-001 MAJOR is a within-BC VP-status contradiction)
+
+P38-001 (MAJ): VP-SKILL-075 lifecycle status contradiction in BC-10.01.001 across multiple sites. Burst-33 VP-ownership audit corrected the VP Anchors footer (L803: FINALIZED P0 → PROPOSED P1) but left the Postcondition #7 body text (L192) and the Verification Properties table row (L789) still reading FINALIZED P0. The single-site correction was declared complete without sweeping all VP-status sites within the file. **REMEDIATED burst-37** (comprehensive VP-status-agreement sweep: 6 sites across 4 files corrected; all NO-BUMP).
+
+OBS-1 [process-gap]: no intra-BC VP-status-agreement check existed. VP lifecycle status is cited in ≥3 sites per BC (body text, VP table row, VP Anchors footer, pseudocode comments where present). Any VP-status change MUST update ALL sites in the same burst. Codified as Lesson 54.
+
+Independent re-derivation: all substance dimensions confirmed clean. 2nd consecutive 0C/0M pass.
+
+Versions after burst-37 (remediation): prd-delta v1.35 (input-hash 662402c; cv-007 annotated), BC-10.01.001 v1.32 (6 VP-status sites corrected, no bump), BC-3.03.001 v1.42 (VP-HOOK-030 annotation, no bump), BC-3.01.001 v1.25 (VP-HOOK-029 corrected, input-hash 96609a9). VP 21 FIN + 4 PROP = 25 (41 in registry); SM 74/73.
+
+---
+
+### Pass 39 (2026-09-03) — **NOT CLEAN** (streak 0/3)
+
+**Findings:** 5 (0C / 0M / 1med / 0min / 4obs)
+**Novelty:** MEDIUM — P39-001 is a SUBSTANTIVE spec gap (missing behavior), not a coherence defect; first non-coherence finding since pass-29
+**Convergence counter:** 0/3 (streak continues at 0/3 — P39-001 MEDIUM blocks clean verdict)
+
+P39-001 (MED — SUBSTANTIVE): VP-SKILL-073 (DETECT_LATE_EVENT) and VP-SKILL-074 (NORMALIZE_SEVERITY per-sensor-family) assigned to BC-10.01.001 in verification-delta §1 but not anchored in the BC. Sharper: the DETECT_LATE_EVENT behavior that VP-SKILL-073 covers is ENTIRELY ABSENT from BC-10.01.001 — no sub-step in Inv#14, no EC, no VP Anchors entry. D-DEC-002 (architecture-delta, status RESOLVED) specifies the behavior; ADV-F2-P6-007 MINOR allocated VP-SKILL-073 at pass 6. The §8.14.3 PO propagation list omitted VP-SKILL-073 while including VP-SKILL-074 (sibling from the same pass-6 cycle). Oversight survived 25+ passes. Architect adjudicated IN-SCOPE (no new design decision). **REMEDIATED burst-38.**
+
+OBS-1: First burst in passes 29–39 to add real behavior (not coherence correction). Legitimate versioned cascade: BC-10.01.001 v1.32→v1.33, prd-delta v1.35→v1.36, verif-delta v1.34→v1.35.
+OBS-2/3/4: architecture→BC behavior-propagation is the fifth coherence dimension; D-DEC entries with VP-propagation targets require end-to-end verification into the owning BC. Codified as Lesson 55.
+
+Independent re-derivation: all spec substance confirmed clean (STEP ordering, kill-switch, hard-floor, marker mechanism, D-029, §3.4, NORMALIZE_SEVERITY, 12/18-split). All four prior coherence dimensions (version pins, EC/inv counts, VP attribution, VP lifecycle status) clean post-burst-37. 3rd consecutive 0C/0M pass (substance).
+
+Versions after burst-38 (remediation): **BC-10.01.001 v1.33** (DETECT_LATE_EVENT sub-step Inv#14, EC-023, VP-073/074 anchored), **prd-delta v1.36** (§1 VP 25→27; §3 EC 54→55; §8 78→79; §5 BC-10.01.001→v1.33; input-hash fc9285c), **verif-delta v1.35** (15 BC-10.01.001 pins v1.32→v1.33; VP/SM tallies UNCHANGED). VP **21 FIN + 6 PROP = 27** (41 in registry); SM 74/73.

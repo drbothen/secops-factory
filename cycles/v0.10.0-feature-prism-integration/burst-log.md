@@ -1656,3 +1656,100 @@ sites corrected), **BC-3.03.001 v1.42** (no-bump; VP-HOOK-030 corrected),
 BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-6.01.001 v1.8, BC-6.01.003 v1.7,
 BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2.
 VP 21 FIN + 4 PROP = 25 (41 in registry) / SM 74 alloc, 73 live. Tallies UNCHANGED.
+
+---
+
+## Archived Steps from STATE.md Current Phase Steps (rotated burst-38)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: burst-35 (pass-37 CLEAN + dtu v1.7 + stash) | state-manager | DONE | stash@{0} dropped (sidecar superset in working tree). pass-37 CLEAN (0C/0M/0med/2min/0obs; streak 1/3); dtu-assessment v1.7 (P37-001/002 editorial: prism-demo.toml typo + §4 Deployment Notes dangling ref); pass-37 report written; burst-log/trajectory/checkpoint updated. Awaiting pass-38. |
+| F2: adversarial pass 37 | adversary | DONE | 0C/0M/0med/2min/0obs — **CLEAN** (streak 1/3). P37-001/002 MINOR: dtu editorial (configs/demo.toml→prism-demo.toml; §4 Deployment Notes dangling ref). REMEDIATED dtu v1.7. All substance (STEP ordering, kill-switch/hard-floor, marker mechanism, D-029, §3.4, NORMALIZE_SEVERITY, 12/18-split) + 3 coherence dims (version pins, EC/inv counts, VP-ownership/status) confirmed CLEAN. |
+
+---
+
+## Burst-38 — DETECT_LATE_EVENT Behavior-Add + VP Anchoring + Version Cascade (2026-09-03)
+
+**Trigger:** Pass-39 NOT CLEAN — P39-001 MEDIUM (VP-SKILL-073/074 orphaned in
+verification-delta §1 with BC-10.01.001 as owner, but DETECT_LATE_EVENT behavior
+entirely absent from BC-10.01.001 invariants/ECs; 25+ pass oversight in
+§8.14.3 PO propagation list omitting VP-SKILL-073 while including its sibling
+VP-SKILL-074 from the same pass-6 resolution cycle).
+
+**Agents:** architect (adjudication), product-owner (behavior-add + cascade), state-manager.
+
+**Note:** First burst in the pass-29–39 sequence to add REAL behavior (not coherence
+correction). Legitimate versioned cascade — BC-10.01.001 v1.32→v1.33 (genuine new
+behavior: DETECT_LATE_EVENT sub-step, EC-023, VP-SKILL-073/074 anchors).
+
+**Architect Adjudication:**
+D-DEC-002 (architecture-delta) specifies the DETECT_LATE_EVENT design obligation
+(log-not-drop events older than watermark−GRACE; first-run early-return). Status
+is RESOLVED. VP-SKILL-073 was allocated at pass-6 (ADV-F2-P6-007 MINOR) to verify
+this behavior with BC-10.01.001 as the owning BC. The §8.14.3 PO propagation list
+omitted VP-SKILL-073 (while including VP-SKILL-074 from the same pass-6 cycle)
+causing the behavior to exist only in architecture-delta for 25+ passes.
+Adjudicated IN-SCOPE — no new design decision required; propagation to BC
+is a recovery of an existing committed design.
+
+### F-001 — BC-10.01.001 v1.32 → v1.33 (SUBSTANTIVE BEHAVIOR ADD)
+
+Added DETECT_LATE_EVENT sub-step to Inv#14 Stage-1 INGEST:
+- New sub-step: if event.timestamp < watermark − GRACE_PERIOD → LOG late-event
+  (do not drop); RETURN early on first-run (no established watermark). D-DEC-002
+  reference annotated.
+- EC-023 added: late-event-below-grace → logged-not-dropped (event.timestamp <
+  watermark − GRACE; D-DEC-002; log via audit.log entry; no ticket action; does
+  NOT trigger LATE-EVENT-DROPPED deny).
+- VP-SKILL-073 (DETECT_LATE_EVENT, PROPOSED P1) anchored in Verification Properties
+  table and VP Anchors footer.
+- VP-SKILL-074 (NORMALIZE_SEVERITY per-sensor-family, PROPOSED P1) anchored in
+  Verification Properties table and VP Anchors footer.
+Input-hash: `28e1a97` (UNCHANGED — BC-10.01.001 input files unchanged; only own
+content changed).
+
+### F-002 — prd-delta v1.35 → v1.36
+
+- §1 BC-10.01.001 VP-Refs: + VP-SKILL-073 (PROPOSED P1) + VP-SKILL-074 (PROPOSED P1)
+  → 13 FINALIZED + 4 PROPOSED = 17 for BC-10.01.001.
+- §1 Totals: 21 FIN + 6 PROP = 27 total (was 21 FIN + 4 PROP = 25).
+- §3 BC-10.01.001 EC count: 22 → 23.
+- §3 EC footer total: 54 → 55.
+- §8 sub-burst-1 total: 54 → 55; cycle grand total: 78 → 79.
+- §5 BC-10.01.001 "New Version" cell: v1.32 → v1.33.
+Input-hash: `fc9285c` (recomputed — BC-10.01.001 is an input to prd-delta and changed).
+
+### F-003 — verification-delta v1.34 → v1.35
+
+- 15 live BC-10.01.001 version pins updated: v1.32 → v1.33.
+- VP/SM tallies UNCHANGED: 41 VP total / 74 alloc / 73 live.
+  (VP-073/074 already counted as PROPOSED P1; not included in P0 convergence-gate
+  count of 21 FINALIZED P0.)
+- §5 BATS count UNCHANGED (113).
+Note: verification-delta is 811KB and trips PostToolUse validators fail-closed
+(DI-018 DEFERRED F3). Version pins confirmed applied; validating via manual
+cross-check. No input-hash field in verification-delta frontmatter.
+
+### Files Committed in Burst-38
+
+| File | Change |
+|------|--------|
+| `.factory/phase-0-ingestion/behavioral-contracts/BC-10.01.001.md` | v1.32→v1.33: DETECT_LATE_EVENT sub-step in Inv#14, EC-023 added, VP-SKILL-073+074 anchored |
+| `.factory/phase-f2-spec-evolution/prd-delta.md` | v1.35→v1.36: §1 VP total 25→27, §3 EC 54→55, §8 total 78→79, §5 BC-10.01.001 → v1.33; input-hash fc9285c |
+| `.factory/phase-f2-spec-evolution/verification-delta.md` | v1.34→v1.35: 15 BC-10.01.001 version pins v1.32→v1.33 |
+| `.factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass39.md` | new — pass-39 report |
+| `.factory/STATE.md` | awaiting → F2-adversarial-pass-40; streak 0/3; checkpoint updated; version 2.32 |
+| `.factory/cycles/.../burst-log.md` | this entry + 2 archived steps from Current Phase Steps |
+| `.factory/cycles/.../convergence-trajectory.md` | pass-38 narrative + pass-39 row + pass-39 narrative appended; trajectory shorthand updated |
+| `.factory/cycles/.../lessons.md` | Lesson 55 appended |
+| `.factory/cycles/.../session-checkpoints.md` | pass-38→pass-39 checkpoint archived |
+
+### Versions After Burst-38
+
+arch-delta v1.31, **verif-delta v1.35** (15 BC-10.01.001 pins v1.32→v1.33),
+**prd-delta v1.36** (input-hash fc9285c — verified), dtu-assessment v1.7,
+**BC-10.01.001 v1.33** (SUBSTANTIVE: DETECT_LATE_EVENT + EC-023 + VP-073/074 anchors),
+BC-3.03.001 v1.42, BC-3.01.001 v1.25, BC-4.02.001 v1.21, BC-5.01.001 v1.15,
+BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2.
+VP **21 FIN + 6 PROP = 27** (41 in registry) / SM 74 alloc, 73 live.
+Convergence-gate (P0 FINALIZED) count UNCHANGED at 21.

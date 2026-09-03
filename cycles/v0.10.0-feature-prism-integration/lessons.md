@@ -750,3 +750,20 @@ Summary-table recounts that skip steps 2 and 3 produce a false sense of consiste
 **Coherence hardening now spans four dimensions** (all codified): version-pins (L51), EC/invariant counts (L52), VP-ownership/attribution (L53), VP-lifecycle-status (L54).
     _tag: [codified]_
     _Discovered: F2 adversarial pass 38 (P38-OBS [process-gap]) → burst-37 comprehensive VP-status-agreement sweep, 2026-09-03_
+
+---
+
+### Lesson 55 — P39-001 [process-gap] [codified] Architecture-delta D-DEC behavior-propagation into owning BC must be verified end-to-end — VP registration ≠ behavior presence (pass 39, burst 38, 2026-09-03)
+
+[process-gap] [codified] (pass 39, 2026-09-03): Architecture-delta D-DEC design obligations that carry a §8.15 FV-VP-propagation target (e.g. D-DEC-002 → DETECT_LATE_EVENT → VP-SKILL-073) MUST be verified as PROPAGATED into the owning BC's behavior (invariant/EC/postcondition), not just registered as a VP in verification-delta §1. VP-SKILL-073's DETECT_LATE_EVENT behavior lived only in architecture-delta for 25+ adversarial passes because the §8.14.3 PO propagation list omitted it while including its sibling VP-SKILL-074 from the same pass-6 resolution cycle. A VP with an assigned owning-BC in verification-delta §1 MUST have BOTH its behavior (invariant/EC/postcondition text) AND its anchor (VP Anchors footer entry) present in that BC. The two-part test: (a) the VP's property description must correspond to a named behavioral element in the BC; (b) the VP ID must appear in the BC's VP Anchors footer.
+
+**Evidence:** VP-SKILL-073 (DETECT_LATE_EVENT, D-DEC-002 RESOLVED, ADV-F2-P6-007) was allocated at pass 6 to BC-10.01.001. No behavioral element corresponding to late-event detection appeared in BC-10.01.001 through pass 38 — 25+ passes with the behavior committed in architecture-delta but absent from the BC specification. REMEDIATED burst 38: Inv#14 DETECT_LATE_EVENT sub-step added + EC-023 + VP-073/074 anchored. First burst in passes 29–39 to add REAL behavior rather than a coherence correction.
+
+**Codified standing rule (effective immediately, all future bursts):** When a D-DEC entry in architecture-delta lists a VP-propagation target (§8.15 block), verify that the TARGET BC contains:
+1. A named behavioral element (invariant/sub-step/EC/postcondition) that corresponds to the VP's property description.
+2. The VP ID in the BC's VP Anchors footer.
+A VP present only in verification-delta §1 and architecture-delta §8.15 — without a behavioral anchor in the owning BC — is an orphaned VP and a spec gap.
+
+**Extends Lessons 51–54** (source-of-truth reconciliation) with the architecture→BC behavior-propagation dimension: verification-delta §1 VP ownership is a SUMMARY; the SOURCE OF TRUTH for behavior presence is the owning BC's behavioral specification itself. The architecture-delta D-DEC entry is where the obligation is defined; the BC is where it must be satisfied.
+    _tag: [codified]_
+    _Discovered: F2 adversarial pass 39 (P39-001 MEDIUM) → burst-38 DETECT_LATE_EVENT behavior-add, 2026-09-03_

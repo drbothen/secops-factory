@@ -1,12 +1,27 @@
 ---
 document_type: session-checkpoints
-cycle_id: v0.10.0-feature-prism-integration
+level: ops
+version: "1.0"
+status: in-progress
 producer: state-manager
+timestamp: 2026-09-02T12:00:00Z
+cycle: v0.10.0-feature-prism-integration
+cycle_id: v0.10.0-feature-prism-integration
+inputs: [STATE.md]
+input-hash: "[live-state]"
+traces_to: STATE.md
 ---
 
 # Archived Session Checkpoints: v0.10.0-feature-prism-integration
 
 Superseded checkpoints rotated out of STATE.md.
+
+## Session Resume Checkpoint (2026-09-02) — burst-27 complete, pass-31 pending
+
+<!-- This section satisfies the template required-section anchor. Active checkpoint is in STATE.md. -->
+
+See STATE.md Session Resume Checkpoint for the current (live) checkpoint. This file contains
+superseded/archived checkpoints only.
 
 ---
 
@@ -258,6 +273,17 @@ Superseded checkpoints rotated out of STATE.md.
 | **Date** | 2026-07-29 |
 | **Position** | Pass-25 remediation COMPLETE (burst 22 — D-029 route-to-review-never-deny). NEXT: adversarial pass 26 (fresh adversary context; carry D-023..D-029 as settled; severity trend pass22 1C/2M → pass23 0C/1M/5med → pass24 0C/0M/4med → pass25 0C/1M/1med; known deferred cosmetic: verif-delta §5 per-BC rows). Clean streak 0/3. |
 | **Context** | Artifact versions: arch-delta v1.27, verif-delta v1.27, prd-delta v1.25, dtu-assessment v1.5, BC-3.03.001 v1.34, BC-3.01.001 v1.25, BC-10.01.001 v1.28, BC-4.02.001 v1.18, BC-5.01.001 v1.13, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 70 allocated, 69 live (SM-9..SM-77; SM-32=32a+32b+32-ext; SM-55 skipped; SM-50 retired). NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. |
+| **Convergence counter** | 0/3 clean passes |
+
+---
+
+## Checkpoint archived 2026-09-02 (displaced by burst-27 complete)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-09-02 |
+| **Position** | Pass-29 remediation COMPLETE (burst 26). P29-001 (MAJOR): org_slug propagation gap REMEDIATED — BC-10.01.001 v1.30, prd-delta v1.30, BC-3.03.001 v1.39, verif-delta v1.31. Pass stubs 27/28 created. DI-018 logged. NEXT: adversarial pass 30 (fresh context; carry D-023..D-029 (exhaustive) as settled). Pass-29 was NOT clean (1M/2obs) — clean streak resets. If pass 30 is clean (0C/0M/0med/0min), that is 1/3 required clean passes. trajectory-tail →6→4→2→3 |
+| **Context** | Artifact versions: arch-delta v1.30, verif-delta v1.31, prd-delta v1.30, dtu-assessment v1.5, BC-3.03.001 v1.39, BC-3.01.001 v1.25, BC-10.01.001 v1.30, BC-4.02.001 v1.20, BC-5.01.001 v1.14, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 74 allocated, 73 live (SM-9..SM-81; SM-32=32a+32b+32-ext; SM-55 skipped; SM-50 retired-in-place). NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. Health check 2026-09-01: engine=unpinned/floats-to-rc.24; enable key broken (see MIG-001); rc.24 uplift + artifact relocation DEFERRED to F3 boundary; F2 convergence continues on current engine. DI-018: verification-delta.md 811KB trips FUEL_EXHAUSTED on PostToolUse validators (edits apply, fail-closed). |
 | **Convergence counter** | 0/3 clean passes |
 
 ---

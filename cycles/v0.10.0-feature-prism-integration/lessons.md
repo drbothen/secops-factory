@@ -665,6 +665,19 @@ P26-006 [process-gap] (pass 26, 2026-07-29): normative routing is duplicated acr
 
 ---
 
+### Lesson 50 — P30-002 [process-gap] [codified] FV obligations in changelog prose must be converted to tracked VP/SM/anchor items — not left as free-text lines (pass 30, burst-27, 2026-09-02)
+
+[process-gap] [codified] (pass 30, 2026-09-02): An FV obligation carried ONLY as a changelog line ("FV needs a BATS vector for X") can survive undetected across multiple adversarial passes when the coverage artifacts (vector, SM, count) are delivered on time but the associated prose/anchor reflection is deferred. In this case (P28-002/DI-017, v1.28 changelog): the org_slug-presence BATS vector and SM-81 landed correctly at v1.30, but the VP-HOOK-025 §1 anchor row and §3(a)/§2 mechanism prose continued to describe validation as covering only "the 18 ICD-203/verdict-schema fields" — the non-ICD-203 org_slug presence leg was never named in the anchor. The prose/anchor lag survived pass-29 (P29-001 remediation) and was caught only at pass-30 (P30-002).
+
+**Root cause:** a changelog "FV needs X" line was never converted into a durable, tracked anchor/prose update obligation. Coverage artifacts (vector/SM/count) were present, so automated coverage checks passed; only the descriptive anchor lagged — invisible to count-based validators.
+
+**Codified standing rule (effective immediately, all future bursts):** A changelog "FV needs X" obligation line MUST spawn a tracked VP/SM/anchor item in the SAME or the IMMEDIATELY FOLLOWING burst. Acceptable forms: (a) a VP/SM allocation entry in the verification-delta namespace table; (b) a §1 anchor row update naming the new leg; (c) an explicit "anchor update deferred — tracked in DI-NNN" entry in STATE.md Drift Items with a target step. Free-text changelog lines alone are NOT sufficient tracking.
+
+**Cycle-close checklist implication:** this process-gap is captured by this lessons.md entry for the v0.10.0-feature-prism-integration cycle. No follow-up story required unless the same class recurs 3+ times (recurrence count: 1 as of pass-30).
+    _Discovered: F2 adversarial pass 30 (P30-002 [process-gap]), burst-27, 2026-09-02_
+
+---
+
 ### Lesson 49 — P28-001 [process-gap] WRITE_MARKER shared-sink path variable-definedness: a path-aware edit must verify PRODUCER assignment on every incoming path (pass 28, 2026-07-29)
 
 P28-001 [process-gap] (pass 28, 2026-07-29): a path-aware WRITE_MARKER edit (P27-002) landed the read-site + verification vector but left the markdown-path PRODUCER variable under its old name (parsed_disposition vs markdown_parsed_disposition) — the paired mutant SM-80 was therefore a VACUOUS kill (the vector was unsatisfiable against faithful pseudocode). Class: shared-sink pseudocode (GOTO WRITE_MARKER from multiple entry paths) where a read-site references a variable a given entry path never assigns. Recommendation (codified as standing FV pre-implementation check, verif-delta v1.30 §6): for each BC pseudocode GOTO-to-shared-block path, assert every variable the shared block reads is assigned on that path before writing the proof harness — catches vacuous kills pre-convergence. Codification follow-up owed at cycle close (S-7.02 step 3): follow-up story or justified deferral.

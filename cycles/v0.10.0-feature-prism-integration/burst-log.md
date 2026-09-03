@@ -1,7 +1,15 @@
 ---
 document_type: burst-log
-cycle_id: v0.10.0-feature-prism-integration
+level: ops
+version: "1.0"
+status: in-progress
 producer: state-manager
+timestamp: 2026-09-02T12:00:00Z
+cycle: v0.10.0-feature-prism-integration
+cycle_id: v0.10.0-feature-prism-integration
+inputs: [STATE.md]
+input-hash: "[live-state]"
+traces_to: STATE.md
 ---
 
 # Burst Log: v0.10.0-feature-prism-integration
@@ -23,7 +31,7 @@ are archived here when the 5-row limit is reached.
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| F2: pass-24 remediation burst 21 | architect / product-owner / formal-verifier / state-manager | DONE | P24-001: EMIT_LINK_MARKER invocation model fixed — positional $1, marker vars global (bash-faithful), WRITE_MARKER invoked directly as final statement, call sites 'EMIT_LINK_MARKER true|false; RETURN'; contradiction (call/return vs fall-through) eliminated; SM-74 mechanism wording synced, remains killable. P24-002: O7 site 10 — resolved_project_key emit-time charset re-check (^[A-Z][A-Z0-9]+$) → LINK-PROJECT-KEY-CHARSET-DENY + regex_escape defense-in-depth; active O7 sites now 9; SM-76 allocated (distinct from SM-75: gate-present-but-input-corruptible vs gate-absent); Gate-2 grep adjudicated NO-CHANGE (binding/charset denies are input-validation, not silent-escalation-drop signals). P24-003: L1107 REGULAR-link happy-path vector org-binding config precondition pinned. P24-004: dtu tp-close-denied pinned scored_priority∈{LOW,MED} + hard-floor companion note. P24-005: D-026 stable-key residual note (arch-delta). P24-006 → DI-017. Versions: BC-3.03.001 v1.33, BC-10.01.001 v1.27, arch-delta v1.26, verif-delta v1.26, prd-delta v1.24, dtu-assessment v1.5. VP 41 / SM 69 alloc (68 live) / ~443 tests. NOTE: verif-delta §5 per-BC test-count breakdown lags (pre-existing; assigned to version-coherence sweep). Clean streak 0/3. |
+| F2: pass-24 remediation burst 21 | architect / product-owner / formal-verifier / state-manager | DONE | P24-001: EMIT_LINK_MARKER invocation model fixed — positional $1, marker vars global (bash-faithful), WRITE_MARKER invoked directly as final statement, call sites 'EMIT_LINK_MARKER true\|false; RETURN'; contradiction (call/return vs fall-through) eliminated; SM-74 mechanism wording synced, remains killable. P24-002: O7 site 10 — resolved_project_key emit-time charset re-check (^[A-Z][A-Z0-9]+$) → LINK-PROJECT-KEY-CHARSET-DENY + regex_escape defense-in-depth; active O7 sites now 9; SM-76 allocated (distinct from SM-75: gate-present-but-input-corruptible vs gate-absent); Gate-2 grep adjudicated NO-CHANGE (binding/charset denies are input-validation, not silent-escalation-drop signals). P24-003: L1107 REGULAR-link happy-path vector org-binding config precondition pinned. P24-004: dtu tp-close-denied pinned scored_priority∈{LOW,MED} + hard-floor companion note. P24-005: D-026 stable-key residual note (arch-delta). P24-006 → DI-017. Versions: BC-3.03.001 v1.33, BC-10.01.001 v1.27, arch-delta v1.26, verif-delta v1.26, prd-delta v1.24, dtu-assessment v1.5. VP 41 / SM 69 alloc (68 live) / ~443 tests. NOTE: verif-delta §5 per-BC test-count breakdown lags (pre-existing; assigned to version-coherence sweep). Clean streak 0/3. |
 
 ---
 
@@ -1090,6 +1098,22 @@ F2: pass-16 remediation burst 12 already archived at "Archived Current Phase Ste
 
 ---
 
+## Archived Step: F2 adversarial pass 26 (rotated 2026-09-02)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 26 | adversary | DONE | 0C/1M/2med/2min/1obs — NOT CLEAN. P26-001 (MAJOR): BC-3.03.001 PC#2 still describes pre-D-029 routing. P26-002 (MED): 'no deny possible' overclaimed. P26-003 (MED): markdown-masquerade residual documented-as-accepted. P26-004/005 minor. Clean streak 0/3. |
+
+---
+
+## Archived Step: F2 pass-26 remediation burst 23 (rotated 2026-09-02)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-26 remediation burst 23 | architect / product-owner / formal-verifier / state-manager | DONE | P26-001: BC-3.03.001 PC#2 rewritten to D-029 model. P26-002: qualified. P26-003: ACCEPTED RESIDUAL documented (3 sites). P26-004: heading-anchored grammars + SM-78. P26-005: prd-delta EC-012 fixed. Versions: BC-3.03.001 v1.35, BC-4.02.001 v1.19, BC-10.01.001 v1.29, arch-delta v1.28, verif-delta v1.28, prd-delta v1.26. VP 41 / SM 71 alloc (70 live). |
+
+---
+
 ## Burst: F2 pass-29 — fix-burst-26 (2026-09-02)
 
 **Parent-commit:** `886c4ff` (docs(feature): add cross-platform packaging design brief)
@@ -1131,5 +1155,40 @@ Sweep of prior Dim-7 cells: no prior Dim-7 entries in this burst-log (all prior 
 - DI-018 logged: verification-delta.md FUEL_EXHAUSTED PostToolUse validator issue
 
 **Versions bumped:** BC-10.01.001 v1.29→v1.30 (input-hash 28e1a97), prd-delta v1.29→v1.30, BC-3.03.001 v1.38→v1.39 (input-hash 0929570), verification-delta v1.30→v1.31.
+
+---
+
+## Burst: F2 pass-30 — fix-burst-27 (2026-09-02)
+
+**Parent-commit:** factory-artifacts HEAD at burst-26 close (see `git -C .factory log -1 --format='%h %s'`)
+
+**Adversary verdict:** pass-30 — 0C/0M/2med/1min/1obs — NOT CLEAN. P30-001/P30-002 MEDIUM; P30-003 LOW; P30-004 OBS. REMEDIATED this burst.
+
+**Files touched (Dim-1): 6 unique files**
+
+- .factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass30.md (new)
+- .factory/phase-0-ingestion/behavioral-contracts/BC-3.03.001.md
+- .factory/phase-0-ingestion/behavioral-contracts/BC-10.01.001.md
+- .factory/phase-f2-spec-evolution/prd-delta.md
+- .factory/phase-f2-spec-evolution/verification-delta.md
+- .factory/STATE.md
+
+**Codifications:** Lesson 50 logged (P30-002 [process-gap] — FV obligations in changelog prose must be converted to tracked VP/SM/anchor items).
+
+**Dim-2 (literal-shell attestation):** org_slug ASM-008-class residual notes split across two BC files into absence-deny path (SM-81 covered) vs membership-bypass path (DI-017 accepted residual).
+
+**Dim-5 (adversary source attestation):** adversarial-spec-delta-review-pass30.md — 2 MEDIUM + 1 LOW + 1 OBS findings (0C/0M/2med/1min/1obs). Persisted this burst.
+
+**Dim-6 (convergence status):** IN_PROGRESS (0/3 clean passes; pass-30 not clean).
+
+**Dim-7 (dispatched-count sweep):** 3 agents (product-owner, formal-verifier, state-manager).
+
+**Closes:**
+- P30-001 (MEDIUM): BC-3.03.001 v1.40 + BC-10.01.001 v1.31 — ASM-008-class residual notes split into absence-deny (SM-81 covered) vs membership-bypass (DI-017 accepted residual) for org_slug; no longer self-contradictory
+- P30-002 (MEDIUM, [process-gap]): verification-delta v1.32 — VP-HOOK-025 §1 anchor row + §3(a)/§2 mechanism prose now names org_slug operational-metadata presence-deny leg; SM-81 confirmed as org_slug-presence mutant; NO new SM allocated; VP 41 / SM 74 alloc, 73 live; test-count unchanged; DI-018 FUEL_EXHAUSTED recurred on all 6 edits (writes persisted; validators fail-closed)
+- P30-003 (LOW): prd-delta v1.31 — Verdict Schema Summary annotated with explicit 4 ALWAYS-PRESENT + 1 CONDITIONAL (link_target_ticket_id) presence split; reconciled with BC rosters
+- P30-004 (OBS): BC-10.01.001 v1.31 — BC-3.03.001 cross-reference cite annotated as-of-introduction (not a live canonical version pin)
+
+**Versions bumped:** BC-3.03.001 v1.39→v1.40 (input-hash 0929570 — source inputs disposition-guard.sh/.ps1 unchanged), BC-10.01.001 v1.30→v1.31 (input-hash 28e1a97 — source inputs unchanged), prd-delta v1.30→v1.31 (input-hash a8f9edc — pre-set by product-owner), verification-delta v1.31→v1.32 (no frontmatter input-hash field).
 
 ---

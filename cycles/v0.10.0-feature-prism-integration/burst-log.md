@@ -1192,3 +1192,49 @@ Sweep of prior Dim-7 cells: no prior Dim-7 entries in this burst-log (all prior 
 **Versions bumped:** BC-3.03.001 v1.39→v1.40 (input-hash 0929570 — source inputs disposition-guard.sh/.ps1 unchanged), BC-10.01.001 v1.30→v1.31 (input-hash 28e1a97 — source inputs unchanged), prd-delta v1.30→v1.31 (input-hash a8f9edc — pre-set by product-owner), verification-delta v1.31→v1.32 (no frontmatter input-hash field).
 
 ---
+
+## Burst: F2 pass-31 — fix-burst-28 (2026-09-02)
+
+**Parent-commit:** factory-artifacts HEAD at burst-27 close (see `git -C .factory log -1 --format='%h %s'`)
+
+**Adversary verdict:** pass-31 — 0C/0M/1med/1min/3obs — NOT CLEAN. P31-001 MEDIUM (enum-stale); P31-002 MINOR (clarity gap). P31-003/004/005 OBS (positive coherence notes). REMEDIATED this burst.
+
+**Files touched (Dim-1): 6 unique files**
+
+- .factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass31.md (new)
+- .factory/phase-f2-spec-evolution/verification-delta.md (v1.32→v1.33)
+- .factory/phase-0-ingestion/behavioral-contracts/BC-3.03.001.md (v1.40→v1.41)
+- .factory/phase-0-ingestion/behavioral-contracts/BC-10.01.001.md (v1.31→v1.32)
+- .factory/phase-f2-spec-evolution/prd-delta.md (v1.31→v1.32)
+- .factory/STATE.md
+
+**Codifications:** DI-018 deferred to F3 boundary (human-approved 2026-09-02); fold into MIG-001 rc.24 uplift (raise fuel_cap and/or shard verification-delta). Interim: structural validators skip fail-closed on verification-delta edits; state-manager manually resolves input-hashes each burst; substantive adversary/FV review unaffected.
+
+**Dim-2 (literal-shell attestation):**
+BC-3.03.001 v1.41: producer-obligation-vs-consumer-enforcement clause added (~L994).
+BC-10.01.001 v1.32: Inv#9 roster annotated with autonomy_enabled default-to-false vs org_slug deny distinction.
+prd-delta v1.32: presence-split annotation distinguishing default-fallback vs deny-on-absent ALWAYS-PRESENT fields.
+verification-delta v1.33: 3 enforced-enum sites corrected from 6-member to 8-member `ticket_action_type` set.
+
+**Dim-5 (adversary source attestation):** adversarial-spec-delta-review-pass31.md — 1 MEDIUM + 1 MINOR + 3 OBS findings (0C/0M/1med/1min/3obs). Novelty: LOW–MEDIUM. Third consecutive 0C/0M pass; deeply converged.
+
+**Dim-6 (convergence status):** IN_PROGRESS (0/3 clean passes; pass-31 NOT clean — has 1med + 1min).
+
+**Dim-7 (dispatched-count sweep):** 3 agents (formal-verifier, product-owner, state-manager).
+
+**Input-hash resolution (COMPUTE-AT-COMMIT):**
+- BC-3.03.001 v1.41: input-hash "0929570" — source inputs (disposition-guard.sh/.ps1) unchanged; hash carried forward
+- BC-10.01.001 v1.32: input-hash "28e1a97" — source inputs unchanged; hash carried forward
+- prd-delta v1.32: input-hash "3ee2010" — verified present in frontmatter
+- verification-delta v1.33: no frontmatter input-hash field (DI-018 FUEL_EXHAUSTED — validators skipped fail-closed; write persisted)
+
+**Closes:**
+- P31-001 (MEDIUM): verification-delta v1.33 — 3 enforced-enum sites corrected to 8-member `ticket_action_type` set; historical 4-member subsets intentionally left; VP-HOOK-033/034/035/036 confirmed; VP 41 / SM 74 alloc, 73 live; tallies unchanged
+- P31-002 (MINOR): BC-3.03.001 v1.41 + BC-10.01.001 v1.32 + prd-delta v1.32 — producer-obligation-vs-consumer-enforcement clause; `autonomy_enabled` default-to-false vs `org_slug` presence-deny distinction documented; no behavioral change
+- P31-003/004/005 (OBS): no action (positive coherence notes)
+
+**DI-018 decision:** DEFERRED to F3 boundary — human-approved 2026-09-02; fold into MIG-001 rc.24 uplift. DI-018 Status updated in STATE.md to reflect F3-boundary deferral.
+
+**Versions bumped:** verification-delta v1.32→v1.33 (no frontmatter input-hash field — DI-018), BC-3.03.001 v1.40→v1.41 (input-hash 0929570 — source inputs unchanged), BC-10.01.001 v1.31→v1.32 (input-hash 28e1a97 — source inputs unchanged), prd-delta v1.31→v1.32 (input-hash 3ee2010).
+
+---

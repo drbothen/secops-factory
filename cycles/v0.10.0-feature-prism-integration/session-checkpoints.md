@@ -16,12 +16,25 @@ traces_to: STATE.md
 
 Superseded checkpoints rotated out of STATE.md.
 
-## Session Resume Checkpoint (2026-09-02) — burst-27 complete, pass-31 pending
+## Session Resume Checkpoint (2026-09-02) — burst-28 complete, pass-32 pending
 
 <!-- This section satisfies the template required-section anchor. Active checkpoint is in STATE.md. -->
 
 See STATE.md Session Resume Checkpoint for the current (live) checkpoint. This file contains
 superseded/archived checkpoints only.
+
+---
+
+## Archived Checkpoint — burst-27 complete, pass-31 pending (2026-09-02)
+
+**Superseded by:** burst-28 complete checkpoint (2026-09-02)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-09-02 |
+| **Position** | Pass-30 remediation COMPLETE (burst 27). P30-001/002 MEDIUM; P30-003 LOW; P30-004 OBS — all REMEDIATED. BC-3.03.001 v1.40, BC-10.01.001 v1.31, prd-delta v1.31, verif-delta v1.32. VP-HOOK-025 anchor+prose now names org_slug leg; SM-81 confirmed; VP 41 / SM 74 alloc, 73 live. Lesson 50 logged. DI-018 now HIGH (recurred burst-27). NEXT: adversarial pass 31 (fresh context). Pass-30 was NOT clean (0M/2med/1min/1obs) — clean streak remains 0/3. |
+| **Context** | Artifact versions: arch-delta v1.30, verif-delta v1.32, prd-delta v1.31, dtu-assessment v1.5, BC-3.03.001 v1.40, BC-3.01.001 v1.25, BC-10.01.001 v1.31, BC-4.02.001 v1.20, BC-5.01.001 v1.14, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 74 allocated, 73 live. NOTE: .factory/hooks/ not instantiated. Health check 2026-09-01: engine=unpinned/floats-to-rc.24; MIG-001 deferred to F3 boundary. DI-018 (HIGH): verification-delta.md 811KB trips FUEL_EXHAUSTED recurred all 6 burst-27 edits. |
+| **Convergence counter** | 0/3 clean passes |
 
 ---
 

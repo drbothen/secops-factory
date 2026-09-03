@@ -1,8 +1,8 @@
 ---
 document_type: dtu-assessment
 producer: architect
-version: "1.5"
-date: 2026-07-29
+version: "1.6"
+date: 2026-09-03
 feature: prism-integration
 feature_version: v0.10.0-feature-prism-integration
 status: draft
@@ -11,7 +11,24 @@ inputs:
   - .factory/phase-f1-delta-analysis/delta-analysis.md
 traces_to: .factory/phase-f1-delta-analysis/delta-analysis.md
 prior_assessment: ".factory/specs/dtu-assessment.md (Phase 0 — DTU_REQUIRED: false; no external service dependencies at that time)"
+input-hash: "3cf5746"
+level: L3
+phase: f2
+timestamp: 2026-07-22T00:00:00
 ---
+
+> **v1.6 (2026-09-03) — P33-OBS-1: scenario count corrected 7→10:**
+> The branch-triggering table (§3 mock scenarios) lists **10** scenarios: original 7
+> (`duplicate-open`, `related-open`, `resolved-same`, `closed-same`, `no-match`,
+> `blind-spot-open`, `blind-spot-absent`) + 3 [NEW] additions (`fp-auto-close` [v1.2],
+> `blind-spot-closed-compound` [v1.4], `tp-close-denied` [v1.4]). Two stale "7" counts
+> updated: (a) §3 "Test Surfaces" dependency row "All 7 jr mock scenarios above" →
+> "All 10 jr mock scenarios above"; (b) §4 "Enhanced jr bash mock" deployment line
+> "7 fixture scenarios covering all §3.4 Jira-first decision tree branches" →
+> "10 fixture scenarios covering all §3.4 Jira-first decision tree branches".
+> Adjudication: "7" was the total scenario count at v1.1 authorship; the 3 [NEW]
+> scenarios are part of the same scenario set and cover additional §3.4-rule branches
+> (D-021/D-025/D-027), so the correct total is 10. F4 must build all 10. P33-OBS-1.
 
 > **v1.5 (2026-07-29) — Pass-24 adversarial remediation burst 21, P24-001/P24-004:**
 > P24-004 (MEDIUM): `tp-close-denied` scenario under-specified `scored_priority`. A hard-floor
@@ -121,7 +138,7 @@ to `~/.claude/settings.json` (local filesystem — no external service DTU neede
 |---|---------|----------|----------|------|---------------|
 | 1 | Jira via jr CLI | CLI subprocess | L2 (stateful) | YES — secops-factory-built | Monitoring-loop §3.4 decision tree (append/link/propose-reopen/create-new) requires stateful issue registry to test all four branches; existing BATS mock extended (see §3) |
 | 2 | `~/.claude/settings.json` | Local file write | N/A | NO | Local filesystem; BATS tests use a temp dir override via `CLAUDE_CONFIG_DIR` or equivalent; no network service clone needed |
-| 3 | prism credential keyring (AD-017 piped-stdin) | Local subprocess + keyring | N/A | NO | AD-017 pattern: `echo <value> | prism credential set`; tested by BATS against a prism binary in DTU mode that accepts any credential value (no actual keyring write in test context) |
+| 3 | prism credential keyring (AD-017 piped-stdin) | Local subprocess + keyring | N/A | NO | AD-017 pattern: `echo <value> \| prism credential set`; tested by BATS against a prism binary in DTU mode that accepts any credential value (no actual keyring write in test context) |
 | 4 | `${CLAUDE_PLUGIN_DATA}/watermarks/` | Local file write | N/A | NO | Local filesystem; BATS tests use a temp dir; no service clone needed |
 
 ### Identity & Access (Bidirectional)
@@ -347,7 +364,7 @@ Extend the existing BATS mock `jr` binary (located in BATS helpers) with:
 | `blind-spot-open` | 1 open BLIND-SPOT ticket | `jr issue comment` on existing (not new creation) |
 | `blind-spot-absent` | 0 BLIND-SPOT tickets | `jr issue create` with BLIND-SPOT label |
 | `fp-auto-close` | **[NEW v1.2 — D-021]** 1 open ticket, disposition=FP, non-hard-floor scored_priority (LOW/MED), autonomy_enabled=true | `["close"]` marker issued → `jr issue move <ticket_id> <jira_close_state>` called; `<jira_close_state>` is CONFIG-driven from plugin state (e.g., "Done"); mock asserts the close command matches `CLOSE_STATE_ALLOWLIST` member; test verifies NO `jr issue comment` or other action is called instead. Asserts kill-switch NOT engaged (autonomy_enabled=true) and hard_floor_applies()=false (non-HIGH/CRIT). |
-| `blind-spot-closed-compound` | **[NEW v1.4 — D-027/D-028/P23-002; P24-001 invocation model applied]** BLIND-SPOT sensor-silence alert: disposition=Indeterminate, sensor_health_status=silent (→ hard_floor_applies()=TRUE unconditionally), autonomy_enabled=false. Compound two-verdict sequence: verdict-1 ticket_action_type=create-review + hard_floor_applies()=TRUE → STEP 3 issues create-review marker → `jr issue create --project PRISMDEMO --label BLIND-SPOT` called → NEW_KEY returned. Verdict-2 ticket_action_type=link, ticket_id=NEW_KEY, link_target_ticket_id=CLOSED_KEY, hard_floor_applies()=TRUE → **D-027 STEP 3b carve-out** → null-binding checks pass (D-028) → `EMIT_LINK_MARKER true` (positional $1=true per P24-001) → org-binding + P24-002 charset check pass → `["link"]` marker issued (`is_link_hard_floor=true` set globally by EMIT_LINK_MARKER, WRITE_MARKER invoked directly — P24-001 invocation model) → `jr issue link NEW_KEY CLOSED_KEY` authorized and called. Assertions: (a) verdict-2 `["link"]` marker IS issued (not denied); (b) `jr issue link` IS called with NEW_KEY and CLOSED_KEY; (c) autonomy_enabled=false does NOT suppress the link (STEP 3b exempt from kill switch per D-027); (d) the `["link"]` marker has `is_link_hard_floor=true` routing — REVIEW-CLASS behavior, not REGULAR. **D-028 fail-loud sub-scenario**: inject WRITE_MARKER failure on verdict-2 (disk-full simulation). Assert: audit code `MARKER-WRITE-FAILED` emitted; verdict-2 Write DENIED (not allow-without-marker); `jr issue link` is NOT called. This is distinct from the REGULAR link path (non-hard-floor link + write failure → allow-without-marker). |
+| `blind-spot-closed-compound` | **[NEW v1.4 — D-027/D-028/P23-002; P24-001 invocation model applied]** BLIND-SPOT sensor-silence alert: disposition=Indeterminate, sensor_health_status=silent (→ hard_floor_applies()=TRUE unconditionally), autonomy_enabled=false. Compound two-verdict sequence: verdict-1 ticket_action_type=create-review + hard_floor_applies()=TRUE → STEP 3 issues create-review marker → `jr issue create --project PRISMDEMO --label BLIND-SPOT` called → NEW_KEY returned. Verdict-2 ticket_action_type=link, ticket_id=NEW_KEY, link_target_ticket_id=CLOSED_KEY, hard_floor_applies()=TRUE → **D-027 STEP 3b carve-out** → null-binding checks pass (D-028) → `EMIT_LINK_MARKER true` (positional $1=true per P24-001) → org-binding + P24-002 charset check pass → `["link"]` marker issued (`is_link_hard_floor=true` set globally by EMIT_LINK_MARKER, WRITE_MARKER invoked directly — P24-001 invocation model) → `jr issue link NEW_KEY CLOSED_KEY` authorized and called. | Assertions: (a) verdict-2 `["link"]` marker IS issued (not denied); (b) `jr issue link` IS called with NEW_KEY and CLOSED_KEY; (c) autonomy_enabled=false does NOT suppress the link (STEP 3b exempt from kill switch per D-027); (d) the `["link"]` marker has `is_link_hard_floor=true` routing — REVIEW-CLASS behavior, not REGULAR. **D-028 fail-loud sub-scenario**: inject WRITE_MARKER failure on verdict-2 (disk-full simulation). Assert: audit code `MARKER-WRITE-FAILED` emitted; verdict-2 Write DENIED (not allow-without-marker); `jr issue link` is NOT called. This is distinct from the REGULAR link path (non-hard-floor link + write failure → allow-without-marker). |
 | `tp-close-denied` | **[NEW v1.4 — D-025/P23-002; P24-004 scored_priority pinned]** 1 open ticket, disposition=TP, ticket_action_type=close (any autonomy_enabled value), **scored_priority ∈ {LOW,MED}** (non-hard-floor: healthy sensor, benign technique, non-critical asset — hard_floor_applies()=FALSE). STEP 4b close-disposition guard (D-025/D-023) fires BEFORE STEP 5 kill switch: disposition∉{FP,BTP} → CLOSE-DISPOSITION-DENY. STEP 4 hard-floor gate is NOT triggered (scored_priority=LOW/MED passes). | Audit code `CLOSE-DISPOSITION-DENY` emitted; verdict Write DENIED; NO `jr issue move` call of any kind (SM-69/D-025 vector). Asserts: (a) denial fires regardless of autonomy_enabled (autonomy_enabled=false default case AND autonomy_enabled=true case — both asserted); (b) no `jr issue move` in call log for either autonomy setting; (c) mock never reaches STEP 5 or STEP 6. Covers the SM-69 STEP 4b close-disposition gate for TP disposition. **Precondition note (P24-004):** scored_priority MUST be LOW or MED — a hard-floor TP+close (scored_priority ∈ {HIGH,CRIT}) is caught at STEP 4 (UNDER-LABEL-DENIED), not STEP 4b; that path is covered by the STEP 4 under-label deny path and BC-3.03.001 canonical vectors L1112/L1113, not by this scenario. |
 
 4. **Never-auto-reopen validation**: Test asserts `jr issue move` is NOT called to
@@ -381,7 +398,7 @@ Extend the existing BATS mock `jr` binary (located in BATS helpers) with:
 
 | Test Surface | Dependency |
 |-------------|------------|
-| BATS tests for monitoring-loop Stage 7 (ticket action §3.4) | All 7 jr mock scenarios above |
+| BATS tests for monitoring-loop Stage 7 (ticket action §3.4) | All 10 jr mock scenarios above |
 | BATS tests for require-review D-005 marker mechanism | `jr issue comment` / `jr issue create` authorized via marker |
 | BATS tests for sensor-silence BLIND-SPOT dedup (R-006) | `blind-spot-open` and `blind-spot-absent` scenarios |
 | BATS tests for never-auto-reopen-closed invariant (§3.4 rule 4) | `resolved-same` + `closed-same` scenarios: assert no `jr issue move KEY <non-close-state>` call (BC-4.02.001 Invariant #4 / VP-SKILL-066 / P21-003) |
@@ -514,8 +531,39 @@ This cycle introduces **two** test infrastructure requirements:
 **2. Enhanced jr bash mock (secops-factory-built, L2 stateful):**
 - Extends existing BATS mock jr binary with scenario-seeded issue registry and
   stateful call recording
-- 7 fixture scenarios covering all §3.4 Jira-first decision tree branches
+- 10 fixture scenarios covering all §3.4 Jira-first decision tree branches
 - Required for: F4 integration tests for monitoring-loop ticket action logic
 
 **Neither Tavily, Perplexity, nor OS scheduler** require a test double. Enrichment
 is graceful-degradation optional; the scheduler is bypassed by direct loop invocation.
+
+## Dependency Summary
+
+| # | Service | Category | Fidelity | DTU? | Points | Justification |
+|---|---------|----------|----------|------|--------|---------------|
+| 1 | prism binary / MCP stdio server | Inbound Data | L3 | YES — prism-side existing | N/A | Full sensor data for all 4 sensors via prism-dtu-demo-server; see §2 |
+| 2 | Jira via jr CLI | Outbound Operations | L2 | YES — secops-factory-built | N/A | §3.4 decision tree branches; see §3 jr mock scenarios |
+| 3 | Tavily MCP | Enrichment | L0 | NO | — | Graceful-degradation optional; tests skip enrichment |
+| 4 | Perplexity MCP | Enrichment | L0 | NO | — | Graceful-degradation optional; tests skip enrichment |
+| 5 | OS scheduler | Infrastructure | N/A | NO | — | Tests invoke monitoring loop directly; no scheduler DTU needed |
+
+## Services NOT Requiring DTU
+
+| # | Service | Reason |
+|---|---------|--------|
+| 1 | Tavily MCP | Graceful-degradation path; enrichment is optional; tests bypass it |
+| 2 | Perplexity MCP | Graceful-degradation path; enrichment is optional; tests bypass it |
+| 3 | OS scheduler (cron/Task Scheduler) | Tests invoke the monitoring loop directly; no scheduler coordination needed in CI |
+
+## DTU Architecture
+
+The prism-side DTU (`prism-dtu-demo-server`) is prism-owned infrastructure provided via the `prism-demo-bundle` release asset — not a secops-factory-built Docker clone. The jr bash mock is a BATS tmpfile-based test double, not a Docker service. No Docker Compose structure is required for this cycle's DTU components.
+
+See §4 Deployment Notes for how `prism-dtu-demo-server` boots sensor clone endpoints and how `configs/prism-demo.toml` routes prism through DTU endpoints.
+
+## Clone Development Approach
+
+No new TDD clone stories are required for this feature cycle:
+
+- **prism DTU**: Provided by the prism project (prism-demo-bundle release asset, S-6.20). Consumed as-is. No secops-factory clone story needed.
+- **jr bash mock**: Extended from existing BATS mock binary infrastructure (secops-factory-owned). Extension spec in §3 above. Delivered as part of F4 monitoring-loop story tests, not as a standalone clone story.

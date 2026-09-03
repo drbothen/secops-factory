@@ -57,6 +57,7 @@ are in phase-f2-spec-evolution/.
 | 30 | 2026-09-02 | 0 | 0 | 2 | 1 | 1 | 4 | LOW | 0/3 | NOT CLEAN |
 | 31 | 2026-09-02 | 0 | 0 | 1 | 1 | 3 | 5 | LOW-MED | 0/3 | NOT CLEAN |
 | 32 | 2026-09-03 | 0 | 0 | 1 | 1 | 1 | 3 | LOW | 0/3 | NOT CLEAN (4th consec 0C/0M; REMEDIATED burst-29 ~44 pins) |
+| 33 | 2026-09-03 | 0 | 0 | 2 | 1 | 2 | 5 | LOW | 0/3 | NOT CLEAN (5th consec 0C/0M; both MEDs = burst-29 sweep tail; REMEDIATED burst-30) |
 
 **Note on historical data:** Finding counts for passes 1–28 reconstructed from
 STATE.md Phase Progress finding-progression and burst-log.md entries. Per-pass
@@ -68,13 +69,13 @@ are authoritative). Passes 6, 10, 20–26 include observations in the total; pas
 
 ## Trajectory Shorthand
 
-`10→4→5→6→3→10→5→3→2→11→4→4→3→5→3→3→3→3→2→9→8→7→9→5→6→7→4→2→3→4→5→3`
+`10→4→5→6→3→10→5→3→2→11→4→4→3→5→3→3→3→3→2→9→8→7→9→5→6→7→4→2→3→4→5→3→5`
 
-*(tail: →2→3→4→5→3, passes 28→29→30→31→32)*
+*(tail: →3→4→5→3→5, passes 29→30→31→32→33)*
 
 **Clean pass goal:** 3 consecutive passes with 0C/0M/0med/0min (OBS allowed).
-**Current clean streak:** 0/3 — pass-32 has 1med + 1min (NOT clean).
-**Consecutive 0C/0M passes:** 4 (passes 29, 30, 31, 32) — deeply converged
+**Current clean streak:** 0/3 — pass-33 has 2med + 1min (NOT clean).
+**Consecutive 0C/0M passes:** 5 (passes 29, 30, 31, 32, 33) — deeply converged
 but not yet clean (coherence/version-drift findings remain).
 
 ---
@@ -197,3 +198,30 @@ BC-5.01.001 v1.15 (Group I), BC-10.01.001 v1.32 (no-bump), prd-delta v1.33,
 verification-delta v1.34. Architecture-delta v1.31/dtu-assessment v1.5 UNCHANGED.
 VP 41 / SM 74 alloc (73 live); tallies unchanged. Test-count BATS arithmetic
 corrections: BC-3.03.001 111→129; BC-10.01.001 108→113 (already-existing tests).
+
+---
+
+### Pass 33 (2026-09-03) — REMEDIATED burst-30
+
+**Findings:** 5 (0C / 0M / 2med / 1min / 2obs)
+**Novelty:** LOW — all coherence/version-drift; both MEDs were tail gaps from burst-29 sweep
+**Convergence counter:** 0/3 (fifth consecutive 0C/0M pass)
+
+P33-001 (MED): prd-delta §5 tracking-table cells for BC-4.02.001 (v1.20 cell, actual
+v1.21) and BC-5.01.001 (v1.14 cell, actual v1.15) not synced by burst-29. Root cause:
+burst-29 patched only the BCs it directly targeted (Group G) and missed the §5 cells
+for BCs bumped as side-effects of Groups H/I. Covered by Lesson 51 (version-agnostic
+full-table re-derivation required). P33-002 (MED): BC-10.01.001 L119 as-of-introduction
+annotation cited v1.24 for JSON-first dispatch (P4-001); actual introduction was v1.12
+(corroborated by BC-10.01.001 Previous block L121 + prd-delta §5 L125). P33-003 (MIN):
+prd-delta Document Changelog missing v1.33 row (burst-29 bump had no changelog entry).
+P33-OBS-1: dtu-assessment scenario count stated 7, actual 10 (3 NEW scenarios added
+v1.2/v1.4 not reflected in count prose); adjudicated total = 10. P33-OBS-2:
+verification-delta §5 blanket deferral note overly broad post-v1.34 reconciliation
+(two largest per-BC rows now reconciled — note narrowed to remaining small-BC rows).
+
+Versions: BC-10.01.001 v1.32 (no-bump L119 correction), prd-delta v1.33 (§5 cells
+BC-4.02.001/BC-5.01.001 + v1.33 changelog row), dtu-assessment v1.6 (scenario-count
+7→10 + template-drift cleanup), verification-delta v1.34 (no-bump §5 deferral-note
+narrowed). BC-3.03.001/BC-4.02.001/BC-5.01.001/BC-3.01.001/architecture-delta UNCHANGED.
+VP 41 / SM 74 alloc (73 live); tallies unchanged.

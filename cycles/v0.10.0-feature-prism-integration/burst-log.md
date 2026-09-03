@@ -94,6 +94,22 @@ are archived here when the 5-row limit is reached.
 
 ---
 
+## Archived Step: F2 pass-30 remediation burst 27 (rotated 2026-09-03)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-30 remediation burst 27 | product-owner / formal-verifier / state-manager | DONE | P30-001: BC-3.03.001 v1.40 + BC-10.01.001 v1.31 — ASM-008 residual notes split (absence-deny vs membership-bypass). P30-002: verif-delta v1.32 — VP-HOOK-025 anchor+prose names org_slug presence-deny leg; SM-81 confirmed; VP 41 / SM 74 alloc, 73 live; test-count unchanged. P30-003: prd-delta v1.31 — 4 ALWAYS-PRESENT + 1 CONDITIONAL presence split annotated. P30-004: BC-10.01.001 v1.31 — version pin annotated. Lesson 50 logged. Clean streak 0/3. |
+
+---
+
+## Archived Step: F2 adversarial pass 31 (rotated 2026-09-03)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 31 | adversary | DONE | 0C/0M/1med/1min/3obs — NOT CLEAN. P31-001 (MED): VP-HOOK-025 `ticket_action_type` membership enum stale (6 vs 8 members; missing link/close from D-020/D-021). P31-002 (MIN): `autonomy_enabled` ALWAYS-PRESENT vs tolerated-absent at consumer — clarity gap vs org_slug presence-deny. P31-003/004/005 (OBS): positive coherence notes. Clean streak 0/3. Novelty: LOW-MEDIUM. 3rd consecutive 0C/0M pass. |
+
+---
+
 ## Burst 29: Pass-32 Comprehensive Version-Coherence Sweep (2026-09-03)
 
 **Steps from STATE.md Current Phase Steps (rotated in — 2 archived):**
@@ -1277,5 +1293,45 @@ verification-delta v1.33: 3 enforced-enum sites corrected from 6-member to 8-mem
 **DI-018 decision:** DEFERRED to F3 boundary — human-approved 2026-09-02; fold into MIG-001 rc.24 uplift. DI-018 Status updated in STATE.md to reflect F3-boundary deferral.
 
 **Versions bumped:** verification-delta v1.32→v1.33 (no frontmatter input-hash field — DI-018), BC-3.03.001 v1.40→v1.41 (input-hash 0929570 — source inputs unchanged), BC-10.01.001 v1.31→v1.32 (input-hash 28e1a97 — source inputs unchanged), prd-delta v1.31→v1.32 (input-hash 3ee2010).
+
+---
+
+## Burst 30: Pass-33 Coherence-Sweep Tail Cleanup (2026-09-03)
+
+**Steps from STATE.md Current Phase Steps (2 rotated in: burst-27 and pass-31 archived above):**
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 33 | adversary | DONE | 0C/0M/2med/1min/2obs — NOT CLEAN. P33-001 (MED): prd-delta §5 cells for BC-4.02.001 (v1.20→v1.21) and BC-5.01.001 (v1.14→v1.15) not synced by burst-29 sweep. P33-002 (MED): BC-10.01.001 L119 as-of-introduction annotation cited v1.24 (actual: v1.12 P4-001). P33-003 (MIN): prd-delta Document Changelog missing v1.33 row. P33-OBS-1: dtu-assessment scenario count 7→10. P33-OBS-2: verification-delta §5 blanket deferral note stale post-v1.34 reconciliation. Clean streak 0/3. 5th consecutive 0C/0M pass. |
+| F2: pass-33 remediation burst 30 | product-owner / formal-verifier / state-manager | DONE | P33-001: prd-delta v1.33 §5 cells BC-4.02.001 v1.20→v1.21 + BC-5.01.001 v1.14→v1.15 + v1.33 changelog row added. P33-002: BC-10.01.001 v1.32 L119 annotation v1.24→v1.12 (P4-001); prd-delta PC#8 row annotation corrected in parallel. P33-003: prd-delta v1.33 changelog row added (subsumed with P33-001 fix). P33-OBS-1: dtu-assessment v1.6 scenario-count 7→10 + template-drift cleanup. P33-OBS-2: verification-delta v1.34 §5 deferral-note narrowed to remaining small-BC rows. VP 41 / SM 74 alloc, 73 live UNCHANGED. Clean streak 0/3 (pass-34 pending). |
+
+**Narrative:**
+
+Pass-33 found 5 total findings (0C/0M/2med/1min/2obs). Both MEDs were tail gaps left by the burst-29 comprehensive coherence sweep — a demonstration that even a version-agnostic sweep (Lesson 51) must re-derive FULL §5 tables from BC frontmatter rather than patching individual cells for directly-targeted BCs. BCs bumped as side-effects of Group H/I cross-reference updates had their §5 cells left stale.
+
+**Burst-30 Part 1 (product-owner):**
+- prd-delta v1.33: §5 cells updated — BC-4.02.001 v1.20→v1.21 cell, BC-5.01.001 v1.14→v1.15 cell [P33-001]; v1.33 changelog row added [P33-003]; PC#8 annotation corrected "introduced at v1.24" → "introduced at v1.12 (P4-001)" [P33-002]. input-hash updated 77128f7→247135e (reflecting BC-10.01.001 content change).
+- BC-10.01.001 v1.32 (no-bump): L116 PC#8 "JSON-first dispatch introduced at v1.24" → "introduced at v1.12 (P4-001)" [P33-002 primary fix]. Version stays v1.32 (annotation correction, no behavioral change).
+- dtu-assessment v1.6 (bumped from v1.5): scenario-count 7→10 in affected prose locations + template-drift structural cleanup (missing frontmatter fields added) [P33-OBS-1]. input-hash: 3cf5746.
+
+**Burst-30 Part 2 (formal-verifier):**
+- verification-delta v1.34 (no-bump): §5 blanket deferral note narrowed — scoped to REMAINING small-BC rows only; acknowledges BC-3.03.001 (→129) and BC-10.01.001 (→113) as granularly reconciled in v1.34 [P33-OBS-2]. NO count/tally change. VP 41 / SM 74 alloc 73 live UNCHANGED.
+
+**Input-hash resolution:**
+- prd-delta: 77128f7 → 247135e (recomputed — BC-10.01.001 content changed as input to prd-delta)
+- BC-10.01.001: 28e1a97 (UNCHANGED — own input-hash; content change was annotation-only, no-bump)
+- dtu-assessment: 3cf5746 (resolved — was not a COMPUTE-AT-COMMIT placeholder; confirmed valid)
+- verification-delta: no frontmatter input-hash field (DI-018 / confirmed)
+
+**Meta-observation on burst-29 sweep gap (Lesson 51 sub-class):** Burst-29's "comprehensive" sweep correctly updated §5 cells for BCs it DIRECTLY targeted (Groups G: BC-3.03.001 and BC-10.01.001). It missed §5 cells for BCs bumped as side-effects of Groups H (BC-4.02.001) and I (BC-5.01.001). The standing rule: a coherence sweep must re-derive the FULL §5 table from ALL current BC frontmatter versions — not patch individual cells. Lesson 51 covers this class. No new lesson required.
+
+**Closes:**
+- P33-001 (MEDIUM): prd-delta v1.33 §5 cells BC-4.02.001/BC-5.01.001 updated; input-hash 247135e
+- P33-002 (MEDIUM): BC-10.01.001 v1.32 L119 + prd-delta PC#8 row annotation — v1.24→v1.12 (P4-001)
+- P33-003 (MINOR): prd-delta v1.33 changelog row added
+- P33-OBS-1: dtu-assessment v1.6 scenario count 7→10
+- P33-OBS-2: verification-delta v1.34 §5 deferral-note narrowed
+
+**Versions after burst-30:** BC-3.03.001 v1.42, BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-10.01.001 v1.32, BC-3.01.001 v1.25, prd-delta v1.33, verification-delta v1.34, dtu-assessment v1.6, architecture-delta v1.31. VP 41 / SM 74 alloc, 73 live UNCHANGED.
 
 ---

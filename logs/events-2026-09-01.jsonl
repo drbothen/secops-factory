@@ -1,0 +1,1 @@
+{"type":"hook.block","hook":"protect-secrets","reason":"env_file_read_direct","ts":"2026-09-01T23:52:19-0500","ts_epoch":1788324739,"schema_version":1}

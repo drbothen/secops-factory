@@ -324,3 +324,14 @@ superseded/archived checkpoints only.
 | **Convergence counter** | 0/3 clean passes |
 
 ---
+
+## Checkpoint archived 2026-09-03 (displaced by burst-30 complete)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-09-03 |
+| **Position** | Pass-32 remediation COMPLETE (burst 29 — comprehensive version-coherence sweep ~44 stale pins). P32-001 MEDIUM (prd-delta §5 cells stale), P32-002 MINOR (verif-delta §3(a) stale pin), P32-003 OBS (notation) — ALL REMEDIATED. prd-delta v1.33; BC-3.03.001 v1.42; BC-4.02.001 v1.21; BC-5.01.001 v1.15; verification-delta v1.34; input-hashes resolved: BC-4.02.001 c8c96ea, BC-5.01.001 166c2b6, prd-delta 77128f7. VP 41 / SM 74 alloc, 73 live. Lesson 51 logged. NEXT: adversarial pass 33 (fresh context; carry D-023..D-029 (exhaustive) as settled; note 4 consecutive 0C/0M passes; version-agnostic sweep method now codified). Pass-32 NOT clean (0C/0M/1med/1min/1obs); 4th consecutive 0C/0M pass. Clean streak 0/3. trajectory-tail →3→4→5→3 |
+| **Context** | Artifact versions: arch-delta v1.31, verif-delta v1.34, prd-delta v1.33, dtu-assessment v1.5, BC-3.03.001 v1.42, BC-3.01.001 v1.25, BC-10.01.001 v1.32, BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 74 allocated, 73 live (SM-9..SM-81; SM-32=32a+32b+32-ext; SM-55 skipped; SM-50 retired-in-place). NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. Health check 2026-09-01: engine=unpinned/floats-to-rc.24; enable key broken (see MIG-001); rc.24 uplift + artifact relocation DEFERRED to F3 boundary. DI-018 (HIGH): verif-delta.md 811KB trips FUEL_EXHAUSTED; DEFERRED F3 boundary (human-approved 2026-09-02). |
+| **Convergence counter** | 0/3 clean passes |
+
+---

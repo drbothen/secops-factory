@@ -678,6 +678,22 @@ P26-006 [process-gap] (pass 26, 2026-07-29): normative routing is duplicated acr
 
 ---
 
+### Lesson 51 — P32 [process-gap] [codified] Version-coherence sweeps must be version-AGNOSTIC, not version-SPECIFIC (pass 32, burst 29, 2026-09-03)
+
+[process-gap] [codified] A "comprehensive" cross-document coherence audit that greps for SPECIFIC stale version strings (e.g., grep for "v1.38" to find stale BC-3.03.001 pins) is SELECTIVE, not exhaustive — it finds only instances of the exact version it was looking for and misses same-BC-different-version pins and sibling sites. The true exhaustive check is a version-AGNOSTIC grep of every `BC-<id> v<N.NN>` occurrence compared against the source-of-truth frontmatter version, classifying each as live-pin-vs-frozen/provenance pin.
+
+**Evidence:** The consistency-validator's first pass at P32-001 found 30 stale pins by grepping for specific stale version strings. The formal-verifier's version-agnostic section grep found ~12 more in verification-delta alone that the version-specific scan had not reached. A re-check found 2 more in the BCs. Total ~44 pins corrected in burst-29 versus 3 formal pass-32 findings.
+
+**Codified standing rule (effective immediately):** All coherence sweeps that purport to be "complete" or "comprehensive" MUST use the version-agnostic method: extract ALL `BC-<id> v<N.NN>` occurrences from every in-scope file, compare each against the source-of-truth frontmatter `version:` field, and classify each as:
+- live pin (describes current behavior) → must match current version
+- frozen/provenance pin (historical record, changelog, correction erratum) → intentionally preserved; must not be bumped
+
+Only after ZERO live-pin mismatches remain may the sweep be declared complete. The sweep result must be logged in the burst commit message with the site count.
+    _tag: [codified]_
+    _Discovered: F2 adversarial pass 32 → burst-29 comprehensive coherence sweep, 2026-09-03_
+
+---
+
 ### Lesson 49 — P28-001 [process-gap] WRITE_MARKER shared-sink path variable-definedness: a path-aware edit must verify PRODUCER assignment on every incoming path (pass 28, 2026-07-29)
 
 P28-001 [process-gap] (pass 28, 2026-07-29): a path-aware WRITE_MARKER edit (P27-002) landed the read-site + verification vector but left the markdown-path PRODUCER variable under its old name (parsed_disposition vs markdown_parsed_disposition) — the paired mutant SM-80 was therefore a VACUOUS kill (the vector was unsatisfiable against faithful pseudocode). Class: shared-sink pseudocode (GOTO WRITE_MARKER from multiple entry paths) where a read-site references a variable a given entry path never assigns. Recommendation (codified as standing FV pre-implementation check, verif-delta v1.30 §6): for each BC pseudocode GOTO-to-shared-block path, assert every variable the shared block reads is assigned on that path before writing the proof harness — catches vacuous kills pre-convergence. Codification follow-up owed at cycle close (S-7.02 step 3): follow-up story or justified deferral.

@@ -94,6 +94,47 @@ are archived here when the 5-row limit is reached.
 
 ---
 
+## Burst 29: Pass-32 Comprehensive Version-Coherence Sweep (2026-09-03)
+
+**Steps from STATE.md Current Phase Steps (rotated in — 2 archived):**
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-29 remediation burst 26 | product-owner / formal-verifier / state-manager | DONE | P29-001 (MAJOR): org_slug propagation gap REMEDIATED — BC-10.01.001 v1.30 (Inv#9 roster + Stage-1 INGEST write list), prd-delta v1.30 (enforcement-split), BC-3.03.001 v1.39 (operational-metadata roster + schema-v2.2 annotation). verif-delta v1.31 (SM-81 adjudication). P29-002/003 OBS annotated. DI-018 logged. VP 41 / SM 74 alloc (73 live). Clean streak 0/3 (pass-30 pending). |
+| F2: adversarial pass 30 | adversary | DONE | 0C/0M/2med/1min/1obs — NOT CLEAN. P30-001 (MED): org_slug residual note self-contradictory across BC-3.03.001+BC-10.01.001. P30-002 (MED, [process-gap]): VP-HOOK-025 §1 anchor/prose never named org_slug presence-deny leg. P30-003 (LOW): operational-metadata count diverged (prd-delta 5 vs BCs 4). P30-004 (OBS): stale version pins in BC-10.01.001. Clean streak 0/3. |
+| F2: adversarial pass 32 | adversary | DONE | 0C/0M/1med/1min/1obs — NOT CLEAN. Fourth consecutive 0C/0M pass. All findings version/coherence-drift. P32-001 (MED): prd-delta §5 BC-version tracking table stale (BC-3.03.001 cell v1.38→v1.42; BC-10.01.001 cell v1.29→v1.32). P32-002 (MIN): verification-delta §3(a) self-contradictory stale pin (BC-10.01.001 v1.14 "18-field" — was 15-field at v1.14). P32-003 (OBS): verification-delta §3(a) ticket_action_type set-builder showed only 4-member base. Clean streak 0/3. |
+| F2: pass-32 remediation burst 29 | product-owner / formal-verifier / state-manager | DONE | COMPREHENSIVE version-coherence sweep (~44 stale pins found/fixed — far beyond 3 formal findings). product-owner: prd-delta v1.33 (§5 cells BC-3.03.001 v1.38→v1.42/BC-10.01.001 v1.29→v1.32; §3 EC footer 50→51; §1 VP totals 25+1); BC-3.03.001 v1.42 (Group G L999 + VP-HOOK-031 "Consumed by" back-refs L1263/L1351, no-bump completion); BC-4.02.001 v1.21 (Group H live cross-refs); BC-5.01.001 v1.15 (Group I live cross-refs); BC-10.01.001 v1.32 (L119 as-of-introduction annotation, no-bump). formal-verifier: verification-delta v1.34 — ALL §1/§2/§3(a)/§5 live BC-anchor pins reconciled (BC-10.01.001 v1.32, BC-3.01.001 v1.25, BC-3.03.001 v1.42, BC-4.02.001 v1.21, BC-5.01.001 v1.15); P32-002/P32-003 fixed; §5 BATS counts corrected (BC-3.03.001 111→129; BC-10.01.001 108→113) — NO coverage change; VP 41 / SM 74 alloc 73 live UNCHANGED. input-hashes resolved: BC-4.02.001 c8c96ea, BC-5.01.001 166c2b6, prd-delta 77128f7. Lesson 51 logged. Clean streak 0/3 (pass-33 pending). |
+
+**Narrative:**
+
+Pass-32 formal findings (3 total: 0C/0M/1med/1min/1obs) triggered a broader scope escalation than the findings themselves warranted. The consistency-validator's first pass at P32-001 identified 2 stale version cells in prd-delta §5. But attempting to fix P32-001 correctly required verifying ALL live BC-version pins across the spec corpus — which revealed ~44 stale pins total.
+
+**Burst-29 Part 1 (product-owner):**
+- prd-delta v1.33: §5 BC-version tracking table cells corrected (BC-3.03.001 v1.38→v1.42, BC-10.01.001 v1.29→v1.32); EC footer 50→51; §1 VP totals updated (25 assigned + 1 proposed)
+- BC-3.03.001 v1.42: Group G L999 cross-refs + VP-HOOK-031 "Consumed by" back-references at L1263/L1351 updated to BC-5.01.001 v1.15 / BC-4.02.001 v1.21 (no-bump — pure coherence, pre-burst version already at v1.42 from the formal findings)
+- BC-4.02.001 v1.21: Group H live cross-references updated to current versions
+- BC-5.01.001 v1.15: Group I live cross-references updated to current versions
+- BC-10.01.001 v1.32: L119 as-of-introduction annotation (no-bump — was already at v1.32 from burst-28)
+- dtu-assessment: Group J = LEAVE (as-of-introduction annotations, confirmed)
+
+**Burst-29 Part 2 (formal-verifier):**
+- verification-delta v1.34: comprehensive version-agnostic sweep of §1/§2/§3(a)/§5 — ALL live BC-anchor pins reconciled to current versions (BC-10.01.001 v1.32, BC-3.01.001 v1.25, BC-3.03.001 v1.42, BC-4.02.001 v1.21, BC-5.01.001 v1.15)
+- P32-002 fixed: §3(a) stale self-contradictory pin replaced with relative descriptor
+- P32-003 fixed: §3(a) field-15 set-builder updated to 8-member full enforced set
+- §5 BATS counts corrected for already-existing tests: BC-3.03.001 111→129 (+18 arithmetic recount); BC-10.01.001 108→113 (+5 arithmetic recount) — NO new coverage, frozen-at-v1.23 header arithmetic corrected
+- VP 41 / SM 74 alloc 73 live: UNCHANGED
+- Frozen/provenance pins preserved; section-scoped grep confirms ZERO stale live pins remain
+
+**Input-hash resolution:**
+- BC-4.02.001: COMPUTE-AT-COMMIT → c8c96ea (computed MD5 of input files)
+- BC-5.01.001: COMPUTE-AT-COMMIT → 166c2b6 (computed MD5 of input files)
+- prd-delta: 60eea55 → 77128f7 (recomputed after BC input file content changes)
+- BC-3.03.001: 0929570 (verified CORRECT)
+- BC-10.01.001: 28e1a97 (verified CORRECT)
+- verification-delta: no frontmatter input-hash field (confirmed)
+
+---
+
 ## Burst 0: Cycle Init + Environment Check (2026-07-19 → 2026-07-20)
 
 **Steps archived from STATE.md Current Phase Steps:**

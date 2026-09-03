@@ -16,12 +16,25 @@ traces_to: STATE.md
 
 Superseded checkpoints rotated out of STATE.md.
 
-## Session Resume Checkpoint (2026-09-02) — burst-28 complete, pass-32 pending
+## Session Resume Checkpoint — current active checkpoint is in STATE.md
 
 <!-- This section satisfies the template required-section anchor. Active checkpoint is in STATE.md. -->
 
 See STATE.md Session Resume Checkpoint for the current (live) checkpoint. This file contains
 superseded/archived checkpoints only.
+
+---
+
+## Archived Checkpoint — burst-28 complete, pass-32 pending (2026-09-02)
+
+**Superseded by:** burst-29 complete checkpoint (2026-09-03)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-09-02 |
+| **Position** | Pass-31 remediation COMPLETE (burst 28). P31-001 MEDIUM (VP-HOOK-025 enum stale → verif-delta v1.33); P31-002 MINOR (autonomy_enabled clarity → BC-3.03.001 v1.41, BC-10.01.001 v1.32, prd-delta v1.32). P31-003/004/005 OBS — no action. VP 41 / SM 74 alloc, 73 live. DI-018 DEFERRED to F3 boundary (human-approved). NEXT: adversarial pass 32 (fresh context; carry D-023..D-029 (exhaustive) as settled). Pass-31 NOT clean (0C/0M/1med/1min/3obs); 3rd consecutive 0C/0M pass. Clean streak 0/3. trajectory-tail →2→3→4→5 |
+| **Context** | Artifact versions: arch-delta v1.30, verif-delta v1.33, prd-delta v1.32, dtu-assessment v1.5, BC-3.03.001 v1.41, BC-3.01.001 v1.25, BC-10.01.001 v1.32, BC-4.02.001 v1.20, BC-5.01.001 v1.14, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 74 allocated, 73 live (SM-9..SM-81; SM-32=32a+32b+32-ext; SM-55 skipped; SM-50 retired-in-place). NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. Health check 2026-09-01: engine=unpinned/floats-to-rc.24; enable key broken (see MIG-001); rc.24 uplift + artifact relocation DEFERRED to F3 boundary. DI-018 (HIGH): verif-delta.md 811KB trips FUEL_EXHAUSTED on PostToolUse validators on every edit; DEFERRED F3 boundary. |
+| **Convergence counter** | 0/3 clean passes |
 
 ---
 

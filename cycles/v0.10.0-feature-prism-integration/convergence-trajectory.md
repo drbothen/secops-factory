@@ -56,6 +56,7 @@ are in phase-f2-spec-evolution/.
 | 29 | 2026-09-02 | 0 | 1 | 0 | 0 | 2 | 3 | LOW | 0/3 | NOT CLEAN |
 | 30 | 2026-09-02 | 0 | 0 | 2 | 1 | 1 | 4 | LOW | 0/3 | NOT CLEAN |
 | 31 | 2026-09-02 | 0 | 0 | 1 | 1 | 3 | 5 | LOW-MED | 0/3 | NOT CLEAN |
+| 32 | 2026-09-03 | 0 | 0 | 1 | 1 | 1 | 3 | LOW | 0/3 | NOT CLEAN (4th consec 0C/0M; REMEDIATED burst-29 ~44 pins) |
 
 **Note on historical data:** Finding counts for passes 1–28 reconstructed from
 STATE.md Phase Progress finding-progression and burst-log.md entries. Per-pass
@@ -67,14 +68,14 @@ are authoritative). Passes 6, 10, 20–26 include observations in the total; pas
 
 ## Trajectory Shorthand
 
-`10→4→5→6→3→10→5→3→2→11→4→4→3→5→3→3→3→3→2→9→8→7→9→5→6→7→4→2→3→4→5`
+`10→4→5→6→3→10→5→3→2→11→4→4→3→5→3→3→3→3→2→9→8→7→9→5→6→7→4→2→3→4→5→3`
 
-*(tail: →4→2→3→4→5, passes 27→28→29→30→31)*
+*(tail: →2→3→4→5→3, passes 28→29→30→31→32)*
 
 **Clean pass goal:** 3 consecutive passes with 0C/0M/0med/0min (OBS allowed).
-**Current clean streak:** 0/3 — pass-31 has 1med + 1min (NOT clean).
-**Consecutive 0C/0M passes:** 3 (passes 29, 30, 31) — approaching convergence
-but not yet clean.
+**Current clean streak:** 0/3 — pass-32 has 1med + 1min (NOT clean).
+**Consecutive 0C/0M passes:** 4 (passes 29, 30, 31, 32) — deeply converged
+but not yet clean (coherence/version-drift findings remain).
 
 ---
 
@@ -170,3 +171,29 @@ added to BC-3.03.001 v1.41 ~L994, BC-10.01.001 v1.32 Inv#9, prd-delta v1.32.
 P31-003/004/005 (OBS): positive coherence notes; no action.
 Versions: verification-delta v1.33, BC-3.03.001 v1.41, BC-10.01.001 v1.32, prd-delta v1.32.
 VP 41 / SM 74 alloc (73 live); tallies unchanged.
+
+---
+
+### Pass 32 (2026-09-03) — REMEDIATED burst-29
+
+**Findings:** 3 (0C / 0M / 1med / 1min / 1obs)
+**Novelty:** LOW — all version/coherence-drift; no new behavioral logic defects
+**Convergence counter:** 0/3 (fourth consecutive 0C/0M pass)
+
+P32-001 (MED): prd-delta §5 BC-version tracking table stale — BC-3.03.001 cell
+v1.38→v1.42; BC-10.01.001 cell v1.29→v1.32. EC footer 50→51; §1 VP totals 25+1.
+P32-002 (MIN): verification-delta §3(a) self-contradictory stale pin (BC-10.01.001
+v1.14 Inv#9 "18-field" — was 15-field at v1.14; corrected to relative descriptor).
+P32-003 (OBS): verification-delta §3(a) field-15 set-builder showed 4-member base
+only; updated to full 8-member enforced set.
+
+**Comprehensive sweep triggered:** ~44 total stale pins found across the corpus
+beyond the 3 formal findings. Sweep used version-agnostic grep (every BC-<id> v<N.NN>
+occurrence vs frontmatter truth) — caught ~12 additional stale pins in verification-delta
+missed by version-specific scan. Lesson 51 logged.
+
+Versions: BC-3.03.001 v1.42 (no-bump Group G), BC-4.02.001 v1.21 (Group H),
+BC-5.01.001 v1.15 (Group I), BC-10.01.001 v1.32 (no-bump), prd-delta v1.33,
+verification-delta v1.34. Architecture-delta v1.31/dtu-assessment v1.5 UNCHANGED.
+VP 41 / SM 74 alloc (73 live); tallies unchanged. Test-count BATS arithmetic
+corrections: BC-3.03.001 111→129; BC-10.01.001 108→113 (already-existing tests).

@@ -795,3 +795,34 @@ A VP present only in verification-delta §1 and architecture-delta §8.15 — wi
 All six axes address forms of spec correctness that site-to-site reconciliation CANNOT catch alone.
     _tag: [codified]_
     _Discovered: F2 adversarial pass 40 (P40-001 MAJOR GENUINE LOGIC DEFECT) → burst-39 DETECT_LATE_EVENT reachability fix (raw watermark), 2026-09-03_
+
+---
+
+### Lesson 57 — P42-001 [process-gap] [codified] DESIGN→BC PROPAGATION PROSE MUST MATCH ITS OWN PSEUDOCODE (pass 42, burst 41, 2026-09-03)
+
+**Category:** [process-gap] [codified]
+**Trigger:** P42-001 MAJOR (BC-10.01.001 absent-watermark coherence contradiction)
+
+**Lesson:** When an architect produces a BC-propagation prose string alongside pseudocode (e.g., "the DETECT_LATE_EVENT suppression set is: absent, non-RFC3339, or future-dated"), the PO/FV agent receiving that string MUST reconcile it against the authoritative pseudocode before placing it in the BC. In the P41-003 remediation, the propagation prose listed "absent" as a trigger for DETECT_LATE_EVENT_SUPPRESSED, while the same architect's pseudocode correctly treated absent as a first-run early-return (no audit entry). The prose was propagated verbatim into BC-10.01.001, creating an intra-BC contradiction (EC-023 no-entry vs EC-024 suppressed-entry on the same absent-watermark precondition) that survived until pass 42.
+
+**Root cause:** Prose propagation strings are summaries written after the pseudocode. They can lag or diverge from the pseudocode's conditional structure, especially when a guard has multiple branches (absent → early-return; invalid-format → suppressed; future-dated → suppressed). The absent branch fires before the validation guard and returns — it is structurally excluded from the suppressed set. A prose summary that elides branch ordering can accidentally include it.
+
+**Codified rule:** Before landing any propagation string in a BC's invariant/EC block, the PO/FV MUST:
+1. Identify the pseudocode's conditional branch structure (early-returns, guard ordering, fall-through).
+2. Verify that each condition in the propagation prose corresponds to a REACHABLE branch in the pseudocode (not shadowed or pre-empted by an earlier return).
+3. For multi-outcome blocks (e.g., absent / invalid / future-dated), verify that the outcome assigned to each condition matches the pseudocode's output for that branch.
+4. Flag any divergence back to the architect before committing the BC text.
+
+**7th codified axis** (extends Lessons 51–56):
+- Lesson 51: version-pin sweeps (site-to-site coherence)
+- Lesson 52: EC/invariant count re-derivation (count coherence vs source of truth)
+- Lesson 53: VP-ownership/attribution cross-check (attribution coherence)
+- Lesson 54: VP-lifecycle-status multi-site sweep (status coherence)
+- Lesson 55: architecture→BC behavior-propagation (D-DEC obligation vs BC content)
+- Lesson 56: predicate reachability vs upstream query/filter (fire-condition satisfiability)
+- **Lesson 57 (this): propagation prose vs propagation pseudocode (branch-ordering coherence within the same architect artifact)**
+
+All seven axes address forms of spec correctness that site-to-site reconciliation alone cannot catch.
+    _tag: [codified]_
+    _Discovered: F2 adversarial pass 42 (P42-001 MAJOR INTRA-BC CONTRADICTION) → burst-41 absent-watermark coherence correction, 2026-09-03_
+

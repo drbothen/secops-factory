@@ -1918,3 +1918,46 @@ BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.
 VP **21 FIN + 6 PROP = 27** (41 in registry) / SM **76 alloc, 75 live** (SM-82/SM-83 PROPOSED P1 — NOT P0-counting).
 BATS: 113 (unchanged — VP-SKILL-073 PROPOSED P1; §5 FINALIZED BATS unchanged).
 Convergence-gate (P0 FINALIZED) count UNCHANGED at 21.
+
+---
+
+## Burst 41 — BC-10.01.001 absent-watermark coherence correction (no-bump v1.35) (2026-09-03)
+
+**Type:** text correction (no-bump) — absent-watermark coherence
+**Agent:** product-owner
+**Trigger:** P42-001 MAJOR (absent in DETECT_LATE_EVENT_SUPPRESSED contradicts EC-023 first-run early-return) + P42-002 MINOR (EC-024 cross-ref label EC-003 mislabeled "first-run" → should be "future-dated")
+
+### Files Changed
+
+| File | Change |
+|------|--------|
+| `.factory/phase-0-ingestion/behavioral-contracts/BC-10.01.001.md` | v1.35 no-bump: removed "absent" from DETECT_LATE_EVENT_SUPPRESSED trigger set at Inv#14 L625 + EC-024 (absent/first-run watermark handled by first-run early-return EC-023 → return-0-no-entry; no audit entry of any kind); EC-024 EC-003 cross-ref label corrected "first-run" → "future-dated" |
+| `.factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass42.md` | new — pass-42 report |
+| `.factory/STATE.md` | awaiting → F2-adversarial-pass-43; Phase Progress append pass42/burst41; streak 0/3; trajectory-tail →0C/1M/1min; checkpoint updated; version 2.35 |
+| `.factory/cycles/.../burst-log.md` | this entry + 2 archived steps from STATE Current Phase Steps |
+| `.factory/cycles/.../convergence-trajectory.md` | pass-42 row appended |
+| `.factory/cycles/.../lessons.md` | Lesson 57 appended (7th codified axis — design→BC propagation prose must match its own pseudocode) |
+| `.factory/cycles/.../session-checkpoints.md` | pass-41 checkpoint archived |
+
+### No-Count-Change Confirmation
+
+No VP/SM/EC/BC-pin counts changed in this burst. No count-propagation sweep required (no count-changing update).
+
+### Input-Hash Decision
+
+BC-10.01.001 input-hash stays at `a9a1c5c`. The burst-41 change is a transcription-error correction — the upstream source files (arch-delta v1.33, prd-delta v1.38, verification-delta v1.37) are unchanged since burst-40 set the hash. The input-hash tracks upstream source file content, not the BC's own text; since no source input changed, the hash is correct as-is.
+
+### Versions After Burst-41
+
+**BC-10.01.001 v1.35** (text correction no-bump; input-hash a9a1c5c unchanged). All other artifact versions unchanged: arch-delta v1.33, prd-delta v1.38, verification-delta v1.37, BC-3.03.001 v1.42, BC-3.01.001 v1.25, BC-4.02.001 v1.21, BC-5.01.001 v1.15, dtu-assessment v1.7.
+VP **21 FIN + 6 PROP = 27** (41 in registry); SM **76 alloc / 75 live**. BATS: 113.
+
+### Archived Steps from STATE.md Current Phase Steps (5-row limit, displaced by burst-41 + pass-42)
+
+The following two oldest rows were displaced from STATE Current Phase Steps:
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 38 | adversary | DONE | 0C/1M/0med/0min/1obs — NOT CLEAN (streak RESET 0/3). P38-001 MAJOR: VP-SKILL-075 status contradiction in BC-10.01.001 (body L192 + VP table L789 stale; burst-33 footer-only partial-fix). Substance re-derived CLEAN. REMEDIATED burst-37. |
+| F2: burst-39 (SUBSTANTIVE LOGIC FIX — DETECT_LATE_EVENT reachability + count fix + version cascade) | architect / product-owner / formal-verifier / state-manager | DONE | arch-delta v1.31→v1.32 (D-DEC-002 raw-watermark fix; input-hash d7bcab4); BC-10.01.001 v1.33→v1.34 (Inv#14/EC-023 threshold corrected; input-hash 650e111); prd-delta v1.36→v1.37 (§1 EC cell 22→23; input-hash 6908b94); BC-3.03.001 cross-ref pin v1.34 (no bump; input-hash 96516f3); verif-delta v1.35→v1.36 (VP-073 vector corrected; 15 BC pins v1.33→v1.34). VP/SM/BATS UNCHANGED. Lesson 56 codified. |
+

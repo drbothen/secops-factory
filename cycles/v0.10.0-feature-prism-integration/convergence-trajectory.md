@@ -375,3 +375,20 @@ P41-003 (MED — MISSING VALIDATION GUARD): DETECT_LATE_EVENT read `stored_water
 Independent re-derivation: all spec substance confirmed clean (STEP ordering, kill-switch, hard-floor, marker mechanism, D-029, §3.4, NORMALIZE_SEVERITY, 12/18-split). 5th consecutive 0C/0M pass (substance).
 
 Versions after burst-40 (remediation): **arch-delta v1.33** (DETECT_LATE_EVENT validation guard + DETECT_LATE_EVENT_SUPPRESSED; input-hash d7bcab4), **BC-10.01.001 v1.35** (Inv#14 validation guard + EC-024; EC 23→24; input-hash a9a1c5c), **prd-delta v1.38** (field-18 map fix; EC counts §1/§3 24, totals 56, §8 grand 80; §5 pin→v1.35; input-hash 3eaba2b), **verif-delta v1.37** (§6 threshold corrected; VP-SKILL-073 expanded — EC-002/EC-003 suppression + 3 BATS vectors + SM-82/SM-83; SM tally 74→76 alloc, 73→75 live; 15 BC pins v1.34→v1.35), BC-3.03.001 v1.42 (cross-ref pin → v1.35; input-hash de1ff1d). VP **21 FIN + 6 PROP = 27** (41 in registry); SM **76 alloc / 75 live** (SM-82/SM-83 PROPOSED P1, NOT P0-counting). BATS: 113 (unchanged — §5 FINALIZED BATS unchanged).
+
+---
+
+### Pass 42 (2026-09-03) — **NOT CLEAN** (streak 0/3)
+
+**Findings:** 2 (0C / 1M / 0med / 1min / 0obs)
+**Novelty:** LOW — P42-001 is a prose-vs-pseudocode coherence error in the burst-40 BC propagation (architect's propagation string included "absent" which contradicts EC-023's first-run early-return — intra-BC contradiction introduced by burst-40); P42-002 is a cross-reference label error (EC-003 mislabeled "first-run")
+**Convergence counter:** 0/3 (streak does not advance — P42-001 MAJOR blocks clean verdict)
+
+P42-001 (MAJ — INTRA-BC CONTRADICTION): BC-10.01.001 burst-40 guard wrongly included "absent" watermark in the DETECT_LATE_EVENT_SUPPRESSED trigger set (Inv#14 L625 + EC-024). The absent branch is handled by EC-023 first-run early-return (return-0-no-entry) which fires first and returns — execution never reaches the validation guard. Having both EC-023 (no-entry) and EC-024 (suppressed-entry) apply to the same absent-watermark input is a logical contradiction. All other artifacts were consistent (arch-delta pseudocode L831/EC-023, prd-delta §3, verification-delta SM-82/SM-83 EC-002/EC-003 only). BC was the sole outlier from burst-40 prose propagation. **REMEDIATED burst-41** (removed "absent"; no version bump).
+
+P42-002 (MIN — CROSS-REF LABEL ERROR): EC-024 cross-reference label described EC-003 as "first-run" when EC-003 is the future-dated-watermark suppression path (first-run = EC-023). Label-only error. **REMEDIATED burst-41.**
+
+Independent re-derivation: all substantive and coherence axes confirmed clean (EC counts 24/56/80, version pins, field-18 map, §6 reachability, VP/SM). 6th consecutive 0C/0M substance pass.
+
+Versions after burst-41 (remediation): **BC-10.01.001 v1.35** (text correction no-bump; input-hash a9a1c5c — unchanged). All other versions unchanged: arch-delta v1.33, prd-delta v1.38, verification-delta v1.37, BC-3.03.001 v1.42. VP **21 FIN + 6 PROP = 27** (41 in registry); SM **76 alloc / 75 live**. BATS: 113.
+

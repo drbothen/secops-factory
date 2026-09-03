@@ -44,7 +44,7 @@ else {
 }
 
 if ($CheckFiles.Count -eq 0) {
-    Write-Error 'check-mcp-no-secrets: no .mcp.json files found — nothing to check.'
+    [Console]::Error.WriteLine('check-mcp-no-secrets: no .mcp.json files found — nothing to check.')
     exit 0
 }
 
@@ -52,28 +52,28 @@ $failures = 0
 
 foreach ($file in $CheckFiles) {
     if (-not (Test-Path $file)) {
-        Write-Error "SKIP (not found): $file"
+        [Console]::Error.WriteLine("SKIP (not found): $file")
         continue
     }
     $content = Get-Content -Raw $file
     $fileClean = $true
     foreach ($pat in $Patterns) {
         if ($content -match $pat) {
-            Write-Error "FAIL: literal key pattern '$pat' found in: $file"
+            [Console]::Error.WriteLine("FAIL: literal key pattern '$pat' found in: $file")
             $failures++
             $fileClean = $false
         }
     }
     if ($fileClean) {
-        Write-Error "OK: $file"
+        [Console]::Error.WriteLine("OK: $file")
     }
 }
 
 if ($failures -gt 0) {
-    Write-Error ''
-    Write-Error "check-mcp-no-secrets: $failures literal key pattern(s) found."
-    Write-Error 'Run: bash scripts/migrate-mcp-keys.sh  (or .\scripts\migrate-mcp-keys.ps1 on Windows)'
-    Write-Error 'to move keys to .envrc.secrets and replace with ${VAR} references.'
+    [Console]::Error.WriteLine('')
+    [Console]::Error.WriteLine("check-mcp-no-secrets: $failures literal key pattern(s) found.")
+    [Console]::Error.WriteLine('Run: bash scripts/migrate-mcp-keys.sh  (or .\scripts\migrate-mcp-keys.ps1 on Windows)')
+    [Console]::Error.WriteLine('to move keys to .envrc.secrets and replace with ${VAR} references.')
     exit 1
 }
 

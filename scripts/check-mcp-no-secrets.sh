@@ -56,13 +56,15 @@ for file in "${FILES[@]}"; do
         echo "SKIP (not found): $file" >&2
         continue
     fi
+    file_failures=0
     for pat in "${PATTERNS[@]}"; do
         if grep -qE "$pat" "$file" 2>/dev/null; then
             echo "FAIL: literal key pattern '$pat' found in: $file" >&2
             FAILURES=$((FAILURES + 1))
+            file_failures=$((file_failures + 1))
         fi
     done
-    if [ $FAILURES -eq 0 ]; then
+    if [ "$file_failures" -eq 0 ]; then
         echo "OK: $file" >&2
     fi
 done

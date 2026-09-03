@@ -12,6 +12,9 @@
 # the next `claude` launch. This script tells you when a restart is needed.
 
 #Requires -Version 7.0
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '',
+    Justification='Interactive display script — Write-Host is required for -ForegroundColor output')]
+param()
 $ErrorActionPreference = 'Stop'
 
 $ROOT = Split-Path -Parent $PSScriptRoot
@@ -103,7 +106,6 @@ function Invoke-Doctor {
             Write-Ok "endpoint reachable: $baseUrl"
             $served = ($resp.data | ForEach-Object { $_.id }) -join ' '
             foreach ($tier in @('opus', 'sonnet', 'haiku')) {
-                $varName = "ANTHROPIC_DEFAULT_$($tier.ToUpper())_MODEL"
                 $m = switch ($tier) { 'opus' { $opusM } 'sonnet' { $sonnetM } 'haiku' { $haikuM } }
                 if (-not $m) { continue }
                 if ($served -match [regex]::Escape($m)) {

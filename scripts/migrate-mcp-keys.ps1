@@ -9,6 +9,9 @@
 # Requires PowerShell 7+.
 
 #Requires -Version 7.0
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '',
+    Justification='Interactive display script — Write-Host is required for -ForegroundColor output')]
+param()
 $ErrorActionPreference = 'Stop'
 
 $ROOT    = Split-Path -Parent $PSScriptRoot

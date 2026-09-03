@@ -1473,3 +1473,89 @@ P36-001 triggered a comprehensive VP-ownership/traceability audit. Product-owner
 **Clean streak RESET to 0/3** (pass-36 NOT CLEAN). Spec content FROZEN post-burst-33 for the pass-37 streak attempt.
 
 **Versions after burst-33:** arch-delta v1.31, verif-delta v1.34 (UNCHANGED), prd-delta v1.35 (input-hash 247135e — stale from v1.34; no placeholder to resolve), dtu-assessment v1.6, BC-3.03.001 v1.42 (footer only, no bump), BC-3.01.001 v1.25, BC-10.01.001 v1.32 (footer only, no bump), BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2.
+
+---
+
+## Archived Step: F2 adversarial pass 33 (rotated 2026-09-03, burst-35)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 33 | adversary | DONE | 0C/0M/2med/1min/2obs — NOT CLEAN. P33-001 (MED): prd-delta §5 cells BC-4.02.001/BC-5.01.001 not synced by burst-29. P33-002 (MED): BC-10.01.001 L119 annotation v1.24→v1.12 (P4-001). P33-003 (MIN): prd-delta changelog missing v1.33 row. P33-OBS-1/OBS-2 remediated. Clean streak 0/3. 5th consecutive 0C/0M pass. |
+
+---
+
+## Archived Step: F2 pass-33 remediation burst 30 (rotated 2026-09-03, burst-35)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-33 remediation burst 30 | product-owner / formal-verifier / state-manager | DONE | P33-001/P33-002/OBS remediated. prd-delta v1.33; BC-10.01.001 v1.32 L119 annotation; dtu-assessment v1.6; verif-delta v1.34. VP 41/SM 74/73 UNCHANGED. Clean streak 0/3. |
+
+---
+
+## Burst-35 (2026-09-03) — pass-37 CLEAN + dtu v1.7 editorial + stash cleanup
+
+**Agents:** adversary (pass-37) + state-manager (burst-35)
+**Type:** adversarial convergence pass + editorial remediation + stash cleanup
+
+### Stash Resolution
+
+Dropped `stash@{0}` (pre-burst-34 sidecar/logs stash, blocked earlier by live
+dispatcher-log conflict). Stashed sidecar-learning.md (129 lines, last entry
+`2026-09-03T08:35:43Z`) is a strict subset of the current sidecar-learning.md
+(131 lines, last entry `2026-09-03T08:51:56Z`). No content recovered from stash.
+Dispatcher-log is hook-generated noise — not preserved. `git stash list` confirmed
+empty after drop.
+
+### Pass-37 Result (0C/0M/0med/2min/0obs — CLEAN)
+
+Adversary independently re-derived all substance dimensions from source artifacts
+without reference to prior pass reports:
+- STEP ordering (1a/2/3/3b/4/4b/5/6): CONFIRMED
+- Kill-switch semantics (autonomy_enabled=false → allow-without-marker at STEP 5): CONFIRMED
+- Hard-floor placement (STEP 4 + STEP 4b, two distinct deny points): CONFIRMED
+- Marker anti-fungibility and single-use TTL: CONFIRMED
+- D-029 routing (markdown GATE 1/GATE 2 → route-to-review-never-deny): CONFIRMED
+- §3.4 correlation rules (D-022/D-024: rule-2 = create+link): CONFIRMED
+- NORMALIZE_SEVERITY STEP 1a (two-field model, D-011/D-012/D-013): CONFIRMED
+- 12-field/18-field split (markdown vs verdict path, D-014/D-017): CONFIRMED
+- Spec-vs-intent alignment (no gaps): CONFIRMED
+
+All three coherence dimensions re-verified:
+- Version pins: ALL CONSISTENT
+- EC/invariant counts: ALL CONSISTENT (post-burst-31 re-derivation)
+- VP ownership/lifecycle: ALL CONSISTENT (post-burst-33 8-fix audit; 21 FIN P0 + 4 PROP P1 = 25)
+
+Two MINOR findings — editorial only, do not affect spec logic:
+
+**P37-001 (MINOR):** dtu-assessment `configs/demo.toml` → `prism-demo.toml` (typo per D-018). REMEDIATED dtu v1.7.
+**P37-002 (MINOR):** dtu-assessment dangling "§4 Deployment Notes" cross-ref → repointed to correct named sections. REMEDIATED dtu v1.7.
+
+**Verdict: 0C/0M/0med/2min/0obs — CLEAN. Streak 1/3.**
+
+### dtu-assessment v1.7
+
+Product-owner applied P37-001/P37-002 editorial fixes to dtu-assessment.md
+before burst commit. No behavioral change to any spec, BC, or VP. dtu-assessment
+bumped v1.6 → v1.7. `input-hash: "3cf5746"` present in frontmatter (no
+COMPUTE-AT-COMMIT placeholder — no action needed).
+
+### Files Committed in Burst-35
+
+| File | Change |
+|------|--------|
+| `.factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass37.md` | new — pass-37 report |
+| `.factory/phase-f2-spec-evolution/dtu-assessment.md` | v1.6 → v1.7 (P37-001/P37-002 editorial) |
+| `.factory/STATE.md` | awaiting → F2-adversarial-pass-38; streak 1/3; checkpoint updated |
+| `.factory/cycles/.../burst-log.md` | this entry + 2 archived steps from Current Phase Steps |
+| `.factory/cycles/.../convergence-trajectory.md` | pass-37 row appended |
+| `.factory/cycles/.../session-checkpoints.md` | pass-36 checkpoint archived |
+
+### Versions After Burst-35
+
+arch-delta v1.31, verif-delta v1.34 (UNCHANGED — confirmed correct SOT),
+prd-delta v1.35 (input-hash 247135e — stale from v1.34; Document Changelog v1.35
+row still absent — product-owner outstanding task), **dtu-assessment v1.7**
+(P37-001/P37-002 editorial; input-hash 3cf5746), BC-3.03.001 v1.42,
+BC-3.01.001 v1.25, BC-10.01.001 v1.32, BC-4.02.001 v1.21, BC-5.01.001 v1.15,
+BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4,
+BC-9.01.001 v1.2. VP 21 FIN + 4 PROP = 25 (41 in registry) / SM 74 alloc, 73 live.

@@ -1,7 +1,7 @@
 ---
 document_type: dtu-assessment
 producer: architect
-version: "1.6"
+version: "1.7"
 date: 2026-09-03
 feature: prism-integration
 feature_version: v0.10.0-feature-prism-integration
@@ -17,13 +17,25 @@ phase: f2
 timestamp: 2026-07-22T00:00:00
 ---
 
+> **v1.7 (2026-09-03) — P37-001/P37-002: editorial fixes (no behavioral change):**
+> P37-001: `configs/demo.toml` typo in Dependency 1 BATS `setup_file()` snippet
+> corrected to `configs/prism-demo.toml` (canonical config name used everywhere else
+> in the document; no separate `demo.toml` is defined). P37-002: "§4 Deployment Notes"
+> cross-reference in DTU Architecture section replaced with "the Dependency 1
+> fixture-wiring and Summary sections" (the doc has no §4 heading and no Deployment
+> Notes section). v1.6 changelog §3/§4 informal section labels replaced with actual
+> heading names: `(§3 mock scenarios)` → `(Dependency 2 branch-triggering scenarios)`;
+> `§3 "Test Surfaces" dependency row` → `Dependency 2 "Test Surfaces That Depend on
+> This DTU" row`; `§4 "Enhanced jr bash mock" deployment line` → `Summary section
+> "Enhanced jr bash mock" line`.
+
 > **v1.6 (2026-09-03) — P33-OBS-1: scenario count corrected 7→10:**
-> The branch-triggering table (§3 mock scenarios) lists **10** scenarios: original 7
+> The branch-triggering table (Dependency 2 branch-triggering scenarios) lists **10** scenarios: original 7
 > (`duplicate-open`, `related-open`, `resolved-same`, `closed-same`, `no-match`,
 > `blind-spot-open`, `blind-spot-absent`) + 3 [NEW] additions (`fp-auto-close` [v1.2],
 > `blind-spot-closed-compound` [v1.4], `tp-close-denied` [v1.4]). Two stale "7" counts
-> updated: (a) §3 "Test Surfaces" dependency row "All 7 jr mock scenarios above" →
-> "All 10 jr mock scenarios above"; (b) §4 "Enhanced jr bash mock" deployment line
+> updated: (a) Dependency 2 "Test Surfaces That Depend on This DTU" row "All 7 jr mock scenarios above" →
+> "All 10 jr mock scenarios above"; (b) Summary section "Enhanced jr bash mock" line
 > "7 fixture scenarios covering all §3.4 Jira-first decision tree branches" →
 > "10 fixture scenarios covering all §3.4 Jira-first decision tree branches".
 > Adjudication: "7" was the total scenario count at v1.1 authorship; the 3 [NEW]
@@ -254,7 +266,7 @@ For BATS integration tests and holdout evaluation, test setup must:
    export DEMO_FAKE_ARMIS_TOKEN=dtu-fake-armis-token
    export DEMO_FAKE_THREATINTEL_TOKEN=dtu-fake-ti-token
    export DEMO_FAKE_NVD_TOKEN=dtu-fake-nvd-token
-   prism-dtu-demo-server start --config "$PRISM_REPO/configs/demo.toml" &
+   prism-dtu-demo-server start --config "$PRISM_REPO/configs/prism-demo.toml" &
    DEMO_SERVER_PID=$!
    ```
 3. **Start prism in demo mode** (pointing at DTU endpoints):
@@ -559,7 +571,7 @@ is graceful-degradation optional; the scheduler is bypassed by direct loop invoc
 
 The prism-side DTU (`prism-dtu-demo-server`) is prism-owned infrastructure provided via the `prism-demo-bundle` release asset — not a secops-factory-built Docker clone. The jr bash mock is a BATS tmpfile-based test double, not a Docker service. No Docker Compose structure is required for this cycle's DTU components.
 
-See §4 Deployment Notes for how `prism-dtu-demo-server` boots sensor clone endpoints and how `configs/prism-demo.toml` routes prism through DTU endpoints.
+See the Dependency 1 fixture-wiring and Summary sections for how `prism-dtu-demo-server` boots sensor clone endpoints and how `configs/prism-demo.toml` routes prism through DTU endpoints.
 
 ## Clone Development Approach
 

@@ -272,3 +272,28 @@ P36-001 (MED): prd-delta §1 VP-HOOK-024 misattributed to BC-10.01.001 (owned by
 Independent re-derivation: STEP ordering, hard-floor legs, kill-switch, marker mechanism all confirmed correct. Genuine substantive convergence intact — P36-001 is a bookkeeping/traceability defect, not a logic defect.
 
 Versions: prd-delta v1.35 (8 VP-ownership/traceability fixes; convergence-gate count corrected to 21 FIN). verif-delta v1.34 UNCHANGED (confirmed correct source of truth). BC-3.03.001 v1.42 footer updated (VP Anchors added; no semantic bump). BC-10.01.001 v1.32 footer updated (VP Anchors corrected; no semantic bump). VP 21 FIN + 4 PROP = 25 total (41 in registry); SM 74 alloc / 73 live.
+
+| 37 | 2026-09-03 | 0 | 0 | 0 | 2 | 0 | 2 | LOW | 1/3 | CLEAN |
+
+---
+
+### Pass 37 (2026-09-03) — **CLEAN** (streak 1/3)
+
+**Findings:** 2 (0C / 0M / 0med / 2min / 0obs)
+**Novelty:** LOW — both findings are editorial/typo class in dtu-assessment.md only; no spec logic affected
+**Convergence counter:** 1/3 (first clean pass of new 3-required streak after pass-36 reset)
+
+P37-001 (MIN): dtu-assessment `configs/demo.toml` typo → `prism-demo.toml` per D-018. Editorial fix. REMEDIATED (dtu v1.7).
+P37-002 (MIN): dtu-assessment dangling "§4 Deployment Notes" cross-ref → repointed to correct named sections. Editorial fix. REMEDIATED (dtu v1.7).
+
+Independent re-derivation: adversary read BC-3.03.001 (emitter) and BC-3.01.001
+(consumer) plus prd-delta v1.35 / verif-delta v1.34 from scratch. All substance
+dimensions confirmed (STEP ordering, kill-switch/hard-floor, marker mechanism,
+D-029 routing, §3.4 rules, NORMALIZE_SEVERITY, 12/18-split, spec-vs-intent).
+All three coherence dimensions confirmed (version pins, EC/invariant counts,
+VP-ownership/lifecycle — post-burst-33 corrections all in place). Genuine
+convergence sustained; spec content stable since burst-33 freeze.
+
+Versions: dtu-assessment v1.7 (P37-001/P37-002 editorial; input-hash 3cf5746).
+All BCs UNCHANGED. VP 21 FIN + 4 PROP = 25 total (41 in registry);
+SM 74 alloc / 73 live; tallies UNCHANGED. Spec content FROZEN/STABLE post-burst-33.

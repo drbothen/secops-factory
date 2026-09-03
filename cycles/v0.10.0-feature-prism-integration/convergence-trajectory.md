@@ -66,6 +66,8 @@ are in phase-f2-spec-evolution/.
 | 39 | 2026-09-03 | 0 | 0 | 1 | 0 | 4 | 5 | MEDIUM | 0/3 | NOT CLEAN (streak 0/3; P39-001 MEDIUM SUBSTANTIVE — DETECT_LATE_EVENT behavior missing from BC-10.01.001; 25+ pass D-DEC-002 propagation oversight; architect IN-SCOPE; REMEDIATED burst-38 BC-10.01.001 v1.33 + VP-073/074 anchored) |
 | 40 | 2026-09-03 | 0 | 1 | 1 | 0 | 2 | 4 | HIGH | 0/3 | NOT CLEAN (streak 0/3; P40-001 MAJOR GENUINE LOGIC DEFECT — DETECT_LATE_EVENT double-GRACE unreachable dead code + VP-073 false-green; P40-002 MEDIUM §1 EC cell stale 22 vs 23; REMEDIATED burst-39 arch-delta v1.32 + BC-10.01.001 v1.34 + prd-delta v1.37 + verif-delta v1.36) |
 | 41 | 2026-09-03 | 0 | 1 | 2 | 0 | 0 | 3 | MEDIUM | 0/3 | NOT CLEAN (streak 0/3; P41-001 MAJOR verif-delta §6 partial-fix propagation miss (L1949+L1952 still watermark−GRACE); P41-002 MEDIUM prd-delta field-18 SEVERITY_ENUM→scored_priority map missing; P41-003 MEDIUM DETECT_LATE_EVENT missing READ_WATERMARK validation guard → corrupt/future watermark flood; REMEDIATED burst-40 arch-delta v1.33 + BC-10.01.001 v1.35 + prd-delta v1.38 + verif-delta v1.37; SM 74→76 alloc) |
+| 42 | 2026-09-03 | 0 | 1 | 0 | 1 | 0 | 2 | LOW | 0/3 | NOT CLEAN (streak 0/3; P42-001 MAJOR BC-10.01.001 absent-watermark wrongly in DETECT_LATE_EVENT_SUPPRESSED set — contradicts EC-023 first-run early-return; P42-002 MINOR EC-024 EC-003 label "first-run"→"future-dated"; 6th consec 0C/0M substance; REMEDIATED burst-41 no-bump v1.35) |
+| 43 | 2026-09-03 | 0 | 0 | 3 | 0 | 2 | 5 | LOW | 0/3 | NOT CLEAN — REGRESSION (2→5; streak 0/3; P43-001 MEDIUM VP-SKILL-073 @test names stale watermark−GRACE boundary; P43-002 MEDIUM DETECT_LATE_EVENT_SUPPRESSED per-event flood (P41-003 relabeled); P43-003 MEDIUM version-trail incoherence no-bump accumulation debt; all 3 MEDs are DETECT_LATE_EVENT once-per-run hardening; REMEDIATED burst-42 arch-delta v1.34 + BC-10.01.001 v1.36 + prd-delta v1.39 + verif-delta v1.38) |
 
 **Note on historical data:** Finding counts for passes 1–28 reconstructed from
 STATE.md Phase Progress finding-progression and burst-log.md entries. Per-pass
@@ -77,14 +79,14 @@ are authoritative). Passes 6, 10, 20–26 include observations in the total; pas
 
 ## Trajectory Shorthand
 
-`10→4→5→6→3→10→5→3→2→11→4→4→3→5→3→3→3→3→2→9→8→7→9→5→6→7→4→2→3→4→5→3→5→3→1→1→2→2→5`
+`10→4→5→6→3→10→5→3→2→11→4→4→3→5→3→3→3→3→2→9→8→7→9→5→6→7→4→2→3→4→5→3→5→3→1→1→2→2→5→4→3→2→5`
 
-*(tail: →1→1→2→2→5, passes 35→36→37→38→39)*
+*(tail: →5→4→3→2→5, passes 39→40→41→42→43) — REGRESSION at pass-43 (2→5); all 3 MEDs are DETECT_LATE_EVENT once-per-run hardening; REMEDIATED burst-42*
 
 **Clean pass goal:** 3 consecutive passes with 0C/0M/0med/0min (OBS allowed).
-**Current clean streak:** 0/3 — pass-39 has 1med + 4obs (NOT clean; streak at 0/3 since pass-36).
-**Substance confirmed clean:** 3 consecutive passes (37 + 38 + 39 substance all re-derived clean).
-**Dimension now clean (post-burst-38):** version pins, EC/invariant counts, VP attribution, VP lifecycle status, architecture→BC behavior-propagation (all 5 codified per Lessons 51–55).
+**Current clean streak:** 0/3 — pass-43 has 3med + 2obs (NOT clean; streak at 0/3 since pass-36).
+**Substance confirmed clean:** 7 consecutive passes (37–43 substance all re-derived clean).
+**Dimension now clean (post-burst-42):** version pins, EC/invariant counts, VP attribution, VP lifecycle status, architecture→BC behavior-propagation (all 5 codified per Lessons 51–55); DETECT_LATE_EVENT once-per-run cardinality now hardened across bursts 38-42.
 
 ---
 
@@ -391,4 +393,26 @@ P42-002 (MIN — CROSS-REF LABEL ERROR): EC-024 cross-reference label described 
 Independent re-derivation: all substantive and coherence axes confirmed clean (EC counts 24/56/80, version pins, field-18 map, §6 reachability, VP/SM). 6th consecutive 0C/0M substance pass.
 
 Versions after burst-41 (remediation): **BC-10.01.001 v1.35** (text correction no-bump; input-hash a9a1c5c — unchanged). All other versions unchanged: arch-delta v1.33, prd-delta v1.38, verification-delta v1.37, BC-3.03.001 v1.42. VP **21 FIN + 6 PROP = 27** (41 in registry); SM **76 alloc / 75 live**. BATS: 113.
+
+---
+
+### Pass 43 (2026-09-03) — **NOT CLEAN** (streak 0/3) — REGRESSION (2→5)
+
+**Findings:** 5 (0C / 0M / 3med / 0min / 2obs)
+**Novelty:** LOW — all 3 MEDs are incremental hardening of the DETECT_LATE_EVENT once-per-run gate first added in burst-38; 2 OBS are process observations about shake-out patterns
+**Convergence counter:** 0/3 (streak does not advance — 3 MEDIUM findings block; trajectory REGRESSION 2→5 flagged per S-state-manager rule; all 3 MEDs relate to genuinely new DETECT_LATE_EVENT behavior hardened across bursts 38-42)
+
+P43-001 (MED — VP @TEST-NAME STALE BOUNDARY): VP-SKILL-073 BATS vector `@test` name strings encoded the retired `watermark−GRACE` boundary (false-green re-encode risk). Body text correctly described `stored_watermark` condition; only the names were stale. **REMEDIATED burst-42** (FV corrected @test names to `stored-watermark`-style; 4 BATS vectors updated; PROPOSED P1, no BATS count change).
+
+P43-002 (MED — PER-EVENT FLOOD RELABELED): DETECT_LATE_EVENT_SUPPRESSED was still emitted inside the per-event loop — P41-003 added the validation guard but left the audit write O(events/run). SM-82 specified "exactly one DETECT_LATE_EVENT_SUPPRESSED" but arch-delta pseudocode wrote one per event. Cross-artifact inconsistency between SM-82 (correct) and arch-delta pseudocode (incorrect). **REMEDIATED burst-42** (architect hoisted to once-per-run VALIDATE_WATERMARK_FOR_RUN gate; PO propagated to BC-10.01.001 Inv#14 + EC-024; FV propagated SM-82/SM-83 cardinality addendum).
+
+P43-003 (MED — VERSION-TRAIL DEBT): burst-41 no-bump left v1.35 with no distinguishable modification record for the P42-001/P42-002 corrections; combined with the burst-40 EC-024 introduction, the version trail was opaque to attribution. **REMEDIATED burst-42** (PO clean v1.36 bump consolidating P42-001/P42-002 + P43-001/P43-002 with full attribution; input-hash recomputed to 742b491).
+
+P43-OBS-1: DETECT_LATE_EVENT required 5 consecutive passes of hardening (added→reachable→guard→absent-exclusion→once-per-run). Suggests pre-propagation completeness checklist for genuinely new multi-step behaviors.
+
+P43-OBS-2: Consecutive no-bump corrections followed by substantive burst makes attribution harder. Practice: annotate no-bump changelog entry with `[text correction: burst-NNN]`.
+
+Independent re-derivation: all substantive + coherence axes confirmed clean (STEP ordering, kill-switch, hard-floor, marker mechanism, D-029, §3.4, field-18 map, EC counts 24/56/80, VP/SM tallies). 7th consecutive 0C/0M substance pass.
+
+Versions after burst-42 (remediation): **arch-delta v1.34** (VALIDATE_WATERMARK_FOR_RUN once-per-run gate; input-hash d7bcab4), **BC-10.01.001 v1.36** (once-per-run Inv#14 + EC-024 cardinality + @test-name fix; EC count 24; input-hash 742b491), **prd-delta v1.39** (§5 pin→v1.36; input-hash 1c4be4c), **verif-delta v1.38** (VP-SKILL-073 cardinality + @test-name fix; SM-82/SM-83 once-per-run; 15 BC pins v1.35→v1.36), **BC-3.03.001 v1.42** (cross-ref pin→v1.36; input-hash 95fcec5). VP **21 FIN + 6 PROP = 27** (41 in registry); SM **76 alloc / 75 live** (SM-82/SM-83 PROPOSED P1 REDEFINED once-per-run). BATS: 113 (unchanged).
 

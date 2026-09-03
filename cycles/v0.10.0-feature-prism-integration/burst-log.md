@@ -1961,3 +1961,64 @@ The following two oldest rows were displaced from STATE Current Phase Steps:
 | F2: adversarial pass 38 | adversary | DONE | 0C/1M/0med/0min/1obs — NOT CLEAN (streak RESET 0/3). P38-001 MAJOR: VP-SKILL-075 status contradiction in BC-10.01.001 (body L192 + VP table L789 stale; burst-33 footer-only partial-fix). Substance re-derived CLEAN. REMEDIATED burst-37. |
 | F2: burst-39 (SUBSTANTIVE LOGIC FIX — DETECT_LATE_EVENT reachability + count fix + version cascade) | architect / product-owner / formal-verifier / state-manager | DONE | arch-delta v1.31→v1.32 (D-DEC-002 raw-watermark fix; input-hash d7bcab4); BC-10.01.001 v1.33→v1.34 (Inv#14/EC-023 threshold corrected; input-hash 650e111); prd-delta v1.36→v1.37 (§1 EC cell 22→23; input-hash 6908b94); BC-3.03.001 cross-ref pin v1.34 (no bump; input-hash 96516f3); verif-delta v1.35→v1.36 (VP-073 vector corrected; 15 BC pins v1.33→v1.34). VP/SM/BATS UNCHANGED. Lesson 56 codified. |
 
+---
+
+## Burst 42 — Once-per-run late-event suppression + @test-name fix + version-trail cleanup + cascade (2026-09-03)
+
+**Type:** SUBSTANTIVE — once-per-run VALIDATE_WATERMARK_FOR_RUN gate + VP @test-name correction + BC v1.35→v1.36 bump
+**Agents:** architect / product-owner / formal-verifier
+**Trigger:** P43-001 (MED: VP-SKILL-073 @test names encoded retired watermark−GRACE boundary) + P43-002 (MED: DETECT_LATE_EVENT_SUPPRESSED per-event flood — P41-003 relabeled not eliminated) + P43-003 (MED: version-trail incoherence — no-bump accumulation debt)
+
+### Architect — arch-delta v1.33→v1.34 (P43-002)
+
+Hoisted watermark validation from per-event to once-per-run VALIDATE_WATERMARK_FOR_RUN() gate. DETECT_LATE_EVENT() is now a pure per-event comparator: checks run-scoped `late_event_enabled`; if false → return 0 (no-op, no audit write); if true → compare `event_time < late_event_threshold` and emit LATE_EVENT_DETECTED if applicable. On invalid/future watermark, VALIDATE_WATERMARK_FOR_RUN emits exactly ONE DETECT_LATE_EVENT_SUPPRESSED entry (reason=WATERMARK_INVALID or WATERMARK_FUTURE). First-run (no watermark file) → `late_event_enabled=false` with NO suppressed entry (P42-001 preserved). input-hash d7bcab4 (unchanged — same source files as v1.33).
+
+### Product Owner — BC-10.01.001 v1.35→v1.36 + prd-delta v1.38→v1.39 + BC-3.03.001 cross-ref pin
+
+**BC-10.01.001 v1.36** (clean bump consolidating P42-001/P42-002 no-bump corrections + P43-001/P43-002 once-per-run cardinality): Inv#14 DETECT_LATE_EVENT sub-step clarified as once-per-run VALIDATE_WATERMARK_FOR_RUN gate; EC-024 singular-per-run cardinality clause added; @test names corrected (P43-001); version-trail consolidated with full attribution for all four corrections (P43-003). EC count UNCHANGED at 24 (EC-024 stays; wording refined only). input-hash 742b491.
+
+**prd-delta v1.39**: §5 BC-10.01.001 "New Version" v1.35→v1.36 appended. No §1/§3/§8 count changes (EC count unchanged). input-hash 1c4be4c.
+
+**BC-3.03.001 v1.42** (no bump): cross-ref pin updated v1.35→v1.36. input-hash 95fcec5.
+
+### Formal Verifier — verification-delta v1.37→v1.38
+
+VP-SKILL-073 cardinality addendum added: "exactly one DETECT_LATE_EVENT_SUPPRESSED per run on invalid/future watermark" assertion. 4 BATS vectors @test name strings corrected from `watermark-grace`-style to `stored-watermark`-style (PROPOSED P1 — not finalized into BATS count; P43-001). SM-82/SM-83 REDEFINED to once-per-run cardinality design, ids retained, tally 76 alloc / 75 live UNCHANGED. 15 BC-10.01.001 pins v1.35→v1.36 at LIVE sites. No input-hash frontmatter field (DI-018).
+
+### Files Committed in Burst-42
+
+| File | Change |
+|------|--------|
+| `.factory/phase-f2-spec-evolution/architecture-delta.md` | v1.33→v1.34: VALIDATE_WATERMARK_FOR_RUN once-per-run gate; DETECT_LATE_EVENT per-event no-op when late_event_enabled=false; exactly one DETECT_LATE_EVENT_SUPPRESSED per run; input-hash d7bcab4 |
+| `.factory/phase-0-ingestion/behavioral-contracts/BC-10.01.001.md` | v1.35→v1.36: Inv#14 once-per-run + EC-024 cardinality clause + @test-name fix + version-trail consolidation; EC count unchanged 24; input-hash 742b491 |
+| `.factory/phase-f2-spec-evolution/prd-delta.md` | v1.38→v1.39: §5 BC-10.01.001 pin v1.35→v1.36; no §1/§3/§8 count changes; input-hash 1c4be4c |
+| `.factory/phase-0-ingestion/behavioral-contracts/BC-3.03.001.md` | cross-ref pin v1.35→v1.36 (no version bump); input-hash 95fcec5 |
+| `.factory/phase-f2-spec-evolution/verification-delta.md` | v1.37→v1.38: VP-SKILL-073 cardinality addendum + 4 BATS @test-name corrections (PROPOSED P1); SM-82/SM-83 REDEFINED once-per-run; 15 BC pins v1.35→v1.36 |
+| `.factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass43.md` | new — pass-43 report |
+| `.factory/STATE.md` | awaiting → F2-adversarial-pass-44; Phase Progress append pass-43 + burst-42 rows; F2 finding-progression append; Convergence Status updated; version 2.36 |
+| `.factory/cycles/.../burst-log.md` | this entry + 2 archived steps from STATE Current Phase Steps |
+| `.factory/cycles/.../convergence-trajectory.md` | pass-43 row + narrative appended |
+| `.factory/cycles/.../session-checkpoints.md` | pass-42 checkpoint archived |
+
+### Archived Steps from STATE.md Current Phase Steps (5-row limit, displaced by burst-42 + pass-43)
+
+The following two oldest rows were displaced from STATE Current Phase Steps:
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: burst-40 (SUBSTANTIVE — watermark-validation guard + field-18 map + §6 propagation + SM-82/SM-83) | architect / product-owner / formal-verifier / state-manager | DONE | arch-delta v1.32→v1.33 (validation guard + DETECT_LATE_EVENT_SUPPRESSED; input-hash d7bcab4); BC-10.01.001 v1.34→v1.35 (EC-024 added; EC 23→24; input-hash a9a1c5c); prd-delta v1.37→v1.38 (field-18 map fix; EC counts §1/§3 24, totals 56, §8 grand 80; input-hash 3eaba2b); verif-delta v1.36→v1.37 (§6 corrected; VP-SKILL-073 expanded; SM-82/SM-83; SM 74→76 alloc/73→75 live). |
+| F2: adversarial pass 40 | adversary | DONE | 0C/1M/1med/0min/2obs — NOT CLEAN (streak 0/3). P40-001 MAJOR GENUINE LOGIC DEFECT: DETECT_LATE_EVENT threshold double-GRACE unreachable; VP-073 BATS vector false-green. P40-002 MEDIUM: §1 EC cell stale 22 vs 23. 4th consec 0C/0M substance. Lesson 56 codified. REMEDIATED burst-39. |
+
+### Versions After Burst-42
+
+**arch-delta v1.34** (VALIDATE_WATERMARK_FOR_RUN once-per-run gate; input-hash d7bcab4),
+**BC-10.01.001 v1.36** (once-per-run Inv#14 + EC-024 cardinality + @test-name fix + version-trail; EC count 24; input-hash 742b491),
+**prd-delta v1.39** (§5 pin→v1.36; no count changes; input-hash 1c4be4c),
+**verification-delta v1.38** (VP-SKILL-073 cardinality addendum + @test-name fix; SM-82/SM-83 once-per-run; 15 BC pins v1.35→v1.36),
+dtu-assessment v1.7,
+BC-3.03.001 v1.42 (cross-ref pin → v1.36; input-hash 95fcec5), BC-3.01.001 v1.25, BC-4.02.001 v1.21, BC-5.01.001 v1.15,
+BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2.
+VP **21 FIN + 6 PROP = 27** (41 in registry) / SM **76 alloc / 75 live** (SM-82/SM-83 PROPOSED P1 — NOT P0-counting; REDEFINED once-per-run).
+BATS: 113 (unchanged — VP-SKILL-073 PROPOSED P1; §5 FINALIZED BATS unchanged).
+Convergence-gate (P0 FINALIZED) count UNCHANGED at 21.
+

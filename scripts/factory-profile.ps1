@@ -87,6 +87,11 @@ function Invoke-Doctor {
         }
     }
 
+    # Fall back to the inherited environment (set by .envrc.secrets via direnv).
+    # profiles/cloud.env uses a dynamic keychain fetch in bash; file-parsing cannot
+    # capture it. The env var is always the authoritative source.
+    if (-not $awsKey) { $awsKey = $env:ANTHROPIC_AWS_API_KEY }
+
     if ($baseUrl) {
         $headers = @{
             'Authorization' = "Bearer $authTok"

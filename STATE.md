@@ -1,10 +1,10 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "2.30"
+version: "2.31"
 status: active
 producer: state-manager
-timestamp: 2026-09-03T21:00:00Z
+timestamp: 2026-09-03T22:00:00Z
 phase: F2
 pipeline: FEATURE-CYCLE
 inputs: []
@@ -12,8 +12,8 @@ input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "F2 adversarial convergence — pass-37 CLEAN (0C/0M/0med/2min; streak 1/3; dtu editorial v1.7 remediated) — spec content FROZEN post-burst-33 — trajectory-tail →3→1→1→2 — CONTINUE TO PASS-38 — D-chain cite D-203 latest brownfield"
-awaiting: "F2-adversarial-pass-38"
+current_step: "F2 adversarial convergence — pass-38 NOT CLEAN (0C/1M/0min; streak RESET 0/3; P38-001 VP-SKILL-075 partial-fix residual from burst-33; REMEDIATED burst-37 6 sites/4 files all NO-BUMP — VP-status-agreement dimension now clean) — spec content FROZEN post-burst-33 — trajectory-tail →1→1→2→2 — D-chain cite D-203 latest brownfield"
+awaiting: "F2-adversarial-pass-39"
 current_cycle: v0.10.0-feature-prism-integration
 dtu_required: true
 dtu_assessment: "2026-07-20"
@@ -22,7 +22,7 @@ dtu_services: [prism-demo-server, jr-mock]
 ---
 
 <!--
-  STATE.md SIZE BUDGET: 196 lines (wc-l) | soft-target: 185 | margin from soft-target: +11 | margin from actual: 4 under hard cap (200).
+  STATE.md SIZE BUDGET: 186 lines (wc-l) | soft-target: 185 | margin from soft-target: +1 | margin from actual: 14 under hard cap (200).
   Historical content belongs in cycle files, NOT here.
   Run /vsdd-factory:compact-state if this file grows past 185 lines.
 -->
@@ -40,9 +40,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | **Target Workspace** | /Users/jmagady/Dev/secops-factory |
 | **Engine** | /Users/jmagady/Dev/dark-factory (vsdd-factory plugin) |
 | **Started** | 2026-07-19 |
-| **Last Updated** | 2026-09-03 — pass-37 CLEAN (0C/0M/0med/2min; streak 1/3); burst-35 (dtu v1.7 P37-001/P37-002 editorial + stash cleanup); trajectory-tail →3→1→1→2 |
+| **Last Updated** | 2026-09-03 — pass-38 NOT CLEAN (0C/1M/1obs; streak RESET 0/3; P38-001 VP-SKILL-075 partial-fix residual burst-33); burst-37 VP-status-agreement sweep 6 sites/4 files NO-BUMP; trajectory-tail →1→1→2→2 |
 | **Current Phase** | F2: Spec Evolution (prism-integration cycle) |
-| **Current Step** | F2 adversarial convergence — pass-37 CLEAN (streak 1/3); dtu-assessment v1.7 (P37-001/P37-002 editorial); pass-38 pending (spec content FROZEN) |
+| **Current Step** | F2 adversarial convergence — pass-38 NOT CLEAN (streak RESET 0/3); burst-37 comprehensive VP-status-agreement sweep — 6 sites/4 files, VP-status dimension now clean; pass-39 pending (spec content FROZEN post-burst-37) |
 
 ## Phase Progress
 
@@ -51,20 +51,10 @@ dtu_services: [prism-demo-server, jr-mock]
 | pre-0: Pre-pipeline | PASSED | 2026-07-19 | 2026-07-19 | PASS | — |
 | 0: Codebase Ingestion + Remediation | COMPLETE | 2026-07-19 | 2026-07-20 | PASS | →5→2→1→0; ADV-R1-4 CLEAN |
 | F1: Delta Analysis | PASSED | 2026-07-19 | 2026-07-20 | PASS | consistency: 7→0 |
-| F2: Spec Evolution | in-progress — pass37 CLEAN (streak 1/3), pass38 pending | 2026-07-20 | | 1/3 clean passes — trajectory-tail →3→1→1→2 | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated → pass10 1C/2M → pass10 remediated → pass11 1C/3M → pass11 remediated → pass12 2C/2M → pass12 remediated → pass13 2C/1M → pass13 remediated → pass14 0C/2M/3m → pass14 remediated → pass15 0C/1M/2m → pass15 remediated → pass16 0C/1M/2m → pass16 remediated → consistency-audit remediated (12 findings, all coherence) → pass17 0C/3M → pass17 remediated → pass18 0C/2M/1med → pass18 remediated → pass19 1C/1m → pass19 remediated → pass20 0C/1M/3med/3m → pass20 remediated → pass21 0C/2M/2med/1m → pass21 remediated → pass22 1C/2M/1med/1m → pass22 remediated → pass23 0C/1M/5med/1m → pass23 remediated → pass24 0C/0M/4med → pass24 remediated → pass25 0C/1M/1med → pass25 remediated → pass26 0C/1M/2med → pass26 remediated → pass27 0C/1M/2obs → pass27 remediated → pass28 0C/0M/1med → pass28 remediated → pass29 0C/1M/2obs → pass29 remediated (burst26) → pass30 0C/0M/2med/1min/1obs → pass30 remediated (burst27) → pass31 0C/0M/1med/1min/3obs → pass31 remediated (burst28) → pass32 0C/0M/1med/1min/1obs → pass32 remediated (burst29 comprehensive coherence sweep, ~44 pins) → pass33 0C/0M/2med/1min/2obs → pass33 remediated (burst30 — coherence-sweep tail cleanup) → pass34 0C/0M/2med/1obs → pass34 remediated (burst31 exhaustive count re-derivation) → pass35 0C/0M/0med/1min/0obs CLEAN (streak 1/3); P35-001 input-hash reconciled as metadata (burst32) → pass36 0C/0M/1med NOT CLEAN (streak RESET 0/3); burst33 comprehensive VP-ownership audit — 8 coherence fixes incl. corrected convergence-gate VP count (21 FIN + 4 PROP = 25) → pass37 0C/0M/0med/2min CLEAN (streak 1/3); dtu editorial minors remediated (dtu v1.7) |
-| F2 adversary pass-30 | DONE | 2026-09-02 | 2026-09-02 | NOT CLEAN 0C/0M/2med/1min/1obs | P30-001/002 MEDIUM; P30-003 LOW; P30-004 OBS — all REMEDIATED burst-27 |
-| F2 fix burst 27 | DONE | 2026-09-02 | 2026-09-02 | | BC-3.03.001 v1.40, BC-10.01.001 v1.31, prd-delta v1.31, verif-delta v1.32 |
-| F2 adversary pass-31 | DONE | 2026-09-02 | 2026-09-02 | NOT CLEAN 0C/0M/1med/1min/3obs | P31-001 MEDIUM (enum-stale); P31-002 MINOR (clarity gap) — all REMEDIATED burst-28 |
-| F2 fix burst 28 | DONE | 2026-09-02 | 2026-09-02 | | verification-delta v1.33, BC-3.03.001 v1.41, BC-10.01.001 v1.32, prd-delta v1.32 |
-| F2 adversary pass-32 | DONE | 2026-09-03 | 2026-09-03 | NOT CLEAN 0C/0M/1med/1min/1obs | P32-001 MEDIUM (prd-delta §5 cells stale); P32-002 MINOR (verif-delta §3(a) stale pin); P32-003 OBS — all REMEDIATED burst-29 |
-| F2 fix burst 29 | DONE | 2026-09-03 | 2026-09-03 | | BC-3.03.001 v1.42, BC-4.02.001 v1.21, BC-5.01.001 v1.15, prd-delta v1.33, verification-delta v1.34; ~44 stale pins comprehensive sweep; Lesson 51 |
-| F2 adversary pass-33 | DONE | 2026-09-03 | 2026-09-03 | NOT CLEAN 0C/0M/2med/1min/2obs | P33-001/002 MEDIUM; P33-003 MINOR; P33-OBS-1/OBS-2 — all REMEDIATED burst-30 |
-| F2 fix burst 30 | DONE | 2026-09-03 | 2026-09-03 | | prd-delta v1.33 (§5 cells BC-4.02.001/BC-5.01.001; v1.33 changelog), BC-10.01.001 v1.32 (L119 v1.24→v1.12 P4-001), dtu-assessment v1.6, verification-delta v1.34 (§5 deferral-note narrowed) |
-| F2 adversary pass-34 | DONE | 2026-09-03 | 2026-09-03 | NOT CLEAN 0C/0M/2med/1obs | P34-001/002 MEDIUM (EC/invariant count drift in prd-delta §1/§3/§8 for sub-burst-1 BCs); P34-OBS process-gap (recurred 3×) — REMEDIATED burst-31 |
-| F2 fix burst 31 | DONE | 2026-09-03 | 2026-09-03 | | prd-delta v1.34 (§1/§3/§8 count re-derivation: BC-6.01.003 10EC/6inv, BC-10.01.001 22EC/16inv; sub-burst-1=54EC/37inv; grand=78EC); Lesson 52; input-hash ec4fc30 |
-| F2 adversary pass-35 | DONE | 2026-09-03 | 2026-09-03 | **CLEAN** 0C/0M/0med/1min/0obs — streak 1/3 | P35-001 MINOR (input-hash metadata inconsistency, non-blocking) — RECONCILED burst-32; spec content independently re-derived CLEAN; genuine convergence confirmed |
-| F2 adversary pass-36 | DONE | 2026-09-03 | 2026-09-03 | NOT CLEAN 0C/0M/1med — streak RESET 0/3 | P36-001 MEDIUM (VP-HOOK-024 misattributed to BC-10.01.001 in prd-delta §1; VP-SKILL-075/076/077 lifecycle FINALIZED→PROPOSED; §1 VP total 26→25; 7th consecutive 0C/0M) — REMEDIATED burst-33 |
-| F2 fix burst 33 | DONE | 2026-09-03 | 2026-09-03 | | prd-delta v1.35 (VP-ownership audit 8 fixes; 21 FIN+4 PROP=25); BC-10.01.001 v1.32 + BC-3.03.001 v1.42 VP Anchors footers (no-bump); verif-delta v1.34 UNCHANGED (confirmed correct source of truth) |
+| F2: Spec Evolution | in-progress — pass38 NOT CLEAN (streak RESET 0/3), pass39 pending | 2026-07-20 | | 0/3 clean passes — trajectory-tail →1→1→2→2 | pass1–29 see burst-log → pass30 0C/0M/2med/1min/1obs → pass31 0C/0M/1med/1min/3obs → pass32 0C/0M/1med/1min/1obs → pass33 0C/0M/2med/1min/2obs → pass34 0C/0M/2med/1obs → pass35 0C/0M/0med/1min CLEAN (streak 1/3); burst32 → pass36 0C/0M/1med NOT CLEAN (streak RESET 0/3); burst33 VP-ownership audit (21 FIN+4 PROP=25) → pass37 0C/0M/0med/2min CLEAN (streak 1/3); dtu v1.7 burst35 → pass38 0C/1M/1obs NOT CLEAN (streak RESET 0/3); P38-001 VP-SKILL-075 partial-fix burst-33; REMEDIATED burst-37 VP-status-agreement sweep 6 sites/4 files |
+| F2 adversary pass-37 | DONE | 2026-09-03 | 2026-09-03 | **CLEAN** 0C/0M/0med/2min/0obs — streak 1/3 | P37-001/002 MINOR dtu editorial (prism-demo.toml typo; §4 dangling ref); substance + 3 coherence dims CONFIRMED; REMEDIATED dtu v1.7 burst-35 |
+| F2 adversary pass-38 | DONE | 2026-09-03 | 2026-09-03 | NOT CLEAN 0C/1M/1obs — streak RESET 0/3 | P38-001 MAJOR VP-SKILL-075 partial-fix from burst-33 (footer-only; body L192 + VP table L789 stale in BC-10.01.001); substance re-derived CLEAN; REMEDIATED burst-37 |
+| F2 fix burst 37 | DONE | 2026-09-03 | 2026-09-03 | | VP-status-agreement sweep: BC-10.01.001 L192+L789, BC-3.03.001 L1350, BC-3.01.001 L436+L234, prd-delta §5 L160 — 6 sites/4 files NO-BUMP; BC-3.01.001 input-hash 96609a9 resolved; prd-delta input-hash 662402c (DRIFT resolved); Lesson 54 |
 | F3: Incremental Stories | not-started | | | | |
 | F4: Delta Implementation | not-started | | | | |
 | F5: Scoped Adversarial | not-started | | | | |
@@ -75,10 +65,10 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Metric | Value |
 |--------|-------|
-| Clean passes | 1/3 |
-| Last adversary pass | pass-37 (0C/0M/0med/2min/0obs) CLEAN — streak 1/3; P37-001/002 dtu editorial minors (prism-demo.toml typo; §4 Deployment Notes dangling ref); REMEDIATED dtu v1.7 (burst-35) |
-| Next action | adversary pass-38 (spec content FROZEN post-burst-33; passes 38-39 bank 2/3 and 3/3) |
-| Trajectory tail | →3→1→1→2 (passes 34→35→36→37) |
+| Clean passes | 0/3 — streak RESET |
+| Last adversary pass | pass-38 (0C/1M/0med/0min/1obs) NOT CLEAN — streak RESET 0/3; P38-001 MAJOR VP-SKILL-075 partial-fix residual (burst-33 footer-only); substance CLEAN; REMEDIATED burst-37 VP-status-agreement sweep 6 sites/4 files |
+| Next action | adversary pass-39 (spec content FROZEN post-burst-37; passes 39-40 bank 2/3 and 3/3) |
+| Trajectory tail | →1→1→2→2 (passes 35→36→37→38) |
 
 ## Current Phase Steps
 
@@ -86,11 +76,11 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
+| F2: VP-status-agreement sweep burst-37 | product-owner / state-manager | DONE | P38-001 + OBS: 6 VP-status sites corrected across 4 files — BC-10.01.001 L192+L789 (VP-SKILL-075 FINALIZED P0→PROPOSED P1), BC-3.03.001 L1350 (VP-HOOK-030 annotation), BC-3.01.001 L436+L234 (VP-HOOK-029 FINALIZED P0), prd-delta §5 L160 (CV-007 annotated). All NO-BUMP. Input-hashes resolved: BC-3.01.001 96609a9; prd-delta 662402c. Lesson 54 codified. VP/SM tallies UNCHANGED. Streak RESET 0/3. |
+| F2: adversarial pass 38 | adversary | DONE | 0C/1M/0med/0min/1obs — NOT CLEAN (streak RESET 0/3). P38-001 MAJOR: VP-SKILL-075 status contradiction in BC-10.01.001 (FINALIZED P0 at body L192 + VP table L789 vs PROPOSED P1 at footer L803) — burst-33 partial-fix (footer-only). Substance re-derived CLEAN. OBS [process-gap]: no intra-BC VP-status-agreement check; VP status lives in ≥3 sites per BC. REMEDIATED burst-37. |
 | F2: burst-35 (pass-37 CLEAN + dtu v1.7 + stash) | state-manager | DONE | stash@{0} dropped (sidecar superset in working tree). pass-37 CLEAN (0C/0M/0med/2min/0obs; streak 1/3); dtu-assessment v1.7 (P37-001/002 editorial: prism-demo.toml typo + §4 Deployment Notes dangling ref); pass-37 report written; burst-log/trajectory/checkpoint updated. Awaiting pass-38. |
 | F2: adversarial pass 37 | adversary | DONE | 0C/0M/0med/2min/0obs — **CLEAN** (streak 1/3). P37-001/002 MINOR: dtu editorial (configs/demo.toml→prism-demo.toml; §4 Deployment Notes dangling ref). REMEDIATED dtu v1.7. All substance (STEP ordering, kill-switch/hard-floor, marker mechanism, D-029, §3.4, NORMALIZE_SEVERITY, 12/18-split) + 3 coherence dims (version pins, EC/inv counts, VP-ownership/status) confirmed CLEAN. |
-| F2: VP-ownership audit burst 33 | product-owner / state-manager | DONE | P36-001 + 7 companion fixes: (A) removed VP-HOOK-024 misattribution from prd-delta §1 BC-10.01.001; (B) §1 VP Totals re-derived 21 FIN+4 PROP=25; (C) VP-SKILL-075 FINALIZED→PROPOSED P1; (D) VP-SKILL-076/077 FINALIZED→PROPOSED P1; (E-G) §3.8 field-count/criticality/auth-command coherence; (H) BC-3.03.001 VP Anchors footer added. prd-delta v1.34→v1.35. verif-delta v1.34 UNCHANGED (confirmed correct SOT). VP 41/SM 74/73 live UNCHANGED. Convergence-gate count corrected: 21 FINALIZED P0. Streak RESET 0/3. |
-| F2: adversarial pass 36 | adversary | DONE | 0C/0M/1med/0min/0obs — NOT CLEAN (streak RESET 0/3). P36-001 (MED): prd-delta §1 VP-HOOK-024 misattributed to BC-10.01.001 (owned by BC-3.01.001); VP-SKILL-075/076/077 labeled FINALIZED but PROPOSED P1; §1 VP total inflated 26→25. Substance independently re-derived CLEAN: STEP ordering, hard floors, kill-switch, marker mechanism all confirmed. 7th consecutive 0C/0M. REMEDIATED burst-33. |
-| F2: adversarial pass 35 | adversary | DONE | 0C/0M/0med/1min/0obs — **CLEAN** (streak 1/3). P35-001 (MIN): prd-delta v1.34 input-hash mismatch metadata-only. Spec content (BC-3.03.001 emitter, BC-3.01.001 consumer) independently re-derived clean: STEP ordering, hard floors, kill-switch, marker TTL/single-use/anti-fungibility, D-029 routing, 12/18-split, NORMALIZE_SEVERITY, counts+version pins all confirmed. P35-001 reconciled burst-32 (all 3 sites now 247135e). |
+| F2: VP-ownership audit burst 33 | product-owner / state-manager | DONE | P36-001 + 7 companion fixes: VP-HOOK-024 misattribution removed; §1 VP Totals re-derived 21 FIN+4 PROP=25; VP-SKILL-075/076/077 FINALIZED→PROPOSED P1; §3.8 field-count/criticality/auth-command coherence. prd-delta v1.34→v1.35. verif-delta v1.34 UNCHANGED. VP 41/SM 74/73 live. Convergence-gate count corrected: 21 FINALIZED P0. Streak RESET 0/3. |
 
 ## Decisions Log
 
@@ -177,9 +167,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-09-03 |
-| **Position** | Pass-37 CLEAN (burst-35: pass-37 CLEAN + dtu v1.7 editorial + stash cleanup). P37-001/002 MINOR: dtu-assessment editorial fixes (configs/demo.toml→prism-demo.toml; §4 Deployment Notes dangling ref). All substance independently re-derived CLEAN: STEP ordering, kill-switch/hard-floor, marker mechanism, D-029, §3.4 rules, NORMALIZE_SEVERITY, 12/18-split, spec-vs-intent. All 3 coherence dims (version pins, EC/inv counts, VP-ownership/status) CONFIRMED. Clean streak 1/3. Spec content FROZEN post-burst-33. NEXT: adversary pass-38 (fresh context; passes 38-39 bank 2/3 and 3/3). trajectory-tail →3→1→1→2 |
-| **Context** | Artifact versions: arch-delta v1.31, verif-delta v1.34 (UNCHANGED — confirmed correct SOT), prd-delta v1.35 (input-hash 247135e — stale from v1.34; no COMPUTE-AT-COMMIT placeholder; Document Changelog v1.35 row absent — product-owner outstanding task), **dtu-assessment v1.7** (P37-001/002 editorial; input-hash 3cf5746), BC-3.03.001 v1.42, BC-3.01.001 v1.25, BC-10.01.001 v1.32, BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs: 21 FINALIZED P0 + 4 PROPOSED P1 = 25 (41 total in registry); SM 74 alloc, 73 live. NOTE: .factory/hooks/ not instantiated. Health check 2026-09-01: engine=unpinned/floats-to-rc.24; enable key broken (MIG-001); rc.24 uplift DEFERRED F3. DI-018: verif-delta 811KB FUEL_EXHAUSTED; DEFERRED F3. |
-| **Convergence counter** | 1/3 clean passes (streak: pass-37 is 1/3) |
+| **Position** | Pass-38 NOT CLEAN (burst-37: comprehensive VP-status-agreement sweep — 6 sites/4 files, all NO-BUMP). P38-001 MAJOR: VP-SKILL-075 status contradiction in BC-10.01.001 (body L192 + VP table L789 still FINALIZED P0; footer L803 was correct from burst-33). Substance CLEAN. Streak RESET 0/3. Input-hashes resolved: BC-3.01.001 96609a9 (was COMPUTE-AT-COMMIT), prd-delta 662402c (was 93a46a5 DRIFT). VP-status-agreement dimension now clean. 4 coherence dimensions codified (L51–L54). NEXT: adversary pass-39 (fresh context; spec content FROZEN post-burst-37; passes 39-40 bank 2/3 and 3/3). trajectory-tail →1→1→2→2 |
+| **Context** | Artifact versions: arch-delta v1.31, verif-delta v1.34 (UNCHANGED — confirmed correct SOT), prd-delta v1.35 (input-hash 662402c — resolved; Document Changelog v1.35 present), dtu-assessment v1.7, BC-10.01.001 v1.32 (no-bump; VP-SKILL-075 sites corrected), BC-3.03.001 v1.42 (no-bump; VP-HOOK-030 corrected), BC-3.01.001 v1.25 (no-bump; VP-HOOK-029 corrected; input-hash 96609a9), BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs: 21 FINALIZED P0 + 4 PROPOSED P1 = 25 (41 total in registry); SM 74 alloc, 73 live. NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. Health check 2026-09-01: engine=unpinned/floats-to-rc.24; enable key broken (MIG-001); rc.24 uplift DEFERRED F3. DI-018: verif-delta 811KB FUEL_EXHAUSTED; DEFERRED F3. |
+| **Convergence counter** | 0/3 clean passes (streak RESET at pass-38) |
 
 ## Concurrent Cycles
 

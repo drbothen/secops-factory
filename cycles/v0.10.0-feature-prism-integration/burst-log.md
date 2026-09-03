@@ -1559,3 +1559,100 @@ row still absent — product-owner outstanding task), **dtu-assessment v1.7**
 BC-3.01.001 v1.25, BC-10.01.001 v1.32, BC-4.02.001 v1.21, BC-5.01.001 v1.15,
 BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4,
 BC-9.01.001 v1.2. VP 21 FIN + 4 PROP = 25 (41 in registry) / SM 74 alloc, 73 live.
+
+---
+
+## Archived Steps from STATE.md Current Phase Steps (rotated burst-37)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 35 | adversary | DONE | 0C/0M/0med/1min/0obs — **CLEAN** (streak 1/3). P35-001 (MIN): prd-delta v1.34 input-hash mismatch metadata-only. Spec content (BC-3.03.001 emitter, BC-3.01.001 consumer) independently re-derived clean: STEP ordering, hard floors, kill-switch, marker TTL/single-use/anti-fungibility, D-029 routing, 12/18-split, NORMALIZE_SEVERITY, counts+version pins all confirmed. P35-001 reconciled burst-32 (all 3 sites now 247135e). |
+| F2: adversarial pass 36 | adversary | DONE | 0C/0M/1med/0min/0obs — NOT CLEAN (streak RESET 0/3). P36-001 (MED): prd-delta §1 VP-HOOK-024 misattributed to BC-10.01.001 (owned by BC-3.01.001); VP-SKILL-075/076/077 labeled FINALIZED but PROPOSED P1; §1 VP total inflated 26→25. Substance independently re-derived CLEAN: STEP ordering, hard floors, kill-switch, marker mechanism all confirmed. 7th consecutive 0C/0M. REMEDIATED burst-33. |
+
+---
+
+## Burst-37 — VP-Status-Agreement Sweep (2026-09-03)
+
+**Trigger:** Pass-38 NOT CLEAN — P38-001 MAJOR (VP-SKILL-075 partial-fix residual from burst-33;
+footer-only fix left body L192 + VP table L789 still reading FINALIZED P0 in BC-10.01.001).
+
+**Agents:** consistency-validator, product-owner, state-manager.
+
+**Summary:** Comprehensive VP-STATUS-AGREEMENT sweep across all three BCs and prd-delta.
+All 6 VP-status sites corrected — all NO-BUMP (metadata/traceability only; no behavioral changes).
+Grep-confirmed zero remaining stale VP-status strings in the 3 BCs (only immutable
+revision-history blockquotes retain old values).
+
+### F-001a — BC-10.01.001 Postcondition #7 body (L192)
+
+VP-SKILL-075 status annotation corrected: FINALIZED P0 → PROPOSED P1.
+Location: inline body text of PC#7 in BC-10.01.001.
+Context: burst-33 corrected the VP Anchors footer (L803) but missed this body site.
+No version bump (metadata-only coherence fix).
+
+### F-001b — BC-10.01.001 Verification Properties table (L789)
+
+VP-SKILL-075 table row status corrected: FINALIZED → PROPOSED P1.
+Location: VP table row for VP-SKILL-075 in BC-10.01.001.
+Context: same partial-fix residual as F-001a — footer was corrected; table row was not.
+No version bump.
+
+### F-002 — BC-3.03.001 VP-HOOK-030 annotation (L1350)
+
+VP-HOOK-030 lifecycle annotation corrected:
+"FINALIZED P0 per v1.13" → "FINALIZED (consistency VP) per v1.14 downgrade (P11-001)".
+This matches the verification-delta §1 authority (VP-HOOK-030 status = FINALIZED,
+downgraded from its original P0 claim at v1.13 per P11-001/D-012 corrections).
+No version bump.
+
+### F-003a — BC-3.01.001 Verification Properties table (L436)
+
+VP-HOOK-029 table row status corrected: stale lifecycle annotation updated to
+"FINALIZED P0 (re-FINALIZED v1.10; O4)". Matches verification-delta §1 authority.
+No version bump.
+
+### F-003b — BC-3.01.001 pseudocode comment (L234)
+
+VP-HOOK-029 pseudocode comment corrected: inline lifecycle annotation updated to
+"FINALIZED P0 (re-FINALIZED v1.10; O4)". Matches verification-delta §1 authority.
+No version bump.
+
+### F-004 — prd-delta §5 CV-007 historical entry (L160)
+
+CV-007 historical entry annotated: "(corrected to PROPOSED P1 in burst-33/v1.35)".
+Preserves historical context while making the correction explicit. No version bump.
+
+### Verification
+
+Grep-confirmed ZERO remaining stale VP-status strings across all three BCs.
+Only immutable revision-history blockquotes (frozen historical narrative) retain
+old values — those are intentionally preserved as audit trail.
+
+VP/SM registry tallies UNCHANGED. verification-delta §1 authority untouched.
+All substance confirmed clean in pass-38.
+
+### Files Committed in Burst-37
+
+| File | Change |
+|------|--------|
+| `.factory/phase-0-ingestion/behavioral-contracts/BC-10.01.001.md` | L192 + L789 VP-SKILL-075 FINALIZED P0 → PROPOSED P1 (no-bump) |
+| `.factory/phase-0-ingestion/behavioral-contracts/BC-3.03.001.md` | L1350 VP-HOOK-030 annotation corrected (no-bump) |
+| `.factory/phase-0-ingestion/behavioral-contracts/BC-3.01.001.md` | L436 + L234 VP-HOOK-029 annotation corrected (no-bump); input-hash COMPUTE-AT-COMMIT → 96609a9 |
+| `.factory/phase-f2-spec-evolution/prd-delta.md` | §5 L160 CV-007 annotated (no-bump); input-hash 93a46a5 → 662402c (DRIFT resolved) |
+| `.factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass38.md` | new — pass-38 report |
+| `.factory/STATE.md` | awaiting → F2-adversarial-pass-39; streak 0/3; checkpoint updated; version 2.31 |
+| `.factory/cycles/.../burst-log.md` | this entry + 2 archived steps from Current Phase Steps |
+| `.factory/cycles/.../convergence-trajectory.md` | passes 34–38 rows appended; trajectory updated |
+| `.factory/cycles/.../lessons.md` | Lesson 54 appended |
+| `.factory/cycles/.../session-checkpoints.md` | pass-38 checkpoint archived |
+
+### Versions After Burst-37
+
+arch-delta v1.31, verif-delta v1.34 (UNCHANGED — confirmed correct SOT),
+prd-delta v1.35 (input-hash 662402c — DRIFT resolved; Document Changelog v1.35 row
+present as of burst-33), dtu-assessment v1.7, **BC-10.01.001 v1.32** (no-bump; VP-SKILL-075
+sites corrected), **BC-3.03.001 v1.42** (no-bump; VP-HOOK-030 corrected),
+**BC-3.01.001 v1.25** (no-bump; VP-HOOK-029 corrected; input-hash 96609a9 resolved),
+BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-6.01.001 v1.8, BC-6.01.003 v1.7,
+BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2.
+VP 21 FIN + 4 PROP = 25 (41 in registry) / SM 74 alloc, 73 live. Tallies UNCHANGED.

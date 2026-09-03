@@ -58,6 +58,11 @@ are in phase-f2-spec-evolution/.
 | 31 | 2026-09-02 | 0 | 0 | 1 | 1 | 3 | 5 | LOW-MED | 0/3 | NOT CLEAN |
 | 32 | 2026-09-03 | 0 | 0 | 1 | 1 | 1 | 3 | LOW | 0/3 | NOT CLEAN (4th consec 0C/0M; REMEDIATED burst-29 ~44 pins) |
 | 33 | 2026-09-03 | 0 | 0 | 2 | 1 | 2 | 5 | LOW | 0/3 | NOT CLEAN (5th consec 0C/0M; both MEDs = burst-29 sweep tail; REMEDIATED burst-30) |
+| 34 | 2026-09-03 | 0 | 0 | 2 | 0 | 1 | 3 | LOW | 0/3 | NOT CLEAN (prd-delta §1/§3/§8 EC/inv count drift for sub-burst-1 BCs; process-gap OBS recurred 3×; REMEDIATED burst-31) |
+| 35 | 2026-09-03 | 0 | 0 | 0 | 1 | 0 | 1 | LOW | 1/3 | **CLEAN** (streak 1/3; P35-001 MINOR input-hash metadata only; substance independently re-derived clean; RECONCILED burst-32) |
+| 36 | 2026-09-03 | 0 | 0 | 1 | 0 | 0 | 1 | LOW | 0/3 | NOT CLEAN (streak RESET 0/3; VP-HOOK-024 misattribution + VP-SKILL-075/076/077 lifecycle FINALIZED→PROPOSED; §1 VP total 26→25; REMEDIATED burst-33) |
+| 37 | 2026-09-03 | 0 | 0 | 0 | 2 | 0 | 2 | LOW | 1/3 | **CLEAN** (streak 1/3; P37-001/002 MINOR dtu editorial; substance all confirmed; REMEDIATED dtu v1.7 burst-35) |
+| 38 | 2026-09-03 | 0 | 1 | 0 | 0 | 1 | 2 | LOW | 0/3 | NOT CLEAN (streak RESET 0/3; P38-001 MAJOR VP-SKILL-075 partial-fix residual — burst-33 footer-only; body L192 + VP table L789 stale; REMEDIATED burst-37 6 sites/4 files) |
 
 **Note on historical data:** Finding counts for passes 1–28 reconstructed from
 STATE.md Phase Progress finding-progression and burst-log.md entries. Per-pass
@@ -69,14 +74,14 @@ are authoritative). Passes 6, 10, 20–26 include observations in the total; pas
 
 ## Trajectory Shorthand
 
-`10→4→5→6→3→10→5→3→2→11→4→4→3→5→3→3→3→3→2→9→8→7→9→5→6→7→4→2→3→4→5→3→5`
+`10→4→5→6→3→10→5→3→2→11→4→4→3→5→3→3→3→3→2→9→8→7→9→5→6→7→4→2→3→4→5→3→5→3→1→1→2→2`
 
-*(tail: →3→4→5→3→5, passes 29→30→31→32→33)*
+*(tail: →3→1→1→2→2, passes 34→35→36→37→38)*
 
 **Clean pass goal:** 3 consecutive passes with 0C/0M/0med/0min (OBS allowed).
-**Current clean streak:** 0/3 — pass-33 has 2med + 1min (NOT clean).
-**Consecutive 0C/0M passes:** 5 (passes 29, 30, 31, 32, 33) — deeply converged
-but not yet clean (coherence/version-drift findings remain).
+**Current clean streak:** 0/3 — pass-38 has 1M + 1obs (NOT clean; streak RESET).
+**Substance confirmed clean:** 2 consecutive passes (37 + 38 substance all re-derived clean).
+**Dimension now clean:** version pins, EC/invariant counts, VP attribution, VP lifecycle status.
 
 ---
 

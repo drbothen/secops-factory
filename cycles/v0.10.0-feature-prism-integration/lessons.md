@@ -734,3 +734,19 @@ This lesson complements Lesson 51 (version-agnostic pins) with the count-domain 
 Summary-table recounts that skip steps 2 and 3 produce a false sense of consistency. This lesson complements Lessons 51 (version-agnostic pin sweeps) and 52 (per-BC EC/invariant count re-derivation): all three address the same root cause — re-deriving from a SUMMARY rather than from the SOURCE OF TRUTH.
     _tag: [codified]_
     _Discovered: F2 adversarial pass 36 (P36-001) → burst-33 comprehensive VP-ownership audit, 2026-09-03_
+
+---
+
+### Lesson 54 — P38-OBS [process-gap] [codified] VP lifecycle status is cited in ≥3 sites per BC — a VP-status change MUST update ALL sites; a single-site correction is a partial fix that will reset the clean streak (pass 38, burst 37, 2026-09-03)
+
+[process-gap] [codified] (pass 38, 2026-09-03): VP lifecycle status (FINALIZED/PROPOSED, P0/P1) is cited in MULTIPLE sites per BC: (1) inline invariant/postcondition body text, (2) the Verification Properties table row, (3) the VP Anchors footer, AND (4) pseudocode comments where present. A VP-status change (or any single-site coherence fix) MUST update ALL sites in the same burst. Burst-33 corrected only the VP Anchors footer for VP-SKILL-075 in BC-10.01.001 and left the Postcondition #7 body (L192) and Verification Properties table row (L789) stale — this partial-fix survived the substance-clean pass-37 and reset the clean streak at pass-38.
+
+**Root cause:** The burst-33 audit swept VP status by walking prd-delta §1 VP-Refs against BC footers and verification-delta §1 ownership. This scope covers misattribution and footer status. It does NOT grep every VP-* occurrence within each BC file against the verification-delta authority. Body and table sites within the same BC are outside this scope.
+
+**Codified standing rule (effective immediately):** Coherence audits that touch VP lifecycle status MUST grep EVERY VP-* occurrence across the whole BC file and cross-check each occurrence against the verification-delta §1 status column, not only the footer VP Anchors row. The sweep is complete only when ZERO occurrences within the file contradict the authority. Log the grep result and site count in the burst commit message.
+
+**Extends Lessons 51/52/53:** Lessons 51 (version-agnostic pin sweeps), 52 (per-BC EC/invariant count re-derivation), and 53 (VP accounting re-derive from source-of-truth BC footers) all address the same root cause — re-deriving from a SUMMARY rather than from the SOURCE OF TRUTH. Lesson 54 adds the VP-lifecycle-status dimension: the VP Anchors footer is a SUMMARY site; the authority is verification-delta §1. Any site within a BC that contradicts the authority is a defect, even when the footer is correct.
+
+**Coherence hardening now spans four dimensions** (all codified): version-pins (L51), EC/invariant counts (L52), VP-ownership/attribution (L53), VP-lifecycle-status (L54).
+    _tag: [codified]_
+    _Discovered: F2 adversarial pass 38 (P38-OBS [process-gap]) → burst-37 comprehensive VP-status-agreement sweep, 2026-09-03_

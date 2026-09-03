@@ -1081,3 +1081,55 @@ F2: pass-16 remediation burst 12 already archived at "Archived Current Phase Ste
 | F2: adversarial pass 24 | adversary | DONE | 0C/0M/4med/0m/2obs — NOT CLEAN but decaying (first pass with no C/M in this cluster; all findings in freshest D-028 plumbing, all mechanical). P24-001 (MED): EMIT_LINK_MARKER mixes call/return semantics (parameter binding) with fall-through semantics (WRITE_MARKER reads function-locals) — mutually exclusive; under literal reading no link marker is ever written or is_link_hard_floor defaults false; fix = flat-scope inline OR true function returning the tuple. P24-002 (MED): resolved_project_key interpolated into org-binding regex without emit-time charset re-check/regex_escape (close_state gets 3-layer treatment; this gets none) — O7 site 10 + LINK-PROJECT-KEY-CHARSET-DENY + covering SM needed. P24-003 (MED): BC-3.03.001 L1107 REGULAR-link happy-path vector missing the org-binding config precondition. P24-004 (MED): dtu tp-close-denied omits scored_priority — hard-floor TP+close yields UNDER-LABEL-DENIED at STEP 4, never reaches STEP 4b; pin to LOW/MED. Obs: P24-005 D-026 vs project re-key (spec note), P24-006 org_slug LLM-supplied unvalidated config-lookup key (ASM-008-class, track as drift item). Report persisted. Clean streak 0/3. |
 
 ---
+
+## Archived Step: F2 pass-25 remediation burst 22 (rotated 2026-09-02 to make room for burst-26)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: pass-25 remediation burst 22 | architect / product-owner / formal-verifier / state-manager | DONE | D-029 implemented across all artifacts: markdown/investigation Write ALWAYS succeeds (all dispositions/techniques/sensor states/writers — Document-Before-Action); GATE 1/GATE 2 hard floors → 'MARKDOWN-HARD-FLOOR: <reason>; routed to review (D-029)' audit annotation + hard_floor_triggered=true, NO deny; routing: FP AND no-hard-floor → allow-without-marker, else allow + MARKDOWN_REVIEW_PATH (hard floor wins over FP; PARSE_FAIL/incomplete included); MARKDOWN-HARD-FLOOR-UNBINDABLE → allow-without-marker + operator annotation; MARKDOWN-HARD-FLOOR intentionally NOT in Gate-2 error grep set (BC-10.01.001 v1.28 adjudication). P25-002: VP-HOOK-031 rewritten in BOTH anchors (L1167 row + L1103 inline paragraph — orchestrator caught the missed inline anchor mid-burst); SM-50 cite → SM-73. P25-003 cite sweep (BC-5.01.001 v1.13, BC-4.02.001 v1.18 — Inv#7/PC#4 save-always-succeeds now holds structurally; follow-on expectation → review-marker model). P25-004 function-definition-order note. FV: VP-HOOK-031 vectors b1-b6 (all allow); SM-73 CONFIRMED (wrong-ROUTING mutant); SM-77 allocated (wrong-DECISION mutant: deny restored → analyst save denied); SM-51/52 outcome-space checked valid; §5 headline reconciled (~447), per-BC rows explicitly deferred to version-coherence sweep. Versions: BC-3.03.001 v1.34, BC-5.01.001 v1.13, BC-4.02.001 v1.18, BC-10.01.001 v1.28, arch-delta v1.27, verif-delta v1.27, prd-delta v1.25. VP 41 / SM 70 alloc (69 live) / ~447 tests. Clean streak 0/3. |
+
+---
+
+## Burst: F2 pass-29 — fix-burst-26 (2026-09-02)
+
+**Parent-commit:** `886c4ff` (docs(feature): add cross-platform packaging design brief)
+
+**Adversary verdict:** pass-29 — 0C/1M/2obs — NOT CLEAN. P29-001 org_slug propagation gap (MAJOR). P29-002/P29-003 observations. REMEDIATED this burst.
+
+**Files touched (Dim-1): 8 unique files**
+
+- .factory/phase-0-ingestion/behavioral-contracts/BC-10.01.001.md
+- .factory/phase-f2-spec-evolution/prd-delta.md
+- .factory/phase-0-ingestion/behavioral-contracts/BC-3.03.001.md
+- .factory/phase-f2-spec-evolution/verification-delta.md
+- .factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass27.md
+- .factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass28.md
+- .factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass29.md
+- .factory/STATE.md
+
+**Codifications:** none (no new standing rules this burst; DI-018 process-gap logged)
+
+**Dim-2 (literal-shell attestation):**
+```
+$ grep -c "org_slug" .factory/phase-0-ingestion/behavioral-contracts/BC-10.01.001.md
+24
+exit code: 0
+```
+
+**Dim-5 (adversary source attestation):** adversarial-spec-delta-review-pass29.md — 1 Major + 2 obs findings (0C/1M/0med/0min/2obs).
+
+**Dim-6 (convergence status):** IN_PROGRESS (0/3 clean passes; pass-29 not clean).
+
+**Dim-7 (dispatched-count sweep):**
+Dispatched agent count for burst-26: 4 agents (product-owner, formal-verifier, state-manager, pass-stub-writer).
+Sweep of prior Dim-7 cells: no prior Dim-7 entries in this burst-log (all prior bursts were written under rc.22 format).
+
+**Closes:**
+- P29-001: org_slug mandatory-field propagated to BC-10.01.001 Inv#9 roster + Stage-1 INGEST write list, prd-delta enforcement-split, BC-3.03.001 operational-metadata roster
+- P29-002: BC-3.03.001 ~L993 changes-from-v1.0 annotated re link/close post-v2.0
+- ARTIFACT-GAP: pass-27 and pass-28 report stubs created (series now complete)
+- DI-018 logged: verification-delta.md FUEL_EXHAUSTED PostToolUse validator issue
+
+**Versions bumped:** BC-10.01.001 v1.29→v1.30 (input-hash 28e1a97), prd-delta v1.29→v1.30, BC-3.03.001 v1.38→v1.39 (input-hash 0929570), verification-delta v1.30→v1.31.
+
+---

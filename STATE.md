@@ -1,10 +1,10 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "2.23"
+version: "2.25"
 status: active
 producer: state-manager
-timestamp: 2026-09-01T00:00:00Z
+timestamp: 2026-09-02T12:00:00Z
 phase: F2
 pipeline: FEATURE-CYCLE
 inputs: []
@@ -12,8 +12,8 @@ input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "F2 adversarial convergence — pass-28 remediation COMPLETE (burst 25), pass 29 pending — CLEAN STREAK 1/3 in progress — D-chain cite D-029 latest brownfield"
-awaiting: "F2-adversarial-pass-29"
+current_step: "F2 adversarial convergence — pass-29 remediation COMPLETE (burst 26), pass-30 pending — clean streak 0/3 (pass-29 NOT clean 1M/2obs) — trajectory-tail →6→4→2→3 — D-chain cite D-203 latest brownfield"
+awaiting: "F2-adversarial-pass-30"
 current_cycle: v0.10.0-feature-prism-integration
 dtu_required: true
 dtu_assessment: "2026-07-20"
@@ -22,7 +22,7 @@ dtu_services: [prism-demo-server, jr-mock]
 ---
 
 <!--
-  STATE.md SIZE BUDGET: 183 lines (wc-l) | soft-target: 185 | margin from soft-target: 2 under | margin from actual: 17 under hard cap (200).
+  STATE.md SIZE BUDGET: 185 lines (wc-l) | soft-target: 185 | margin from soft-target: 0 | margin from actual: 15 under hard cap (200).
   Historical content belongs in cycle files, NOT here.
   Run /vsdd-factory:compact-state if this file grows past 185 lines.
 -->
@@ -40,9 +40,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | **Target Workspace** | /Users/jmagady/Dev/secops-factory |
 | **Engine** | /Users/jmagady/Dev/dark-factory (vsdd-factory plugin) |
 | **Started** | 2026-07-19 |
-| **Last Updated** | 2026-09-01 |
+| **Last Updated** | 2026-09-02 — burst-26 pass-29 remediation; trajectory-tail →6→4→2→3 |
 | **Current Phase** | F2: Spec Evolution (prism-integration cycle) |
-| **Current Step** | F2 adversarial convergence — pass-28 remediation COMPLETE (burst 25), pass 29 pending — CLEAN STREAK 1/3 in progress |
+| **Current Step** | F2 adversarial convergence — pass-29 remediation COMPLETE (burst 26), pass-30 pending — clean streak 0/3 — trajectory-tail →6→4→2→3 |
 
 ## Phase Progress
 
@@ -51,9 +51,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | pre-0: Pre-pipeline | PASSED | 2026-07-19 | 2026-07-19 | PASS | — |
 | 0: Codebase Ingestion + Remediation | COMPLETE | 2026-07-19 | 2026-07-20 | PASS | →5→2→1→0; ADV-R1-4 CLEAN |
 | F1: Delta Analysis | PASSED | 2026-07-19 | 2026-07-20 | PASS | consistency: 7→0 |
-| F2: Spec Evolution | in-progress — pass28 remediated, pass29 pending | 2026-07-20 | | 0/3 clean passes | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated → pass10 1C/2M → pass10 remediated → pass11 1C/3M → pass11 remediated → pass12 2C/2M → pass12 remediated → pass13 2C/1M → pass13 remediated → pass14 0C/2M/3m → pass14 remediated → pass15 0C/1M/2m → pass15 remediated → pass16 0C/1M/2m → pass16 remediated → consistency-audit remediated (12 findings, all coherence) → pass17 0C/3M → pass17 remediated → pass18 0C/2M/1med → pass18 remediated → pass19 1C/1m → pass19 remediated → pass20 0C/1M/3med/3m → pass20 remediated → pass21 0C/2M/2med/1m → pass21 remediated → pass22 1C/2M/1med/1m → pass22 remediated → pass23 0C/1M/5med/1m → pass23 remediated → pass24 0C/0M/4med → pass24 remediated → pass25 0C/1M/1med → pass25 remediated → pass26 0C/1M/2med → pass26 remediated → pass27 remediated → pass28 0C/0M/1med → pass28 remediated |
-| F2 adversary pass-29 | pending | | | | — |
-| F2 fix burst 26 | not-started | | | | — |
+| F2: Spec Evolution | in-progress — pass29 remediated (burst26), pass30 pending | 2026-07-20 | | 0/3 clean passes — trajectory-tail →6→4→2→3 | pass1 2C/8M → pass2 1C/3M → pass3 1C/4M → pass4 2C/4M → pass5 1C/2M → pass5 remediated → pass6 2C/3M → pass6 remediated → pass7 2C/3M → pass7 remediated → pass8 1C/2M → pass8 remediated → pass9 0C/2M → pass9 remediated → pass10 1C/2M → pass10 remediated → pass11 1C/3M → pass11 remediated → pass12 2C/2M → pass12 remediated → pass13 2C/1M → pass13 remediated → pass14 0C/2M/3m → pass14 remediated → pass15 0C/1M/2m → pass15 remediated → pass16 0C/1M/2m → pass16 remediated → consistency-audit remediated (12 findings, all coherence) → pass17 0C/3M → pass17 remediated → pass18 0C/2M/1med → pass18 remediated → pass19 1C/1m → pass19 remediated → pass20 0C/1M/3med/3m → pass20 remediated → pass21 0C/2M/2med/1m → pass21 remediated → pass22 1C/2M/1med/1m → pass22 remediated → pass23 0C/1M/5med/1m → pass23 remediated → pass24 0C/0M/4med → pass24 remediated → pass25 0C/1M/1med → pass25 remediated → pass26 0C/1M/2med → pass26 remediated → pass27 0C/1M/2obs → pass27 remediated → pass28 0C/0M/1med → pass28 remediated → pass29 0C/1M/2obs → pass29 remediated (burst26) |
+| F2 adversary pass-29 | DONE | 2026-09-02 | 2026-09-02 | NOT CLEAN 0C/1M/2obs | P29-001 MAJOR remediated burst-26; P29-002/P29-003 OBS addressed |
+| F2 fix burst 26 | DONE | 2026-09-02 | 2026-09-02 | | BC-10.01.001 v1.30, prd-delta v1.30, BC-3.03.001 v1.39, verif-delta v1.31 |
 | F3: Incremental Stories | not-started | | | | |
 | F4: Delta Implementation | not-started | | | | |
 | F5: Scoped Adversarial | not-started | | | | |
@@ -65,8 +65,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | Metric | Value |
 |--------|-------|
 | Clean passes | 0/3 |
-| Last adversary pass | pass-28 (0C/0M/1med) REMEDIATED |
-| Next action | adversary pass-29 |
+| Last adversary pass | pass-29 (0C/1M/2obs) REMEDIATED — burst-26 |
+| Next action | adversary pass-30 |
+| Trajectory tail | →6→4→2→3 (passes 26→27→28→29) |
 
 ## Current Phase Steps
 
@@ -74,11 +75,11 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| F2: pass-25 remediation burst 22 | architect / product-owner / formal-verifier / state-manager | DONE | D-029 implemented across all artifacts: markdown/investigation Write ALWAYS succeeds (all dispositions/techniques/sensor states/writers — Document-Before-Action); GATE 1/GATE 2 hard floors → 'MARKDOWN-HARD-FLOOR: <reason>; routed to review (D-029)' audit annotation + hard_floor_triggered=true, NO deny; routing: FP AND no-hard-floor → allow-without-marker, else allow + MARKDOWN_REVIEW_PATH (hard floor wins over FP; PARSE_FAIL/incomplete included); MARKDOWN-HARD-FLOOR-UNBINDABLE → allow-without-marker + operator annotation; MARKDOWN-HARD-FLOOR intentionally NOT in Gate-2 error grep set (BC-10.01.001 v1.28 adjudication). P25-002: VP-HOOK-031 rewritten in BOTH anchors (L1167 row + L1103 inline paragraph — orchestrator caught the missed inline anchor mid-burst); SM-50 cite → SM-73. P25-003 cite sweep (BC-5.01.001 v1.13, BC-4.02.001 v1.18 — Inv#7/PC#4 save-always-succeeds now holds structurally; follow-on expectation → review-marker model). P25-004 function-definition-order note. FV: VP-HOOK-031 vectors b1-b6 (all allow); SM-73 CONFIRMED (wrong-ROUTING mutant); SM-77 allocated (wrong-DECISION mutant: deny restored → analyst save denied); SM-51/52 outcome-space checked valid; §5 headline reconciled (~447), per-BC rows explicitly deferred to version-coherence sweep. Versions: BC-3.03.001 v1.34, BC-5.01.001 v1.13, BC-4.02.001 v1.18, BC-10.01.001 v1.28, arch-delta v1.27, verif-delta v1.27, prd-delta v1.25. VP 41 / SM 70 alloc (69 live) / ~447 tests. Clean streak 0/3. |
-| F2: adversarial pass 26 | adversary | DONE | 0C/1M/2med/2min/1obs — NOT CLEAN. Link/close/O7/org-binding + STEP orderings + Gate-2 adjudication all INTACT. P26-001 (MAJOR): BC-3.03.001 PC#2 (L98) still describes pre-P22-001/pre-D-029 routing (GATE-1 kill-switch-first + MARKDOWN-HARD-FLOOR deny) — pseudocode/vectors/consumers were swept, postcondition prose missed. P26-002 (MED): 'no deny is possible on the markdown path' overclaimed in BC-3.03.001 L994 + BC-4.02.001 PC#4 — charset/completeness/Alternatives-Considered denies remain; qualify to 'no disposition-/hard-floor-based deny'. P26-003 (MED): markdown review path issues kill-switch-exempt review markers with NO hard_floor_applies() gate (unlike verdict STEP 3 O3 over-label gate) — markdown-masquerade can mint review markers under kill switch; pre-existing since P12-002/P22-001, D-029 widened; remediation = document-as-accepted-residual (narrowing would contradict settled D-015 route-non-FP-to-review); bounded to review surface (create-review/comment-review only). P26-004 (m): hard-floor reads lack heading-anchored grammars (free-text scan false-positives → over-escalation, safe direction). P26-005 (m): prd-delta §8 EC-012 stale. P26-006 (obs, process-gap): normative routing duplicated across 3+ anchors per BC — recommend single-source-of-truth rule + per-burst stale-string grep gate. Report persisted. Clean streak 0/3. |
-| F2: pass-26 remediation burst 23 | architect / product-owner / formal-verifier / state-manager | DONE | P26-001: BC-3.03.001 PC#2 rewritten to D-029 model (superseded text → Previous blockquote). P26-002: 'no deny possible' qualified in BC-3.03.001 L994 + PC#2 + BC-4.02.001 PC#4 (structural/charset guards retained and can still deny). P26-003: ACCEPTED RESIDUAL documented in arch-delta v1.28 (3 sites) + BC-3.03.001 kill-switch section + BC-10.01.001 Inv#11/VP-SKILL-065 — autonomy_enabled=false = ZERO REGULAR writes; live carve-outs: verdict-path review markers (hard-floor-gated), markdown-path review markers (NOT gated — inherent, bounded to review surface, operator-visible, no dedup), STEP-3b hard-floor link; VP-SKILL-065 re-scoped + positive side-check vector. P26-004: heading-anchored grammars for the 3 hard-floor reads (free-text mentions do NOT fire) + g1/g2/g3 negative vectors + SM-78 (read-scope mutant; distinct from SM-77 decision / SM-73 ordering / SM-53 direction). P26-005: prd-delta EC-012 row fixed. Legacy Gate-1 vector wording swept (2 cells). SM-77 ID-mapping recorded. Versions: BC-3.03.001 v1.35, BC-4.02.001 v1.19, BC-10.01.001 v1.29, arch-delta v1.28, verif-delta v1.28, prd-delta v1.26. VP 41 / SM 71 alloc (70 live) / ~451 tests. P26-006 process-gap → lessons.md (codification follow-up owed at cycle close). Clean streak 0/3. |
-| F2: pass-27 remediation burst 24 | architect / product-owner / formal-verifier / state-manager | DONE | P27-001 (MAJOR): structural-deny vs disposition-value-parse distinction finalized — structural ICD-203 incompleteness (missing heading/Alternatives-Considered/charset) → DENY (EC-004/EC-010) BEFORE D-029 routing (D-029 item-1 '<12 headings→review' arch error corrected; consistent with enrichment-completeness co-fire); all-12-present + non-canonical disposition value → allow+MARKDOWN_REVIEW_PATH; BC-5.01.001 Inv#7 + BC-4.02.001 PC#4 re-scoped off the absolute 'always succeeds/no deny possible' to no-disposition/hard-floor-deny + structural-guards-retained + infra-fail-loud. P27-002 (MED): path-aware WRITE_MARKER — markdown path org_slug from config / disposition.verdict from markdown_parsed_disposition / severity+asset_type null / is_review_path=TRUE (MARKER-WRITE-FAILED deny on infra failure = infrastructure deny distinct from content deny); link_target self-computing; false L565 claim deleted; SM-80 (marker-verdict-field-leak) allocated. P27-003/004 obs addressed. [ID per FV]→SM-77 resolved. SM-79 (structural-deny-downgraded) allocated. Versions: BC-3.03.001 v1.36, BC-5.01.001 v1.14, BC-4.02.001 v1.20, arch-delta v1.29, verif-delta v1.29, prd-delta v1.27. VP 41 / SM 73 alloc (72 live) / ~455 tests. Clean streak 0/3. |
-| F2: pass-28 remediation burst 25 | architect / product-owner / formal-verifier / state-manager | DONE | Pass 28 was 0C/0M/1med/1m — lowest-severity pass yet (no C/M). P28-001 (MED): WRITE_MARKER per-path variable definedness — the P27-002 path-aware edit left the markdown producer var as parsed_disposition while WRITE_MARKER read markdown_parsed_disposition (+ link_target unassigned on markdown path); fixed by assigning markdown_parsed_disposition=parsed_disposition + explicit link_target=null in both markdown setup blocks, dead-var removal, per-path definedness table; SM-80 kill now GENUINE (was vacuous). P28-002 (m): org_slug roster + validate_enums presence check + ASM-008 residual (DI-017); SM-81 allocated. Obs addressed (multi-org audit residual in P26-003 block; process-gap grep gate → FV methodology + lessons). Versions: BC-3.03.001 v1.37, arch-delta v1.30, verif-delta v1.30, prd-delta v1.28. VP 41 / SM 74 alloc (73 live) / ~456 tests. Clean streak 0/3 (pass 29 pending — if clean, 1/3). |
+| F2: adversarial pass 26 | adversary | DONE | 0C/1M/2med/2min/1obs — NOT CLEAN. P26-001 (MAJOR): BC-3.03.001 PC#2 still describes pre-D-029 routing. P26-002 (MED): 'no deny possible' overclaimed. P26-003 (MED): markdown-masquerade residual documented-as-accepted. P26-004/005 minor. Clean streak 0/3. |
+| F2: pass-26 remediation burst 23 | architect / product-owner / formal-verifier / state-manager | DONE | P26-001: BC-3.03.001 PC#2 rewritten to D-029 model. P26-002: qualified. P26-003: ACCEPTED RESIDUAL documented (3 sites). P26-004: heading-anchored grammars + SM-78. P26-005: prd-delta EC-012 fixed. Versions: BC-3.03.001 v1.35, BC-4.02.001 v1.19, BC-10.01.001 v1.29, arch-delta v1.28, verif-delta v1.28, prd-delta v1.26. VP 41 / SM 71 alloc (70 live). |
+| F2: pass-27 remediation burst 24 | architect / product-owner / formal-verifier / state-manager | DONE | P27-001: structural-deny vs disposition-value-parse finalized; ICD-203 structural incompleteness → DENY before D-029 routing. P27-002: path-aware WRITE_MARKER + SM-80. SM-79 allocated. Versions: BC-3.03.001 v1.36, BC-5.01.001 v1.14, BC-4.02.001 v1.20, arch-delta v1.29, verif-delta v1.29, prd-delta v1.27. VP 41 / SM 73 alloc (72 live). |
+| F2: pass-28 remediation burst 25 | architect / product-owner / formal-verifier / state-manager | DONE | P28-001: WRITE_MARKER per-path variable definedness fixed; SM-80 kill now GENUINE. P28-002: org_slug roster + validate_enums + SM-81 allocated (DI-017). Versions: BC-3.03.001 v1.37, arch-delta v1.30, verif-delta v1.30, prd-delta v1.28. VP 41 / SM 74 alloc (73 live). Clean streak 0/3. |
+| F2: pass-29 remediation burst 26 | product-owner / formal-verifier / state-manager | DONE | P29-001 (MAJOR): org_slug propagation gap REMEDIATED — BC-10.01.001 v1.30 (Inv#9 roster + Stage-1 INGEST write list), prd-delta v1.30 (enforcement-split), BC-3.03.001 v1.39 (operational-metadata roster + schema-v2.2 annotation). verif-delta v1.31 (SM-81 adjudication). P29-002/003 OBS annotated. Pass stubs 27/28 created. DI-018 logged. VP 41 / SM 74 alloc (73 live). Clean streak 0/3 (pass-30 pending — if clean, 1/3). |
 
 ## Decisions Log
 
@@ -149,6 +150,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | ASM-014 | comment-review --label binding pending: the comment-review kill-switch exemption is currently broader than "review ticket only" — restricting it to review-labeled tickets is deferred until empirical validation that `jr issue comment --label` is supported. | LOW | pre-Wave-3 (wave-stories touching comment-review path) | ADV-F2-P10-008 | OPEN — DEFERRED |
 | DI-015 | Known-FP store integrity residual (P12-003 / D-016 / D-019): a poisoned known-FP store entry could suppress a real LOW/MED-severity alert via the fast-path floor exemption. Mitigations in place: store is not LLM-writable, is audited at every use, and is subject to periodic operator review. D-019 further bounds this residual: HIGH/CRIT-native known-FPs now route to human review (comment-review) rather than auto-close — a poisoned high-sev store entry gets a human glance, NOT silent auto-close. Risk accepted per D-016/D-019; bounded by store governance, not LLM trust model. | MEDIUM | pre-production / store-governance | ADV-F2-P12-003 | OPEN — KNOWN-DEFERRED |
 | DI-017 | verdict.org_slug is LLM-supplied but unvalidated where it selects config (read_org_project_key lookup key) and is written into marker.org_slug for downstream org scoping; validate_enums() never checks org_slug format or membership against the configured [[orgs]] set. ASM-008-class residual, bounded by the D-028 org-binding (KEY1/KEY2 still constrained to SOME configured org's project key). Recommended hardening: validate org_slug against configured [[orgs]] before resolution. | MEDIUM | ASM-008 resolution / pre-production | ADV-F2-P24-006 | OPEN — KNOWN-DEFERRED |
+| DI-018 | verification-delta.md is 811KB and trips PostToolUse validators (validate-factory-path-root/validate-input-hash/validate-template-compliance) with FUEL_EXHAUSTED on every edit — edits apply but validation is skipped fail-closed. Shard the artifact or raise fuel_cap. [process-gap] | MEDIUM | F2 gate / version-coherence sweep | formal-verifier pass-29 burst-26 | OPEN |
 
 | MIG-001 | Engine uplift to vsdd-factory 1.0.0-rc.24 + .factory/ artifact-path canonicalization deferred to F3 cycle boundary. Health check (this session) found: (1) .claude/settings.json enable key is BROKEN — `vsdd-factory@vsdd-factory` should be `vsdd-factory@claude-mp` (marketplace `vsdd-factory` does not exist); (2) project ran on rc.22 (now purged from cache); newest cached engine = rc.24; no project pin in installed_plugins.json; (3) relocate-artifact --dry-run = 126 path violations vs rc.24 canonical registry: 48 MAPPABLE (22 BCs -> specs/behavioral-contracts/ss-NN/, 26 adversarial passes -> cycles/{id}/), 78 UNMAPPED (holdout-scenarios, phase-0 ingestion outputs, F1/F2 delta docs, dtu-assessment, session-handoff, spec-changelog — no canonical target in engine-owned registry); (4) rc.24 validate-artifact-path deny-hook appears fail-open/non-blocking (on_error=continue; not enumerated in active hooks.json; project wrote all 126 files fine on rc.22) but not statically proven. F3-boundary task: fix enable key -> vsdd-factory@claude-mp; relocate the 48 mappable files w/ cross-ref + index updates; resolve EC-007 bc_id/subsystem frontmatter gap on the 22 BCs; decide handling for the 78 unmapped (engine-registry support vs accept-as-is). | MEDIUM | F3 cycle boundary (pre-F3-story-decomposition) | orchestrator health-check 2026-09-01 | OPEN — DEFERRED (human-approved: finish F2 on current engine first) |
 
@@ -163,9 +165,9 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Field | Value |
 |-------|-------|
-| **Date** | 2026-07-29 |
-| **Position** | Pass-28 remediation COMPLETE (burst 25). Severity trend: p22 1C/2M → p23 0C/1M/5med → p24 0C/0M/4med → p25 0C/1M/1med → p26 0C/1M/2med → p27 0C/1M/1med → p28 0C/0M/1med — CONVERGING; pass 28 had zero MAJOR, findings confined to the just-changed P27-002 WRITE_MARKER edit. NEXT: adversarial pass 29 (fresh context; carry D-023..D-029 as settled). If pass 29 is clean (0C/0M/0med), that is the FIRST of 3 required clean passes. Clean streak 0/3. |
-| **Context** | Artifact versions: arch-delta v1.30, verif-delta v1.30, prd-delta v1.28, dtu-assessment v1.5, BC-3.03.001 v1.37, BC-3.01.001 v1.25, BC-10.01.001 v1.29, BC-4.02.001 v1.20, BC-5.01.001 v1.14, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 74 allocated, 73 live (SM-9..SM-81; SM-32=32a+32b+32-ext; SM-55 skipped; SM-50 retired). NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. Health check 2026-09-01: engine=unpinned/floats-to-rc.24; enable key broken (see MIG-001); rc.24 uplift + artifact relocation DEFERRED to F3 boundary; F2 convergence continues on current engine. Durability push done (factory-artifacts @ 36f3291). |
+| **Date** | 2026-09-02 |
+| **Position** | Pass-29 remediation COMPLETE (burst 26). P29-001 (MAJOR): org_slug propagation gap REMEDIATED — BC-10.01.001 v1.30, prd-delta v1.30, BC-3.03.001 v1.39, verif-delta v1.31. Pass stubs 27/28 created. DI-018 logged. NEXT: adversarial pass 30 (fresh context; carry D-023..D-029 (exhaustive) as settled). Pass-29 was NOT clean (1M/2obs) — clean streak resets. If pass 30 is clean (0C/0M/0med/0min), that is 1/3 required clean passes. trajectory-tail →6→4→2→3 |
+| **Context** | Artifact versions: arch-delta v1.30, verif-delta v1.31, prd-delta v1.30, dtu-assessment v1.5, BC-3.03.001 v1.39, BC-3.01.001 v1.25, BC-10.01.001 v1.30, BC-4.02.001 v1.20, BC-5.01.001 v1.14, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs 41 / SM 74 allocated, 73 live (SM-9..SM-81; SM-32=32a+32b+32-ext; SM-55 skipped; SM-50 retired). NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. Health check 2026-09-01: engine=unpinned/floats-to-rc.24; enable key broken (see MIG-001); rc.24 uplift + artifact relocation DEFERRED to F3 boundary; F2 convergence continues on current engine. DI-018: verification-delta.md 811KB trips FUEL_EXHAUSTED on PostToolUse validators (edits apply, fail-closed). |
 | **Convergence counter** | 0/3 clean passes |
 
 ## Concurrent Cycles

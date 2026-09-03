@@ -1753,3 +1753,81 @@ BC-3.03.001 v1.42, BC-3.01.001 v1.25, BC-4.02.001 v1.21, BC-5.01.001 v1.15,
 BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2.
 VP **21 FIN + 6 PROP = 27** (41 in registry) / SM 74 alloc, 73 live.
 Convergence-gate (P0 FINALIZED) count UNCHANGED at 21.
+
+---
+
+## Burst 39 — Pass-40 P40-001 + P40-002 Remediation (SUBSTANTIVE LOGIC FIX + Count Propagation, 2026-09-03)
+
+**Trigger:** F2 adversarial pass-40 — NOT CLEAN (0C/1M/1med/0min/2obs). Two findings:
+- P40-001 (MAJOR — GENUINE LOGIC DEFECT): DETECT_LATE_EVENT threshold `event_time < stored_watermark − GRACE` was provably unreachable (INGEST query floor requires `event_time > stored_watermark − GRACE` — same GRACE term, disjoint sets). Burst-38 late-event signal was dead code; VP-SKILL-073 BATS vector was vacuous/false-green.
+- P40-002 (MEDIUM): prd-delta §1 BC-10.01.001 EC cell stale at 22 (vs 23 in §3/§8/Totals/BC); §1 sum 54≠Totals 55 — burst-38 count-propagation miss.
+
+**Agents:** architect (D-DEC-002 threshold fix), product-owner (BC-10.01.001 v1.34 + prd-delta v1.37 + BC-3.03.001 cross-ref pin), formal-verifier (VP-SKILL-073 vector corrected + 15 BC pins v1.33→v1.34), state-manager.
+
+**Substantive change:** LOGIC FIX — threshold corrected from `event_time < stored_watermark − GRACE` (dead code) to `event_time < stored_watermark` (reachable fire set = grace re-fetch window). First genuine behavioral correction since burst-38.
+
+### F-001 — architecture-delta v1.31 → v1.32
+
+D-DEC-002 DETECT_LATE_EVENT threshold corrected to raw watermark (`event_time < stored_watermark`). Fire set = `(stored_watermark−GRACE, stored_watermark)` — the grace re-fetch window — non-empty and reachable for every genuine late arrival. Log message corrected: 'below grace floor' → 'event_time below stored watermark'. READ_WATERMARK grace_ts computation UNCHANGED (query floor stays `stored_watermark−GRACE`; only the detector threshold changes). input-hash: `d7bcab4` (primary input delta-analysis.md — unchanged; only arch-delta own content changed).
+
+### F-002 — BC-10.01.001 v1.33 → v1.34
+
+- Inv#14 DETECT_LATE_EVENT sub-step threshold: `event_time < stored_watermark−GRACE` → `event_time < stored_watermark` (P40-001 logic fix).
+- EC-023 threshold: same correction.
+- VP Anchors footer — BC-10.01.001 VP-SKILL-073 boundary note updated to corrected condition.
+input-hash: `650e111` (UNCHANGED — BC-10.01.001 input files unchanged; only own content changed).
+
+### F-003 — prd-delta v1.36 → v1.37
+
+- §1 BC-10.01.001 EC cell: 22 → 23 (P40-002 count-propagation fix).
+- §1 EC sum: 54 → 55 (corrected to match §3/§8/Totals).
+- §5 BC-10.01.001 "New Version" cell: v1.33 → v1.34 (cascade).
+input-hash: `6908b94` (recomputed — BC-10.01.001 is an input to prd-delta and changed).
+
+### F-004 — BC-3.03.001 v1.42 (NO BUMP — cross-ref pin only)
+
+Cross-ref pin to BC-10.01.001 updated v1.33 → v1.34 in the BC-3.03.001 body. No semantic change; no version bump.
+input-hash: `96516f3` (UNCHANGED).
+
+### F-005 — verification-delta v1.35 → v1.36
+
+- VP-SKILL-073 vector corrected: B-INT vector now injects an event with `event_time < stored_watermark` AND `event_time ≥ stored_watermark−GRACE` (reachable from INGEST query). Old `event_time < stored_watermark − GRACE` vector (false-green, unreachable) retired.
+- §1 L429 status cell and §2 VP-table row L778 updated to reflect corrected condition.
+- 15 BC-10.01.001 pins cascaded v1.33→v1.34 (all LIVE sites, same set as burst-38).
+input-hash: COMPUTE-AT-COMMIT (DI-018 PostToolUse FUEL_EXHAUSTED; validators skip fail-closed; writes verified manually).
+
+### Files Committed in Burst-39
+
+| File | Change |
+|------|--------|
+| `.factory/phase-f2-spec-evolution/architecture-delta.md` | v1.31→v1.32: D-DEC-002 DETECT_LATE_EVENT threshold corrected (raw watermark); input-hash d7bcab4 |
+| `.factory/phase-0-ingestion/behavioral-contracts/BC-10.01.001.md` | v1.33→v1.34: Inv#14/EC-023 threshold corrected; VP-073 boundary note; input-hash 650e111 |
+| `.factory/phase-f2-spec-evolution/prd-delta.md` | v1.36→v1.37: §1 EC cell 22→23, §1 sum 55=55; §5 BC-10.01.001→v1.34; input-hash 6908b94 |
+| `.factory/phase-0-ingestion/behavioral-contracts/BC-3.03.001.md` | cross-ref pin v1.33→v1.34 (no version bump); input-hash 96516f3 |
+| `.factory/phase-f2-spec-evolution/verification-delta.md` | v1.35→v1.36: VP-SKILL-073 vector corrected (reachable raw-watermark); 15 BC-10.01.001 pins v1.33→v1.34 |
+| `.factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass40.md` | new — pass-40 report |
+| `.factory/STATE.md` | awaiting → F2-adversarial-pass-41; streak 0/3; arch-delta cite v1.31→v1.32; checkpoint updated; version 2.33 |
+| `.factory/cycles/.../burst-log.md` | this entry + 2 archived steps from Current Phase Steps |
+| `.factory/cycles/.../convergence-trajectory.md` | pass-40 row + narrative appended; trajectory shorthand updated |
+| `.factory/cycles/.../lessons.md` | Lesson 56 appended |
+| `.factory/cycles/.../session-checkpoints.md` | pass-39→pass-40 checkpoint archived |
+
+### Archived Steps from STATE.md Current Phase Steps (5-row limit)
+
+The following two oldest rows were displaced by addition of pass-40 + burst-39:
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: VP-ownership audit burst 33 | product-owner / state-manager | DONE | P36-001 + 7 companion fixes: VP-HOOK-024 misattribution removed; §1 VP Totals re-derived 21 FIN+4 PROP=25; VP-SKILL-075/076/077 FINALIZED→PROPOSED P1; §3.8 field-count/criticality/auth-command coherence. prd-delta v1.34→v1.35. verif-delta v1.34 UNCHANGED. VP 41/SM 74/73 live. Convergence-gate count corrected: 21 FINALIZED P0. Streak RESET 0/3. |
+| F2: VP-status-agreement sweep burst-37 | product-owner / state-manager | DONE | P38-001 + OBS: 6 VP-status sites corrected across 4 files — BC-10.01.001 L192+L789 (VP-SKILL-075 FINALIZED P0→PROPOSED P1), BC-3.03.001 L1350 (VP-HOOK-030 annotation), BC-3.01.001 L436+L234 (VP-HOOK-029 FINALIZED P0), prd-delta §5 L160 (CV-007 annotated). All NO-BUMP. Input-hashes resolved: BC-3.01.001 96609a9; prd-delta 662402c. Lesson 54 codified. VP/SM tallies UNCHANGED. Streak RESET 0/3. |
+
+### Versions After Burst-39
+
+**arch-delta v1.32** (D-DEC-002 raw-watermark fix; input-hash d7bcab4), **verif-delta v1.36** (VP-SKILL-073 vector corrected; 15 BC-10.01.001 pins v1.33→v1.34),
+**prd-delta v1.37** (§1 EC cell 22→23; input-hash 6908b94), dtu-assessment v1.7,
+**BC-10.01.001 v1.34** (DETECT_LATE_EVENT threshold corrected; input-hash 650e111),
+BC-3.03.001 v1.42 (cross-ref pin v1.34; input-hash 96516f3), BC-3.01.001 v1.25, BC-4.02.001 v1.21, BC-5.01.001 v1.15,
+BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2.
+VP **21 FIN + 6 PROP = 27** (41 in registry) / SM 74 alloc, 73 live.
+BATS: 113 (unchanged — VP-SKILL-073 PROPOSED P1; no FINALIZED test added).
+Convergence-gate (P0 FINALIZED) count UNCHANGED at 21.

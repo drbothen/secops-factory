@@ -767,3 +767,31 @@ A VP present only in verification-delta §1 and architecture-delta §8.15 — wi
 **Extends Lessons 51–54** (source-of-truth reconciliation) with the architecture→BC behavior-propagation dimension: verification-delta §1 VP ownership is a SUMMARY; the SOURCE OF TRUTH for behavior presence is the owning BC's behavioral specification itself. The architecture-delta D-DEC entry is where the obligation is defined; the BC is where it must be satisfied.
     _tag: [codified]_
     _Discovered: F2 adversarial pass 39 (P39-001 MEDIUM) → burst-38 DETECT_LATE_EVENT behavior-add, 2026-09-03_
+
+---
+
+### Lesson 56 — P40-001 [process-gap] [codified] PREDICATE REACHABILITY vs UPSTREAM FILTER: a per-event guard/detector fire condition MUST be checked for satisfiability against the upstream query/filter that produces its inputs — not only reconciled site-to-site (pass 40, burst 39, 2026-09-03)
+
+[process-gap] [codified] (pass 40, 2026-09-03): A per-event guard, detector, or conditional whose trigger condition is the COMPLEMENT of an upstream query's WHERE clause is provably dead code — no event that passes the query can ever trigger it. DETECT_LATE_EVENT fired on `event_time < stored_watermark − GRACE` while the INGEST query floor was `event_time > stored_watermark − GRACE` (same GRACE term subtracted in both) → disjoint sets → LATE_EVENT_DETECTED could never fire, and VP-SKILL-073's BATS vector (which tested that condition) was vacuous/false-green. This defect survived 40 adversarial passes because the coherence axes in Lessons 51–55 reconcile SITES to each other (version pins, EC/invariant counts, VP attribution, VP lifecycle status, architecture→BC propagation) — none prescribes a REACHABILITY CHECK against the upstream input domain.
+
+**Root mechanism:** the same GRACE constant appeared in both the upstream filter and the downstream detector, making the sets formally disjoint. Any per-event predicate that negates (or is bounded by) a condition in the upstream query floor is a candidate for this failure class.
+
+**Codified standing rule (effective immediately, adversarial passes and FV reviews):** For any per-event predicate, guard, or detector in a spec:
+1. Identify the upstream query or filter that selects the event set reaching the predicate.
+2. Verify that the predicate's trigger condition is SATISFIABLE given the query's WHERE clause — i.e., there exists at least one event that passes the query AND triggers the predicate.
+3. If the predicate uses the same constant(s) as the query floor (e.g., the same GRACE term), check explicitly for complementary or disjoint conditions.
+4. For VPs that test a predicate's behavior (BATS vectors), verify the test event is reachable from the real ingest path — a test that injects an event satisfying the predicate but NOT the query floor produces a false-green.
+
+**Evidence:** VP-SKILL-073 B-INT vector injected an event with `_time < stored_watermark − GRACE` — a value that the INGEST query floor (`_time > stored_watermark − GRACE`) explicitly excludes. The vector was structurally vacuous: no real ingest path could surface that event. Corrected threshold = raw watermark (`event_time < stored_watermark`); corrected test event injects `_time ∈ (stored_watermark−GRACE, stored_watermark)` (the grace re-fetch window), which IS produced by the INGEST query.
+
+**6th codified coherence/verification axis** (extends Lessons 51–55, all process-gap):
+- Lesson 51: version-pin sweeps (site-to-site coherence)
+- Lesson 52: EC/invariant count re-derivation (count coherence vs source of truth)
+- Lesson 53: VP-ownership/attribution cross-check (attribution coherence)
+- Lesson 54: VP-lifecycle-status multi-site sweep (status coherence)
+- Lesson 55: architecture→BC behavior-propagation (D-DEC obligation vs BC content)
+- **Lesson 56 (this): predicate reachability vs upstream query/filter (fire-condition satisfiability)**
+
+All six axes address forms of spec correctness that site-to-site reconciliation CANNOT catch alone.
+    _tag: [codified]_
+    _Discovered: F2 adversarial pass 40 (P40-001 MAJOR GENUINE LOGIC DEFECT) → burst-39 DETECT_LATE_EVENT reachability fix (raw watermark), 2026-09-03_

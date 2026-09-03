@@ -64,6 +64,7 @@ are in phase-f2-spec-evolution/.
 | 37 | 2026-09-03 | 0 | 0 | 0 | 2 | 0 | 2 | LOW | 1/3 | **CLEAN** (streak 1/3; P37-001/002 MINOR dtu editorial; substance all confirmed; REMEDIATED dtu v1.7 burst-35) |
 | 38 | 2026-09-03 | 0 | 1 | 0 | 0 | 1 | 2 | LOW | 0/3 | NOT CLEAN (streak RESET 0/3; P38-001 MAJOR VP-SKILL-075 partial-fix residual — burst-33 footer-only; body L192 + VP table L789 stale; REMEDIATED burst-37 6 sites/4 files) |
 | 39 | 2026-09-03 | 0 | 0 | 1 | 0 | 4 | 5 | MEDIUM | 0/3 | NOT CLEAN (streak 0/3; P39-001 MEDIUM SUBSTANTIVE — DETECT_LATE_EVENT behavior missing from BC-10.01.001; 25+ pass D-DEC-002 propagation oversight; architect IN-SCOPE; REMEDIATED burst-38 BC-10.01.001 v1.33 + VP-073/074 anchored) |
+| 40 | 2026-09-03 | 0 | 1 | 1 | 0 | 2 | 4 | HIGH | 0/3 | NOT CLEAN (streak 0/3; P40-001 MAJOR GENUINE LOGIC DEFECT — DETECT_LATE_EVENT double-GRACE unreachable dead code + VP-073 false-green; P40-002 MEDIUM §1 EC cell stale 22 vs 23; REMEDIATED burst-39 arch-delta v1.32 + BC-10.01.001 v1.34 + prd-delta v1.37 + verif-delta v1.36) |
 
 **Note on historical data:** Finding counts for passes 1–28 reconstructed from
 STATE.md Phase Progress finding-progression and burst-log.md entries. Per-pass
@@ -336,3 +337,22 @@ OBS-2/3/4: architecture→BC behavior-propagation is the fifth coherence dimensi
 Independent re-derivation: all spec substance confirmed clean (STEP ordering, kill-switch, hard-floor, marker mechanism, D-029, §3.4, NORMALIZE_SEVERITY, 12/18-split). All four prior coherence dimensions (version pins, EC/inv counts, VP attribution, VP lifecycle status) clean post-burst-37. 3rd consecutive 0C/0M pass (substance).
 
 Versions after burst-38 (remediation): **BC-10.01.001 v1.33** (DETECT_LATE_EVENT sub-step Inv#14, EC-023, VP-073/074 anchored), **prd-delta v1.36** (§1 VP 25→27; §3 EC 54→55; §8 78→79; §5 BC-10.01.001→v1.33; input-hash fc9285c), **verif-delta v1.35** (15 BC-10.01.001 pins v1.32→v1.33; VP/SM tallies UNCHANGED). VP **21 FIN + 6 PROP = 27** (41 in registry); SM 74/73.
+
+---
+
+### Pass 40 (2026-09-03) — **NOT CLEAN** (streak 0/3)
+
+**Findings:** 3 (0C / 1M / 1med / 0min / 2obs) — counting only P40-001 + P40-002 + 2 OBS
+**Novelty:** HIGH — P40-001 is a GENUINE LOGIC DEFECT (provably dead code from double-GRACE); first logic correctness failure since P23-001
+**Convergence counter:** 0/3 (streak does not advance — P40-001 MAJOR blocks clean verdict)
+
+P40-001 (MAJ — GENUINE LOGIC DEFECT): DETECT_LATE_EVENT fire condition (`event_time < stored_watermark − GRACE`) is the COMPLEMENT of the INGEST query floor (`event_time > stored_watermark − GRACE`). These two conditions use the same GRACE term — the sets are disjoint. No event that passes the INGEST floor can trigger DETECT_LATE_EVENT. The signal was dead code; VP-SKILL-073 BATS vector was vacuous/false-green. Root bug in D-DEC-002 itself. Fail-safe: events never dropped (log-not-drop semantics preserved). **REMEDIATED burst-39.**
+
+P40-002 (MED): prd-delta §1 BC-10.01.001 EC cell stale at 22 (vs 23 in §3/§8/Totals/BC). §1 sum 54≠Totals 55. Burst-38 count-propagation miss (added EC-023 but missed the §1 cell). **REMEDIATED burst-39.**
+
+OBS-1 [process-gap]: new review axis — predicate reachability vs upstream query/filter. The coherence axes in Lessons 51–55 reconcile spec sites to each other; none validates fire-condition satisfiability against the upstream input domain. Codified as Lesson 56 (6th axis).
+OBS-2 [process-gap]: all 5 prior coherence axes clean (version pins, EC counts, VP attribution, VP lifecycle, architecture→BC propagation). Reachability is the orthogonal 6th.
+
+Independent re-derivation: all spec substance confirmed clean (STEP ordering, kill-switch, hard-floor, marker mechanism, D-029, §3.4, NORMALIZE_SEVERITY, 12/18-split). 4th consecutive 0C/0M pass (substance).
+
+Versions after burst-39 (remediation): **arch-delta v1.32** (D-DEC-002 raw-watermark fix; input-hash d7bcab4), **BC-10.01.001 v1.34** (Inv#14/EC-023 threshold corrected; input-hash 650e111), **prd-delta v1.37** (§1 EC cell 22→23; input-hash 6908b94), **verif-delta v1.36** (VP-SKILL-073 vector corrected; 15 BC-10.01.001 pins v1.33→v1.34), BC-3.03.001 v1.42 (cross-ref pin v1.34; input-hash 96516f3). VP **21 FIN + 6 PROP = 27** (41 in registry); SM 74/73. BATS: 113 (unchanged).

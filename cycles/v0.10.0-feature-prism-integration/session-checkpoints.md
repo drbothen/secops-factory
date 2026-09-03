@@ -446,3 +446,14 @@ superseded/archived checkpoints only.
 | **Context** | Artifact versions: arch-delta v1.33 (input-hash d7bcab4), verif-delta v1.37 (input-hash unchanged), prd-delta v1.38 (input-hash 3eaba2b), dtu-assessment v1.7, BC-10.01.001 v1.35 (text-correction no-bump; input-hash a9a1c5c), BC-3.03.001 v1.42 (input-hash de1ff1d), BC-3.01.001 v1.25 (input-hash 96609a9), BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs: 21 FINALIZED P0 + 6 PROPOSED P1 = 27 total (41 in registry); SM 76 alloc, 75 live (SM-82/SM-83 PROPOSED P1). P0 convergence-gate count UNCHANGED at 21. BATS: 113. NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. Health check 2026-09-01: engine=unpinned/floats-to-rc.24; enable key broken (MIG-001); rc.24 uplift DEFERRED F3. DI-018: verif-delta ~840KB FUEL_EXHAUSTED; DEFERRED F3. |
 | **Convergence counter** | 0/3 clean passes (streak at 0/3 since pass-36) |
 
+
+---
+
+## Checkpoint archived 2026-09-03 (superseded by pass-44 checkpoint)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-09-03 |
+| **Position** | Pass-43 NOT CLEAN (burst-42: SUBSTANTIVE — once-per-run VALIDATE_WATERMARK_FOR_RUN gate; @test-name correction VP-SKILL-073; BC v1.36 version-trail consolidation). P43-001 MED VP-SKILL-073 @test names stale; P43-002 MED DETECT_LATE_EVENT_SUPPRESSED per-event flood (P41-003 relabeled); P43-003 MED version-trail no-bump debt. All REMEDIATED burst-42. Streak 0/3. REGRESSION trajectory 2→5 (all 3 MEDs = DETECT_LATE_EVENT once-per-run hardening now complete: bursts 38-42 form full shake-out chain). NEXT: adversary pass-44 (fresh context; spec content FROZEN post-burst-42; pass-44 banks 1/3 if clean). trajectory-tail →4→3→2→5 |
+| **Context** | Artifact versions: arch-delta v1.34 (VALIDATE_WATERMARK_FOR_RUN once-per-run; input-hash d7bcab4), verif-delta v1.38 (VP-SKILL-073 cardinality + @test-name fix; SM-82/83 REDEFINED once-per-run; 15 BC pins v1.35→v1.36), prd-delta v1.39 (§5 pin→v1.36; input-hash 1c4be4c), dtu-assessment v1.7, BC-10.01.001 v1.36 (once-per-run Inv#14 + EC-024 cardinality + @test-name + version-trail; EC count 24; input-hash 742b491), BC-3.03.001 v1.42 (cross-ref pin→v1.36; input-hash 95fcec5), BC-3.01.001 v1.25 (input-hash 96609a9), BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs: 21 FINALIZED P0 + 6 PROPOSED P1 = 27 total (41 in registry); SM 76 alloc, 75 live (SM-82/SM-83 PROPOSED P1). P0 convergence-gate count UNCHANGED at 21. BATS: 113. NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. Health check 2026-09-01: engine=unpinned/floats-to-rc.24; enable key broken (MIG-001); rc.24 uplift DEFERRED F3. DI-018: verif-delta ~840KB FUEL_EXHAUSTED; DEFERRED F3. |
+| **Convergence counter** | 0/3 clean passes (streak at 0/3 since pass-36) |

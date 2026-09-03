@@ -1,10 +1,10 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "2.36"
+version: "2.37"
 status: active
 producer: state-manager
-timestamp: 2026-09-03T20:30:00Z
+timestamp: 2026-09-03T21:00:00Z
 phase: F2
 pipeline: FEATURE-CYCLE
 inputs: []
@@ -12,8 +12,8 @@ input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "F2 adversarial convergence — pass-43 NOT CLEAN (0C/0M/3med/0min/2obs; streak 0/3; P43-001 MED VP-SKILL-073 @test names stale watermark−GRACE boundary; P43-002 MED DETECT_LATE_EVENT_SUPPRESSED per-event flood P41-003 relabeled; P43-003 MED version-trail incoherence no-bump debt; REMEDIATED burst-42 once-per-run VALIDATE_WATERMARK_FOR_RUN + @test-name fix + BC v1.36; SM 76/75; trajectory REGRESSION 2→5 — all 3 MEDs = DETECT_LATE_EVENT shake-out; NOTE: DETECT_LATE_EVENT feature hardened across bursts 38-42: added→reachable→guard→absent-exclusion→once-per-run) — trajectory-tail →4→3→2→5 — D-chain cite D-203 latest brownfield"
-awaiting: "F2-adversarial-pass-44"
+current_step: "F2 adversarial convergence — pass-44 CLEAN (0C/0M/0med/0min/1obs; streak 1/3; DETECT_LATE_EVENT feature converged; substance INDEPENDENTLY RE-DERIVED CLEAN; P44-001 OBS EC-023 first-run attribution cosmetic DEFERRED F2 gate; spec FROZEN post-burst-42 for streak attempt; trajectory-tail →3→2→5→0 CLEAN) — NEXT: adversary pass-45 (banks 2/3) — D-chain cite D-203 latest feature-cycle"
+awaiting: "F2-adversarial-pass-45"
 current_cycle: v0.10.0-feature-prism-integration
 dtu_required: true
 dtu_assessment: "2026-07-20"
@@ -22,7 +22,7 @@ dtu_services: [prism-demo-server, jr-mock]
 ---
 
 <!--
-  STATE.md SIZE BUDGET: 195 lines (wc-l) | soft-target: 185 | margin from soft-target: -10 | margin from actual: 5 under hard cap (200).
+  STATE.md SIZE BUDGET: 196 lines (wc-l) | soft-target: 185 | margin from soft-target: -11 | margin from actual: 4 under hard cap (200).
   Historical content belongs in cycle files, NOT here.
   Run /vsdd-factory:compact-state if this file grows past 185 lines.
 -->
@@ -40,9 +40,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | **Target Workspace** | /Users/jmagady/Dev/secops-factory |
 | **Engine** | /Users/jmagady/Dev/dark-factory (vsdd-factory plugin) |
 | **Started** | 2026-07-19 |
-| **Last Updated** | 2026-09-03 — pass-43 NOT CLEAN (0C/0M/3med; streak 0/3; REGRESSION 2→5; DETECT_LATE_EVENT once-per-run hardening complete bursts 38-42; REMEDIATED burst-42 arch-delta v1.34 + BC v1.36 + prd-delta v1.39 + verif-delta v1.38; trajectory-tail →4→3→2→5) |
+| **Last Updated** | 2026-09-03 — pass-44 CLEAN (0C/0M/0med/0min/1obs; streak 1/3; DETECT_LATE_EVENT feature converged; INDEPENDENTLY RE-DERIVED CLEAN; P44-001 OBS cosmetic DEFERRED; spec FROZEN post-burst-42; trajectory-tail →3→2→5→1) |
 | **Current Phase** | F2: Spec Evolution (prism-integration cycle) |
-| **Current Step** | F2 adversarial convergence — pass-43 NOT CLEAN (streak 0/3); burst-42 once-per-run VALIDATE_WATERMARK_FOR_RUN + @test-name fix + BC v1.36 version-trail cleanup; pass-44 pending |
+| **Current Step** | F2 adversarial convergence — pass-44 CLEAN (streak 1/3; first clean of new streak); spec content FROZEN post-burst-42; pass-45 pending (banks 2/3) |
 
 ## Phase Progress
 
@@ -51,7 +51,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | pre-0: Pre-pipeline | PASSED | 2026-07-19 | 2026-07-19 | PASS | — |
 | 0: Codebase Ingestion + Remediation | COMPLETE | 2026-07-19 | 2026-07-20 | PASS | →5→2→1→0; ADV-R1-4 CLEAN |
 | F1: Delta Analysis | PASSED | 2026-07-19 | 2026-07-20 | PASS | consistency: 7→0 |
-| F2: Spec Evolution | in-progress — pass43 NOT CLEAN (streak 0/3; REGRESSION 2→5), pass44 pending | 2026-07-20 | | 0/3 clean passes — trajectory-tail →4→3→2→5 | pass1–29 see burst-log → pass30–34 see burst-log → pass35 0C/0M/0med/1min CLEAN (streak 1/3); burst32 → pass36 0C/0M/1med NOT CLEAN (streak RESET 0/3); burst33 VP-ownership audit (21 FIN+4 PROP=25) → pass37 0C/0M/0med/2min CLEAN (streak 1/3); dtu v1.7 burst35 → pass38 0C/1M/1obs NOT CLEAN (streak RESET 0/3); burst37 VP-status-agreement sweep → pass39 0C/0M/1med NOT CLEAN (streak 0/3); burst38 SUBSTANTIVE — added DETECT_LATE_EVENT behavior (D-DEC-002) to BC-10.01.001 v1.33 + anchored VP-073/074, VP count 25→27 → pass40 0C/1M/1med NOT CLEAN (streak 0/3); burst39 SUBSTANTIVE LOGIC FIX — DETECT_LATE_EVENT reachability (double-GRACE→raw watermark), false-green VP-073 vector corrected, §1 EC cell 22→23 → pass41 0C/1M/2med NOT CLEAN (streak 0/3); burst40 SUBSTANTIVE — DETECT_LATE_EVENT watermark-validation guard (corrupt/future flood fix) + P12-003 field-18 map + false-green §6 threshold fix; SM 74→76 alloc → pass42 0C/1M/1min NOT CLEAN (streak 0/3); burst41 removed spurious absent→SUPPRESSED (DETECT_LATE_EVENT first-run coherence), no-bump → pass43 0C/0M/3med NOT CLEAN (streak 0/3); burst42 late-event once-per-run suppression + @test-name fix + version-trail cleanup (BC v1.36) |
+| F2: Spec Evolution | in-progress — pass44 CLEAN (streak 1/3), pass45 pending | 2026-07-20 | | 1/3 clean passes — trajectory-tail →3→2→5→1 | pass1–29 see burst-log → pass30–34 see burst-log → pass35 0C/0M/0med/1min CLEAN (streak 1/3); burst32 → pass36 0C/0M/1med NOT CLEAN (streak RESET 0/3); burst33 VP-ownership audit (21 FIN+4 PROP=25) → pass37 0C/0M/0med/2min CLEAN (streak 1/3); dtu v1.7 burst35 → pass38 0C/1M/1obs NOT CLEAN (streak RESET 0/3); burst37 VP-status-agreement sweep → pass39 0C/0M/1med NOT CLEAN (streak 0/3); burst38 SUBSTANTIVE — added DETECT_LATE_EVENT behavior (D-DEC-002) to BC-10.01.001 v1.33 + anchored VP-073/074, VP count 25→27 → pass40 0C/1M/1med NOT CLEAN (streak 0/3); burst39 SUBSTANTIVE LOGIC FIX — DETECT_LATE_EVENT reachability (double-GRACE→raw watermark), false-green VP-073 vector corrected, §1 EC cell 22→23 → pass41 0C/1M/2med NOT CLEAN (streak 0/3); burst40 SUBSTANTIVE — DETECT_LATE_EVENT watermark-validation guard (corrupt/future flood fix) + P12-003 field-18 map + false-green §6 threshold fix; SM 74→76 alloc → pass42 0C/1M/1min NOT CLEAN (streak 0/3); burst41 removed spurious absent→SUPPRESSED (DETECT_LATE_EVENT first-run coherence), no-bump → pass43 0C/0M/3med NOT CLEAN (streak 0/3); burst42 late-event once-per-run suppression + @test-name fix + version-trail cleanup (BC v1.36) → pass44 0C/0M/0med/1obs CLEAN (streak 1/3); late-event feature converged; substance re-derived clean |
 | F2 adversary pass-38 | DONE | 2026-09-03 | 2026-09-03 | NOT CLEAN 0C/1M/1obs — streak RESET 0/3 | P38-001 MAJOR VP-SKILL-075 partial-fix from burst-33 (footer-only; body L192 + VP table L789 stale in BC-10.01.001); substance re-derived CLEAN; REMEDIATED burst-37 |
 | F2 fix burst 37 | DONE | 2026-09-03 | 2026-09-03 | | VP-status-agreement sweep: BC-10.01.001 L192+L789, BC-3.03.001 L1350, BC-3.01.001 L436+L234, prd-delta §5 L160 — 6 sites/4 files NO-BUMP; BC-3.01.001 input-hash 96609a9 resolved; prd-delta input-hash 662402c (DRIFT resolved); Lesson 54 |
 | F2 adversary pass-39 | DONE | 2026-09-03 | 2026-09-03 | NOT CLEAN 0C/0M/1med/4obs — streak 0/3 | P39-001 MEDIUM SUBSTANTIVE VP-SKILL-073/074 orphaned; DETECT_LATE_EVENT behavior entirely missing from BC-10.01.001 (D-DEC-002 RESOLVED; 25+ pass §8.14.3 PO propagation oversight); architect IN-SCOPE; substance CLEAN (3rd consec 0C/0M); REMEDIATED burst-38 |
@@ -64,6 +64,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | F2 fix burst 41 | DONE | 2026-09-03 | 2026-09-03 | | TEXT-CORRECTION no-bump: BC-10.01.001 v1.35 (absent removed from DETECT_LATE_EVENT_SUPPRESSED trigger set; EC-024 EC-003 label "future-dated"; input-hash a9a1c5c unchanged — upstream source files unmodified). No count/VP/SM/pin changes. Lesson 57 codified (7th axis — propagation prose vs pseudocode). |
 | F2 adversary pass-43 | DONE | 2026-09-03 | 2026-09-03 | NOT CLEAN 0C/0M/3med/0min/2obs — streak 0/3; REGRESSION 2→5 | P43-001 MED VP-SKILL-073 @test names stale watermark−GRACE boundary; P43-002 MED DETECT_LATE_EVENT_SUPPRESSED per-event flood (P41-003 relabeled); P43-003 MED version-trail incoherence no-bump debt; 7th consec 0C/0M substance. REMEDIATED burst-42. |
 | F2 fix burst 42 | DONE | 2026-09-03 | 2026-09-03 | | SUBSTANTIVE: arch-delta v1.33→v1.34 (VALIDATE_WATERMARK_FOR_RUN once-per-run; input-hash d7bcab4); BC-10.01.001 v1.35→v1.36 (Inv#14 once-per-run + EC-024 cardinality + @test-name + version-trail; EC count 24; input-hash 742b491); prd-delta v1.38→v1.39 (§5 pin→v1.36; input-hash 1c4be4c); verif-delta v1.37→v1.38 (SM-82/83 REDEFINED; 15 BC pins v1.35→v1.36); BC-3.03.001 pin→v1.36 no-bump (input-hash 95fcec5). VP/SM 76/75 UNCHANGED. |
+| F2 adversary pass-44 | DONE | 2026-09-03 | 2026-09-03 | CLEAN 0C/0M/0med/0min/1obs — streak 1/3 | P44-001 OBS (non-blocking, DEFERRED F2 gate): EC-023 first-run clause attributes baseline check to per-event DETECT_LATE_EVENT (now a no-op post-burst-42) rather than VALIDATE_WATERMARK_FOR_RUN — cosmetic; no behavioral divergence. Substance INDEPENDENTLY RE-DERIVED CLEAN (late-event once-per-run branch, EC 24/56/80, VP 21F+6P=27, kill-switch, hard-floor, STEP-4b, D-029, marker TTL, NORMALIZE_SEVERITY all confirmed). 8th consec 0C/0M. FIRST CLEAN OF NEW STREAK (1/3). |
 | F3: Incremental Stories | not-started | | | | |
 | F4: Delta Implementation | not-started | | | | |
 | F5: Scoped Adversarial | not-started | | | | |
@@ -74,10 +75,10 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Metric | Value |
 |--------|-------|
-| Clean passes | 0/3 — streak at 0/3 since pass-36 reset |
-| Last adversary pass | pass-43 (0C/0M/3med/0min/2obs) NOT CLEAN — streak 0/3; REGRESSION 2→5; P43-001 MED VP-SKILL-073 @test names stale watermark−GRACE; P43-002 MED DETECT_LATE_EVENT_SUPPRESSED per-event flood (P41-003 relabeled); P43-003 MED version-trail no-bump debt; substance CLEAN (7th consec 0C/0M); REMEDIATED burst-42 (arch-delta v1.34 + BC-10.01.001 v1.36 once-per-run + prd-delta v1.39 + verif-delta v1.38) |
-| Next action | adversary pass-44 (spec content FROZEN post-burst-42; pass-44 banks 1/3 if clean) |
-| Trajectory tail | →4→3→2→5 (passes 40→41→42→43) — REGRESSION at pass-43; all 3 MEDs = DETECT_LATE_EVENT once-per-run hardening (bursts 38-42 complete) |
+| Clean passes | 1/3 — streak at 1/3 since pass-44 CLEAN (first clean of new streak) |
+| Last adversary pass | pass-44 (0C/0M/0med/0min/1obs) CLEAN — streak 1/3; P44-001 OBS non-blocking DEFERRED F2 gate (EC-023 first-run attribution cosmetic; no behavioral divergence); substance INDEPENDENTLY RE-DERIVED CLEAN (8th consec 0C/0M); spec FROZEN post-burst-42 for streak attempt |
+| Next action | adversary pass-45 (spec content FROZEN post-burst-42; pass-45 banks 2/3 if clean) |
+| Trajectory tail | →3→2→5→1 (passes 41→42→43→44) — CLEAN at pass-44; DETECT_LATE_EVENT feature fully converged (bursts 38-42 complete hardening chain) |
 
 ## Current Phase Steps
 
@@ -85,11 +86,11 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
+| F2: adversarial pass 44 | adversary | DONE | 0C/0M/0med/0min/1obs — CLEAN (streak 1/3). P44-001 OBS: EC-023 first-run clause attributes baseline check to per-event DETECT_LATE_EVENT (now no-op) rather than VALIDATE_WATERMARK_FOR_RUN — cosmetic; no behavioral divergence; DEFERRED F2 gate. Substance INDEPENDENTLY RE-DERIVED CLEAN. 8th consec 0C/0M. FIRST CLEAN OF NEW STREAK. Spec content FROZEN — no fix burst. |
 | F2: adversarial pass 43 | adversary | DONE | 0C/0M/3med/0min/2obs — NOT CLEAN (streak 0/3; REGRESSION 2→5). P43-001 MED: VP-SKILL-073 @test names stale watermark−GRACE boundary (false-green re-encode risk). P43-002 MED: DETECT_LATE_EVENT_SUPPRESSED per-event flood (P41-003 relabeled not eliminated). P43-003 MED: version-trail incoherence no-bump accumulation debt. 7th consec 0C/0M substance. REMEDIATED burst-42. |
 | F2: burst-42 (SUBSTANTIVE — once-per-run VALIDATE_WATERMARK_FOR_RUN + @test-name fix + BC v1.36 version-trail cleanup + cascade) | architect / product-owner / formal-verifier | DONE | arch-delta v1.33→v1.34 (VALIDATE_WATERMARK_FOR_RUN once-per-run gate; input-hash d7bcab4); BC-10.01.001 v1.35→v1.36 (Inv#14 once-per-run + EC-024 cardinality + @test-name fix + version-trail; EC count 24; input-hash 742b491); prd-delta v1.38→v1.39 (§5 pin→v1.36; input-hash 1c4be4c); verif-delta v1.37→v1.38 (SM-82/83 REDEFINED; @test-name fix; 15 BC pins v1.35→v1.36); BC-3.03.001 pin→v1.36 no-bump (input-hash 95fcec5). VP/SM 76/75 UNCHANGED. |
 | F2: adversarial pass 42 | adversary | DONE | 0C/1M/0med/1min/0obs — NOT CLEAN (streak 0/3). P42-001 MAJOR: BC-10.01.001 absent-watermark wrongly in DETECT_LATE_EVENT_SUPPRESSED set (contradicts EC-023 first-run early-return; arch-delta/prd-delta/verif-delta all correct). P42-002 MINOR: EC-024 label "first-run"→"future-dated". 6th consec 0C/0M substance. REMEDIATED burst-41. |
 | F2: burst-41 (TEXT-CORRECTION no-bump — BC-10.01.001 absent-watermark coherence) | product-owner / state-manager | DONE | BC-10.01.001 v1.35 no-bump: absent removed from DETECT_LATE_EVENT_SUPPRESSED trigger set at Inv#14 + EC-024; EC-024 EC-003 label corrected "first-run"→"future-dated". Input-hash a9a1c5c unchanged. No count/VP/SM/pin changes. Lesson 57 codified (7th axis). |
-| F2: adversarial pass 41 | adversary | DONE | 0C/1M/2med/0min/0obs — NOT CLEAN (streak 0/3). P41-001 MAJOR: verif-delta §6 L1949+L1952 partial-fix propagation miss (still watermark−GRACE). P41-002 MEDIUM: prd-delta field-18 SEVERITY_ENUM→scored_priority map missing. P41-003 MEDIUM: DETECT_LATE_EVENT missing READ_WATERMARK validation guard → EC-002/EC-003 flood. 5th consec 0C/0M substance. REMEDIATED burst-40. |
 
 ## Decisions Log
 
@@ -176,9 +177,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-09-03 |
-| **Position** | Pass-43 NOT CLEAN (burst-42: SUBSTANTIVE — once-per-run VALIDATE_WATERMARK_FOR_RUN gate; @test-name correction VP-SKILL-073; BC v1.36 version-trail consolidation). P43-001 MED VP-SKILL-073 @test names stale; P43-002 MED DETECT_LATE_EVENT_SUPPRESSED per-event flood (P41-003 relabeled); P43-003 MED version-trail no-bump debt. All REMEDIATED burst-42. Streak 0/3. REGRESSION trajectory 2→5 (all 3 MEDs = DETECT_LATE_EVENT once-per-run hardening now complete: bursts 38-42 form full shake-out chain). NEXT: adversary pass-44 (fresh context; spec content FROZEN post-burst-42; pass-44 banks 1/3 if clean). trajectory-tail →4→3→2→5 |
-| **Context** | Artifact versions: arch-delta v1.34 (VALIDATE_WATERMARK_FOR_RUN once-per-run; input-hash d7bcab4), verif-delta v1.38 (VP-SKILL-073 cardinality + @test-name fix; SM-82/83 REDEFINED once-per-run; 15 BC pins v1.35→v1.36), prd-delta v1.39 (§5 pin→v1.36; input-hash 1c4be4c), dtu-assessment v1.7, BC-10.01.001 v1.36 (once-per-run Inv#14 + EC-024 cardinality + @test-name + version-trail; EC count 24; input-hash 742b491), BC-3.03.001 v1.42 (cross-ref pin→v1.36; input-hash 95fcec5), BC-3.01.001 v1.25 (input-hash 96609a9), BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs: 21 FINALIZED P0 + 6 PROPOSED P1 = 27 total (41 in registry); SM 76 alloc, 75 live (SM-82/SM-83 PROPOSED P1 REDEFINED once-per-run). P0 convergence-gate count UNCHANGED at 21. BATS: 113. NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. Health check 2026-09-01: engine=unpinned/floats-to-rc.24; enable key broken (MIG-001); rc.24 uplift DEFERRED F3. DI-018: verif-delta ~840KB FUEL_EXHAUSTED; DEFERRED F3. |
-| **Convergence counter** | 0/3 clean passes (streak at 0/3 since pass-36) |
+| **Position** | Pass-44 CLEAN (0C/0M/0med/0min/1obs; streak 1/3). P44-001 OBS: EC-023 first-run clause attributes baseline check to per-event DETECT_LATE_EVENT (now no-op post-burst-42) rather than VALIDATE_WATERMARK_FOR_RUN — cosmetic; DEFERRED F2 gate. Spec content FROZEN post-burst-42 for 3/3 streak attempt. NEXT: adversary pass-45 (fresh context; banks 2/3 if clean). trajectory-tail →3→2→5→1 |
+| **Context** | Artifact versions (FROZEN post-burst-42): arch-delta v1.34 (VALIDATE_WATERMARK_FOR_RUN once-per-run; input-hash d7bcab4), verif-delta v1.38 (VP-SKILL-073 cardinality + @test-name fix; SM-82/83 REDEFINED once-per-run; 15 BC pins v1.35→v1.36), prd-delta v1.39 (§5 pin→v1.36; input-hash 1c4be4c), dtu-assessment v1.7, BC-10.01.001 v1.36 (once-per-run Inv#14 + EC-024 cardinality + @test-name + version-trail; EC count 24; input-hash 742b491), BC-3.03.001 v1.42 (cross-ref pin→v1.36; input-hash 95fcec5), BC-3.01.001 v1.25 (input-hash 96609a9), BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs: 21 FINALIZED P0 + 6 PROPOSED P1 = 27 total (41 in registry); SM 76 alloc, 75 live (SM-82/SM-83 PROPOSED P1 REDEFINED once-per-run). P0 convergence-gate count UNCHANGED at 21. BATS: 113. NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. Health check 2026-09-01: engine=unpinned/floats-to-rc.24; enable key broken (MIG-001); rc.24 uplift DEFERRED F3. DI-018: verif-delta ~840KB FUEL_EXHAUSTED; DEFERRED F3. P44-001 OBS + accumulated cosmetic/OBS items fixed at F2 gate after streak completes. |
+| **Convergence counter** | 1/3 clean passes (streak at 1/3 since pass-44; first clean of new streak) |
 
 ## Concurrent Cycles
 

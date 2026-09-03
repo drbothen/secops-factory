@@ -2022,3 +2022,28 @@ VP **21 FIN + 6 PROP = 27** (41 in registry) / SM **76 alloc / 75 live** (SM-82/
 BATS: 113 (unchanged — VP-SKILL-073 PROPOSED P1; §5 FINALIZED BATS unchanged).
 Convergence-gate (P0 FINALIZED) count UNCHANGED at 21.
 
+
+---
+
+## Pass-44 Adversary Run — 2026-09-03 (CLEAN — Streak 1/3)
+
+**Type:** Adversarial review pass (no fix burst — spec content FROZEN post-burst-42)
+**Agent:** adversary (fresh context)
+**Verdict:** CLEAN — 0C/0M/0med/0min/1obs
+**Clean streak:** 1/3 (first clean of new streak since pass-38 reset)
+**Novelty:** LOW
+
+Pass-44 ran against the frozen burst-42 spec content (arch-delta v1.34, BC-10.01.001 v1.36, prd-delta v1.39, verif-delta v1.38, BC-3.03.001 v1.42). No spec files were modified this burst — bookkeeping only.
+
+P44-001 (OBS, non-blocking): EC-023 first-run clause attributes the baseline check to per-event DETECT_LATE_EVENT (now a no-op post-burst-42) rather than VALIDATE_WATERMARK_FOR_RUN — cosmetic; no behavioral divergence. DEFERRED to F2 gate cleanup.
+
+All substantive axes independently re-derived clean. DETECT_LATE_EVENT feature fully converged (bursts 38-42 complete hardening chain). 8th consecutive 0C/0M substance pass.
+
+**Files touched this burst:** `.factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass44.md` (new), `.factory/STATE.md` (bookkeeping), cycle files (burst-log, convergence-trajectory, session-checkpoints).
+**Spec files changed:** NONE — content frozen for streak attempt.
+
+### Displaced from STATE Current Phase Steps (oldest row archived here)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: adversarial pass 41 | adversary | DONE | 0C/1M/2med/0min/0obs — NOT CLEAN (streak 0/3). P41-001 MAJOR: verif-delta §6 L1949+L1952 partial-fix propagation miss (still watermark−GRACE). P41-002 MEDIUM: prd-delta field-18 SEVERITY_ENUM→scored_priority map missing. P41-003 MEDIUM: DETECT_LATE_EVENT missing READ_WATERMARK validation guard → EC-002/EC-003 flood. 5th consec 0C/0M substance. REMEDIATED burst-40. |

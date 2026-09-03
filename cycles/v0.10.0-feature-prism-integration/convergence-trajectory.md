@@ -416,3 +416,15 @@ Independent re-derivation: all substantive + coherence axes confirmed clean (STE
 
 Versions after burst-42 (remediation): **arch-delta v1.34** (VALIDATE_WATERMARK_FOR_RUN once-per-run gate; input-hash d7bcab4), **BC-10.01.001 v1.36** (once-per-run Inv#14 + EC-024 cardinality + @test-name fix; EC count 24; input-hash 742b491), **prd-delta v1.39** (§5 pin→v1.36; input-hash 1c4be4c), **verif-delta v1.38** (VP-SKILL-073 cardinality + @test-name fix; SM-82/SM-83 once-per-run; 15 BC pins v1.35→v1.36), **BC-3.03.001 v1.42** (cross-ref pin→v1.36; input-hash 95fcec5). VP **21 FIN + 6 PROP = 27** (41 in registry); SM **76 alloc / 75 live** (SM-82/SM-83 PROPOSED P1 REDEFINED once-per-run). BATS: 113 (unchanged).
 
+
+### Pass 44 (2026-09-03) — **CLEAN** (streak 1/3) — FIRST CLEAN OF NEW STREAK
+
+**Findings:** 1 (0C / 0M / 0med / 0min / 1obs)
+**Novelty:** LOW — P44-001 is cosmetic prose cleanup (EC-023 attribution stale post-burst-42 restructuring); no behavioral divergence; deferred to F2 gate
+**Convergence counter:** 1/3 (streak advances — first clean pass of the new streak since the pass-38 reset; 0 blocking findings; P44-001 OBS explicitly non-blocking; spec content FROZEN post-burst-42 for the streak attempt; passes 45-46 will bank 2/3 and 3/3)
+
+P44-001 (OBS — non-blocking, DEFERRED F2 gate): EC-023 first-run clause attributes the baseline check to the per-event DETECT_LATE_EVENT (now a no-op) rather than VALIDATE_WATERMARK_FOR_RUN — cosmetic wording only; no behavioral divergence. Do NOT fix during streak.
+
+Independent re-derivation: all substantive axes confirmed clean (VALIDATE_WATERMARK_FOR_RUN once-per-run gate; per-event DETECT_LATE_EVENT no-op; exactly-one-suppressed-per-run; first-run/valid/invalid/future coherence; EC 24/56/80; VP 21F+6P=27; SM 76/75; kill-switch, hard-floor, STEP-4b, D-029, marker TTL, NORMALIZE_SEVERITY, SEVERITY_TO_SCORED_PRIORITY_MAP). 8th consecutive 0C/0M substance pass. DETECT_LATE_EVENT feature fully converged.
+
+Spec versions (FROZEN post-burst-42 — no changes this pass): **arch-delta v1.34** (VALIDATE_WATERMARK_FOR_RUN once-per-run gate; input-hash d7bcab4), **BC-10.01.001 v1.36** (once-per-run Inv#14 + EC-024 cardinality; EC count 24; input-hash 742b491), **prd-delta v1.39** (§5 pin→v1.36; input-hash 1c4be4c), **verif-delta v1.38** (VP-SKILL-073 cardinality + @test-name fix; SM-82/SM-83 once-per-run; 15 BC pins v1.35→v1.36), **BC-3.03.001 v1.42** (cross-ref pin→v1.36; input-hash 95fcec5). VP **21 FIN + 6 PROP = 27** (41 in registry); SM **76 alloc / 75 live**. BATS: 113.

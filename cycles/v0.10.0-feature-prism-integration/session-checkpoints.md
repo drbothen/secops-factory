@@ -18,6 +18,17 @@ Superseded checkpoints rotated out of STATE.md.
 
 ## Session Resume Checkpoint — current active checkpoint is in STATE.md
 
+---
+
+## Checkpoint archived 2026-09-03 (superseded by pass-46 F2-convergence-complete checkpoint)
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-09-03 |
+| **Position** | Pass-44 CLEAN (0C/0M/0med/0min/1obs; streak 1/3). P44-001 OBS: EC-023 first-run clause attributes baseline check to per-event DETECT_LATE_EVENT (now no-op post-burst-42) rather than VALIDATE_WATERMARK_FOR_RUN — cosmetic; DEFERRED F2 gate. Spec content FROZEN post-burst-42 for 3/3 streak attempt. NEXT: adversary pass-45 (fresh context; banks 2/3 if clean). trajectory-tail →3→2→5→1 |
+| **Context** | Artifact versions (FROZEN post-burst-42): arch-delta v1.34 (VALIDATE_WATERMARK_FOR_RUN once-per-run; input-hash d7bcab4), verif-delta v1.38 (VP-SKILL-073 cardinality + @test-name fix; SM-82/83 REDEFINED once-per-run; 15 BC pins v1.35→v1.36), prd-delta v1.39 (§5 pin→v1.36; input-hash 1c4be4c), dtu-assessment v1.7, BC-10.01.001 v1.36 (once-per-run Inv#14 + EC-024 cardinality + @test-name + version-trail; EC count 24; input-hash 742b491), BC-3.03.001 v1.42 (cross-ref pin→v1.36; input-hash 95fcec5), BC-3.01.001 v1.25 (input-hash 96609a9), BC-4.02.001 v1.21, BC-5.01.001 v1.15, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VPs: 21 FINALIZED P0 + 6 PROPOSED P1 = 27 total (41 in registry); SM 76 alloc, 75 live (SM-82/SM-83 PROPOSED P1). P0 convergence-gate count UNCHANGED at 21. BATS: 113. NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run. Health check 2026-09-01: engine=unpinned/floats-to-rc.24; enable key broken (MIG-001); rc.24 uplift DEFERRED F3. DI-018: verif-delta ~840KB FUEL_EXHAUSTED; DEFERRED F3. P44-001 OBS + accumulated cosmetic/OBS items fixed at F2 gate after streak completes. |
+| **Convergence counter** | 1/3 clean passes (streak at 1/3 since pass-44; first clean of new streak) |
+
 <!-- This section satisfies the template required-section anchor. Active checkpoint is in STATE.md. -->
 
 See STATE.md Session Resume Checkpoint for the current (live) checkpoint. This file contains

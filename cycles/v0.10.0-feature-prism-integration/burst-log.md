@@ -2047,3 +2047,56 @@ All substantive axes independently re-derived clean. DETECT_LATE_EVENT feature f
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
 | F2: adversarial pass 41 | adversary | DONE | 0C/1M/2med/0min/0obs — NOT CLEAN (streak 0/3). P41-001 MAJOR: verif-delta §6 L1949+L1952 partial-fix propagation miss (still watermark−GRACE). P41-002 MEDIUM: prd-delta field-18 SEVERITY_ENUM→scored_priority map missing. P41-003 MEDIUM: DETECT_LATE_EVENT missing READ_WATERMARK validation guard → EC-002/EC-003 flood. 5th consec 0C/0M substance. REMEDIATED burst-40. |
+| F2: burst-41 (TEXT-CORRECTION no-bump — BC-10.01.001 absent-watermark coherence) | product-owner / state-manager | DONE | BC-10.01.001 v1.35 no-bump: absent removed from DETECT_LATE_EVENT_SUPPRESSED trigger set at Inv#14 + EC-024; EC-024 EC-003 label corrected "first-run"→"future-dated". Input-hash a9a1c5c unchanged. No count/VP/SM/pin changes. Lesson 57 codified (7th axis). |
+| F2: adversarial pass 42 | adversary | DONE | 0C/1M/0med/1min/0obs — NOT CLEAN (streak 0/3). P42-001 MAJOR: BC-10.01.001 absent-watermark wrongly in DETECT_LATE_EVENT_SUPPRESSED set (contradicts EC-023 first-run early-return; arch-delta/prd-delta/verif-delta all correct). P42-002 MINOR: EC-024 label "first-run"→"future-dated". 6th consec 0C/0M substance. REMEDIATED burst-41. |
+
+
+---
+
+## Pass-45 Adversary Run — 2026-09-03 (CLEAN — Streak 2/3)
+
+**Type:** Adversarial review pass (no fix burst — spec content FROZEN post-burst-42)
+**Agent:** adversary (fresh context)
+**Verdict:** CLEAN — 0C/0M/0med/0min/2obs
+**Clean streak:** 2/3 (second consecutive clean pass)
+**Novelty:** LOW
+
+Pass-45 ran against frozen burst-42 spec content. No spec files modified — bookkeeping only.
+
+P45-001 (OBS, non-blocking): BC-10.01.001 L604 "since watermark" shorthand vs normative L625 `watermark + GRACE_PERIOD_SECONDS` formula — cosmetic wording; no behavioral divergence. DEFERRED to F2 gate cleanup.
+
+P45-002 (OBS, accepted): arch-delta lexicographic future-date idiom — ADV-F2-010 accepted pattern; no action required.
+
+All substantive axes independently re-derived clean. 9th consecutive 0C/0M substance pass.
+
+**Files touched this burst:** `.factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass45.md` (new), `.factory/STATE.md` (bookkeeping), cycle files (burst-log, convergence-trajectory).
+**Spec files changed:** NONE — content frozen for streak attempt.
+
+### Displaced from STATE Current Phase Steps (oldest rows archived here — 2 rows, displaced by pass-45 + pass-46)
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| F2: burst-41 (TEXT-CORRECTION no-bump — BC-10.01.001 absent-watermark coherence) | product-owner / state-manager | DONE | BC-10.01.001 v1.35 no-bump: absent removed from DETECT_LATE_EVENT_SUPPRESSED trigger set at Inv#14 + EC-024; EC-024 EC-003 label corrected "first-run"→"future-dated". Input-hash a9a1c5c unchanged. No count/VP/SM/pin changes. Lesson 57 codified (7th axis). |
+| F2: adversarial pass 42 | adversary | DONE | 0C/1M/0med/1min/0obs — NOT CLEAN (streak 0/3). P42-001 MAJOR: BC-10.01.001 absent-watermark wrongly in DETECT_LATE_EVENT_SUPPRESSED set (contradicts EC-023 first-run early-return; arch-delta/prd-delta/verif-delta all correct). P42-002 MINOR: EC-024 label "first-run"→"future-dated". 6th consec 0C/0M substance. REMEDIATED burst-41. |
+
+
+---
+
+## Pass-46 Adversary Run — 2026-09-03 (CLEAN — Streak 3/3 — F2 ADVERSARIAL SPEC CONVERGENCE COMPLETE)
+
+**Type:** Adversarial review pass (no fix burst — spec content FROZEN post-burst-42)
+**Agent:** adversary (fresh context)
+**Verdict:** CLEAN — 0C/0M/0med/0min/1obs
+**Clean streak:** 3/3 — **F2 ADVERSARIAL SPEC CONVERGENCE COMPLETE**
+**Novelty:** LOW
+
+Pass-46 ran against frozen burst-42 spec content. Full independent re-derivation of all behavioral axes clean. Three consecutive clean passes (44/45/46) confirm F2 adversarial spec convergence.
+
+P46-001 (OBS, accepted): verification-delta v1.9 occupancy-ledger entry — append-only audit record, not a stale current claim. ACCEPTED — no action required.
+
+All substantive axes independently re-derived clean across comprehensive fresh-context re-walk. 10th consecutive 0C/0M substance pass. CONVERGENCE CONFIRMED.
+
+Final artifact versions at F2 spec convergence: arch-delta v1.34, BC-10.01.001 v1.36, BC-3.03.001 v1.42, BC-3.01.001 v1.25, BC-4.02.001 v1.21, BC-5.01.001 v1.15, prd-delta v1.39, verif-delta v1.38, dtu-assessment v1.7. VP 41 (21 FIN P0 + 6 PROP P1 = 27 total); SM 76 alloc / 75 live; EC 24/56/80. BATS: 113.
+
+**Files touched this burst:** `.factory/phase-f2-spec-evolution/adversarial-spec-delta-review-pass46.md` (new), `.factory/STATE.md` (bookkeeping + convergence complete marker), cycle files (burst-log, convergence-trajectory, session-checkpoints).
+**Spec files changed:** NONE — content frozen; convergence confirmed.

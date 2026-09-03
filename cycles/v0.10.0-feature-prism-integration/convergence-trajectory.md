@@ -68,6 +68,9 @@ are in phase-f2-spec-evolution/.
 | 41 | 2026-09-03 | 0 | 1 | 2 | 0 | 0 | 3 | MEDIUM | 0/3 | NOT CLEAN (streak 0/3; P41-001 MAJOR verif-delta §6 partial-fix propagation miss (L1949+L1952 still watermark−GRACE); P41-002 MEDIUM prd-delta field-18 SEVERITY_ENUM→scored_priority map missing; P41-003 MEDIUM DETECT_LATE_EVENT missing READ_WATERMARK validation guard → corrupt/future watermark flood; REMEDIATED burst-40 arch-delta v1.33 + BC-10.01.001 v1.35 + prd-delta v1.38 + verif-delta v1.37; SM 74→76 alloc) |
 | 42 | 2026-09-03 | 0 | 1 | 0 | 1 | 0 | 2 | LOW | 0/3 | NOT CLEAN (streak 0/3; P42-001 MAJOR BC-10.01.001 absent-watermark wrongly in DETECT_LATE_EVENT_SUPPRESSED set — contradicts EC-023 first-run early-return; P42-002 MINOR EC-024 EC-003 label "first-run"→"future-dated"; 6th consec 0C/0M substance; REMEDIATED burst-41 no-bump v1.35) |
 | 43 | 2026-09-03 | 0 | 0 | 3 | 0 | 2 | 5 | LOW | 0/3 | NOT CLEAN — REGRESSION (2→5; streak 0/3; P43-001 MEDIUM VP-SKILL-073 @test names stale watermark−GRACE boundary; P43-002 MEDIUM DETECT_LATE_EVENT_SUPPRESSED per-event flood (P41-003 relabeled); P43-003 MEDIUM version-trail incoherence no-bump accumulation debt; all 3 MEDs are DETECT_LATE_EVENT once-per-run hardening; REMEDIATED burst-42 arch-delta v1.34 + BC-10.01.001 v1.36 + prd-delta v1.39 + verif-delta v1.38) |
+| 44 | 2026-09-03 | 0 | 0 | 0 | 0 | 1 | 1 | LOW | 1/3 | **CLEAN** (streak 1/3; P44-001 OBS cosmetic EC-023 attribution DEFERRED F2 gate; substance INDEPENDENTLY RE-DERIVED CLEAN; 8th consec 0C/0M; DETECT_LATE_EVENT feature fully converged; spec FROZEN post-burst-42) |
+| 45 | 2026-09-03 | 0 | 0 | 0 | 0 | 2 | 2 | LOW | 2/3 | **CLEAN** (streak 2/3; P45-001 OBS BC-10.01.001 L604 shorthand DEFERRED F2 gate; P45-002 OBS arch-delta lexicographic idiom ACCEPTED ADV-F2-010; substance INDEPENDENTLY RE-DERIVED CLEAN; 9th consec 0C/0M) |
+| 46 | 2026-09-03 | 0 | 0 | 0 | 0 | 1 | 1 | LOW | 3/3 | **CLEAN — F2 ADVERSARIAL SPEC CONVERGENCE COMPLETE** (streak 3/3; P46-001 OBS historical occupancy-ledger ACCEPTED; substance INDEPENDENTLY RE-DERIVED CLEAN; 10th consec 0C/0M; 3 consecutive clean passes 44/45/46 confirm convergence) |
 
 **Note on historical data:** Finding counts for passes 1–28 reconstructed from
 STATE.md Phase Progress finding-progression and burst-log.md entries. Per-pass
@@ -79,14 +82,14 @@ are authoritative). Passes 6, 10, 20–26 include observations in the total; pas
 
 ## Trajectory Shorthand
 
-`10→4→5→6→3→10→5→3→2→11→4→4→3→5→3→3→3→3→2→9→8→7→9→5→6→7→4→2→3→4→5→3→5→3→1→1→2→2→5→4→3→2→5`
+`10→4→5→6→3→10→5→3→2→11→4→4→3→5→3→3→3→3→2→9→8→7→9→5→6→7→4→2→3→4→5→3→5→3→1→1→2→2→5→4→3→2→5→1→2→1`
 
-*(tail: →5→4→3→2→5, passes 39→40→41→42→43) — REGRESSION at pass-43 (2→5); all 3 MEDs are DETECT_LATE_EVENT once-per-run hardening; REMEDIATED burst-42*
+*(tail: →3→2→5→1→2→1, passes 41→42→43→44→45→46) — F2 ADVERSARIAL SPEC CONVERGENCE COMPLETE at pass-46 (streak 3/3: passes 44/45/46 all CLEAN)*
 
-**Clean pass goal:** 3 consecutive passes with 0C/0M/0med/0min (OBS allowed).
-**Current clean streak:** 0/3 — pass-43 has 3med + 2obs (NOT clean; streak at 0/3 since pass-36).
-**Substance confirmed clean:** 7 consecutive passes (37–43 substance all re-derived clean).
-**Dimension now clean (post-burst-42):** version pins, EC/invariant counts, VP attribution, VP lifecycle status, architecture→BC behavior-propagation (all 5 codified per Lessons 51–55); DETECT_LATE_EVENT once-per-run cardinality now hardened across bursts 38-42.
+**Clean pass goal:** 3 consecutive passes with 0C/0M/0med/0min (OBS allowed). **ACHIEVED.**
+**Current clean streak:** 3/3 — **F2 ADVERSARIAL SPEC CONVERGENCE COMPLETE** (passes 44/45/46 CLEAN; all OBS non-blocking or accepted).
+**Substance confirmed clean:** 10 consecutive passes (37–46 substance all re-derived clean).
+**Dimension now clean (post-burst-42):** version pins, EC/invariant counts, VP attribution, VP lifecycle status, architecture→BC behavior-propagation (all 5 codified per Lessons 51–55); DETECT_LATE_EVENT once-per-run cardinality hardened across bursts 38-42 and confirmed stable across 3 clean passes.
 
 ---
 
@@ -428,3 +431,33 @@ P44-001 (OBS — non-blocking, DEFERRED F2 gate): EC-023 first-run clause attrib
 Independent re-derivation: all substantive axes confirmed clean (VALIDATE_WATERMARK_FOR_RUN once-per-run gate; per-event DETECT_LATE_EVENT no-op; exactly-one-suppressed-per-run; first-run/valid/invalid/future coherence; EC 24/56/80; VP 21F+6P=27; SM 76/75; kill-switch, hard-floor, STEP-4b, D-029, marker TTL, NORMALIZE_SEVERITY, SEVERITY_TO_SCORED_PRIORITY_MAP). 8th consecutive 0C/0M substance pass. DETECT_LATE_EVENT feature fully converged.
 
 Spec versions (FROZEN post-burst-42 — no changes this pass): **arch-delta v1.34** (VALIDATE_WATERMARK_FOR_RUN once-per-run gate; input-hash d7bcab4), **BC-10.01.001 v1.36** (once-per-run Inv#14 + EC-024 cardinality; EC count 24; input-hash 742b491), **prd-delta v1.39** (§5 pin→v1.36; input-hash 1c4be4c), **verif-delta v1.38** (VP-SKILL-073 cardinality + @test-name fix; SM-82/SM-83 once-per-run; 15 BC pins v1.35→v1.36), **BC-3.03.001 v1.42** (cross-ref pin→v1.36; input-hash 95fcec5). VP **21 FIN + 6 PROP = 27** (41 in registry); SM **76 alloc / 75 live**. BATS: 113.
+
+
+### Pass 45 (2026-09-03) — **CLEAN** (streak 2/3)
+
+**Findings:** 2 (0C / 0M / 0med / 0min / 2obs)
+**Novelty:** LOW — P45-001 is cosmetic prose (BC-10.01.001 L604 shorthand vs normative L625 formula); P45-002 is an accepted ADV-F2-010 pattern; no behavioral divergence for either
+**Convergence counter:** 2/3 (streak advances — second consecutive clean pass; 0 blocking findings; both OBS explicitly non-blocking)
+
+P45-001 (OBS — non-blocking, DEFERRED F2 gate): BC-10.01.001 approximately L604 uses "since watermark" shorthand for the grace-floor threshold rather than the normative `watermark + GRACE_PERIOD_SECONDS` expression at L625. Non-normative inline comment; no behavioral divergence. DEFERRED to F2 gate cleanup alongside P44-001.
+
+P45-002 (OBS — accepted, ADV-F2-010): arch-delta pseudocode uses lexicographic date string comparison idiom for future-date detection. Previously reviewed and accepted as ADV-F2-010 pattern. Consistent throughout document. No action required.
+
+Independent re-derivation: all substantive axes confirmed clean (VALIDATE_WATERMARK_FOR_RUN once-per-run gate; per-event DETECT_LATE_EVENT no-op; exactly-one-suppressed-per-run; all four watermark scenarios; EC 24/56/80; VP 21F+6P=27; SM 76/75; kill-switch STEP-4b; hard-floor; D-029; marker TTL; NORMALIZE_SEVERITY; SEVERITY_TO_SCORED_PRIORITY_MAP; ADV-F2-010 lexicographic idiom). 9th consecutive 0C/0M substance pass.
+
+Spec versions (FROZEN post-burst-42 — no changes this pass): **arch-delta v1.34**, **BC-10.01.001 v1.36** (EC 24), **prd-delta v1.39**, **verif-delta v1.38** (SM 76/75), **BC-3.03.001 v1.42**. VP **21 FIN + 6 PROP = 27** (41 in registry). BATS: 113 (unchanged).
+
+
+### Pass 46 (2026-09-03) — **CLEAN** (streak 3/3) — **F2 ADVERSARIAL SPEC CONVERGENCE COMPLETE**
+
+**Findings:** 1 (0C / 0M / 0med / 0min / 1obs)
+**Novelty:** LOW — P46-001 is an accepted append-only historical occupancy-ledger entry in verification-delta; not a stale current claim; no behavioral impact
+**Convergence counter:** 3/3 — **F2 ADVERSARIAL SPEC CONVERGENCE COMPLETE** (three consecutive independent fresh-context passes 44/45/46 all CLEAN against frozen burst-42 spec content)
+
+P46-001 (OBS — accepted): verification-delta contains a v1.9 occupancy-ledger entry. This is an append-only audit record documenting the v1.9 version boundary state. Current normative specification is correctly expressed in verif-delta v1.38 live sections. Append-only ledger is by design; removing historical entries would degrade audit traceability. ACCEPTED — no action required.
+
+Independent re-derivation: comprehensive fresh-context re-walk of all primary behavioral axes confirmed clean. VALIDATE_WATERMARK_FOR_RUN once-per-run gate; per-event DETECT_LATE_EVENT no-op; first-run/valid/invalid/future-dated watermark coherence; kill-switch STEP-4b (D-025 hoisted); hard-floor unconditional; D-029 markdown routing; two-field severity model (D-011/D-012/D-013); marker anti-fungibility; link TWO-TIER (D-027); compound actions (D-022); §3.4 correlation rules 1–4; EC 24/56/80; VP 21F+6P=27; SM 76/75; NORMALIZE_SEVERITY; historical occupancy-ledger confirmed append-only (P46-001). 10th consecutive 0C/0M substance pass.
+
+**CONVERGENCE CONFIRMED.** Three consecutive independent fresh-context passes (44, 45, 46) found zero Critical, zero Major, zero Medium, zero Minor findings. All OBS findings are cosmetic/deferred (P44-001, P45-001) or accepted (P45-002, P46-001). F2 Adversarial Spec Convergence is complete. Spec is ready for F2 convergence gate.
+
+Spec versions (FROZEN post-burst-42 — no changes this pass): **arch-delta v1.34**, **BC-10.01.001 v1.36** (EC 24), **prd-delta v1.39**, **verif-delta v1.38** (SM 76/75), **BC-3.03.001 v1.42**. VP **21 FIN + 6 PROP = 27** (41 in registry). BATS: 113 (unchanged). Final artifact versions at F2 spec convergence: arch-delta v1.34, BC-10.01.001 v1.36, BC-3.03.001 v1.42, BC-3.01.001 v1.25, BC-4.02.001 v1.21, BC-5.01.001 v1.15, prd-delta v1.39, verif-delta v1.38, dtu-assessment v1.7. VP 41 (21 FIN P0 + 6 PROP P1 = 27 total); SM 76 alloc / 75 live; EC 24/56/80.

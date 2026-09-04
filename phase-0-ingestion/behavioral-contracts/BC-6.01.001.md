@@ -7,7 +7,7 @@ producer: product-owner
 timestamp: 2026-07-20T00:00:00
 phase: f2
 inputs: [phase-0-ingestion/project-discovery.md, phase-0-ingestion/recovered-architecture.md, plugins/secops-factory/skills/activate/SKILL.md, plugins/secops-factory/tests/skills.bats, phase-f2-spec-evolution/architecture-delta.md]
-input-hash: "COMPUTE-AT-COMMIT"
+input-hash: "62f3e15"
 traces_to: phase-0-ingestion/recovered-architecture.md
 origin: recovered
 extracted_from: plugins/secops-factory/skills/activate/SKILL.md

@@ -5,15 +5,15 @@ version: "2.39"
 status: active
 producer: state-manager
 timestamp: 2026-09-04T00:00:00Z
-phase: F2-COMPLETE
+phase: F3-IN-PROGRESS
 pipeline: FEATURE-CYCLE
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "F2 adversarial spec convergence COMPLETE (3/3 clean, passes 44/45/46; 46 total). F2 gate APPROVED by human 2026-09-04. NEXT: execute (scoping-shrunken) MIG-001 boundary hygiene — then F3 story decomposition (Wave 7 monitoring-loop). trajectory-tail →5→1→2→1 D-chain cite D-447 latest feature-cycle"
-awaiting: "F2→F3 boundary: MIG-001 execution then F3 story decomposition"
+current_step: "MIG-001 Part A DONE; 6 COMPUTE-AT-COMMIT input-hashes resolved; F3 story decomposition (Wave 7 monitoring-loop) STARTING. trajectory-tail →5→1→2→1 D-chain cite D-447 latest feature-cycle"
+awaiting: "F3 story decomposition of 5 new + 6 modified BCs (Wave 7 monitoring-loop)."
 current_cycle: v0.10.0-feature-prism-integration
 dtu_required: true
 dtu_assessment: "2026-07-20"
@@ -42,9 +42,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | **Target Workspace** | /Users/jmagady/Dev/secops-factory |
 | **Engine** | /Users/jmagady/Dev/dark-factory (vsdd-factory plugin) |
 | **Started** | 2026-07-19 |
-| **Last Updated** | 2026-09-04 — F2 gate APPROVED by human; OBS-GC-001/002 FIXED (BC-10.01.001 updated); STORY-DEMO-SEED-001 stub created; session wrap committed (MIG-001 ACCEPT B+C, DI-018 ACCEPT-DEFER); trajectory-tail →5→1→2→1 |
-| **Current Phase** | F2: Spec Evolution — COMPLETE; F3: Incremental Stories (next) |
-| **Current Step** | F2 gate APPROVED by human 2026-09-04. NEXT: (scoping-shrunken) MIG-001 Part A (fix enable key) → F3 story decomposition (Wave 7 monitoring-loop) |
+| **Last Updated** | 2026-09-04 — MIG-001 Part A DONE (.claude/settings.json enabledPlugins fixed vsdd-factory@claude-mp); 6 COMPUTE-AT-COMMIT input-hashes resolved (BC-4.05.001/BC-6.01.001/BC-6.01.003/BC-6.01.004/BC-8.02.001/BC-9.01.001); F3 story decomposition STARTING; trajectory-tail →5→1→2→1 |
+| **Current Phase** | F3: Incremental Stories — IN PROGRESS (started 2026-09-04) |
+| **Current Step** | MIG-001 Part A DONE. 6 COMPUTE-AT-COMMIT input-hashes resolved. F3 story decomposition (Wave 7 monitoring-loop) STARTING. |
 
 ## Phase Progress
 
@@ -56,7 +56,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | F2: Spec Evolution | GATE APPROVED (human 2026-09-04) — F2 COMPLETE | 2026-07-20 | 2026-09-04 | APPROVED (human 2026-09-04) | pass1–29 see burst-log → pass30–43 see convergence-trajectory → pass44 CLEAN (1/3) → pass45 CLEAN (2/3) → pass46 CLEAN (3/3) → F2 SPEC CONVERGED → GATE APPROVED |
 | F2: adversary pass 44 | DONE | 2026-09-03 | 2026-09-03 | CLEAN 0C/0M/0med/0min/1obs — streak 1/3 | P44-001 OBS EC-023 attribution cosmetic DEFERRED; substance INDEPENDENTLY RE-DERIVED CLEAN; spec FROZEN post-burst-42 |
 | F2: fix burst 42 | DONE | 2026-09-03 | 2026-09-03 | | SUBSTANTIVE: arch-delta v1.34 (once-per-run gate); BC-10.01.001 v1.36 (EC 24; @test-name; version-trail); prd-delta v1.39; verif-delta v1.38 (SM-82/83 REDEFINED once-per-run); BC-3.03.001 no-bump; VP/SM 76/75 UNCHANGED |
-| F3: Incremental Stories | not-started | | | | |
+| F3: Incremental Stories | in-progress | 2026-09-04 | | | |
 | F4: Delta Implementation | not-started | | | | |
 | F5: Scoped Adversarial | not-started | | | | |
 | F6: Targeted Hardening | not-started | | | | |
@@ -146,7 +146,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | DI-015 | Known-FP store integrity residual (P12-003 / D-016 / D-019): a poisoned known-FP store entry could suppress a real LOW/MED-severity alert via the fast-path floor exemption. D-019 further bounds: HIGH/CRIT-native known-FPs route to human review (comment-review). Risk accepted per D-016/D-019; bounded by store governance, not LLM trust model. | MEDIUM | pre-production / store-governance | ADV-F2-P12-003 | OPEN — KNOWN-DEFERRED |
 | DI-017 | verdict.org_slug is LLM-supplied but unvalidated where it selects config (read_org_project_key lookup key) and is written into marker.org_slug for downstream org scoping; validate_enums() never checks org_slug format or membership against the configured [[orgs]] set. ASM-008-class residual, bounded by D-028 org-binding. Recommended hardening: validate org_slug against configured [[orgs]] before resolution. | MEDIUM | ASM-008 resolution / pre-production | ADV-F2-P24-006 | OPEN — KNOWN-DEFERRED |
 | DI-018 | verification-delta.md is ~840KB and trips PostToolUse validators (validate-factory-path-root/validate-input-hash/validate-template-compliance) with FUEL_EXHAUSTED on every edit — edits apply but validation is skipped fail-closed. Shard the artifact or raise fuel_cap. DECISION (human-approved 2026-09-02): DEFERRED to F3 boundary — fold into MIG-001 rc.24 uplift (raise fuel_cap and/or shard verification-delta). Interim: structural validators skip fail-closed on verification-delta edits; state-manager manually resolves input-hashes each burst; substantive adversary/FV review unaffected. | HIGH | F3 cycle boundary (MIG-001 rc.24 uplift) | formal-verifier pass-29 burst-26; recurred bursts 27-28 | OPEN — DEFERRED F3-BOUNDARY (human-approved 2026-09-02) |
-| MIG-001 | Engine uplift to vsdd-factory 1.0.0-rc.24 + .factory/ artifact-path canonicalization deferred to F3 cycle boundary. Health check found: (1) .claude/settings.json enable key BROKEN — `vsdd-factory@vsdd-factory` should be `vsdd-factory@claude-mp`; (2) project ran on rc.22 (now purged); newest cached engine = rc.24; (3) 126 path violations vs rc.24 canonical registry: 48 MAPPABLE, 78 UNMAPPED; (4) rc.24 validate-artifact-path deny-hook appears fail-open (on_error=continue). F3-boundary task: fix enable key; relocate 48 mappable files w/ cross-ref + index updates; resolve EC-007 bc_id/subsystem frontmatter gap; decide handling for 78 unmapped. | MEDIUM | F3 cycle boundary (pre-F3-story-decomposition) | orchestrator health-check 2026-09-01 | OPEN — DEFERRED (human-approved: finish F2 on current engine first) |
+| MIG-001 | Engine uplift to vsdd-factory 1.0.0-rc.24 + .factory/ artifact-path canonicalization deferred to F3 cycle boundary. Health check found: (1) .claude/settings.json enable key BROKEN — `vsdd-factory@vsdd-factory` should be `vsdd-factory@claude-mp`; (2) project ran on rc.22 (now purged); newest cached engine = rc.24; (3) 126 path violations vs rc.24 canonical registry: 48 MAPPABLE, 78 UNMAPPED; (4) rc.24 validate-artifact-path deny-hook appears fail-open (on_error=continue). F3-boundary task: fix enable key; relocate 48 mappable files w/ cross-ref + index updates; resolve EC-007 bc_id/subsystem frontmatter gap; decide handling for 78 unmapped. | MEDIUM | F3 cycle boundary (pre-F3-story-decomposition) | orchestrator health-check 2026-09-01 | PART A DONE (2026-09-04): .claude/settings.json enabledPlugins `vsdd-factory@vsdd-factory` → `vsdd-factory@claude-mp` fixed (local untracked edit verified). PARTS B+C → ACCEPT per D-031/D-032. |
 | OBS-GC-001 | EC-023 first-run attribution (P44-001): BC-10.01.001 EC-023 first-run clause attributes the baseline check to per-event DETECT_LATE_EVENT (now a no-op post-burst-42) rather than VALIDATE_WATERMARK_FOR_RUN — cosmetic wording; no behavioral divergence. | LOW | F2 gate cleanup | ADV-F2-pass-44 P44-001 | FIXED — BC-10.01.001 updated this wrap (2026-09-04) |
 | OBS-GC-002 | BC-10.01.001 L604 shorthand (P45-001): L604 uses "since watermark" loose shorthand for the grace-floor threshold rather than the normative L625 `watermark + GRACE_PERIOD_SECONDS` expression — non-normative inline comment; no behavioral impact. | LOW | F2 gate cleanup | ADV-F2-pass-45 P45-001 | FIXED — BC-10.01.001 updated this wrap (2026-09-04) |
 | ASM-009 | Cross-hook marker filesystem visibility: disposition-guard emits markers to and require-review consumes markers from `${CLAUDE_PLUGIN_DATA}/markers/`. BLOCKING pre-Wave-3: if the shared-fs assumption fails its BATS test, the marker mechanism (D-DEC-001/D-DEC-012) needs redesign. Architecturally load-bearing. Was a tracking gap — present in arch-delta §4.2 L4084 but absent from STATE until this wrap. | BLOCKING | pre-Wave-3 / pre-F4 | arch-delta §4.2 L4084 | OPEN — BLOCKING |
@@ -163,9 +163,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-09-04 |
-| **Position** | F2 gate APPROVED by human 2026-09-04. F2 adversarial spec convergence COMPLETE (3/3 clean: passes 44/45/46; 46 total; FROZEN post-burst-42). OBS-GC-001/002 FIXED (BC-10.01.001 updated this wrap). STORY-DEMO-SEED-001 stub created. NEXT: MIG-001 Part A only — fix .claude/settings.json enabledPlugins vsdd-factory@vsdd-factory → vsdd-factory@claude-mp (product repo main-branch edit). Then F3 story decomposition (Wave 7 monitoring-loop): decompose 5 new BCs (BC-6.01.003/004, BC-8.02.001, BC-9.01.001, BC-10.01.001) + 6 modified BCs; finalize story-naming (STORY-DEMO-SEED-001 = placeholder, assign canonical S-N.MM at F3 kickoff); compute 6 COMPUTE-AT-COMMIT input-hashes: BC-4.05.001 v1.4, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-6.01.004 v1.1, BC-8.02.001 v1.4, BC-9.01.001 v1.2. MIG-001 Parts B+C → ACCEPT (D-031). DI-018 → ACCEPT-DEFER rc.25+ (D-032). |
-| **Context** | Converged artifact versions (FROZEN post-burst-42): arch-delta v1.34 (d7bcab4), BC-10.01.001 v1.36 (EC 24; 742b491; OBS-GC FIXED), BC-3.03.001 v1.42 (95fcec5), BC-3.01.001 v1.25 (96609a9), BC-4.02.001 v1.21, BC-5.01.001 v1.15, prd-delta v1.39 (1c4be4c), verif-delta v1.38 (SM 76/75), dtu-assessment v1.7, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-6.01.004 v1.1, BC-4.05.001 v1.4, BC-8.02.001 v1.4, BC-9.01.001 v1.2. VP 41 (21 FIN P0 + 6 PROP P1); SM 76/75; EC 24 (BC-10.01.001) + 56 sub-burst-1 + 80 cycle. BATS: 113. main: PRs #18+#19 MERGED (e8bf19f). ASM-015 + ASM-009 BLOCKING pre-Wave-3/F4. DI-018 ACCEPT-DEFER (rc.25+). factory/hooks/ NOT instantiated; verify-sha-currency.sh NOT run (known). Cross-platform Windows-parity OPEN (not started). |
-| **Convergence counter** | 3/3 clean — F2 ADVERSARIAL SPEC CONVERGENCE COMPLETE (passes 44/45/46). F2 GATE APPROVED (human 2026-09-04). |
+| **Position** | MIG-001 Part A DONE (2026-09-04): .claude/settings.json enabledPlugins fixed vsdd-factory@vsdd-factory → vsdd-factory@claude-mp; Parts B+C ACCEPT per D-031/D-032. 6 COMPUTE-AT-COMMIT input-hashes resolved: BC-4.05.001 v1.4 → b06a947; BC-6.01.001 v1.8 → 62f3e15; BC-6.01.003 v1.7 → 092ae2f; BC-6.01.004 v1.1 → 092ae2f; BC-8.02.001 v1.4 → 092ae2f; BC-9.01.001 v1.2 → 092ae2f. F3 story decomposition (Wave 7 monitoring-loop) STARTING. NEXT: decompose 5 new BCs (BC-6.01.003/004, BC-8.02.001, BC-9.01.001, BC-10.01.001) + 6 modified BCs; finalize story-naming (STORY-DEMO-SEED-001 = placeholder, assign canonical S-N.MM at F3 kickoff). ASM-015 + ASM-009 BLOCKING pre-Wave-3/F4. |
+| **Context** | Converged artifact versions (FROZEN post-burst-42): arch-delta v1.34 (d7bcab4), BC-10.01.001 v1.36 (EC 24; 742b491), BC-3.03.001 v1.42 (95fcec5), BC-3.01.001 v1.25 (96609a9), BC-4.02.001 v1.21, BC-5.01.001 v1.15, prd-delta v1.39 (1c4be4c), verif-delta v1.38 (SM 76/75), dtu-assessment v1.7. Input-hashes now resolved: BC-4.05.001 (b06a947), BC-6.01.001 (62f3e15), BC-6.01.003/004/8.02.001/9.01.001 (092ae2f each). VP 41; SM 76/75; EC 24+56+80 cycle. BATS: 113. main: PRs #18+#19 MERGED (e8bf19f). DI-018 ACCEPT-DEFER (rc.25+). factory/hooks/ NOT instantiated. |
+| **Convergence counter** | 3/3 clean — F2 ADVERSARIAL SPEC CONVERGENCE COMPLETE (passes 44/45/46). F2 GATE APPROVED (human 2026-09-04). F3 STARTED. |
 
 ## Concurrent Cycles
 

@@ -10,7 +10,7 @@ inputs:
   - .factory/feature/prism-integration-handoff-brief.md
   - .factory/phase-f2-spec-evolution/architecture-delta.md
   - .factory/phase-f1-delta-analysis/artifact-mapping.md
-input-hash: "COMPUTE-AT-COMMIT"
+input-hash: "092ae2f"
 traces_to: feature/prism-integration-handoff-brief.md
 origin: greenfield
 subsystem: metrics-pipeline

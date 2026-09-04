@@ -1,19 +1,19 @@
 ---
 document_type: session-handoff
 level: ops
-version: "2.2"
+version: "2.3"
 status: current
 producer: state-manager
-timestamp: 2026-07-23T23:59:00Z
+timestamp: 2026-09-04T00:00:00Z
 project: secops-factory
-supersedes: "2.1 (2026-07-21T18:00:00Z)"
+supersedes: "2.2 (2026-09-03T23:00:00Z)"
 ---
 
 # SESSION-HANDOFF: secops-factory
 
 ### RESUME IN ONE BREATH
 
-secops-factory prism-integration v0.10.0 feature cycle is mid-Phase-F2 (spec evolution). F1 approved+committed. Full F2 spec body (11 BCs + delta docs) FROZEN. Pass-19 remediation COMPLETE (burst 16 — D-023 close disposition gate + D-024 rule-2 create+link + orphan-link reconciliation SM-68/VP-HOOK-036 extended [ID-sync per FV]). VPs 41 / SM 61 (SM-9..SM-68, SM-32=32a+32b+32-ext, SM-55 skipped). Artifact versions: arch-delta v1.21, verif-delta v1.21, prd-delta v1.19, BC-3.03.001 v1.28, BC-3.01.001 v1.23, BC-10.01.001 v1.22, BC-4.02.001 v1.14, BC-6.01.001 v1.8, others unchanged. D-DEC-001..D-024 locked. O3 standing rule: LLM-supplied routing fields granting state-change controls MUST be cross-validated against hook-computed invariants (D-023 close disposition gate is the latest instance). Clean streak 0/3. NEXT ACTION: adversarial pass 20 (fresh adversary context — do NOT reuse prior pass context; carry D-023/D-024 as confirmed new invariants). NOTE: .factory/hooks/ not instantiated in this project; verify-sha-currency.sh not run.
+F2 adversarial spec convergence COMPLETE (3/3 clean, passes 44/45/46; 46 total). F2 gate APPROVED by human 2026-09-04. OBS-GC-001/002 FIXED this wrap (BC-10.01.001 updated). STORY-DEMO-SEED-001 placeholder stub created. NEXT: execute (scoping-shrunken) MIG-001 — PART A only (fix .claude/settings.json enabledPlugins vsdd-factory@vsdd-factory → vsdd-factory@claude-mp; product repo main-branch edit or small PR). PART B (relocation) → ACCEPT (deny-hook non-enforcing, 121 files unmapped/infeasible). PART C (DI-018 fuel-cap/shard) → ACCEPT-DEFER rc.25+. Then F3 story decomposition (Wave 7 monitoring-loop): decompose 5 new BCs (BC-6.01.003/004, BC-8.02.001, BC-9.01.001, BC-10.01.001) + 6 modified BCs; finalize story-naming (STORY-DEMO-SEED-001 = placeholder, assign canonical S-N.MM at F3 kickoff); compute 6 COMPUTE-AT-COMMIT input-hashes. NOTE: .factory/hooks/ not instantiated; verify-sha-currency.sh not run (known throughout this cycle).
 
 ---
 
@@ -21,12 +21,135 @@ secops-factory prism-integration v0.10.0 feature cycle is mid-Phase-F2 (spec evo
 
 | Ref | SHA | Remote | Notes |
 |-----|-----|--------|-------|
-| main | d181ca2 | origin/main (in sync) | only untracked .claude/ local tooling |
-| factory-artifacts | see `git -C .factory log -1 --format='%h %s'` | origin/factory-artifacts (PUSHED) | this wrap commit |
+| main | e8bf19f (PRs #18+#19 MERGED) | origin/main (in sync) | cross-platform packaging shipped; PRs #18+#19 merged |
+| factory-artifacts | see `git -C .factory log -1 --format='%h %s'` | origin/factory-artifacts (PUSHED) | this wrap commit; prior tip c1a19f4 |
 
 ---
 
-## FROZEN F2 ARTIFACT VERSIONS (post-pass-5-remediation ground truth)
+## CONVERGED ARTIFACT VERSIONS (post-burst-42 FROZEN + OBS-GC wrap fixes)
+
+**BCs (phase-0-ingestion/behavioral-contracts/ and phase-f2-spec-evolution/):**
+
+| BC ID | Version | Subject |
+|-------|---------|---------|
+| BC-3.01.001 | v1.25 | require-review — marker consumer (link+close scopes, anti-fungibility) |
+| BC-3.03.001 | v1.42 | disposition-guard — marker emitter (full convergence) |
+| BC-4.02.001 | v1.21 | update-jira (rule-2 create+link, rule-4, orphan-link) |
+| BC-4.05.001 | v1.4 | assess-priority (COMPUTE-AT-COMMIT input-hash pending) |
+| BC-5.01.001 | v1.15 | investigate-event |
+| BC-6.01.001 | v1.8 | activate (CLOSE_STATE_ALLOWLIST validation; COMPUTE-AT-COMMIT pending) |
+| BC-6.01.003 | v1.7 | onboard-customer (NEW; COMPUTE-AT-COMMIT pending) |
+| BC-6.01.004 | v1.1 | onboard-sensor (NEW; COMPUTE-AT-COMMIT pending) |
+| BC-8.02.001 | v1.4 | sensor-metrics (NEW; COMPUTE-AT-COMMIT pending) |
+| BC-9.01.001 | v1.2 | scan-threats (NEW; COMPUTE-AT-COMMIT pending) |
+| BC-10.01.001 | v1.36 | monitoring-loop (EC 24; VALIDATE_WATERMARK_FOR_RUN once-per-run; OBS-GC-001/002 FIXED this wrap) |
+
+**Delta docs (phase-f2-spec-evolution/):**
+
+| File | Version | Input-hash |
+|------|---------|------------|
+| architecture-delta.md | v1.34 | d7bcab4 |
+| verification-delta.md | v1.38 | (SM 76 alloc / 75 live; ~840KB FUEL_EXHAUSTED known) |
+| prd-delta.md | v1.39 | 1c4be4c |
+| dtu-assessment.md | v1.7 | DTU_REQUIRED: true — prism-demo-server + jr-mock |
+| BC-10.01.001 | v1.36 | 742b491 |
+| BC-3.03.001 | v1.42 | 95fcec5 |
+| BC-3.01.001 | v1.25 | 96609a9 |
+
+**VP / SM / EC counts:** VP 41 (21 FINALIZED P0 + 6 PROPOSED P1); SM 76 alloc / 75 live; EC 24 (BC-10.01.001) + 56 sub-burst-1 + 80 cycle. BATS: 113. 7 coherence lessons codified (51–57 in cycles/.../lessons.md).
+
+---
+
+## PENDING / CARRIED
+
+### MIG-001 (SCOPED — human should confirm accept/defer on resume)
+
+- **PART A (DO):** Edit `/Users/jmagady/Dev/secops-factory/.claude/settings.json` enabledPlugins → `{"vsdd-factory@claude-mp": true}` (remove the broken `vsdd-factory@vsdd-factory` key). This file is on the PRODUCT repo (main), NOT .factory — small main-branch change (direct edit or tiny PR). Caveat: enabled-but-unpinned floats to newest-cached; no project-scope pin mechanism exists.
+- **PART B (ACCEPT — do NOT relocate):** rc.24 validate-artifact-path deny-hook is EMPIRICALLY NON-ENFORCING here (resolves registry at project-relative `plugins/vsdd-factory/config/...` which doesn't exist in a cache-installed consumer → graceful-degrade allow on every write; confirmed in `.factory/logs/dispatcher-internal-2026-09-04.jsonl`). Full relocation INFEASIBLE (fresh dry-run: 162 files, 41 mappable / 121 unmapped — no rc.24 canonical home for holdout-scenario, prd/arch/verification-delta, phase-0/f1 outputs, adversarial/validation reports). Recommend accept layout; bounded BC-only relocation possible but low-payoff (deny-hook doesn't enforce) and needs the ss-{slug} vs ss-NN decision + 41-file cross-ref repair.
+- **PART C (ACCEPT-DEFER — DI-018):** fuel-cap raise INFEASIBLE (engine-only; ADR-039 Phase-1 per-plugin fuel_cap unshipped; global ~10M cap compiled into factory-dispatcher). Shard of 840KB verification-delta HIGH-RISK (65 references + breaks §2 VP-table / §5 per-BC-test single-doc coherence). Fail-open CONFIRMED (on_error=continue → edits land). Record DI-018 in tech-debt register as "accepted, fail-open confirmed". Revisit rc.25+; if F3 §5 editing is heavy, extract only §5 as a working copy.
+- **Compute 6 COMPUTE-AT-COMMIT input-hashes (do on F3 resume; safe):** BC-4.05.001 v1.4, BC-6.01.001 v1.8, BC-6.01.003 v1.7, BC-6.01.004 v1.1, BC-8.02.001 v1.4, BC-9.01.001 v1.2.
+
+### F3 Story Decomposition (next after MIG-001 Part A)
+
+- Decompose 5 new BCs (BC-6.01.003/004, BC-8.02.001, BC-9.01.001, BC-10.01.001) + 6 modified BCs into Wave 7 monitoring-loop stories.
+- FINALIZE story-naming convention: STORY-DEMO-SEED-001 is a placeholder — assign canonical S-N.MM at F3 kickoff.
+- STORY-DEMO-SEED-001: demo-seed Jira Option A; operator tooling under scripts/demo/ per D-006; revisit whether it belongs in secops-factory F3 vs operator demo-ops.
+
+### Open Blockers
+
+| ID | Issue | Blocking |
+|----|-------|---------|
+| ASM-015 | BLOCKING pre-Wave-3: empirical validation needed that permissionDecision:deny from PreToolUse hook populates `.permission_denials[]` in --allowedTools JSON envelope; Gate 1 check on permission_denials > 0 is unvalidated. | pre-Wave-3 / pre-F4 |
+| ASM-009 | BLOCKING pre-Wave-3: cross-hook marker filesystem visibility — disposition-guard emits and require-review consumes from `${CLAUDE_PLUGIN_DATA}/markers/`. If shared-fs assumption fails BATS test, marker mechanism (D-DEC-001/012) needs redesign. Architecturally load-bearing. | pre-Wave-3 / pre-F4 |
+
+### Accepted/Deferred Residuals
+
+| ID | Status |
+|----|--------|
+| ASM-008-DEFERRED | LLM-supplied field cross-validation (native_severity, asset_type, scored_priority) deferred to prism-side. KNOWN-DEFERRED. |
+| DI-018 | verification-delta.md FUEL_EXHAUSTED. ACCEPT-DEFER rc.25+. fail-open confirmed (D-032). |
+| DI-017 | verdict.org_slug unvalidated. KNOWN-DEFERRED (ASM-008 class). |
+| DI-015 | Known-FP store integrity residual. KNOWN-DEFERRED (bounded by D-019). |
+| DI-016 | jr issue unlink/remote-link silent deny observability gap. OPEN LOW. |
+| ASM-014 | comment-review --label binding deferred pending empirical validation. DEFERRED pre-Wave-3. |
+
+---
+
+## KEY DESIGN STATE
+
+- **Marker mechanism (DI-013 resolution, D-005):** filesystem markers at `${CLAUDE_PLUGIN_DATA}/markers/`, canonical schema v2.1 (absolute `expires_at_utc` 120s TTL, `authorized_operations` tokens, iterative-consume oldest-first, `markers/audit.log`). `command_pattern`: ticket-bound for comment/assign; anchored project-bound for create. disposition-guard is the ONLY emitter; require-review the consumer. Document-before-action ordering (Stage 7 DOCUMENT emits marker → Stage 8 TICKET ACTION consumes). JSON-first dispatch. `validate_enums()` fail-closed. 15-field ICD-203 verdict schema. Hard floors deterministic on `verdict.severity`/`asset_type`/`attack_techniques`; `asset_type=unknown` is a hard floor.
+- **Option A (D-007):** create-review/comment-review markers live under `autonomy_enabled=false`, gated on hook-computed `hard_floor_applies() OR disposition==Indeterminate`. Kill-switch DENY-THE-WRITE (D-008). Close disposition gate hoisted to STEP 4b (D-025). Compound actions = two sequential Writes each with own anti-fungible marker (D-022). Review-class link (D-027). Markdown path = route-to-review-NEVER-deny (D-029).
+- **DETECT_LATE_EVENT:** DETECT_LATE_EVENT per-event logic REPLACED by VALIDATE_WATERMARK_FOR_RUN (once-per-run gate). burst-42 hardening complete. SM-82/83 REDEFINED.
+
+---
+
+## DECISION DELTA (this session)
+
+| Decision | Detail | Status |
+|----------|--------|--------|
+| F2 gate APPROVED | F2 convergence gate APPROVED by human 2026-09-04. Convergence 3/3 COMPLETE (passes 44/45/46). F2 spec LOCKED; F3 authorized. | D-030 |
+| MIG-001 scoped | PART A only (enable key fix). PARTS B+C → ACCEPT (deny-hook non-enforcing, relocation infeasible 121 unmapped). | D-031 |
+| DI-018 ACCEPT-DEFER | fuel_cap unshipped (ADR-039 Phase-1); shard HIGH-RISK (65 refs + coherence). fail-open confirmed. Record in tech-debt register. Revisit rc.25+. | D-032 |
+| V1 scope | Claroty-xDome-only; runtime-scope; 4-sensor spec retained. | D-033 |
+| "Merge Prism" | Runtime MCP service + prism-dtu-demo-server DTU (NOT code merge). Prism repo /Users/jmagady/Dev/prism (rc.22/23). CIRCULAR RC GATE: sequence Prism live-xDome validation + bundle publish FIRST. | D-034 |
+| demo-seed Option A | STORY-DEMO-SEED-001 placeholder stub. scripts/demo/ operator tooling. D-006 confirmed (demo orchestration = operator's concern). | D-035 |
+| OBS-GC-001/002 FIXED | BC-10.01.001 updated this wrap (2026-09-04): EC-023 attribution aligned to VALIDATE_WATERMARK_FOR_RUN; L604 shorthand aligned to normative L625 formula. | this wrap |
+| Cross-platform Windows-parity | Follow-up OPEN (not started). PRs #18+#19 shipped cross-platform packaging (main). | open follow-up |
+| Planning briefs | On factory-artifacts .factory/feature/: claroty-xdome-v1-planning-brief.md, cross-platform-packaging-design.md, prism-integration-handoff-brief.md. | reference |
+
+---
+
+## WORKTREE INVENTORY
+
+| Worktree | Branch | Path | Status |
+|----------|--------|------|--------|
+| main | main | `/Users/jmagady/Dev/secops-factory` | active; PRs #18+#19 merged; clean |
+| .factory | factory-artifacts | `/Users/jmagady/Dev/secops-factory/.factory` | active; this wrap commit |
+
+---
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SUPERSEDED SNAPSHOT (v2.2 — 2026-09-03T23:00:00Z)         -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+---
+
+## [SUPERSEDED] Prior RESUME IN ONE BREATH (v2.2 — 2026-09-03)
+
+secops-factory prism-integration v0.10.0 feature cycle is mid-Phase-F2 (spec evolution). F1 approved+committed. Full F2 spec body (11 BCs + delta docs) FROZEN. Pass-19 remediation COMPLETE (burst 16 — D-023 close disposition gate + D-024 rule-2 create+link + orphan-link reconciliation SM-68/VP-HOOK-036 extended [ID-sync per FV]). VPs 41 / SM 61 (SM-9..SM-68, SM-32=32a+32b+32-ext, SM-55 skipped). Artifact versions: arch-delta v1.21, verif-delta v1.21, prd-delta v1.19, BC-3.03.001 v1.28, BC-3.01.001 v1.23, BC-10.01.001 v1.22, BC-4.02.001 v1.14, BC-6.01.001 v1.8, others unchanged. D-DEC-001..D-024 locked. O3 standing rule: LLM-supplied routing fields granting state-change controls MUST be cross-validated against hook-computed invariants (D-023 close disposition gate is the latest instance). Clean streak 0/3. NEXT ACTION: adversarial pass 20 (fresh adversary context — do NOT reuse prior pass context; carry D-023/D-024 as confirmed new invariants). NOTE: .factory/hooks/ not instantiated in this project; verify-sha-currency.sh not run.
+
+---
+
+## [SUPERSEDED] HEADS (v2.2)
+
+| Ref | SHA | Remote | Notes |
+|-----|-----|--------|-------|
+| main | d181ca2 | origin/main (in sync) | only untracked .claude/ local tooling |
+| factory-artifacts | see `git -C .factory log -1 --format='%h %s'` | origin/factory-artifacts (PUSHED) | v2.2 wrap commit |
+
+---
+
+## [SUPERSEDED] FROZEN F2 ARTIFACT VERSIONS (v2.2 — post-pass-5-remediation)
 
 **BCs (phase-0-ingestion/behavioral-contracts/):**
 
@@ -48,60 +171,24 @@ secops-factory prism-integration v0.10.0 feature cycle is mid-Phase-F2 (spec evo
 
 | File | Version |
 |------|---------|
-| architecture-delta.md | v1.21 (D-023 close disposition gate; D-024 rule-2 create+link; orphan-link reconciliation; EC-013 3-condition AND) |
-| verification-delta.md | v1.21 (SM-66/SM-67/SM-68 allocated; VP-HOOK-035/036 extended; 41 VPs / 61 mutants; ~429 tests) |
-| prd-delta.md | v1.19 (burst-16 §5 post-note; BC versions v1.28/v1.22/v1.14 recorded) |
-| dtu-assessment.md | v1.2 — DTU_REQUIRED: true — prism L3 via prism demo server, jr L2 mock |
-| asm-004-validation.md | PARTIAL → resolved-by-design (--strict-mcp-config --mcp-config prism.mcp.json) |
-| adversarial-spec-delta-review-pass1..19.md | pass1..18 remediated; pass19 remediated (burst 16) |
-| spec-changelog.md | spec 1.0.0 → 1.1.0 MINOR (+ F2 passes 1-19 remediation edits through burst 16) |
-| feature/prism-integration-handoff-brief.md | §3.9 amended — Option A kill-switch confirmed 2026-07-21 |
+| architecture-delta.md | v1.21 |
+| verification-delta.md | v1.21 |
+| prd-delta.md | v1.19 |
+| dtu-assessment.md | v1.2 |
 
-**VP namespace:** VP-SKILL 001-077, VP-HOOK 024-036. Mutation vectors SM-9..SM-68 (SM-32=32a+32b+32-ext; SM-55 skipped). Decisions D-DEC-001..D-024.
+**VP namespace:** VP-SKILL 001-077, VP-HOOK 024-036. Mutation vectors SM-9..SM-68. Decisions D-DEC-001..D-024.
 
 ---
 
-## KEY DESIGN STATE
+## [SUPERSEDED] PENDING / CARRIED (v2.2)
 
-- **Marker mechanism (DI-013 resolution, D-005):** filesystem markers at `${CLAUDE_PLUGIN_DATA}/markers/`, canonical schema v2.1 (absolute `expires_at_utc` 120s TTL, `authorized_operations` tokens, iterative-consume oldest-first, `markers/audit.log` control-char-stripped). `command_pattern`: ticket-bound for comment/assign; anchored project-bound for create (`^jr (--output json )?issue create --project <key>( |$)`, NO unbounded `.*`). disposition-guard is the ONLY emitter; require-review the consumer. Document-before-action ordering (Stage 7 DOCUMENT emits marker → Stage 8 TICKET ACTION consumes). JSON-first disposition-guard dispatch (verdict JSON → 15-field path even at `investigations/verdict-*.json`). `validate_enums()` fail-closed. 15-field ICD-203 verdict schema + operational metadata (`jira_project_key`, `confidence_score`, `autonomy_enabled`). Hard floors deterministic on `verdict.severity`/`asset_type`/`attack_techniques`; `asset_type=unknown` is a hard floor. D-DEC-012: `create-review`/`comment-review` RESTRICTED markers surface BLIND-SPOT/Indeterminate to Jira. **Option A (D-007, human-confirmed 2026-07-21):** create-review/comment-review markers remain live under `autonomy_enabled=false`, gated on hook-computed `hard_floor_applies() OR disposition==Indeterminate` (O3 standing rule — no LLM token alone bypasses the gate). Sensor-silence condition: `last_seen_ts age > 24 h` (VP-SKILL-061, fixed in BC-10.01.001 v1.10).
-
----
-
-## PENDING / CARRIED
-
-- **IMMEDIATE NEXT:** Adversarial pass 20 (fresh adversary context required — do NOT reuse context from any prior pass). Clean streak 0/3.
-- Pass-19 remediation COMPLETE (burst 16): D-023 close disposition gate + D-024 rule-2 create+link + orphan-link reconciliation SM-68 [ID-sync per FV]. All artifacts committed and pushed (factory-artifacts).
-- Pass-1..18 all remediated. Consistency audit pass-13 CLEAN (all 12 coherence findings resolved). ASM-008-DEFERRED / ASM-015 / ASM-014 / DI-015 remain KNOWN-DEFERRED (carried forward unchanged).
-- **Remaining minor punch-list (resolve before F2 state-backup):**
-  - F-001: arch-delta §5.4 historical quote cosmetic label — still open (low priority, will not block F2 gate).
-  - F-002: 6 established BCs carry bare "COMPUTE-AT-COMMIT" input-hash — compute at F2 state-backup; does not block adversarial passes.
+- **IMMEDIATE NEXT:** Adversarial pass 20 (fresh adversary context required). Clean streak 0/3.
+- Pass-19 remediation COMPLETE (burst 16). All artifacts committed and pushed (factory-artifacts).
+- Pass-1..18 all remediated. Consistency audit pass-13 CLEAN.
+- **Remaining minor punch-list (resolve before F2 state-backup):** F-001: arch-delta §5.4 historical quote cosmetic label. F-002: 6 established BCs carry bare "COMPUTE-AT-COMMIT" input-hash.
 - DI-013 RESOLVED in-spec via marker mechanism (D-005).
 - AFTER 3 clean passes: F2 state-backup (compute F-002 bare hashes here), then F2 human gate, then F3 story decomposition.
 - NOTE: .factory/hooks/ not instantiated in this project; verify-sha-currency.sh was not run for any session wrap in this cycle.
-
-## DECISION / LESSONS DELTA (pass-5 — CODIFIED)
-
-| Item | Detail | Status |
-|------|--------|--------|
-| Root-cause one-liner | Deterministic disposition-guard hook trusts LLM-supplied ticket_action_type without cross-checking hard_floor_applies(); every LLM-supplied routing field that grants or bypasses a security control must be cross-validated against a hook-computed invariant (O3 standing rule). | CODIFIED in D-DEC-012, cycles/lessons.md lesson 4 |
-| P5-001 lesson | Fail-loud guarantees must be enforced at the deterministic (hook) layer, not rely on correct LLM behavior for the exact threat class the marker design defends against. | CODIFIED in cycles/lessons.md lesson 1 |
-| P5-002 lesson | Kill-switch exemptions gated on LLM-supplied tokens (create-review/comment-review) without a deterministic precondition create a bypass for the autonomy_enabled=false circuit-breaker — always gate exemptions on a hook-computed invariant, not on the token alone. | CODIFIED in D-007 + cycles/lessons.md lesson 2 |
-| P5-003 lesson | A "single authoritative" schema block marked "fix the BC, not this document" that is stale w.r.t. later sections of the same document is actively dangerous — authoring discipline must keep the authoritative block in sync at every schema extension. | CODIFIED in cycles/lessons.md lesson 3 |
-
----
-
-## DECISION DELTA (this session)
-
-D-DEC-001..012 recorded in architecture-delta.md. D-004/005/006 in STATE decisions log.
-
----
-
-## WORKTREE INVENTORY
-
-| Worktree | Branch | Path | Status |
-|----------|--------|------|--------|
-| main | main | `/Users/jmagady/Dev/secops-factory` | active, clean |
-| .factory | factory-artifacts | `/Users/jmagady/Dev/secops-factory/.factory` | active, committed this wrap |
 
 ---
 
@@ -134,114 +221,3 @@ ACTION: when the human returns with a feature, the orchestrator detects
 Phase 0.
 
 ---
-
-## HEADS
-
-| Ref | SHA | Remote | Notes |
-|-----|-----|--------|-------|
-| main | d181ca2 | origin/main (PUSHED, in sync) | PR #11–#17 merged; only untracked `.claude/` local tooling |
-| factory-artifacts | see `git -C .factory log -1 --format='%h'` | origin/factory-artifacts (PUSHED, in sync) | only untracked `logs/` (transient) |
-
-Worktrees: 2 active — `main` at `/Users/jmagady/Dev/secops-factory`, `.factory` at `/Users/jmagady/Dev/secops-factory/.factory`. Both clean. Open PRs: NONE. Agents in flight: NONE.
-
----
-
-## [SUPERSEDED] STATUS
-
-Phase 0 ingestion COMPLETE + fully remediated.
-
-| Metric | Value |
-|--------|-------|
-| Behavioral Contracts | 17 (13 recovered + 4 new: advisory-pipeline BC-4.05, metrics-pipeline BC-4.06, investigation-entry BC-7.01, read-ticket BC-8.01) |
-| Tests | 165 (all green; hooks 44 + skills 81→101 + integration 11 + parity 14 + new) |
-| Holdouts | 34 (all must-pass; 26 original + 8 new for DI-012 skills; HS-029 injection guard) |
-| Criticality map | 24 modules: 1 CRITICAL / 12 HIGH / 7 MEDIUM / 4 LOW |
-| Mutation kill-rate | ~90-95% (SM-1 KILLED, SM-2 KILLED, zero open HIGH mutants) |
-| PRs merged to main | 7 (#11 CI-harden, #12 gitignore, #13 SEC-001..005, #14 allowlist, #15 SEC-009 CRITICAL auth-gate bypass, #16 CI pwsh/schema, #17 hook soundness) |
-| Security findings | 9 total (SEC-001..009); all RESOLVED except SEC-006/007 ACCEPTED (info) |
-| Adversarial convergence | Phase 0 main loop: 13 passes → CLEAN (0 graded findings) |
-| Post-remediation delta | 4 adversarial passes (ADV-R1..R4) → CLEAN |
-| Drift register | 13/14 RESOLVED; DI-013 DEFERRED (human-approved) |
-
-Notable: the adversarial loop discovered a **live shipped CRITICAL auth-gate bypass** in v0.9.0 — require-review evaluated its allowlist before the write-block using unanchored substring matching (SEC-009). Fixed via PR #15 (d304fa5).
-
----
-
-## [SUPERSEDED] PENDING (user-approved / carried)
-
-**DI-013** — Comment-gate workflow friction: `jr issue comment` is unconditionally denied by the require-review hook. Consumer skills (investigate-event, orchestration) cannot complete their comment steps without human permission-override.
-
-- **Target:** first Feature Mode cycle that touches the comment workflow
-- **Options (human to choose):** accept friction / implement marker mechanism / add dedicated non-blocked command
-- **Flagged:** 0f-adv pass 6 (ADV-0-601); human-approved deferral at Phase 0 gate
-- **Location:** project-context.md §8 and §11; validation-report.md `open_gate_decisions`
-
-No other open drift items. No blocking issues.
-
----
-
-## [SUPERSEDED] ENGINE FEEDBACK (not secops-factory work)
-
-8 improvement proposals targeting the **vsdd-factory ENGINE** at `/Users/jmagady/Dev/dark-factory`. These are proposals for the engine maintainer — NOT secops-factory work items. Codified per S-7.02 cycle-closing requirement.
-
-**Location:** `.factory/session-reviews/2026-07-19-brownfield-phase0-session-review.md`
-
-| ID | Proposal | Source |
-|----|----------|--------|
-| IP-001 | Census-sync assertion at BC-extraction step — pipeline should assert all shards updated when census changes | process-gap from ADV-R pass 2 |
-| IP-002 | Shard sync-status convention — annotate shards with sync-status headers when they diverge from a root document | process-gap-3 |
-| IP-003 | BC input-hashes computed at extraction time, not as a post-hoc remediation pass | process-gap-5 |
-| IP-004 | Adversary stale-snapshot protocol — adversary must declare snapshot trust level before grading; orchestrator must verify trust before accepting findings | process-gap-4 |
-| IP-005 | Fan-out grep-before-consistency discipline — agent must run grep sweep before claiming consistency across a corpus | process-gap-6 |
-| IP-006 | Substring-matching-idiom sweep — when any auth/enforcement hook is reviewed, all hooks using the same idiom are swept simultaneously | process-gap-7 |
-| IP-007 | Anchor-churn class — pipeline convention: construct-name-first anchors are mandatory; line numbers permitted only as secondary locators | emergent from 11-pass anchor-churn resolution |
-| IP-008 | HS expected-result verification gate — adversary or orchestrator must verify holdout scenario expected-results are not inverted before acceptance | lesson from HS-026 inverted expected-result caught by orchestrator |
-
----
-
-## [SUPERSEDED] DECISION DELTA (this session)
-
-| Decision | Rationale |
-|----------|-----------|
-| Phase-0-only depth; park awaiting feature-request | Internal dev-tooling plugin; no active feature scope at onboarding time |
-| market-intelligence SKIPPED | Internal plugin — no external market |
-| design-system-extraction SKIPPED | No UI surfaces |
-| Approved fixing all drift items except DI-013 | DI-013 requires design decision on comment workflow; other items all had clear fixes |
-| Ran full post-gate drift remediation (PRs #16+#17) before parking | Ensures Phase 0 artifact set is complete and accurate for first Feature Mode entry |
-| Ran 4-pass delta adversarial review post-remediation | Ensures spec artifacts are consistent after code changes |
-| session-review before parking | Captures engine improvement proposals while context is fresh |
-
----
-
-## [SUPERSEDED] WORKTREE INVENTORY
-
-| Worktree | Branch | Path | Status |
-|----------|--------|------|--------|
-| main | main | `/Users/jmagady/Dev/secops-factory` | active, clean |
-| .factory | factory-artifacts | `/Users/jmagady/Dev/secops-factory/.factory` | active, clean |
-
-No stale or removable worktrees.
-
----
-
-## [SUPERSEDED] RESUMPTION GUIDE
-
-**If resuming to handle a feature request:**
-1. Orchestrator reads STATE.md → detects `phase: 0-complete`, `pipeline: phase-0-COMPLETE`
-2. Routes to **Feature Mode** (vsdd-factory:phase-f1-delta-analysis through phase-f7)
-3. Loads `project-context.md v2.3` as the scoping document
-4. Phase 0 is NOT re-run
-5. First step: delta analysis against the incoming feature spec
-6. Before touching comment workflow: resolve DI-013 (see PENDING above)
-
-**If resuming to maintain the engine:**
-- Engine IPs: see `.factory/session-reviews/2026-07-19-brownfield-phase0-session-review.md`
-- Engine location: `/Users/jmagady/Dev/dark-factory`
-
-**Key artifact locations:**
-- Scope doc: `.factory/phase-0-ingestion/project-context.md` (v2.3)
-- BCs: `.factory/phase-0-ingestion/behavioral-contracts/` (17 files)
-- Holdouts: `.factory/holdout-scenarios/` (34 scenarios)
-- Criticality: `.factory/specs/module-criticality.md` (v1.6)
-- Conventions: `.factory/phase-0-ingestion/conventions.md`
-- VGA: `.factory/phase-0-ingestion/verification-gap-analysis.md`

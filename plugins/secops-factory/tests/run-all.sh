@@ -92,4 +92,20 @@ fi
 bats "$SCRIPT_DIR/parity.bats"
 echo ""
 
+# Subdirectory bats tests (hooks/ and skills/ — populated by Wave-1+ stories)
+# Uses nullglob so the globs no-op cleanly when the subdirectories are empty.
+echo "--- Subdirectory bats tests (hooks/, skills/) ---"
+shopt -s nullglob
+SUBDIR_BATS=("$SCRIPT_DIR"/hooks/*.bats "$SCRIPT_DIR"/skills/*.bats)
+shopt -u nullglob
+if [ "${#SUBDIR_BATS[@]}" -gt 0 ]; then
+    for bats_file in "${SUBDIR_BATS[@]}"; do
+        bats "$bats_file"
+        echo ""
+    done
+else
+    echo "  (no subdir .bats files yet — skipping)"
+fi
+echo ""
+
 echo "=== All tests passed ==="

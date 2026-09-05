@@ -4,16 +4,16 @@ level: ops
 version: "2.40"
 status: active
 producer: state-manager
-timestamp: 2026-09-05T00:00:00Z
-phase: F3-CONVERGED-GATE-PENDING
+timestamp: 2026-09-05T12:00:00Z
+phase: F4-IN-PROGRESS
 pipeline: FEATURE-CYCLE
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "F3 story adversarial convergence COMPLETE (29 passes; streak 3/3: passes 27/28/29 CLEAN 0C/0Maj/0Med). Gate audits PASS. F3 artifacts committed. AWAITING human F3 gate. trajectory-tail →1→0→0→0 D-chain cite D-447 latest feature-cycle"
-awaiting: "Human F3 approval gate; on approval → F4 delta implementation (Wave 1 first: S-3.01, S-4.02, S-6.03 parallel). Pre-Wave-4 blockers: ASM-015 + ASM-009."
+current_step: "F4 Wave 1 delivery: S-3.01, S-4.02, S-6.03 (parallel). Pre-flight checks (toolchain/DTU/CI-CD) running. trajectory-tail F3-STORY →1→0→0→0 D-chain cite D-447 latest feature-cycle"
+awaiting: "F4 Wave 1 per-story TDD delivery"
 current_cycle: v0.10.0-feature-prism-integration
 dtu_required: true
 dtu_assessment: "2026-07-20"
@@ -22,11 +22,11 @@ dtu_services: [prism-demo-server, jr-mock]
 ---
 
 <!--
-  STATE.md SIZE BUDGET: 189 lines (wc-l) | soft-target: 195 | margin from soft-target: 6 | margin from actual: 11
+  STATE.md SIZE BUDGET: 192 lines (wc-l) | soft-target: 195 | margin from soft-target: 3 | margin from actual: 8
   Historical content belongs in cycle files, NOT here.
   Phase Progress sub-rows (passes 38-43) archived to convergence-trajectory.md; pass-44 and burst-42 retained per D-435(b)+D-447(d).
   F3 convergence summary rows added; old F2 Current Phase Steps archived to session-checkpoints.md.
-  Process-gap deferrals DI-019..DI-023 added to Drift Items.
+  Process-gap deferrals DI-019..DI-023 added to Drift Items. D-036 F3-gate approval + F4 auth added.
   Run /vsdd-factory:compact-state if this file grows past 195 lines.
 -->
 
@@ -43,9 +43,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | **Target Workspace** | /Users/jmagady/Dev/secops-factory |
 | **Engine** | /Users/jmagady/Dev/dark-factory (vsdd-factory plugin) |
 | **Started** | 2026-07-19 |
-| **Last Updated** | 2026-09-05 — F3 story adversarial convergence COMPLETE (29 passes; streak 3/3: passes 27/28/29 CLEAN). Gate audits PASS (consistency-validator PASS-WITH-MINORS remediated; spec-reviewer APPROVED-WITH-SUGGESTIONS remediated). F3 artifacts committed. AWAITING human F3 gate. Process-gap deferrals DI-019..DI-023 codified. trajectory-tail →1→0→0→0 |
-| **Current Phase** | F3: Incremental Stories — ADVERSARIAL CONVERGENCE COMPLETE; gate audits PASS; AWAITING human F3 gate (2026-09-05) |
-| **Current Step** | F3 adversarial convergence 3/3 CLEAN (passes 27/28/29 0C/0Maj/0Med). Gate audits PASS. F3 artifacts committed to factory-artifacts. AWAITING human F3 gate approval. On approval → F4 Wave 1 dispatch. |
+| **Last Updated** | 2026-09-05 — F3 gate APPROVED by human (D-036). F4 delta implementation AUTHORIZED. F4 Wave 1 dispatch underway: S-3.01, S-4.02, S-6.03 parallel. Pre-Wave-4 BLOCKERS: ASM-015 + ASM-009 BATS gate MUST pass before Wave 4 (S-10.01) dispatch per D-036. trajectory-tail F3-STORY →1→0→0→0 |
+| **Current Phase** | F4: Delta Implementation — in progress (started 2026-09-05); F3 gate APPROVED 2026-09-05 (D-036); Wave 1 delivery underway |
+| **Current Step** | F4 Wave 1 delivery: S-3.01 (P0), S-4.02 (P1), S-6.03 (P0) parallel. Pre-flight checks running. Pre-Wave-4 BLOCKERS: ASM-015 + ASM-009 BATS gate before Wave 4 (S-10.01) dispatch. |
 
 ## Phase Progress
 
@@ -57,8 +57,8 @@ dtu_services: [prism-demo-server, jr-mock]
 | F2: Spec Evolution | GATE APPROVED (human 2026-09-04) — F2 COMPLETE | 2026-07-20 | 2026-09-04 | APPROVED (human 2026-09-04) | pass1–29 see burst-log → pass30–43 see convergence-trajectory → pass44 CLEAN (1/3) → pass45 CLEAN (2/3) → pass46 CLEAN (3/3) → F2 SPEC CONVERGED → GATE APPROVED |
 | F2: adversary pass 44 | DONE | 2026-09-03 | 2026-09-03 | CLEAN 0C/0M/0med/0min/1obs — streak 1/3 | P44-001 OBS EC-023 attribution cosmetic DEFERRED; substance INDEPENDENTLY RE-DERIVED CLEAN; spec FROZEN post-burst-42 |
 | F2: fix burst 42 | DONE | 2026-09-03 | 2026-09-03 | | SUBSTANTIVE: arch-delta v1.34 (once-per-run gate); BC-10.01.001 v1.36 (EC 24; @test-name; version-trail); prd-delta v1.39; verif-delta v1.38 (SM-82/83 REDEFINED once-per-run); BC-3.03.001 no-bump; VP/SM 76/75 UNCHANGED |
-| F3: Incremental Stories | ADVERSARIAL CONVERGENCE COMPLETE (3/3 clean: passes 27/28/29); gate audits PASS; AWAITING human F3 gate | 2026-09-04 | 2026-09-05 (pending human gate) | AWAITING HUMAN | F3: 29 passes; P23-P0-build-cap-gap→P24-26-per-mutant→P27-P29-CLEAN (→1→0→0→0) |
-| F4: Delta Implementation | not-started | | | | |
+| F3: Incremental Stories | COMPLETE — gate APPROVED (human 2026-09-05; D-036) | 2026-09-04 | 2026-09-05 | APPROVED (human 2026-09-05) | F3: 29 passes; P23-P0-build-cap-gap→P24-26-per-mutant→P27-P29-CLEAN (→1→0→0→0) |
+| F4: Delta Implementation | in-progress | 2026-09-05 | | PENDING | Wave 1: S-3.01/S-4.02/S-6.03 parallel; pre-Wave-4 BLOCKERS ASM-015+ASM-009 |
 | F5: Scoped Adversarial | not-started | | | | |
 | F6: Targeted Hardening | not-started | | | | |
 | F7: Delta Convergence | not-started | | | | |
@@ -70,7 +70,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | Clean passes | 3/3 — **F3 ADVERSARIAL STORY CONVERGENCE COMPLETE** (passes 27/28/29 CLEAN; streak complete; 29 total passes) |
 | Last adversary pass | F3 story pass-29 (0C/0Maj/0Med/0Min) CLEAN — streak 3/3 COMPLETE; §4 mutant-catalog fully closed; notable: pass-23 P0 VP-HOOK-029 build-capability inversion overturned pass-22 premature convergence; passes 24-26 per-mutant-coverage class |
 | Gate audits | consistency-validator PASS-WITH-MINORS (M-001 GAP-003 remediated); spec-reviewer APPROVED-WITH-SUGGESTIONS (SR-001 HIGH + MEDIUMs remediated; SR-012c/SR-015 LOW deferred) |
-| Next action | Human F3 gate approval → F4 Wave 1 dispatch (S-3.01, S-4.02, S-6.03 parallel); ASM-015 + ASM-009 BLOCKING pre-Wave-4 |
+| Next action | F4 Wave 1 delivery ACTIVE (S-3.01, S-4.02, S-6.03 parallel). Pre-Wave-4 BLOCKERS: ASM-015 + ASM-009 BATS gate MUST pass before Wave 4 (S-10.01) dispatch (per D-036). |
 | Trajectory tail | F3 STORY: →1→0→0→0 (passes 26→27→28→29) — CLEAN at pass-29 (streak 3/3 COMPLETE); F3 STORY CONVERGED |
 
 ## Current Phase Steps
@@ -124,6 +124,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | D-033 | V1 scope = Claroty-xDome-only; runtime-scope; 4-sensor spec retained (not reduced). Claroty xDome is the sole V1 integration target. | Explicit scope anchor for F3/F4 story decomposition and implementation. | F2-gate | 2026-09-04 | human |
 | D-034 | "Merge Prism" = runtime MCP service + prism-dtu-demo-server DTU integration (NOT a code merge). Prism repo /Users/jmagady/Dev/prism (engine rc.22/23). CIRCULAR RC GATE: Prism rc.1 acceptance = live secops-factory demo, but demo needs rc.1 binary + demo-bundle → sequence Prism live-xDome validation + bundle publish FIRST before demo. | Prevents misunderstanding "merge Prism" as a repository merge. Circular dependency must be broken by sequencing Prism validation + bundle publish ahead of demo. | F2-gate | 2026-09-04 | human |
 | D-035 | demo-seed = Option A (STORY-DEMO-SEED-001 placeholder stub; operator tooling under scripts/demo/ per D-006). secops-factory ships the plugin; demo orchestration is the operator's concern (D-006 confirmed). STORY-DEMO-SEED-001 is a draft stub — assign canonical S-N.MM at F3 kickoff. | Clarifies demo-seed scope boundary consistent with D-006. Avoids pulling demo orchestration into the product repo. | F3-boundary | 2026-09-04 | human |
+| D-036 | F3 gate APPROVED by human 2026-09-05. F3 story adversarial convergence COMPLETE (3/3 clean, passes 27/28/29; 29 total). Gate audits PASS (consistency PASS-WITH-MINORS + spec-reviewer APPROVED-WITH-SUGGESTIONS, all remediated). F4 delta implementation AUTHORIZED. Sequencing: F4 proceeds at Wave 1 immediately; ASM-015 + ASM-009 pre-dispatch BATS validation gate MUST pass before Wave 4 (S-10.01) dispatch. | Formal human gate closure for F3. F4 authorized with explicit pre-Wave-4 sequencing constraint for ASM-015/ASM-009 BATS validation. | F3-gate | 2026-09-05 | human |
 
 ## Skip Log
 
@@ -142,7 +143,7 @@ dtu_services: [prism-demo-server, jr-mock]
 |----|------|----------|-------------|------------|--------|
 | DI-013 | Comment-gate workflow friction: `jr issue comment` unconditionally denied by require-review hook; consumer skills (investigate-event, orchestration) cannot complete their comment steps without human permission-override. Options: accept friction / implement marker mechanism / add dedicated non-blocked command | MEDIUM-HIGH | F2 spec evolution → F3 story | 0f-adv pass 6 (ADV-0-601) | ACTIVE THIS CYCLE (D-005: marker mechanism) |
 | ASM-008-DEFERRED | LLM-supplied field cross-validation deferred (SYMMETRIC across three fields): (1) native_severity — LLM-written at Stage 1 INGEST; hook re-normalizes for STEP 1a consistency check but cannot verify ground-truth; (2) asset_type — sensor-specific asset taxonomy not empirically validated; (3) scored_priority — Stage-5 assess-priority output; hook applies HIGH/CRIT floor but cannot independently verify scoring. All three require prism-side cross-validation. Genuine hook-side enforcement deferred to ASM-008 resolution or pre-production. | MEDIUM | ASM-008 resolution / pre-production | ADV-F2-P10-001 / ADV-F2-P11-001 | OPEN — KNOWN-DEFERRED |
-| ASM-015 | BLOCKING pre-Wave-3 loop stories: empirical validation needed that permissionDecision:deny from a PreToolUse hook populates `.permission_denials[]` in --allowedTools JSON envelope; Gate 1 check on permission_denials > 0 is unvalidated until ASM-015 resolves; is_error=true is the only proven reliable exit-1 trigger for Gate 1. | BLOCKING | pre-Wave-3 / pre-F4 | ADV-F2-P10-002 | OPEN — BLOCKING |
+| ASM-015 | BLOCKING pre-Wave-3 loop stories: empirical validation needed that permissionDecision:deny from a PreToolUse hook populates `.permission_denials[]` in --allowedTools JSON envelope; Gate 1 check on permission_denials > 0 is unvalidated until ASM-015 resolves; is_error=true is the only proven reliable exit-1 trigger for Gate 1. | BLOCKING | pre-Wave-4 (S-10.01) dispatch; BATS validation gate MUST pass (per D-036) | ADV-F2-P10-002 | OPEN — BLOCKING |
 | DI-016 | jr issue unlink + jr issue remote-link are real write verbs that are neither write-blocked nor allowlisted — functionally blocked by the SEC-002 fail-closed catch-all but the deny is SILENT: no audit.log entry (audit writes occur only on the explicit write-block branch, BC-3.01.001 Inv#2). Observability gap, not a security gap. Recommend explicit write-block entries + audit parity with the six listed verbs. | LOW | pass-22 perimeter / pre-production | architect burst-18 write-verb blast-radius check | OPEN |
 | ASM-014 | comment-review --label binding pending: the comment-review kill-switch exemption is currently broader than "review ticket only" — restricting it to review-labeled tickets is deferred until empirical validation that `jr issue comment --label` is supported. | LOW | pre-Wave-3 (wave-stories touching comment-review path) / pre-F4 | ADV-F2-P10-008 | OPEN — DEFERRED |
 | DI-015 | Known-FP store integrity residual (P12-003 / D-016 / D-019): a poisoned known-FP store entry could suppress a real LOW/MED-severity alert via the fast-path floor exemption. D-019 further bounds: HIGH/CRIT-native known-FPs route to human review (comment-review). Risk accepted per D-016/D-019; bounded by store governance, not LLM trust model. | MEDIUM | pre-production / store-governance | ADV-F2-P12-003 | OPEN — KNOWN-DEFERRED |
@@ -156,7 +157,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | DI-021 | [process-gap] BC-VP-table→verification-delta sync check missing (F3: BC-9.01.001 VP-SKILL-059 stale class — structural vs behavioral). VP class changes in verif-delta must trigger BC VP-table sync sweep. | LOW-ENG | rc.25+ / self-improvement backlog | ADV-F3-story (BC-9.01.001 VP-SKILL-059) | OPEN — DEFERRED rc.25+ (engine/process improvement; Lesson 60 codified) |
 | DI-022 | [process-gap] story-template lacks cross-BC "referenced-but-non-owned" AC trace field (F3 P7-002). Stories that implement behavior required by non-owned BCs need a structured field to record the relationship without over-claiming ownership. | LOW-ENG | rc.25+ / self-improvement backlog | ADV-F3-story P7-002 | OPEN — DEFERRED rc.25+ (engine/process improvement; Lesson 61 codified) |
 | DI-023 | [process-gap] holdout-scenario template hard-codes `## Category: real-world-corpus` (F3 P14), mis-flagging synthetic/adversarial/DTU-generated scenarios. Recommend parameterized `category_detail:` frontmatter field. | LOW-ENG | rc.25+ / self-improvement backlog | ADV-F3-story P14 | OPEN — DEFERRED rc.25+ (engine/process improvement; Lesson 62 codified) |
-| ASM-009 | Cross-hook marker filesystem visibility: disposition-guard emits markers to and require-review consumes markers from `${CLAUDE_PLUGIN_DATA}/markers/`. BLOCKING pre-Wave-3: if the shared-fs assumption fails its BATS test, the marker mechanism (D-DEC-001/D-DEC-012) needs redesign. Architecturally load-bearing. Was a tracking gap — present in arch-delta §4.2 L4084 but absent from STATE until this wrap. | BLOCKING | pre-Wave-3 / pre-F4 | arch-delta §4.2 L4084 | OPEN — BLOCKING |
+| ASM-009 | Cross-hook marker filesystem visibility: disposition-guard emits markers to and require-review consumes markers from `${CLAUDE_PLUGIN_DATA}/markers/`. BLOCKING pre-Wave-3: if the shared-fs assumption fails its BATS test, the marker mechanism (D-DEC-001/D-DEC-012) needs redesign. Architecturally load-bearing. Was a tracking gap — present in arch-delta §4.2 L4084 but absent from STATE until this wrap. | BLOCKING | pre-Wave-4 (S-10.01) dispatch; BATS validation gate MUST pass (per D-036) | arch-delta §4.2 L4084 | OPEN — BLOCKING |
 
 ## Blocking Issues
 
@@ -164,15 +165,17 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | ID | Issue | Severity | Blocking Phase | Owner | Resolution |
 |----|-------|----------|----------------|-------|------------|
+| ASM-015 | permissionDecision:deny not empirically validated to populate .permission_denials[] in --allowedTools JSON envelope; Gate 1 check on permission_denials > 0 unvalidated | BLOCKING | F4 Wave 4 (S-10.01) dispatch | engineering | OPEN — BATS validation gate MUST pass before Wave 4 (per D-036) |
+| ASM-009 | Cross-hook marker filesystem visibility: disposition-guard emits / require-review consumes from ${CLAUDE_PLUGIN_DATA}/markers/ — shared-fs assumption unvalidated by BATS | BLOCKING | F4 Wave 4 (S-10.01) dispatch | engineering | OPEN — BATS validation gate MUST pass before Wave 4 (per D-036) |
 
 ## Session Resume Checkpoint
 
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-09-05 |
-| **Position** | F3 story adversarial convergence COMPLETE (29 passes; streak 3/3: passes 27/28/29 CLEAN 0C/0Maj/0Med). Gate audits: consistency-validator PASS-WITH-MINORS (M-001 GAP-003 remediated); spec-reviewer APPROVED-WITH-SUGGESTIONS (SR-001 HIGH + MEDIUMs remediated; SR-012c/SR-015 LOW deferred). F3 artifacts committed to factory-artifacts. AWAITING human F3 gate. On approval → F4 Wave 1 dispatch (S-3.01 P0, S-4.02 P1, S-6.03 P0 parallel). Pre-Wave-4 BLOCKERS: ASM-015 (BATS validation, permission_denials in JSON envelope) + ASM-009 (cross-hook marker filesystem visibility). Process-gap deferrals DI-019..DI-023 codified in Drift Items + Lessons 58-63 in lessons.md. |
+| **Position** | F3 gate APPROVED by human (D-036). F4 delta implementation AUTHORIZED. Wave 1 dispatch ACTIVE: S-3.01 (P0), S-4.02 (P1), S-6.03 (P0) parallel. Pre-Wave-4 BLOCKERS: ASM-015 (BATS validation, permission_denials in JSON envelope) + ASM-009 (cross-hook marker filesystem visibility) MUST pass before Wave 4 (S-10.01) dispatch per D-036. Process-gap deferrals DI-019..DI-023 codified. |
 | **Context** | Stories: 13 / 88 pts / 5 waves. Holdouts: 62 (34 baseline + 28 F3-delta). Converged spec (FROZEN post-burst-42): arch-delta v1.34 (d7bcab4), BC-10.01.001 v1.36 (742b491), BC-3.03.001 v1.42 (95fcec5), BC-3.01.001 v1.25 (96609a9), BC-4.02.001 v1.21, BC-5.01.001 v1.15, prd-delta v1.39 (1c4be4c), verif-delta v1.38 (SM 76/75), dtu-assessment v1.7. VP 41; SM 76/75; EC 24+56+80. BATS: 113. HS-060 input-hash: 71f9e5e. DI-018 ACCEPT-DEFER (rc.25+). factory/hooks/ NOT instantiated. |
-| **Convergence counter** | F3: 3/3 clean — F3 ADVERSARIAL STORY CONVERGENCE COMPLETE (passes 27/28/29). Gate: AWAITING human F3 approval (F4-authorized NOT YET). |
+| **Convergence counter** | F3: 3/3 clean — F3 ADVERSARIAL STORY CONVERGENCE COMPLETE (passes 27/28/29). Gate: APPROVED (human 2026-09-05; D-036). F4 AUTHORIZED. |
 
 ## Concurrent Cycles
 

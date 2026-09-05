@@ -1,12 +1,12 @@
 ---
 document_type: convergence-trajectory
 level: ops
-version: "1.0"
+version: "1.1"
 status: in-progress
 producer: state-manager
-timestamp: 2026-09-02T17:00:00Z
+timestamp: 2026-09-05T00:00:00Z
 cycle: v0.10.0-feature-prism-integration
-inputs: [phase-f2-spec-evolution/]
+inputs: [phase-f2-spec-evolution/, phase-f3-stories/]
 input-hash: "[live-state]"
 traces_to: STATE.md
 ---
@@ -461,3 +461,38 @@ Independent re-derivation: comprehensive fresh-context re-walk of all primary be
 **CONVERGENCE CONFIRMED.** Three consecutive independent fresh-context passes (44, 45, 46) found zero Critical, zero Major, zero Medium, zero Minor findings. All OBS findings are cosmetic/deferred (P44-001, P45-001) or accepted (P45-002, P46-001). F2 Adversarial Spec Convergence is complete. Spec is ready for F2 convergence gate.
 
 Spec versions (FROZEN post-burst-42 — no changes this pass): **arch-delta v1.34**, **BC-10.01.001 v1.36** (EC 24), **prd-delta v1.39**, **verif-delta v1.38** (SM 76/75), **BC-3.03.001 v1.42**. VP **21 FIN + 6 PROP = 27** (41 in registry). BATS: 113 (unchanged). Final artifact versions at F2 spec convergence: arch-delta v1.34, BC-10.01.001 v1.36, BC-3.03.001 v1.42, BC-3.01.001 v1.25, BC-4.02.001 v1.21, BC-5.01.001 v1.15, prd-delta v1.39, verif-delta v1.38, dtu-assessment v1.7. VP 41 (21 FIN P0 + 6 PROP P1 = 27 total); SM 76 alloc / 75 live; EC 24/56/80.
+
+---
+
+## F3 Story Adversarial Passes — Convergence 2026-09-04/05
+
+F3 story adversarial review ran against 13 stories / 88 points / 5 waves.
+**29 total passes.** Convergence streak: passes 27/28/29 CLEAN (0C/0Maj/0Med/0Min each).
+Gate-audits: consistency-validator PASS-WITH-MINORS; spec-reviewer APPROVED-WITH-SUGGESTIONS.
+
+### F3 Key Pass Milestones
+
+| Phase | Date | Finding Class | Notes |
+|-------|------|---------------|-------|
+| Passes 1–21 | 2026-09-04 | Various C/Maj/Med | Story spec tightening — AC coverage, VP-ownership, traceability |
+| Pass 22 | 2026-09-04 | 0C/0Maj | Premature convergence declared — overturned by pass 23 |
+| Pass 23 | 2026-09-04 | **P0 CRITICAL** — VP-HOOK-029 | Build-capability gap: VP-HOOK-029 owned by a skill story (emitter VP), not the hook story; index-level VP-presence check false-passed; overturned pass-22 premature convergence |
+| Passes 24–26 | 2026-09-04/05 | Maj/Med — build-capability class | Per-mutant coverage gaps, §4 mutant-catalog incompleteness; build-capability/per-mutant-coverage drip multi-pass |
+| Pass 27 | 2026-09-05 | **CLEAN 0C/0Maj/0Med/0Min** — streak 1/3 | §4 mutant-catalog fully closed; comprehensive fresh-context §4 walk confirmed complete |
+| Pass 28 | 2026-09-05 | **CLEAN 0C/0Maj/0Med/0Min** — streak 2/3 | Full independent re-derivation all AC/VP/BC axes |
+| Pass 29 | 2026-09-05 | **CLEAN 0C/0Maj/0Med/0Min** — streak 3/3 | **F3 ADVERSARIAL STORY CONVERGENCE COMPLETE** |
+
+### Gate-Audit Results
+
+| Auditor | Verdict | Key Findings | Remediation |
+|---------|---------|-------------|-------------|
+| consistency-validator | PASS-WITH-MINORS | M-001 (cross-ref anchor gap); GAP-003 (traceability row missing) | Remediated before gate |
+| spec-reviewer | APPROVED-WITH-SUGGESTIONS | SR-001 HIGH (AC completeness — remediated); several MEDIUMs (remediated); SR-012c LOW + SR-015 LOW | SR-012c/SR-015 deferred as LOW (non-blocking) |
+
+### Notable Process Catches
+
+- **Pass 23 P0 VP-HOOK-029**: build-capability inversion — an emitter VP was listed as owned by a skill story, not the hook story implementing the emitter. Index-level VP-presence check counted the VP as present but missed the ownership inversion. Overturned pass-22 premature convergence. Root cause: index-level checks are necessary but not sufficient; a fresh-context §4 walk is required to catch capability inversions.
+- **Passes 24–26 per-mutant drip**: VP↔AC trace matrix did not include per-mutant coverage columns. Each pass found one additional mutant coverage gap. Root cause: story-writer/matrix workflow lacked a matrix-completeness lint against verification-delta §4/§5.
+- **§4 mutant-catalog closure**: comprehensive pass-27 §4 walk confirmed all §4 mutants traced to story ACs; catalog closed cleanly.
+
+**F3 STORY ADVERSARIAL CONVERGENCE COMPLETE — 2026-09-05. AWAITING HUMAN F3 GATE.**

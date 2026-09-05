@@ -1,19 +1,19 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "2.39"
+version: "2.40"
 status: active
 producer: state-manager
-timestamp: 2026-09-04T00:00:00Z
-phase: F3-IN-PROGRESS
+timestamp: 2026-09-05T00:00:00Z
+phase: F3-CONVERGED-GATE-PENDING
 pipeline: FEATURE-CYCLE
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "MIG-001 Part A DONE; 6 COMPUTE-AT-COMMIT input-hashes resolved; F3 story decomposition (Wave 7 monitoring-loop) STARTING. trajectory-tail →5→1→2→1 D-chain cite D-447 latest feature-cycle"
-awaiting: "F3 story decomposition of 5 new + 6 modified BCs (Wave 7 monitoring-loop)."
+current_step: "F3 story adversarial convergence COMPLETE (29 passes; streak 3/3: passes 27/28/29 CLEAN 0C/0Maj/0Med). Gate audits PASS. F3 artifacts committed. AWAITING human F3 gate. trajectory-tail →1→0→0→0 D-chain cite D-447 latest feature-cycle"
+awaiting: "Human F3 approval gate; on approval → F4 delta implementation (Wave 1 first: S-3.01, S-4.02, S-6.03 parallel). Pre-Wave-4 blockers: ASM-015 + ASM-009."
 current_cycle: v0.10.0-feature-prism-integration
 dtu_required: true
 dtu_assessment: "2026-07-20"
@@ -22,11 +22,12 @@ dtu_services: [prism-demo-server, jr-mock]
 ---
 
 <!--
-  STATE.md SIZE BUDGET: 182 lines (wc-l) | soft-target: 185 | margin from soft-target: 3 | margin from actual: 18
+  STATE.md SIZE BUDGET: 189 lines (wc-l) | soft-target: 195 | margin from soft-target: 6 | margin from actual: 11
   Historical content belongs in cycle files, NOT here.
   Phase Progress sub-rows (passes 38-43) archived to convergence-trajectory.md; pass-44 and burst-42 retained per D-435(b)+D-447(d).
-  Resolved DI items archived (RESOLVED items removed from table). OBS-GC-001/002 FIXED this wrap — retained in table for auditability.
-  Run /vsdd-factory:compact-state if this file grows past 185 lines.
+  F3 convergence summary rows added; old F2 Current Phase Steps archived to session-checkpoints.md.
+  Process-gap deferrals DI-019..DI-023 added to Drift Items.
+  Run /vsdd-factory:compact-state if this file grows past 195 lines.
 -->
 
 # Pipeline State: secops-factory
@@ -42,9 +43,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | **Target Workspace** | /Users/jmagady/Dev/secops-factory |
 | **Engine** | /Users/jmagady/Dev/dark-factory (vsdd-factory plugin) |
 | **Started** | 2026-07-19 |
-| **Last Updated** | 2026-09-04 — MIG-001 Part A DONE (.claude/settings.json enabledPlugins fixed vsdd-factory@claude-mp); 6 COMPUTE-AT-COMMIT input-hashes resolved (BC-4.05.001/BC-6.01.001/BC-6.01.003/BC-6.01.004/BC-8.02.001/BC-9.01.001); F3 story decomposition STARTING; trajectory-tail →5→1→2→1 |
-| **Current Phase** | F3: Incremental Stories — IN PROGRESS (started 2026-09-04) |
-| **Current Step** | MIG-001 Part A DONE. 6 COMPUTE-AT-COMMIT input-hashes resolved. F3 story decomposition (Wave 7 monitoring-loop) STARTING. |
+| **Last Updated** | 2026-09-05 — F3 story adversarial convergence COMPLETE (29 passes; streak 3/3: passes 27/28/29 CLEAN). Gate audits PASS (consistency-validator PASS-WITH-MINORS remediated; spec-reviewer APPROVED-WITH-SUGGESTIONS remediated). F3 artifacts committed. AWAITING human F3 gate. Process-gap deferrals DI-019..DI-023 codified. trajectory-tail →1→0→0→0 |
+| **Current Phase** | F3: Incremental Stories — ADVERSARIAL CONVERGENCE COMPLETE; gate audits PASS; AWAITING human F3 gate (2026-09-05) |
+| **Current Step** | F3 adversarial convergence 3/3 CLEAN (passes 27/28/29 0C/0Maj/0Med). Gate audits PASS. F3 artifacts committed to factory-artifacts. AWAITING human F3 gate approval. On approval → F4 Wave 1 dispatch. |
 
 ## Phase Progress
 
@@ -56,7 +57,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | F2: Spec Evolution | GATE APPROVED (human 2026-09-04) — F2 COMPLETE | 2026-07-20 | 2026-09-04 | APPROVED (human 2026-09-04) | pass1–29 see burst-log → pass30–43 see convergence-trajectory → pass44 CLEAN (1/3) → pass45 CLEAN (2/3) → pass46 CLEAN (3/3) → F2 SPEC CONVERGED → GATE APPROVED |
 | F2: adversary pass 44 | DONE | 2026-09-03 | 2026-09-03 | CLEAN 0C/0M/0med/0min/1obs — streak 1/3 | P44-001 OBS EC-023 attribution cosmetic DEFERRED; substance INDEPENDENTLY RE-DERIVED CLEAN; spec FROZEN post-burst-42 |
 | F2: fix burst 42 | DONE | 2026-09-03 | 2026-09-03 | | SUBSTANTIVE: arch-delta v1.34 (once-per-run gate); BC-10.01.001 v1.36 (EC 24; @test-name; version-trail); prd-delta v1.39; verif-delta v1.38 (SM-82/83 REDEFINED once-per-run); BC-3.03.001 no-bump; VP/SM 76/75 UNCHANGED |
-| F3: Incremental Stories | in-progress | 2026-09-04 | | | |
+| F3: Incremental Stories | ADVERSARIAL CONVERGENCE COMPLETE (3/3 clean: passes 27/28/29); gate audits PASS; AWAITING human F3 gate | 2026-09-04 | 2026-09-05 (pending human gate) | AWAITING HUMAN | F3: 29 passes; P23-P0-build-cap-gap→P24-26-per-mutant→P27-P29-CLEAN (→1→0→0→0) |
 | F4: Delta Implementation | not-started | | | | |
 | F5: Scoped Adversarial | not-started | | | | |
 | F6: Targeted Hardening | not-started | | | | |
@@ -66,10 +67,11 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Metric | Value |
 |--------|-------|
-| Clean passes | 3/3 — **F2 ADVERSARIAL SPEC CONVERGENCE COMPLETE** (passes 44/45/46 CLEAN; streak complete) |
-| Last adversary pass | pass-46 (0C/0M/0med/0min/1obs) CLEAN — streak 3/3 COMPLETE; P46-001 OBS historical occupancy-ledger ACCEPTED (append-only record, not stale claim); substance INDEPENDENTLY RE-DERIVED CLEAN (10th consec 0C/0M); spec FROZEN post-burst-42 |
-| Next action | MIG-001 Part A (fix .claude/settings.json enable key) → F3 story decomposition (Wave 7 monitoring-loop; 5 new BCs + 6 modified BCs) |
-| Trajectory tail | →3→2→5→1→2→1 (passes 41→42→43→44→45→46) — CLEAN at pass-46 (streak 3/3 COMPLETE); F2 SPEC CONVERGED; DETECT_LATE_EVENT feature fully converged (bursts 38-42 complete hardening chain) |
+| Clean passes | 3/3 — **F3 ADVERSARIAL STORY CONVERGENCE COMPLETE** (passes 27/28/29 CLEAN; streak complete; 29 total passes) |
+| Last adversary pass | F3 story pass-29 (0C/0Maj/0Med/0Min) CLEAN — streak 3/3 COMPLETE; §4 mutant-catalog fully closed; notable: pass-23 P0 VP-HOOK-029 build-capability inversion overturned pass-22 premature convergence; passes 24-26 per-mutant-coverage class |
+| Gate audits | consistency-validator PASS-WITH-MINORS (M-001 GAP-003 remediated); spec-reviewer APPROVED-WITH-SUGGESTIONS (SR-001 HIGH + MEDIUMs remediated; SR-012c/SR-015 LOW deferred) |
+| Next action | Human F3 gate approval → F4 Wave 1 dispatch (S-3.01, S-4.02, S-6.03 parallel); ASM-015 + ASM-009 BLOCKING pre-Wave-4 |
+| Trajectory tail | F3 STORY: →1→0→0→0 (passes 26→27→28→29) — CLEAN at pass-29 (streak 3/3 COMPLETE); F3 STORY CONVERGED |
 
 ## Current Phase Steps
 
@@ -77,11 +79,11 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| F2: adversarial pass 46 | adversary | DONE | 0C/0M/0med/0min/1obs — CLEAN (streak 3/3 — **F2 ADVERSARIAL SPEC CONVERGENCE COMPLETE**). P46-001 OBS: historical occupancy-ledger entry in verif-delta v1.9 — append-only record, not stale current claim; ACCEPTED. Substance INDEPENDENTLY RE-DERIVED CLEAN (comprehensive fresh-context re-walk all behavioral axes). 10th consec 0C/0M. CONVERGENCE CONFIRMED. Spec FROZEN. |
-| F2: adversarial pass 45 | adversary | DONE | 0C/0M/0med/0min/2obs — CLEAN (streak 2/3). P45-001 OBS: BC-10.01.001 L604 "since watermark" shorthand vs normative L625 formula — cosmetic; DEFERRED F2 gate. P45-002 OBS: arch-delta lexicographic future-date idiom — ADV-F2-010 accepted pattern; ACCEPTED. Substance INDEPENDENTLY RE-DERIVED CLEAN. 9th consec 0C/0M. Spec FROZEN. |
-| F2: adversarial pass 44 | adversary | DONE | 0C/0M/0med/0min/1obs — CLEAN (streak 1/3). P44-001 OBS: EC-023 first-run clause attributes baseline check to per-event DETECT_LATE_EVENT (now no-op) rather than VALIDATE_WATERMARK_FOR_RUN — cosmetic; DEFERRED F2 gate. Substance INDEPENDENTLY RE-DERIVED CLEAN. 8th consec 0C/0M. FIRST CLEAN OF NEW STREAK. Spec FROZEN. |
-| F2: adversarial pass 43 | adversary | DONE | 0C/0M/3med/0min/2obs — NOT CLEAN (streak 0/3; REGRESSION 2→5). P43-001 MED: VP-SKILL-073 @test names stale watermark−GRACE boundary (false-green re-encode risk). P43-002 MED: DETECT_LATE_EVENT_SUPPRESSED per-event flood (P41-003 relabeled). P43-003 MED: version-trail incoherence no-bump accumulation debt. 7th consec 0C/0M substance. REMEDIATED burst-42. |
-| F2: burst-42 (SUBSTANTIVE — once-per-run VALIDATE_WATERMARK_FOR_RUN + @test-name fix + BC v1.36 version-trail cleanup + cascade) | architect / product-owner / formal-verifier | DONE | arch-delta v1.33→v1.34 (VALIDATE_WATERMARK_FOR_RUN once-per-run gate; input-hash d7bcab4); BC-10.01.001 v1.35→v1.36 (Inv#14 once-per-run + EC-024 cardinality + @test-name fix + version-trail; EC count 24; input-hash 742b491); prd-delta v1.38→v1.39 (§5 pin→v1.36; input-hash 1c4be4c); verif-delta v1.37→v1.38 (SM-82/83 REDEFINED; @test-name fix; 15 BC pins v1.35→v1.36); BC-3.03.001 pin→v1.36 no-bump (input-hash 95fcec5). VP/SM 76/75 UNCHANGED. |
+| F3: adversarial pass 29 (story) | adversary | DONE | 0C/0Maj/0Med/0Min — CLEAN (streak 3/3 — **F3 ADVERSARIAL STORY CONVERGENCE COMPLETE**). §4 mutant-catalog confirmed closed. Full independent re-derivation all AC/VP/BC axes. CONVERGENCE CONFIRMED. |
+| F3: adversarial pass 28 (story) | adversary | DONE | 0C/0Maj/0Med/0Min — CLEAN (streak 2/3). Full independent re-derivation all story AC, VP ownership, BC traceability axes. 2nd consecutive clean. |
+| F3: adversarial pass 27 (story) | adversary | DONE | 0C/0Maj/0Med/0Min — CLEAN (streak 1/3 — FIRST CLEAN OF NEW STREAK). §4 mutant-catalog fully closed (comprehensive fresh-context §4 walk). FIRST CLEAN SINCE P23 P0 VP-HOOK-029 build-capability gap. |
+| F3: adversarial pass 23 (story) | adversary | DONE | **P0 CRITICAL** VP-HOOK-029 build-capability inversion (emitter VP owned by skill story, not hook story). Overturned pass-22 premature convergence. Index-level VP-presence check false-passed. Lesson-63 codified. |
+| F3: story decomposition complete | story-writer | DONE | 13 stories / 88 points / 5 execution waves. 62 holdouts (34 baseline + 28 F3-delta). HS-060 input-hash resolved (71f9e5e). Adversarial review STARTED. |
 
 ## Decisions Log
 
@@ -149,6 +151,11 @@ dtu_services: [prism-demo-server, jr-mock]
 | MIG-001 | Engine uplift to vsdd-factory 1.0.0-rc.24 + .factory/ artifact-path canonicalization deferred to F3 cycle boundary. Health check found: (1) .claude/settings.json enable key BROKEN — `vsdd-factory@vsdd-factory` should be `vsdd-factory@claude-mp`; (2) project ran on rc.22 (now purged); newest cached engine = rc.24; (3) 126 path violations vs rc.24 canonical registry: 48 MAPPABLE, 78 UNMAPPED; (4) rc.24 validate-artifact-path deny-hook appears fail-open (on_error=continue). F3-boundary task: fix enable key; relocate 48 mappable files w/ cross-ref + index updates; resolve EC-007 bc_id/subsystem frontmatter gap; decide handling for 78 unmapped. | MEDIUM | F3 cycle boundary (pre-F3-story-decomposition) | orchestrator health-check 2026-09-01 | PART A DONE (2026-09-04): .claude/settings.json enabledPlugins `vsdd-factory@vsdd-factory` → `vsdd-factory@claude-mp` fixed (local untracked edit verified). PARTS B+C → ACCEPT per D-031/D-032. |
 | OBS-GC-001 | EC-023 first-run attribution (P44-001): BC-10.01.001 EC-023 first-run clause attributes the baseline check to per-event DETECT_LATE_EVENT (now a no-op post-burst-42) rather than VALIDATE_WATERMARK_FOR_RUN — cosmetic wording; no behavioral divergence. | LOW | F2 gate cleanup | ADV-F2-pass-44 P44-001 | FIXED — BC-10.01.001 updated this wrap (2026-09-04) |
 | OBS-GC-002 | BC-10.01.001 L604 shorthand (P45-001): L604 uses "since watermark" loose shorthand for the grace-floor threshold rather than the normative L625 `watermark + GRACE_PERIOD_SECONDS` expression — non-normative inline comment; no behavioral impact. | LOW | F2 gate cleanup | ADV-F2-pass-45 P45-001 | FIXED — BC-10.01.001 updated this wrap (2026-09-04) |
+| DI-019 | [process-gap] VP↔AC trace + per-mutant completeness check absent from story-writer/matrix workflow (F3 P2-010/P25-003): multi-pass per-mutant-coverage drip. Recommend matrix-completeness lint against verification-delta §4/§5 (mutant → owning story AC → owning VP table). | LOW-ENG | rc.25+ / self-improvement backlog | ADV-F3-story P2-010/P25-003 | OPEN — DEFERRED rc.25+ (engine/process improvement; Lesson 58 codified) |
+| DI-020 | [process-gap] SM→VP catalog delivered as dense prose paragraph (F3 P20): not machine-checkable. Recommend flat SM→VP→owning-story table + citation linter over story ACs. | LOW-ENG | rc.25+ / self-improvement backlog | ADV-F3-story P20 | OPEN — DEFERRED rc.25+ (engine/process improvement; Lesson 59 codified) |
+| DI-021 | [process-gap] BC-VP-table→verification-delta sync check missing (F3: BC-9.01.001 VP-SKILL-059 stale class — structural vs behavioral). VP class changes in verif-delta must trigger BC VP-table sync sweep. | LOW-ENG | rc.25+ / self-improvement backlog | ADV-F3-story (BC-9.01.001 VP-SKILL-059) | OPEN — DEFERRED rc.25+ (engine/process improvement; Lesson 60 codified) |
+| DI-022 | [process-gap] story-template lacks cross-BC "referenced-but-non-owned" AC trace field (F3 P7-002). Stories that implement behavior required by non-owned BCs need a structured field to record the relationship without over-claiming ownership. | LOW-ENG | rc.25+ / self-improvement backlog | ADV-F3-story P7-002 | OPEN — DEFERRED rc.25+ (engine/process improvement; Lesson 61 codified) |
+| DI-023 | [process-gap] holdout-scenario template hard-codes `## Category: real-world-corpus` (F3 P14), mis-flagging synthetic/adversarial/DTU-generated scenarios. Recommend parameterized `category_detail:` frontmatter field. | LOW-ENG | rc.25+ / self-improvement backlog | ADV-F3-story P14 | OPEN — DEFERRED rc.25+ (engine/process improvement; Lesson 62 codified) |
 | ASM-009 | Cross-hook marker filesystem visibility: disposition-guard emits markers to and require-review consumes markers from `${CLAUDE_PLUGIN_DATA}/markers/`. BLOCKING pre-Wave-3: if the shared-fs assumption fails its BATS test, the marker mechanism (D-DEC-001/D-DEC-012) needs redesign. Architecturally load-bearing. Was a tracking gap — present in arch-delta §4.2 L4084 but absent from STATE until this wrap. | BLOCKING | pre-Wave-3 / pre-F4 | arch-delta §4.2 L4084 | OPEN — BLOCKING |
 
 ## Blocking Issues
@@ -162,10 +169,10 @@ dtu_services: [prism-demo-server, jr-mock]
 
 | Field | Value |
 |-------|-------|
-| **Date** | 2026-09-04 |
-| **Position** | MIG-001 Part A DONE (2026-09-04): .claude/settings.json enabledPlugins fixed vsdd-factory@vsdd-factory → vsdd-factory@claude-mp; Parts B+C ACCEPT per D-031/D-032. 6 COMPUTE-AT-COMMIT input-hashes resolved: BC-4.05.001 v1.4 → b06a947; BC-6.01.001 v1.8 → 62f3e15; BC-6.01.003 v1.7 → 092ae2f; BC-6.01.004 v1.1 → 092ae2f; BC-8.02.001 v1.4 → 092ae2f; BC-9.01.001 v1.2 → 092ae2f. F3 story decomposition (Wave 7 monitoring-loop) STARTING. NEXT: decompose 5 new BCs (BC-6.01.003/004, BC-8.02.001, BC-9.01.001, BC-10.01.001) + 6 modified BCs; finalize story-naming (STORY-DEMO-SEED-001 = placeholder, assign canonical S-N.MM at F3 kickoff). ASM-015 + ASM-009 BLOCKING pre-Wave-3/F4. |
-| **Context** | Converged artifact versions (FROZEN post-burst-42): arch-delta v1.34 (d7bcab4), BC-10.01.001 v1.36 (EC 24; 742b491), BC-3.03.001 v1.42 (95fcec5), BC-3.01.001 v1.25 (96609a9), BC-4.02.001 v1.21, BC-5.01.001 v1.15, prd-delta v1.39 (1c4be4c), verif-delta v1.38 (SM 76/75), dtu-assessment v1.7. Input-hashes now resolved: BC-4.05.001 (b06a947), BC-6.01.001 (62f3e15), BC-6.01.003/004/8.02.001/9.01.001 (092ae2f each). VP 41; SM 76/75; EC 24+56+80 cycle. BATS: 113. main: PRs #18+#19 MERGED (e8bf19f). DI-018 ACCEPT-DEFER (rc.25+). factory/hooks/ NOT instantiated. |
-| **Convergence counter** | 3/3 clean — F2 ADVERSARIAL SPEC CONVERGENCE COMPLETE (passes 44/45/46). F2 GATE APPROVED (human 2026-09-04). F3 STARTED. |
+| **Date** | 2026-09-05 |
+| **Position** | F3 story adversarial convergence COMPLETE (29 passes; streak 3/3: passes 27/28/29 CLEAN 0C/0Maj/0Med). Gate audits: consistency-validator PASS-WITH-MINORS (M-001 GAP-003 remediated); spec-reviewer APPROVED-WITH-SUGGESTIONS (SR-001 HIGH + MEDIUMs remediated; SR-012c/SR-015 LOW deferred). F3 artifacts committed to factory-artifacts. AWAITING human F3 gate. On approval → F4 Wave 1 dispatch (S-3.01 P0, S-4.02 P1, S-6.03 P0 parallel). Pre-Wave-4 BLOCKERS: ASM-015 (BATS validation, permission_denials in JSON envelope) + ASM-009 (cross-hook marker filesystem visibility). Process-gap deferrals DI-019..DI-023 codified in Drift Items + Lessons 58-63 in lessons.md. |
+| **Context** | Stories: 13 / 88 pts / 5 waves. Holdouts: 62 (34 baseline + 28 F3-delta). Converged spec (FROZEN post-burst-42): arch-delta v1.34 (d7bcab4), BC-10.01.001 v1.36 (742b491), BC-3.03.001 v1.42 (95fcec5), BC-3.01.001 v1.25 (96609a9), BC-4.02.001 v1.21, BC-5.01.001 v1.15, prd-delta v1.39 (1c4be4c), verif-delta v1.38 (SM 76/75), dtu-assessment v1.7. VP 41; SM 76/75; EC 24+56+80. BATS: 113. HS-060 input-hash: 71f9e5e. DI-018 ACCEPT-DEFER (rc.25+). factory/hooks/ NOT instantiated. |
+| **Convergence counter** | F3: 3/3 clean — F3 ADVERSARIAL STORY CONVERGENCE COMPLETE (passes 27/28/29). Gate: AWAITING human F3 approval (F4-authorized NOT YET). |
 
 ## Concurrent Cycles
 

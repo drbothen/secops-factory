@@ -826,3 +826,103 @@ All seven axes address forms of spec correctness that site-to-site reconciliatio
     _tag: [codified]_
     _Discovered: F2 adversarial pass 42 (P42-001 MAJOR INTRA-BC CONTRADICTION) → burst-41 absent-watermark coherence correction, 2026-09-03_
 
+---
+
+### Lesson 58 — [process-gap] [codified] VP↔AC TRACE + PER-MUTANT COMPLETENESS CHECK ABSENT FROM STORY-WRITER/MATRIX WORKFLOW (F3 story adversarial passes 2-010 / 25-003, 2026-09-04/05)
+
+**Category:** [process-gap] [codified]
+**Trigger:** P2-010 + P25-003 — multi-pass per-mutant coverage drip (passes 24–26 each found one additional mutant gap; root cause: no per-mutant coverage column in VP↔AC trace matrix)
+
+**Lesson:** The story-writer and matrix-review workflow lack a completeness lint against verification-delta §4 (mutant catalog) and §5 (BATS vectors). The VP↔AC trace matrix was generated from VP IDs and AC IDs but did not include a per-mutant coverage column. Each adversarial pass found one additional mutant that was present in §4 but lacked a corresponding story AC. This class of defect cannot be caught by counting VPs in an index — it requires walking §4/§5 directly.
+
+**Codified rule:** Before declaring story decomposition complete, a mandatory **matrix-completeness lint** MUST:
+1. For each §4 mutant entry in verification-delta, verify there is at least one story AC that explicitly targets that mutant class (by name or canonical shorthand).
+2. For each §5 BATS vector in verification-delta, verify there is a story AC and a referenced VP that covers the BATS scenario.
+3. Any §4/§5 entry without a story AC is a REQUIRED coverage gap that blocks story acceptance.
+
+Recommend implementing this as a structured table (mutant → owning story AC → owning VP) added to the story decomposition artifact before adversarial review starts.
+
+**DI-019 filed:** rc.25+ / self-improvement backlog — matrix-completeness lint script against verification-delta §4/§5.
+    _tag: [codified]_
+    _Discovered: F3 story adversarial passes P2-010/P25-003 (multi-pass per-mutant-coverage drip), 2026-09-04/05_
+
+---
+
+### Lesson 59 — [process-gap] [codified] SM→VP CATALOG IS DENSE PROSE — RECOMMEND FLAT MACHINE-CHECKABLE TABLE (F3 story adversarial pass 20, 2026-09-04)
+
+**Category:** [process-gap] [codified]
+**Trigger:** P20 — SM→VP catalog delivered as dense prose paragraph; reviewers and auditors cannot machine-check VP-to-story citation completeness
+
+**Lesson:** The SM→VP→owning-story mapping is documented as a prose paragraph. This format is human-readable but not machine-checkable. Reviewers cannot efficiently verify that every SM has a VP, every VP has an owning story, and every story AC cites the VP it satisfies. The dense prose format caused pass-20 reviewers to miss a VP-ownership gap that would have been immediately visible in a table.
+
+**Codified rule:** The SM→VP catalog MUST be expressed as a flat table with columns: `SM-ID | VP-ID | Owning Story | AC Citation | Status`. A linter over story AC citations that cross-references this table can automate completeness checking. Prose summaries are acceptable as annotations but MUST NOT replace the table as the primary record.
+
+**DI-020 filed:** rc.25+ / self-improvement backlog — SM→VP→owning-story flat table format + citation linter.
+    _tag: [codified]_
+    _Discovered: F3 story adversarial pass P20 (dense-prose SM→VP catalog), 2026-09-04_
+
+---
+
+### Lesson 60 — [process-gap] [codified] BC-VP-TABLE SYNC CHECK NEEDED: FROZEN-SPEC DESYNC (BC-9.01.001 VP-SKILL-059 structural vs behavioral upgrade, F3 story adversarial review 2026-09-04)
+
+**Category:** [process-gap] [codified]
+**Trigger:** BC-9.01.001 VP table contained VP-SKILL-059 described as a "structural" property (frozen from an earlier spec version); verification-delta had upgraded VP-SKILL-059 to a behavioral upgrade VP. The BC VP table was stale.
+
+**Lesson:** When verification-delta upgrades a VP from one class to another (e.g., structural → behavioral, or proposed → finalized), the corresponding BC VP table must be synchronized. If the VP table in the BC is not updated, it will diverge from verification-delta's authoritative classification. This class of frozen-spec desync is not caught by counting VPs or checking their presence — it requires reading the VP classification in both documents.
+
+**Codified rule:** Any VP class change in verification-delta MUST trigger a BC VP-table sync sweep: for each BC that references the changed VP in its VP table, update the `class` and `status` columns to match verification-delta. A BC-VP-table→verification-delta sync check MUST be added to the burst-verification checklist.
+
+**DI-021 filed:** rc.25+ / self-improvement backlog — BC-VP-table sync check script against verification-delta VP classifications.
+    _tag: [codified]_
+    _Discovered: F3 story adversarial review (BC-9.01.001 VP-SKILL-059 stale class), 2026-09-04_
+
+---
+
+### Lesson 61 — [process-gap] [codified] STORY-TEMPLATE MISSING CONVENTION FOR CROSS-BC "REFERENCED-BUT-NON-OWNED" AC TRACES (F3 story adversarial pass 7-002, 2026-09-04)
+
+**Category:** [process-gap] [codified]
+**Trigger:** P7-002 — stories that implement behavior required by multiple BCs had no convention for distinguishing "owned" ACs (the story is the primary owner) from "referenced" ACs (the story provides a supporting precondition tested by another story's AC). Reviewers could not determine accountability from the story file alone.
+
+**Lesson:** When a story delivers behavior that satisfies BCs it does not "own" (i.e., the BC is in another story's primary scope but requires this story's implementation as a precondition), the story-template provides no structured field to record that relationship. This leads to either over-claiming (story claims full ownership of a BC it partially implements) or under-claiming (referenced BC omitted entirely, causing coverage gaps at audit).
+
+**Codified rule:** The story-template MUST include a `referenced_but_non_owned_bcs:` field (or equivalent) for BCs that this story's implementation contributes to without being the primary owner. Each entry should cite: `BC-ID | owning-story-ID | contribution: <summary>`. The owned BCs go in `behavioral_contracts:` (existing field); the non-owned references go in the new field.
+
+**DI-022 filed:** rc.25+ / self-improvement backlog — story-template cross-BC "referenced-but-non-owned" field.
+    _tag: [codified]_
+    _Discovered: F3 story adversarial pass P7-002 (cross-BC AC trace gap), 2026-09-04_
+
+---
+
+### Lesson 62 — [process-gap] [codified] HOLDOUT-SCENARIO TEMPLATE HARD-CODES `## Category: real-world-corpus`, MIS-FLAGGING NON-CORPUS SCENARIOS (F3 story adversarial pass 14, 2026-09-04)
+
+**Category:** [process-gap] [codified]
+**Trigger:** P14 — multiple F3-delta holdout scenarios had `## Category: real-world-corpus` as a hard-coded section heading in the template, even for scenarios that test synthesized/adversarial-fixture behavior (not real-world corpus replay). The category heading was incorrect for those scenarios but was preserved from the template.
+
+**Lesson:** The holdout-scenario template uses `## Category: real-world-corpus` as a fixed section heading. This is appropriate for scenarios that replay real-world captured traffic/corpus data, but incorrect for scenarios that use synthetic fixtures, adversarial edge cases, or DTU-generated data. The hard-coded heading causes holdout index reviewers to misclassify scenarios when computing corpus coverage statistics.
+
+**Codified rule:** The holdout-scenario template MUST replace `## Category: real-world-corpus` with a parameterized field `category_detail:` in the frontmatter (valid values: `real-world-corpus | synthetic-fixture | adversarial-probe | dtu-generated | regression-replay`). The section heading should be generated from this field, not hard-coded. Existing scenarios with the hard-coded heading should be reviewed for reclassification.
+
+**DI-023 filed:** rc.25+ / self-improvement backlog — holdout-scenario template category parameterization + reclassification sweep.
+    _tag: [codified]_
+    _Discovered: F3 story adversarial pass P14 (hard-coded category heading mis-flags non-corpus scenarios), 2026-09-04_
+
+---
+
+### Lesson 63 — [recurring] [codified] INDEX-LEVEL VP-PRESENCE CHECKS DO NOT CATCH BUILD-CAPABILITY INVERSIONS OR PER-MUTANT COVERAGE GAPS (F3 story adversarial pass 23 P0 VP-HOOK-029, 2026-09-04/05)
+
+**Category:** [recurring] [codified]
+**Trigger:** F3 story adversarial pass 23 — P0 CRITICAL: VP-HOOK-029 (build-capability VP) was listed in the holdout/VP index as "covered" because a story referenced it. Index-level check passed. But the VP was OWNED by the skill-story (emitter skill), not the hook-story (require-review hook). The hook story lacked the build-capability AC. Pass-22 had declared premature convergence on the strength of the index check alone.
+
+**Lesson:** VP-presence checks at the index level (VP-INDEX.md / BC-VP tables / story VP fields) confirm that a VP is associated with SOME story. They do NOT verify:
+1. That the owning story is the correct story for the VP's capability domain (build-capability VP owned by the wrong story = capability inversion).
+2. That the story has ACs that specifically target the per-mutant coverage required by §4 (per-mutant gap).
+3. That the AC phrasing is sufficient to drive a test that would catch a corresponding implementation failure.
+
+Index-level checks are a necessary first gate. They are NOT sufficient for convergence certification. A **fresh-context §4 walk** (reading verification-delta §4 mutant catalog against story ACs directly, outside any index) is required before declaring story decomposition converged.
+
+**Recurring pattern:** This class of failure has now appeared in multiple cycles: F2 (VP-lifecycle-status multi-site sweep — Lesson 54), F2 (predicate reachability — Lesson 56), and now F3 (build-capability inversion + per-mutant drip). The common root is that index/registry checks are necessary but not sufficient for spec correctness; fresh-context direct-document checks catch what indexes miss.
+
+**Codified rule:** Before any story decomposition convergence declaration, the adversary MUST perform a fresh-context §4/§5 walk of verification-delta (NOT index-mediated). The checklist item is: "Walk §4 mutant catalog row by row against story ACs; walk §5 BATS vectors against story ACs and VP references. Confirm no capability inversion (VP owned by wrong story type) and no per-mutant gap."
+    _tag: [codified]_ _tag: [recurring]_
+    _Discovered: F3 story adversarial pass P23 P0 (VP-HOOK-029 build-capability inversion overturning pass-22 premature convergence), 2026-09-04/05_
+

@@ -1,0 +1,265 @@
+# Sprint State — F3 Wave 7: monitoring-loop Feature Cycle
+# Generated: 2026-09-04 | Phase: F3 INTEGRATE | Cycle: v0.10.0-feature-prism-integration
+# Total: 13 stories | 88 story points | 5 execution waves
+#
+# Status values: not-started | in-progress | blocked | done
+# BLOCKING NOTE: ASM-015 and ASM-009 must resolve before Wave 4 (S-10.01) dispatch.
+
+stories:
+  # Wave 1 — Foundation Layer (no prerequisites)
+  - id: "S-3.01"
+    title: "require-review Hook Link+Close Anti-Fungibility (BC-3.01.001 v1.25)"
+    wave: 1
+    status: not-started
+    priority: P0
+    points: 8
+    epic: EPIC-HOOKS
+    target_module: "hooks/require-review/"
+    behavioral_contracts:
+      - BC-3.01.001
+    depends_on: []
+    blocks:
+      - S-3.02
+      - S-4.01
+      - S-10.01
+    story_file: ".factory/phase-f3-stories/S-3.01-require-review-link-close-antifungibility.md"
+
+  - id: "S-4.02"
+    title: "assess-priority scored_priority Producer/Consumer Coherence (BC-4.05.001 v1.4)"
+    wave: 1
+    status: not-started
+    priority: P1
+    points: 5
+    epic: EPIC-SKILLS
+    target_module: "skills/assess-priority/"
+    behavioral_contracts:
+      - BC-4.05.001
+    depends_on: []
+    blocks:
+      - S-10.01
+    story_file: ".factory/phase-f3-stories/S-4.02-assess-priority-scored-priority-coherence.md"
+
+  - id: "S-6.03"
+    title: "Activate Skill CLOSE_STATE_ALLOWLIST Setup-Time Validation (BC-6.01.001 v1.8)"
+    wave: 1
+    status: not-started
+    priority: P0
+    points: 3
+    epic: EPIC-LIFECYCLE
+    target_module: "skills/activate/"
+    behavioral_contracts:
+      - BC-6.01.001
+    depends_on: []
+    blocks:
+      - S-6.01
+      - S-8.01
+      - S-9.01
+      - S-10.01
+    story_file: ".factory/phase-f3-stories/S-6.03-activate-close-state-config.md"
+
+  # Wave 2 — First Integration Layer
+  - id: "S-3.02"
+    title: "disposition-guard Hook F2 Delta (BC-3.03.001 v1.42 — D-023/D-026/D-027/D-028/D-029)"
+    wave: 2
+    status: not-started
+    priority: P0
+    points: 13
+    epic: EPIC-HOOKS
+    target_module: "hooks/disposition-guard/"
+    behavioral_contracts:
+      - BC-3.03.001
+    depends_on:
+      - S-3.01
+    blocks:
+      - S-4.01
+      - S-5.01
+      - S-10.01
+    story_file: ".factory/phase-f3-stories/S-3.02-disposition-guard-f2-delta.md"
+
+  - id: "S-6.01"
+    title: "onboard-customer Skill (BC-6.01.003 v1.7)"
+    wave: 2
+    status: not-started
+    priority: P1
+    points: 5
+    epic: EPIC-LIFECYCLE
+    target_module: "skills/onboard-customer/"
+    behavioral_contracts:
+      - BC-6.01.003
+    depends_on:
+      - S-6.03
+    blocks:
+      - S-6.02
+      - S-10.01
+    story_file: ".factory/phase-f3-stories/S-6.01-onboard-customer-skill.md"
+
+  - id: "S-8.01"
+    title: "sensor-metrics Skill (BC-8.02.001 v1.4)"
+    wave: 2
+    status: not-started
+    priority: P1
+    points: 5
+    epic: EPIC-METRICS
+    target_module: "skills/sensor-metrics/"
+    behavioral_contracts:
+      - BC-8.02.001
+    depends_on:
+      - S-6.03
+    blocks: []
+    story_file: ".factory/phase-f3-stories/S-8.01-sensor-metrics-skill.md"
+
+  - id: "S-9.01"
+    title: "scan-threats Skill (BC-9.01.001 v1.2)"
+    wave: 2
+    status: not-started
+    priority: P1
+    points: 5
+    epic: EPIC-THREATHUNTING
+    target_module: "skills/scan-threats/"
+    behavioral_contracts:
+      - BC-9.01.001
+    depends_on:
+      - S-6.03
+    blocks: []
+    story_file: ".factory/phase-f3-stories/S-9.01-scan-threats-skill.md"
+
+  # Wave 3 — Second Integration Layer
+  - id: "S-4.01"
+    title: "update-jira Skill Compound Create+Link and Orphan-Link Recovery (BC-4.02.001 v1.21)"
+    wave: 3
+    status: not-started
+    priority: P0
+    points: 8
+    epic: EPIC-SKILLS
+    target_module: "skills/update-jira/"
+    behavioral_contracts:
+      - BC-4.02.001
+    depends_on:
+      - S-3.01
+      - S-3.02
+    blocks:
+      - S-10.01
+    story_file: ".factory/phase-f3-stories/S-4.01-update-jira-compound-link.md"
+
+  - id: "S-5.01"
+    title: "investigate-event Skill D-029 SAVE-ALWAYS-SUCCEEDS (BC-5.01.001 v1.15)"
+    wave: 3
+    status: not-started
+    priority: P1
+    points: 5
+    epic: EPIC-SKILLS
+    target_module: "skills/investigate-event/"
+    behavioral_contracts:
+      - BC-5.01.001
+    depends_on:
+      - S-3.02
+    blocks: []
+    story_file: ".factory/phase-f3-stories/S-5.01-investigate-event-d029-save-always.md"
+
+  - id: "S-6.02"
+    title: "onboard-sensor Skill (BC-6.01.004 v1.1)"
+    wave: 3
+    status: not-started
+    priority: P1
+    points: 5
+    epic: EPIC-LIFECYCLE
+    target_module: "skills/onboard-sensor/"
+    behavioral_contracts:
+      - BC-6.01.004
+    depends_on:
+      - S-6.01
+    blocks:
+      - S-10.01
+    story_file: ".factory/phase-f3-stories/S-6.02-onboard-sensor-skill.md"
+
+  # Wave 4 — Monitoring Loop Core (bottleneck)
+  - id: "S-10.01"
+    title: "monitoring-loop Core Pipeline (BC-10.01.001 v1.36 — Stages 0-8, ICD-203, Hard-Floor, Kill-Switch)"
+    wave: 4
+    status: not-started
+    priority: P0
+    points: 13
+    epic: EPIC-MONITORING
+    target_module: "skills/monitoring-loop/"
+    behavioral_contracts:
+      - BC-10.01.001
+    depends_on:
+      - S-3.01
+      - S-3.02
+      - S-4.01
+      - S-4.02
+      - S-6.01
+      - S-6.02
+      - S-6.03
+    blocks:
+      - S-10.02
+    pre_dispatch_blockers:
+      - "ASM-015: permissionDecision:deny --allowedTools JSON envelope unvalidated"
+      - "ASM-009: cross-hook marker filesystem visibility unvalidated (gate = pre-Wave-4 dispatch; per-hook unit tests Waves 1-3 seed markers directly so ASM-009 is not exercised until Wave-4 integration)"
+    story_file: ".factory/phase-f3-stories/S-10.01-monitoring-loop-core.md"
+
+  # Wave 5 — Completion Layer
+  - id: "S-10.02"
+    title: "monitoring-loop Watermark and Late-Event Detection (BC-10.01.001 v1.36 — VALIDATE_WATERMARK_FOR_RUN, DETECT_LATE_EVENT, Cron Wrapper)"
+    wave: 5
+    status: not-started
+    priority: P0
+    points: 8
+    epic: EPIC-MONITORING
+    target_module: "skills/monitoring-loop/"
+    behavioral_contracts:
+      - BC-10.01.001
+    depends_on:
+      - S-10.01
+    blocks: []
+    story_file: ".factory/phase-f3-stories/S-10.02-monitoring-loop-watermark.md"
+
+  - id: "S-11.01"
+    title: "Automated demo Jira seeding script (demo-seed-jira.sh / .ps1)"
+    wave: 5
+    status: blocked
+    blocker: "PO promotion required (S-7.01 gate — behavioral_contracts empty; D-006/D-035 demo-tooling hold)"
+    priority: P1
+    points: 5
+    epic: E-DEMO
+    target_module: "scripts/demo/"
+    behavioral_contracts: []
+    # BC status: pending PO authorship — demo operator tooling per D-006/D-035
+    # status must remain draft (S-7.01 gate: behavioral_contracts non-empty required for ready)
+    depends_on: []
+    blocks: []
+    notes: "Standalone demo tooling per D-006/D-035. Slotted Wave 5 as last slot; must not gate product waves. Legacy stub at .factory/stories/STORY-DEMO-SEED-001.md cross-references this canonical ID."
+    story_file: ".factory/phase-f3-stories/S-11.01-demo-seed-jira.md"
+
+# -----------------------------------------------------------------------
+# Summary
+# -----------------------------------------------------------------------
+summary:
+  total_stories: 13
+  total_points: 88
+  waves: 5
+  wave_breakdown:
+    wave_1: {stories: [S-3.01, S-4.02, S-6.03], points: 16}
+    wave_2: {stories: [S-3.02, S-6.01, S-8.01, S-9.01], points: 28}
+    wave_3: {stories: [S-4.01, S-5.01, S-6.02], points: 18}
+    wave_4: {stories: [S-10.01], points: 13}
+    wave_5: {stories: [S-10.02, S-11.01], points: 13}
+  critical_path: [S-3.01, S-3.02, S-4.01, S-10.01, S-10.02]
+  critical_path_points: 50
+  cycle_check: ACYCLIC
+  gaps:
+    - id: GAP-001
+      source: "BC-10.01.001 EC-012"
+      status: RESOLVED
+      covered_by: S-10.01
+      resolution: "S-10.01 AC-024 (VP-SKILL-062 never-auto-reopen). Prior attribution to S-3.02 was incorrect — EC-012 is a monitoring-loop Stage-7 action."
+    - id: GAP-002
+      source: "BC-10.01.001 EC-022"
+      status: PARTIAL
+      covered_by: "S-10.01 (loop-side AC-025), S-3.02 (disposition-guard STEP 4b deny-paths)"
+      resolution: "Loop-side positive auto-close path covered by S-10.01 AC-025. Disposition-guard STEP 4b gate coverage remains S-3.02 scope."
+    - id: GAP-003
+      source: "BC-10.01.001 PC#6"
+      status: RESOLVED
+      covered_by: "S-4.01 AC-010 (VP-SKILL-067) — transitive via Stage-8 delegation"
+      resolution: "Propose-reopen SLA covered by S-10.01 AC-024. Append-comment and link SLA-surface delegated transitively to S-4.01 AC-010 (VP-SKILL-067), exercising 5 SLA-surface vectors including append and link. P9-003 traceability closure."

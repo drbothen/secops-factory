@@ -13,10 +13,13 @@
 #
 # BC: BC-6.01.001 PC#8, VP-SKILL-051, D-021
 #
-# RED (fail against current HEAD 0ab0aaf):
+# GREEN at HEAD 70f164a (F1 numeric ordering + F2 ps1 ordinal fixes applied):
 #   test_BC_6_01_001_F1_semver_ge_rc2_not_gte_rc10
 #   test_BC_6_01_001_F1_semver_ge_rc10_gte_rc2
 #   test_BC_6_01_001_F2_ps1_pre_release_comparison_ordinal
+#
+# RED (new finding — fail against current HEAD 70f164a):
+#   test_BC_6_01_001_F1_locale_utf8_uppercase_prerelease_wrong_allow
 #
 # GREEN (pass now — coverage or permanent guard):
 #   test_BC_6_01_001_F1_semver_ge_release_gte_prerelease
@@ -119,6 +122,58 @@ PRISM_VERSION_CHECK_PS1="${PLUGIN_ROOT}/hooks/prism-version-check.ps1"
     # Grep returns non-zero → test fails RED until ps1 is fixed.
     grep -qE '(-cgt|-clt|-cge|-cle|CompareOrdinal|\[System\.StringComparer\]::Ordinal|StringComparison\.Ordinal)' \
         "$PRISM_VERSION_CHECK_PS1"
+}
+
+# ─── F-1 locale — sh comparator is not locale-neutral (WRONG-ALLOW under UTF-8) ─
+#
+# prism-version-check.sh line 107-108 uses bash [[ > ]] / [[ < ]] for alphanumeric
+# pre-release segments. Bash [[ > ]] respects LC_COLLATE. Under en_US.UTF-8:
+#
+#   [[ "RC" > "rc" ]] → TRUE  (uppercase sorts AFTER lowercase in UTF-8 collation)
+#   [[ "RC" < "rc" ]] → FALSE
+#
+# → semver_ge("1.0.0-RC.1", "1.0.0-rc.1") returns 0 (WRONG-ALLOW, gate exits 0).
+#
+# With LC_ALL=C (ASCII order): 'R' (0x52) < 'r' (0x72) → [[ "RC" > "rc" ]] FALSE
+# → semver_ge returns 1 (correct, gate exits 1).
+#
+# The script comment at line 106 says "caller sets LC_ALL=C", but SKILL.md:46
+# (production caller) does NOT:
+#   bash "${CLAUDE_PLUGIN_ROOT}/hooks/prism-version-check.sh"
+#
+# Fix: set LC_ALL=C at the top of prism-version-check.sh before any [[ ]] string
+# comparison that is required to use ASCII-ordinal ordering.
+#
+# Traced: F-1, BC-6.01.001 PC#8, VP-SKILL-051.
+
+@test "test_BC_6_01_001_F1_locale_utf8_uppercase_prerelease_wrong_allow (F-1, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    # RED: under a UTF-8 locale, semver_ge(1.0.0-RC.1, 1.0.0-rc.1) returns 0 (WRONG-ALLOW).
+    # Gate MUST exit 1 for 1.0.0-RC.1 < 1.0.0-rc.1; currently exits 0 under UTF-8 locale.
+    # Skips if no UTF-8 locale is available on the runner (fallback via locale -a).
+    # Traced: F-1, BC-6.01.001 PC#8, VP-SKILL-051.
+
+    local utf8_locale
+    utf8_locale=$(locale -a 2>/dev/null | grep -i 'utf' | grep -iv 'posix' | head -1)
+    if [[ -z "$utf8_locale" ]]; then
+        skip "no UTF-8 locale available on this runner — F-1 locale test cannot run"
+    fi
+
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    printf '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then echo "prism 1.0.0-RC.1"; fi\n' \
+        > "$tmpdir/prism"
+    chmod +x "$tmpdir/prism"
+
+    # Run under UTF-8 locale — mirrors production SKILL.md:46 (no caller LC_ALL=C).
+    local actual_status=0
+    env LC_ALL="$utf8_locale" PATH="$tmpdir:$PATH" \
+        bash "$PRISM_VERSION_CHECK" >/dev/null 2>&1 || actual_status=$?
+
+    rm -rf "$tmpdir"
+
+    # MUST exit 1: 1.0.0-RC.1 is below min 1.0.0-rc.1 (semver §11.4, ASCII 'R' < 'r').
+    # RED until prism-version-check.sh sets LC_ALL=C internally to enforce ordinal ordering.
+    [ "$actual_status" -eq 1 ]
 }
 
 # ─── F4 — D-021 CLOSE_STATE_ALLOWLIST forbidden-dependency guard (PERMANENT) ──

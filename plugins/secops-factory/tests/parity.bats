@@ -282,3 +282,74 @@ assert_same_json() {
     # Assertion requires exit 1 → FAILS RED until ps1 uses ordinal/case-sensitive comparison
     [ "$PS_STATUS" -eq 1 ]
 }
+
+# ---------------------------------------------------------------------------
+# F-1 parity (de-masked): prism-version-check production-invocation locale gap
+# ---------------------------------------------------------------------------
+# The existing test above forces env LC_ALL=C on the sh side, masking F-1: the
+# production caller in SKILL.md:46 invokes sh with no locale override:
+#
+#   bash "${CLAUDE_PLUGIN_ROOT}/hooks/prism-version-check.sh"
+#
+# Under the system default locale (en_US.UTF-8 on this runner), bash [[ > ]] uses
+# locale collation where uppercase letters sort AFTER lowercase ('R' > 'r'), so
+# [[ "RC" > "rc" ]] is TRUE — semver_ge returns 0 (WRONG-ALLOW).
+#
+# This test mirrors the production invocation exactly and exposes the gap.
+# Traced: F-1, BC-6.01.001 PC#8, VP-SKILL-051.
+# Does NOT require pwsh — sh-only, exposes the sh locale gap directly.
+
+@test "parity: prism-version-check production-invocation uppercase pre-release halts sh without caller locale (F-1, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    # RED (F-1): sh invoked as SKILL.md:46 does — no env LC_ALL=C override.
+    # Under en_US.UTF-8, [[ "RC" > "rc" ]] → TRUE (locale collation) so semver_ge
+    # returns 0 (WRONG-ALLOW) instead of 1. Gate must exit 1; currently exits 0.
+    # Fails RED until prism-version-check.sh self-enforces LC_ALL=C internally.
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    printf '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then echo "prism 1.0.0-RC.1"; fi\n' \
+        > "$tmpdir/prism"
+    chmod +x "$tmpdir/prism"
+
+    # Mirror SKILL.md:46 exactly — no LC_ALL override on the caller side.
+    SH_STATUS=0
+    PATH="$tmpdir:$PATH" bash "$PLUGIN_ROOT/hooks/prism-version-check.sh" \
+        >/dev/null 2>&1 || SH_STATUS=$?
+
+    rm -rf "$tmpdir"
+
+    # Must halt (exit 1): semver §11.4 ASCII ordering requires 'R' (0x52) < 'r' (0x72).
+    # RED until script self-enforces locale-neutral ordinal string comparison.
+    [ "$SH_STATUS" -eq 1 ]
+}
+
+# ---------------------------------------------------------------------------
+# Leading-zero pre-release parity: 1.0.0-rc.08 (edge coverage, VP-SKILL-051)
+# ---------------------------------------------------------------------------
+# Semver disallows leading zeros in numeric identifiers, but both implementations
+# must handle them consistently (fail-safe: treat 08 as integer 8, above minimum rc.1).
+# This documents that sh and ps1 agree and neither accidentally blocks rc.08.
+# Traced: BC-6.01.001 PC#8, VP-SKILL-051.
+
+@test "parity: prism-version-check leading-zero pre-release rc.08 passes gate on both platforms (edge, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    require_pwsh
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    printf '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then echo "prism 1.0.0-rc.08"; fi\n' \
+        > "$tmpdir/prism"
+    chmod +x "$tmpdir/prism"
+
+    SH_STATUS=0
+    env LC_ALL=C PATH="$tmpdir:$PATH" bash "$PLUGIN_ROOT/hooks/prism-version-check.sh" \
+        >/dev/null 2>&1 || SH_STATUS=$?
+
+    PS_STATUS=0
+    env PATH="$tmpdir:$PATH" pwsh -NoProfile \
+        -File "$PLUGIN_ROOT/hooks/prism-version-check.ps1" \
+        >/dev/null 2>&1 || PS_STATUS=$?
+
+    rm -rf "$tmpdir"
+
+    # Both must agree: rc.08 → integer 8 > 1 (min rc.1) → satisfies gate → exit 0.
+    [ "$SH_STATUS" -eq 0 ]
+    [ "$PS_STATUS" -eq 0 ]
+}

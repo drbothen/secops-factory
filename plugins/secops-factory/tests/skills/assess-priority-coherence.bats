@@ -1,13 +1,13 @@
 #!/usr/bin/env bats
 # tests/skills/assess-priority-coherence.bats
-# S-4.02: assess-priority scored_priority Producer/Consumer Coherence (BC-4.05.001 v1.5)
+# S-4.02: assess-priority scored_priority Producer/Consumer Coherence (BC-4.05.001 v1.6)
 #
 # Covers: AC-001..AC-009 (all story acceptance criteria)
 # New delta VPs:
-#   VP-SKILL-070 — PrismQL org_slug scoping (AC-008)
+#   VP-SKILL-070 — PrismQL org_slug scoping (AC-008); scope-clarified v1.6 (PC#5b EXEMPT)
 #   VP-SKILL-071 — confidence float→enum consistency, D-DEC-011 (AC-009)
 #
-# ADV-F4-S4.02 findings addressed in this revision (BC-4.05.001 v1.5):
+# ADV-F4-S4.02 findings addressed in pass-1 (BC-4.05.001 v1.5):
 #   MAJOR-1   — degraded mode must map 6-factor base score to {CRIT,HIGH,MED,LOW} via PC#6 bands;
 #               P1-P5 are INTERNAL-ONLY and never emitted as scored_priority
 #   MEDIUM-2  — VP-SKILL-071 tier binding: augment with association check + catalog boundary
@@ -19,20 +19,55 @@
 #               (not just the exact SEVERITY_TO_SCORED_PRIORITY_MAP self-map rows)
 #   OBS-1     — PC#5a grep mis-anchored to degraded-mode prose mention; re-anchored to
 #               '### PC#5a' query heading so doc reordering cannot falsely satisfy test
-#   OBS-2     — org_slug aggregate count assertion raised from >= 2 to >= 3
-#               (all three PC#5a/5b/5d SQL queries must carry WHERE org_slug=)
+#   OBS-2     — OBS-2 superseded by F3 (v1.6): aggregate count changed from >= 3 to == 2;
+#               PC#5b NVD query is now EXEMPT from org_slug per BC v1.6 Invariant #4
+#
+# ADV-F4-S4.02 findings addressed in pass-1 amendment (BC-4.05.001 v1.6):
+#   F1 MAJOR  — frontmatter 'description' advertises "P1-P5" as emitted output; must describe
+#               scored_priority/{CRIT,HIGH,MED,LOW} instead (highest-signal line for invoking LLM)
+#   F2 MEDIUM — VP-SKILL-071 medium-tier inversion guard: symmetric to 0.75/high guard, assert
+#               >= 0.40 binds to 'medium' and NOT 'low'; mutant-resistance guard
+#   F3 MEDIUM — PC#5b NVD/CVE enrichment is a GLOBAL query (no org dimension); REVERSAL of
+#               v1.5 assertion: PC#5b MUST NOT carry WHERE org_slug=; aggregate count changed
+#               from >= 3 to == 2 (only PC#5a and PC#5d carry org_slug); D-DEC-005 preserved
+#   F6 MINOR  — output JSON example is a 3-field subset; BC v1.6 PC#6 requires all 8 canonical
+#               fields: scored_priority, confidence_score, confidence, disposition, rationale,
+#               base_score, prism_enriched, uncertainty_explicit
 #
 # Regression VPs VP-SKILL-029..034 are already covered by skills.bats and are
 # NOT duplicated here per Architecture Context Discipline (DF-021).
 #
-# Red Gate status against HEAD 51c6b67 (BC-4.05.001 v1.4 implementation):
-#   GREEN (pre-existing, unaffected): AC-001..AC-007, AC-008 SQL/DTU-SKIP, AC-009 stub/inconsistent,
-#                                     OBS-1 re-anchor, OBS-2 raised count, MEDIUM-2 tier-inversion guard
-#   RED   (new/tightened):            MEDIUM-4, MEDIUM-2 boundary vectors (0.749/0.399),
-#                                     MAJOR-1 x3, MEDIUM-3 x2, MEDIUM-5
+# Red Gate status against HEAD c54b770 (BC-4.05.001 v1.5 implementation):
+#   GREEN (pre-existing, unaffected): AC-001..AC-007, AC-009 stub/inconsistent,
+#                                     OBS-1 re-anchor, MEDIUM-2 0.75/high tier-inversion guard,
+#                                     MEDIUM-3 x2, MEDIUM-4, MEDIUM-5, MAJOR-1 x3,
+#                                     AC-008 PC#5a/PC#5d org_slug presence, DTU-SKIP,
+#                                     MEDIUM-2 boundary vectors (0.749/0.399)
+#   GREEN (new guard, not red):       F2 medium-tier inversion guard (SKILL.md already correct)
+#   RED   (new/tightened in v1.6):    F1, F3 PC#5b reversal, F3 count==2, F6
 
 PLUGIN_ROOT="${BATS_TEST_DIRNAME}/../.."
 SKILL="${PLUGIN_ROOT}/skills/assess-priority/SKILL.md"
+
+# ── F1 / ADV-F4-S4.02 — frontmatter description drift ───────────────────────
+# BC-4.05.001 v1.6 Invariant #5 / ADV-F4-S4.02-F1
+# The YAML frontmatter 'description' field is the highest-signal metadata the invoking LLM reads
+# when deciding whether to invoke the skill and what output to expect. Per BC v1.6 Invariant #5,
+# P1-P5 are INTERNAL-ONLY intermediate labels — the emitted scored_priority is always a member
+# of {CRIT, HIGH, MED, LOW}. Current SKILL.md frontmatter says "...into P1-P5 with SLA."
+# which misleads the invoking LLM into expecting P1-P5 as the skill output value.
+
+@test "BC_4_05_001 F1-ADV-F4-S4.02 BC-v1.6-Inv5: SKILL.md frontmatter description must not advertise P1-P5 as emitted output" {
+    # F1 MAJOR (BC-4.05.001 v1.6 Invariant #5 / ADV-F4-S4.02-F1)
+    # The YAML frontmatter 'description' (line ~3) is the highest-signal metadata the invoking LLM
+    # reads. Per BC v1.6, P1-P5 are INTERNAL-ONLY; the emitted output is scored_priority from
+    # {CRIT, HIGH, MED, LOW}. A description advertising "into P1-P5 with SLA" trains the invoker
+    # to expect P1-P5 as the output — a SEVERITY-MISMATCH DENY vector on every invocation.
+    # Anchored to the first 5 lines (YAML frontmatter block) so body prose references to P1-P5
+    # (legitimate internal documentation) do not falsely satisfy or fail the test.
+    # Red Gate: line 3 currently says "...into P1-P5 with SLA." → ! grep fails → RED.
+    ! head -5 "$SKILL" | grep -qF 'P1-P5'
+}
 
 # ── AC-001 ──────────────────────────────────────────────────────────────────
 # BC-4.05.001 Invariant 5 / P12-004
@@ -162,11 +197,18 @@ SKILL="${PLUGIN_ROOT}/skills/assess-priority/SKILL.md"
     grep -m 1 -A 20 "### PC#5a" "$SKILL" | grep -q "WHERE org_slug="
 }
 
-@test "BC_4_05_001 AC-008 VP-SKILL-070: PC#5b NVD enrichment SQL includes WHERE org_slug= clause" {
-    # VP-SKILL-070 static leg (traces to BC-4.05.001 Invariant 4, D-DEC-005, vd:427)
-    # PC#5b enrich_nvd() query must include an explicit org_slug WHERE clause per BC-4.05.001 VP.
-    # Red Gate: stub PC#5b has 'SELECT enrich_nvd(...)' with no WHERE clause → grep fails → FAILS.
-    grep -m 1 -A 10 "PC#5b" "$SKILL" | grep -q "WHERE org_slug="
+@test "BC_4_05_001 F3-ADV-F4-S4.02 BC-v1.6-Inv4 VP-SKILL-070: PC#5b NVD enrichment SQL must NOT carry WHERE org_slug=" {
+    # F3 MEDIUM (BC-4.05.001 v1.6 Invariant #4 / VP-SKILL-070 / ADV-F4-S4.02-F3)
+    # REVERSAL of the v1.5 assertion (which required PC#5b to carry org_slug).
+    # BC v1.6 Invariant #4 explicitly exempts PC#5b: NVD/CVE data is public and global — there
+    # is no org dimension in the NVD dataset. enrich_nvd() keys on CVE ID, not org_slug. An inert
+    # 'WHERE org_slug=' bolted onto a global UDF call is test-gaming, not real isolation.
+    # The multi-org isolation guarantee (D-DEC-005) is preserved because PC#5a and PC#5d —
+    # the queries that touch org-tenant rows — still carry the WHERE org_slug= constraint.
+    # Anchored to '### PC#5b' heading (OBS-1 principle) so prose references cannot satisfy test.
+    # Red Gate: current SKILL.md PC#5b has 'FROM dual WHERE org_slug=...' → count=1 → [ 1 -eq 0 ] FAILS.
+    pc5b_org_count=$(grep -m 1 -A 10 "### PC#5b" "$SKILL" | grep -c "WHERE org_slug=" || true)
+    [ "$pc5b_org_count" -eq 0 ]
 }
 
 @test "BC_4_05_001 AC-008 VP-SKILL-070: PC#5d asset criticality SQL includes WHERE org_slug= clause" {
@@ -176,13 +218,19 @@ SKILL="${PLUGIN_ROOT}/skills/assess-priority/SKILL.md"
     grep -m 1 -A 15 "PC#5d" "$SKILL" | grep -q "WHERE org_slug="
 }
 
-@test "BC_4_05_001 AC-008 VP-SKILL-070: at least three PrismQL queries carry WHERE org_slug= clause" {
-    # VP-SKILL-070 static leg — aggregate count (traces to BC-4.05.001 Invariant 4, D-DEC-005)
-    # OBS-2 (ADV-F4-S4.02): raised from >= 2 to >= 3 — all three PC#5a/5b/5d SQL queries must carry
-    # WHERE org_slug=; a count of 2 would indicate one SQL block lost its scoping constraint.
-    # Red Gate: stub has 0 queries with org_slug → count=0 → [ 0 -ge 3 ] FAILS.
+@test "BC_4_05_001 F3-ADV-F4-S4.02 BC-v1.6-Inv4 VP-SKILL-070: exactly two PrismQL queries carry WHERE org_slug= (PC#5a and PC#5d only)" {
+    # F3 MEDIUM (BC-4.05.001 v1.6 Invariant #4 / VP-SKILL-070 / ADV-F4-S4.02-F3)
+    # BC v1.6: ONLY org-specific queries carry org_slug — PC#5a (30-day org baseline) and
+    # PC#5d (per-tenant asset criticality). PC#5b (NVD global UDF) is EXEMPT.
+    # Exactly 2 WHERE org_slug= clauses must appear in SKILL.md.
+    # Replaces the >= 3 aggregate (OBS-2 v1.5) which forced a semantically inert WHERE org_slug=
+    # onto PC#5b's NVD global UDF call. Per BC v1.6 Invariant #4, that count was test-gaming.
+    # Per-query presence is verified by the PC#5a and PC#5d individual tests above; this count
+    # test provides a complementary aggregate guard: count=3 means PC#5b still carries the
+    # inert clause; count<2 means a real org-scoped query lost its constraint.
+    # Red Gate: current SKILL.md has 3 WHERE org_slug= lines → [ 3 -eq 2 ] FAILS → RED.
     count=$(grep -c "WHERE org_slug=" "$SKILL" || true)
-    [ "$count" -ge 3 ]
+    [ "$count" -eq 2 ]
 }
 
 @test "BC_4_05_001 AC-008 VP-SKILL-070 DTU-SKIP: org-a query returns zero org-b/c rows (multi-org DTU fixture)" {
@@ -267,6 +315,20 @@ SKILL="${PLUGIN_ROOT}/skills/assess-priority/SKILL.md"
     ! grep -qE '>= 0.75[[:space:]]*\|[[:space:]]*(low|medium)' "$SKILL"
 }
 
+@test "BC_4_05_001 F2-ADV-F4-S4.02 VP-SKILL-071: 0.40 binds to medium tier — medium-tier inversion mutant guard" {
+    # F2 MEDIUM (BC-4.05.001 v1.6 PC#6 / VP-SKILL-071 / D-DEC-011 / ADV-F4-S4.02-F2)
+    # Symmetric to the 0.75/high guard above: not just literal presence of '>= 0.40' but correct
+    # binding to 'medium'. A medium→low inversion mutant SKILL.md that writes '>= 0.40 | low'
+    # passes the literal-presence test in AC-009 ('>= 0.40' found) but fails here.
+    # D-DEC-011: medium iff 0.40 <= confidence_score < 0.75.
+    # Positive: '>= 0.40' row must bind to 'medium' in the confidence table.
+    # Negative: '>= 0.40' row must NOT bind to 'low' or 'high'.
+    # Current SKILL.md: '| >= 0.40 and < 0.75 | medium |' is correct → PASSES
+    # (green guard-strengthening test; goal is mutant-resistance, not requiring red).
+    grep -qE '>= 0.40[^|]*\|[[:space:]]*medium' "$SKILL"
+    ! grep -qE '>= 0.40[^|]*\|[[:space:]]*(low|high)' "$SKILL"
+}
+
 # ── MAJOR-1 / ADV-F4-S4.02 — degraded-mode scored_priority enum alignment ───
 # BC-4.05.001 v1.5 PC#7 / Invariant 5 / EC-009
 # Degraded mode (Prism MCP unavailable) must map 6-factor base score to {CRIT,HIGH,MED,LOW}
@@ -340,4 +402,36 @@ SKILL="${PLUGIN_ROOT}/skills/assess-priority/SKILL.md"
     # BC v1.5: any non-member token (CRITICAL, MEDIUM, P1-P5) in scored_priority → SEVERITY-MISMATCH DENY.
     # Red Gate: '| P1 - Critical |' and '| P3 - Medium |' present in SKILL.md → ! grep fails → RED.
     ! grep -qiE '\| P[1-9][^|]*(Critical|Medium)\b' "$SKILL"
+}
+
+# ── F6 / ADV-F4-S4.02 — output JSON schema completeness ──────────────────────
+# BC-4.05.001 v1.6 PC#6 / ADV-F4-S4.02-F6
+# The SKILL.md output JSON example is the implementer's reference schema for the verdict JSON.
+# BC v1.6 PC#6 canonical output: scored_priority, confidence_score, confidence, disposition,
+# rationale, base_score, prism_enriched, uncertainty_explicit.
+# Current SKILL.md JSON example is a 3-field subset: scored_priority, confidence_score, confidence.
+# Missing fields leave the implementer without the full schema contract, risking incomplete output.
+
+@test "BC_4_05_001 F6-ADV-F4-S4.02 BC-v1.6-PC6: output JSON example must include all PC#6 canonical fields" {
+    # F6 MINOR (BC-4.05.001 v1.6 PC#6 / ADV-F4-S4.02-F6)
+    # The SKILL.md output JSON example must document all 8 BC v1.6 PC#6 canonical fields so the
+    # implementer has a complete, copy-paste-ready schema reference.
+    # Assertions use quoted JSON key strings ('"field"') to match JSON example context specifically
+    # and avoid spurious matches in surrounding prose.
+    # Fields present in current SKILL.md JSON example: scored_priority, confidence_score, confidence.
+    # Fields absent (all → RED):
+    #   '"disposition"'      — TP|FP|BTP|Indeterminate Bayesian estimate
+    #   '"rationale"'        — explanation of base score + recalibration + overrides
+    #   '"base_score"'       — numeric 0-24 score before PC#6 band mapping
+    #   '"prism_enriched"'   — boolean flag distinguishing prism-grounded from degraded mode
+    #   '"uncertainty_explicit"' — required true in degraded mode (PC#7 / EC-009)
+    # Red Gate: '"disposition"' absent from SKILL.md JSON example → first missing-field grep fails → RED.
+    grep -qF '"scored_priority"' "$SKILL"
+    grep -qF '"confidence_score"' "$SKILL"
+    grep -qF '"confidence"' "$SKILL"
+    grep -qF '"disposition"' "$SKILL"
+    grep -qF '"rationale"' "$SKILL"
+    grep -qF '"base_score"' "$SKILL"
+    grep -qF '"prism_enriched"' "$SKILL"
+    grep -qF '"uncertainty_explicit"' "$SKILL"
 }

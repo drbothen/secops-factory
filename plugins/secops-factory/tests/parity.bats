@@ -323,33 +323,79 @@ assert_same_json() {
 }
 
 # ---------------------------------------------------------------------------
-# Leading-zero pre-release parity: 1.0.0-rc.08 (edge coverage, VP-SKILL-051)
+# Pass-2 F3 — sh semver_ge leading-zero numeric ordering (VP-SKILL-051)
 # ---------------------------------------------------------------------------
-# Semver disallows leading zeros in numeric identifiers, but both implementations
-# must handle them consistently (fail-safe: treat 08 as integer 8, above minimum rc.1).
-# This documents that sh and ps1 agree and neither accidentally blocks rc.08.
-# Traced: BC-6.01.001 PC#8, VP-SKILL-051.
+# Replaces the coincidentally-passing "rc.08 passes gate" parity test.
+# The old test only verified rc.08 passes a gate with minimum rc.1 (8 > 1 even
+# with wrong octal interpretation) — it did not expose the real bug.
+#
+# Real bug: semver_ge uses (( _s1 > _s2 )) for numeric pre-release fields.
+# Bash's (( )) arithmetic treats numbers with a leading zero as octal.
+# '08' is not valid octal → bash emits "value too great for base (error token is
+# "08")" to stderr; the arithmetic expression evaluates as false for BOTH
+# (( 08 > 10 )) and (( 08 < 10 )), so the comparator falls through to return 0
+# (equal). Consequence: semver_ge("1.0.0-rc.08", "1.0.0-rc.10") returns 0 (WRONG:
+# should be 1, since decimal 8 < 10).
+#
+# This test extracts the semver_ge comparator directly and verifies correct ordering:
+#   rc.08 < rc.10  → semver_ge("1.0.0-rc.08", "1.0.0-rc.10") must return 1
+# and asserts that no "value too great for base" octal error is emitted.
+# Traced: pass-2 F3, BC-6.01.001 PC#8, VP-SKILL-051.
 
-@test "parity: prism-version-check leading-zero pre-release rc.08 passes gate on both platforms (edge, BC-6.01.001 PC#8, VP-SKILL-051)" {
+@test "test_BC_6_01_001_F3_sh_semver_ge_rc08_lt_rc10_no_octal_error (pass-2 F3, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    # RED: (( 08 > 10 )) / (( 08 < 10 )) both fail with octal arithmetic error;
+    # comparator falls through and returns 0 (WRONG-ALLOW). Must return 1 (rc.08 < rc.10).
+    # Also: "value too great for base" must not appear in output.
+    local tmpscript
+    tmpscript="$(mktemp)"
+    awk '/^semver_ge\(\) \{/,/^\}$/' "$PLUGIN_ROOT/hooks/prism-version-check.sh" > "$tmpscript"
+    printf '\nsemver_ge '"'"'1.0.0-rc.08'"'"' '"'"'1.0.0-rc.10'"'"'\n' >> "$tmpscript"
+    run bash "$tmpscript" 2>&1
+    rm -f "$tmpscript"
+    # rc.08 (decimal 8) < rc.10 (decimal 10): semver_ge must return 1 (not >=)
+    [ "$status" -eq 1 ]
+    # Octal arithmetic error must not be emitted
+    [[ "$output" != *"value too great for base"* ]]
+}
+
+# ---------------------------------------------------------------------------
+# Pass-2 F2 — ps1 exit-2 reachable: Write-Error terminating under Stop
+# ---------------------------------------------------------------------------
+# BC-6.01.001 PC#8 requires exit 2 for "tool missing" and "unparseable version"
+# errors (distinguishable from exit 1 = "version too old").
+# prism-version-check.ps1 sets $ErrorActionPreference = 'Stop' and then calls
+# bare Write-Error before each 'exit 2'. Under Stop, Write-Error is TERMINATING:
+# it throws a System.Management.Automation.ErrorRecord and 'exit 2' is never
+# reached. The script exits 1 (unhandled terminating error), not 2.
+#
+# These CI-only tests verify the correct exit codes at runtime.
+# Skipped locally when pwsh is absent (CI enforces with ubuntu-latest pwsh).
+# Traced: pass-2 F2, BC-6.01.001 PC#8, VP-SKILL-051.
+
+@test "test_BC_6_01_001_F2_ps1_prism_not_found_exits_2 (pass-2 F2, BC-6.01.001 PC#8, VP-SKILL-051)" {
     require_pwsh
+    # RED: prism not in PATH → ps1 hits Write-Error 'not found in PATH' then exit 2.
+    # Under $ErrorActionPreference='Stop', Write-Error is terminating; exit 2 is
+    # unreachable. Script exits 1 (unhandled exception), not 2.
+    # Must exit 2 to satisfy BC-6.01.001 PC#8 exit-code contract.
+    run env PATH="/usr/bin:/bin" pwsh -NoProfile \
+        -File "$PLUGIN_ROOT/hooks/prism-version-check.ps1" 2>&1
+    [ "$status" -eq 2 ]
+}
+
+@test "test_BC_6_01_001_F2_ps1_unparseable_version_exits_2 (pass-2 F2, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    require_pwsh
+    # RED: mock prism outputs non-semver string (exits 0) → ps1 regex match fails →
+    # hits Write-Error 'could not parse' then exit 2. Under Stop, Write-Error is
+    # terminating; exit 2 is unreachable. Script exits 1 instead of 2.
     local tmpdir
     tmpdir="$(mktemp -d)"
-    printf '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then echo "prism 1.0.0-rc.08"; fi\n' \
+    printf '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then printf "not-a-version"; fi\n' \
         > "$tmpdir/prism"
     chmod +x "$tmpdir/prism"
-
-    SH_STATUS=0
-    env LC_ALL=C PATH="$tmpdir:$PATH" bash "$PLUGIN_ROOT/hooks/prism-version-check.sh" \
-        >/dev/null 2>&1 || SH_STATUS=$?
-
-    PS_STATUS=0
-    env PATH="$tmpdir:$PATH" pwsh -NoProfile \
-        -File "$PLUGIN_ROOT/hooks/prism-version-check.ps1" \
-        >/dev/null 2>&1 || PS_STATUS=$?
-
+    run env PATH="$tmpdir:$PATH" pwsh -NoProfile \
+        -File "$PLUGIN_ROOT/hooks/prism-version-check.ps1" 2>&1
     rm -rf "$tmpdir"
-
-    # Both must agree: rc.08 → integer 8 > 1 (min rc.1) → satisfies gate → exit 0.
-    [ "$SH_STATUS" -eq 0 ]
-    [ "$PS_STATUS" -eq 0 ]
+    # Must exit 2: parse failure is an error (BC-6.01.001 PC#8), not version mismatch.
+    [ "$status" -eq 2 ]
 }

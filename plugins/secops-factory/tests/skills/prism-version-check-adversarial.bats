@@ -2,7 +2,7 @@
 # tests/skills/prism-version-check-adversarial.bats
 # Adversarial-review red tests for S-6.03 — prism-version-check hook.
 #
-# Findings addressed:
+# Pass-1 findings addressed:
 #   F1 (MAJOR)  — semver_ge() uses lexicographic [[ > ]] for pre-release segments,
 #                  producing wrong ordering for multi-digit rc numbers (rc.2 ">" rc.10).
 #   F2 (MEDIUM) — prism-version-check.ps1 uses culture-insensitive -gt/-lt → parity
@@ -11,17 +11,30 @@
 #                  verdict-emitting skill paths.
 #   F5 (OBS)    — VP-SKILL-051 coverage gaps (absent, unparseable, rc.0, beta, release).
 #
+# Pass-2 adversarial findings added (HEAD c54d048):
+#   F1 (MAJOR)  — SKILL.md step 6 only invokes bash prism-version-check.sh; no native
+#                  Windows invocation path (PowerShell) is provided or wired in
+#                  hooks.json.windows for the prism version gate.
+#   F2 (MAJOR)  — ps1 sets $ErrorActionPreference='Stop', then calls bare Write-Error
+#                  before each 'exit 2'. Under Stop, Write-Error is TERMINATING — the
+#                  exception propagates and 'exit 2' is never reached; gate exits 1
+#                  instead of 2 for not-found and unparseable-version error paths.
+#   F3 (MEDIUM) — sh semver_ge uses (( _s1 > _s2 )) for numeric pre-release fields;
+#                  (( 08 > 10 )) treats 08 as invalid octal on bash → arithmetic error
+#                  emitted to stderr and comparator returns wrong result (see parity.bats
+#                  for the replacement test of the coincidentally-passing rc.08 test).
+#   F4 (MEDIUM) — sh gate has 'set -euo pipefail'; assignment
+#                  version_output="$(prism --version 2>&1)" has no '|| true' guard.
+#                  When prism --version exits non-zero, set -e aborts the script at the
+#                  assignment before the version string can be parsed.
+#
 # BC: BC-6.01.001 PC#8, VP-SKILL-051, D-021
 #
-# GREEN at HEAD 70f164a (F1 numeric ordering + F2 ps1 ordinal fixes applied):
+# GREEN at HEAD c54d048 (all pass-1 findings fixed):
 #   test_BC_6_01_001_F1_semver_ge_rc2_not_gte_rc10
 #   test_BC_6_01_001_F1_semver_ge_rc10_gte_rc2
+#   test_BC_6_01_001_F1_locale_utf8_uppercase_prerelease_wrong_allow  (F-1 fixed in c54d048)
 #   test_BC_6_01_001_F2_ps1_pre_release_comparison_ordinal
-#
-# RED (new finding — fail against current HEAD 70f164a):
-#   test_BC_6_01_001_F1_locale_utf8_uppercase_prerelease_wrong_allow
-#
-# GREEN (pass now — coverage or permanent guard):
 #   test_BC_6_01_001_F1_semver_ge_release_gte_prerelease
 #   test_BC_6_01_001_F4_d021_close_state_allowlist_config_side_only
 #   test_BC_6_01_001_F5_prism_absent_exits_2
@@ -30,12 +43,18 @@
 #   test_BC_6_01_001_F5_prism_beta_below_minimum_halts
 #   test_BC_6_01_001_F5_release_satisfies_prerelease_minimum
 #
+# RED at HEAD c54d048 (pass-2 unfixed findings):
+#   test_BC_6_01_001_F1_skill_md_step6_missing_windows_prism_gate     (pass-2 F1)
+#   test_BC_6_01_001_F2_ps1_write_error_terminating_before_exit2      (pass-2 F2)
+#   test_BC_6_01_001_F4_sh_prism_nonzero_exit_version_still_parsed    (pass-2 F4)
+#
 # MUST NOT modify prism-version-check.sh, prism-version-check.ps1, SKILL.md,
 # or any .factory/ artifact.
 
 PLUGIN_ROOT="${BATS_TEST_DIRNAME}/../.."
 PRISM_VERSION_CHECK="${PLUGIN_ROOT}/hooks/prism-version-check.sh"
 PRISM_VERSION_CHECK_PS1="${PLUGIN_ROOT}/hooks/prism-version-check.ps1"
+SKILL_MD="${PLUGIN_ROOT}/skills/activate/SKILL.md"
 
 # ─── F1 — Pre-release semver NUMERIC ordering ────────────────────────────────
 #
@@ -174,6 +193,121 @@ PRISM_VERSION_CHECK_PS1="${PLUGIN_ROOT}/hooks/prism-version-check.ps1"
     # MUST exit 1: 1.0.0-RC.1 is below min 1.0.0-rc.1 (semver §11.4, ASCII 'R' < 'r').
     # RED until prism-version-check.sh sets LC_ALL=C internally to enforce ordinal ordering.
     [ "$actual_status" -eq 1 ]
+}
+
+# ─── Pass-2 F1 — Windows gate wiring gap in SKILL.md step 6 ─────────────────
+#
+# BC-6.01.001 PC#8 / VP-SKILL-051: the prism version gate MUST be enforced on
+# every supported platform. SKILL.md step 6 (the activation procedure) specifies:
+#
+#   bash "${CLAUDE_PLUGIN_ROOT}/hooks/prism-version-check.sh"
+#
+# This is the only invocation given. On native Windows (no WSL, no Git Bash),
+# bash is not available: step 6 silently skips the gate, allowing an incompatible
+# prism version to pass. Step 8 correctly detects the Windows platform and
+# switches to hooks.json.windows — but no parallel Windows branch exists in
+# step 6 for the version gate.
+#
+# Resolution: step 6 must add a Windows branch invoking prism-version-check.ps1
+# (mirroring step 8's platform detection), OR prism-version-check.ps1 must be
+# wired as a setup-only hook in hooks.json.windows.
+#
+# Static test: fails RED until SKILL.md step 6 references prism-version-check.ps1
+# for Windows OR hooks.json.windows includes prism-version-check.
+# Traced: pass-2 F1, BC-6.01.001 PC#8, VP-SKILL-051.
+
+@test "test_BC_6_01_001_F1_skill_md_step6_missing_windows_prism_gate (pass-2 F1, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    # RED: SKILL.md step 6 invokes only bash .../prism-version-check.sh.
+    # On native Windows, bash is unavailable outside WSL/Git Bash → gate is silently
+    # skipped, violating BC-6.01.001 PC#8.
+    # Pass condition (either is sufficient):
+    #   (a) SKILL.md step 6 references prism-version-check.ps1 (Windows branch), or
+    #   (b) hooks.json.windows has a prism-version-check entry (wired as setup hook).
+    # Currently neither is true → RED.
+    local hooks_json_win="${PLUGIN_ROOT}/hooks/hooks.json.windows"
+
+    local skill_has_ps1=0
+    grep -q 'prism-version-check\.ps1' "$SKILL_MD" && skill_has_ps1=1
+
+    local hooks_has_prism=0
+    grep -q 'prism-version-check' "$hooks_json_win" && hooks_has_prism=1
+
+    # At least one path must be wired for native-Windows operators
+    [ "$skill_has_ps1" -eq 1 ] || [ "$hooks_has_prism" -eq 1 ]
+}
+
+# ─── Pass-2 F2 — ps1 Write-Error terminating under $ErrorActionPreference='Stop' ─
+#
+# BC-6.01.001 PC#8 defines three exit codes: 0 (pass), 1 (below minimum), 2 (error).
+# prism-version-check.ps1 sets $ErrorActionPreference = 'Stop' (line 9) and then
+# calls bare Write-Error before each 'exit 2':
+#
+#   Write-Error 'ERROR: prism binary not found in PATH'
+#   exit 2
+#
+# Under $ErrorActionPreference='Stop', Write-Error is a TERMINATING error — it throws
+# a System.Management.Automation.ErrorRecord exception. The 'exit 2' that follows is
+# unreachable. The script exits with code 1 (unhandled terminating error), not 2,
+# destroying the ability of callers to distinguish "tool missing" (exit 2) from
+# "version too old" (exit 1).
+#
+# Fix: replace bare Write-Error with a non-terminating output mechanism before each
+# 'exit 2'. Accepted patterns (non-terminating under Stop):
+#   [Console]::Error.WriteLine('...')
+#   Write-Host '...' -ForegroundColor Red
+#   Write-Error '...' -ErrorAction Continue
+#
+# Static test: scans ps1 for at least one non-terminating error-output pattern.
+# Fails RED until ps1 replaces Write-Error with a non-terminating alternative.
+# Traced: pass-2 F2, BC-6.01.001 PC#8, VP-SKILL-051.
+
+@test "test_BC_6_01_001_F2_ps1_write_error_terminating_before_exit2 (pass-2 F2, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    # RED: ps1 uses bare Write-Error (terminating under Stop) before each exit 2.
+    # Assert that the ps1 uses at least one non-terminating error-output mechanism.
+    # Accepted: [Console]::Error.Write*, Write-Host with -ForegroundColor Red,
+    # or Write-Error with -ErrorAction Continue/SilentlyContinue override.
+    # Currently none present → grep returns non-zero → test FAILS RED.
+    grep -qE '\[Console\]::Error\.(Write|WriteLine)|Write-Host[^#]+-ForegroundColor\s+Red|Write-Error[^#]+-ErrorAction\s+(Continue|SilentlyContinue)' \
+        "$PRISM_VERSION_CHECK_PS1"
+}
+
+# ─── Pass-2 F4 — sh set -e aborts on prism --version non-zero exit ────────────
+#
+# prism-version-check.sh line 10: set -euo pipefail
+# prism-version-check.sh line 26: version_output="$(prism --version 2>&1)"
+#
+# The assignment at line 26 has no '|| true' guard. When 'prism --version' exits
+# with a non-zero status (e.g., a debug build that returns exit 3 after printing a
+# valid version string to stdout), 'set -e' causes the entire script to abort at the
+# assignment point. The version string is captured in $version_output, but the
+# subsequent parse / comparison logic is never reached.
+#
+# Consequence: a prism binary that happens to exit non-zero after printing its
+# version is reported as a gate failure (non-0 exit from the script) rather than
+# exit 0 (meets minimum). This is a false negative — valid versions are blocked.
+#
+# Fix: add '|| true' to the assignment:
+#   version_output="$(prism --version 2>&1)" || true
+#
+# E2E test: mock prism prints "prism 2.0.0" (above minimum) and exits 3.
+# Gate MUST exit 0. Currently exits 3 (set -e passes through prism's exit code).
+# Traced: pass-2 F4, BC-6.01.001 PC#8, VP-SKILL-051.
+
+@test "test_BC_6_01_001_F4_sh_prism_nonzero_exit_version_still_parsed (pass-2 F4, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    # RED: mock prism prints valid above-minimum version "prism 2.0.0" then exits 3.
+    # set -e at line 10 aborts the script at the assignment on line 26; gate exits 3
+    # instead of 0. The version string is never parsed.
+    # Must exit 0 once '|| true' is added to the assignment.
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    printf '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then echo "prism 2.0.0"; exit 3; fi\n' \
+        > "$tmpdir/prism"
+    chmod +x "$tmpdir/prism"
+    run env PATH="$tmpdir:$PATH" bash "$PRISM_VERSION_CHECK" 2>&1
+    rm -rf "$tmpdir"
+    # 2.0.0 >= minimum 1.0.0-rc.1: gate MUST exit 0.
+    # RED until 'set -e' protection is added for the prism --version assignment.
+    [ "$status" -eq 0 ]
 }
 
 # ─── F4 — D-021 CLOSE_STATE_ALLOWLIST forbidden-dependency guard (PERMANENT) ──

@@ -22,7 +22,15 @@ Before any other action, say verbatim:
 
 3. **Check for a conflicting default agent.** If an `agent` key already exists and does not point at a `secops-factory:` agent, warn the user which agent currently holds the default (e.g., another plugin's orchestrator) and ask before replacing it.
 
-4. **Merge the activation block.** Write the file back with these fields merged, preserving all other top-level keys:
+4. **Collect and validate ticketing system project identifier.** Prompt the operator for the required project identifier before writing any configuration. If the provided value does not conform to the required format, emit an explicit user-facing error and refuse to complete activation — no partial state is written.
+
+   <!-- STUB(S-6.03): implementation pending — BC-6.01.001 PC#12/EC-014/AC-007/VP-SKILL-076 activate leg -->
+
+5. **Collect and validate ticketing system lifecycle close state.** Prompt the operator for the transition state to be used when auto-closing tickets. If the provided value is not in the permitted set, emit an explicit user-facing error and refuse to complete activation — no partial state is written.
+
+   <!-- STUB(S-6.03): implementation pending — BC-6.01.001 PC#13/EC-015/AC-001..006/D-021 -->
+
+6. **Merge the activation block.** Write the file back with these fields merged, preserving all other top-level keys:
 
    ```json
    {
@@ -34,7 +42,7 @@ Before any other action, say verbatim:
    }
    ```
 
-5. **Apply the per-platform hooks variant.** The plugin ships two `hooks.json` variants: the committed default invokes the `.sh` hook scripts (macOS, Linux, WSL, Git Bash — no action needed), and `hooks.json.windows` invokes the `.ps1` siblings via `powershell.exe`.
+7. **Apply the per-platform hooks variant.** The plugin ships two `hooks.json` variants: the committed default invokes the `.sh` hook scripts (macOS, Linux, WSL, Git Bash — no action needed), and `hooks.json.windows` invokes the `.ps1` siblings via `powershell.exe`.
 
    Detect the host: if running on native Windows (PowerShell/cmd shell, `$env:OS` = `Windows_NT`, and not inside WSL or Git Bash), copy the Windows variant into place:
 
@@ -44,7 +52,7 @@ Before any other action, say verbatim:
 
    On macOS/Linux/WSL/Git Bash, leave `hooks.json` untouched. Note for Windows users: a plugin update restores the default `hooks.json`, so re-run `/secops-factory:activate` after updating the plugin.
 
-6. **Confirm activation.** Print:
+8. **Confirm activation.** Print:
    - File written (`.claude/settings.local.json`)
    - New default agent (`secops-factory:orchestrator:orchestrator`)
    - Hooks variant applied (default `.sh` or Windows `.ps1`)
@@ -53,7 +61,7 @@ Before any other action, say verbatim:
    - How to reverse it (`/secops-factory:deactivate`)
    - Reminder that this only affects the current project — `settings.local.json` is per-project and typically gitignored, so teammates opt in individually
 
-7. **Suggest a health check.** Recommend running `/secops-factory:secops-health` once in the new session to verify jr CLI and Perplexity MCP before the first enrichment.
+9. **Suggest a health check.** Recommend running `/secops-factory:secops-health` once in the new session to verify jr CLI and Perplexity MCP before the first enrichment.
 
 ## Dry-run mode
 

@@ -59,10 +59,41 @@ function Compare-SemVer([string]$v1, [string]$v2) {
     if ($a.Pre -ne '' -and $b.Pre -eq '') { return -1 }
     if ($a.Pre -eq '' -and $b.Pre -eq '') { return 0 }
 
-    # Both have pre-release — string comparison (handles rc.N)
-    if ($a.Pre -gt $b.Pre) { return 1 }
-    if ($a.Pre -lt $b.Pre) { return -1 }
-    return 0
+    # Both have pre-release — compare per semver §11: split on dots, compare each
+    # field: purely numeric identifiers compared numerically (so rc.2 < rc.10);
+    # alphanumeric identifiers compared with [System.String]::CompareOrdinal for
+    # case-sensitive ASCII ordering (semver §11.4, matches sh LC_ALL=C behaviour);
+    # numeric < alphanumeric; larger set of fields > smaller when all preceding equal.
+    $preParts1 = $a.Pre -split '\.'
+    $preParts2 = $b.Pre -split '\.'
+    $maxLen = [Math]::Max($preParts1.Length, $preParts2.Length)
+
+    for ($j = 0; $j -lt $maxLen; $j++) {
+        $s1 = if ($j -lt $preParts1.Length) { $preParts1[$j] } else { $null }
+        $s2 = if ($j -lt $preParts2.Length) { $preParts2[$j] } else { $null }
+
+        # One side exhausted: longer (more fields) is greater
+        if ($null -eq $s1) { return -1 }
+        if ($null -eq $s2) { return 1 }
+
+        $n1IsNum = $s1 -match '^\d+$'
+        $n2IsNum = $s2 -match '^\d+$'
+
+        if ($n1IsNum -and $n2IsNum) {
+            $n1 = [int]$s1; $n2 = [int]$s2
+            if ($n1 -gt $n2) { return 1 }
+            if ($n1 -lt $n2) { return -1 }
+        } else {
+            # numeric < alphanumeric (semver §11.4.1)
+            if ($n1IsNum) { return -1 }
+            if ($n2IsNum) { return 1 }
+            # Both alphanumeric: ordinal case-sensitive comparison
+            $cmp = [System.String]::CompareOrdinal($s1, $s2)
+            if ($cmp -gt 0) { return 1 }
+            if ($cmp -lt 0) { return -1 }
+        }
+    }
+    return 0  # equal pre-release
 }
 
 $cmp = Compare-SemVer $version $MinVersion

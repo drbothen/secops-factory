@@ -238,3 +238,47 @@ assert_same_json() {
     [ "$status" -eq 1 ]
     rm -f "$dirty_mcp"
 }
+
+# ---------------------------------------------------------------------------
+# F2 parity: prism-version-check case-sensitive pre-release (VP-SKILL-051)
+# ---------------------------------------------------------------------------
+# Semver §11.4 requires case-sensitive ASCII comparison for pre-release identifiers.
+# 'R' (0x52) < 'r' (0x72), so 1.0.0-RC.1 < 1.0.0-rc.1: an installed 1.0.0-RC.1 MUST
+# NOT satisfy minimum 1.0.0-rc.1.
+#
+# sh (with LC_ALL=C): [[ "RC.1" > "rc.1" ]] is FALSE → exits 1 (correct).
+# ps1 (-gt/-lt, culture-insensitive): "RC.1" == "rc.1" → returns equal → exits 0 (wrong).
+#
+# This test is RED in CI (where pwsh is available) until ps1 is fixed to use
+# case-sensitive ordinal comparison (-cgt/-clt or CompareOrdinal).
+# Skipped locally when pwsh is not installed (CI-only enforcement).
+
+@test "parity: prism-version-check uppercase pre-release RC.1 halts on both platforms (F2, VP-SKILL-051)" {
+    require_pwsh
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    # Mock prism reporting an uppercase pre-release label (1.0.0-RC.1).
+    # The bash shebang makes this mock executable on the Linux/macOS CI environment.
+    printf '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then echo "prism 1.0.0-RC.1"; fi\n' \
+        > "$tmpdir/prism"
+    chmod +x "$tmpdir/prism"
+
+    # Run sh with LC_ALL=C to ensure ASCII-ordinal comparison (not locale-dependent).
+    SH_STATUS=0
+    env LC_ALL=C PATH="$tmpdir:$PATH" bash "$PLUGIN_ROOT/hooks/prism-version-check.sh" \
+        >/dev/null 2>&1 || SH_STATUS=$?
+
+    # Run ps1 with the mock prism accessible in PATH.
+    PS_STATUS=0
+    env PATH="$tmpdir:$PATH" pwsh -NoProfile \
+        -File "$PLUGIN_ROOT/hooks/prism-version-check.ps1" \
+        >/dev/null 2>&1 || PS_STATUS=$?
+
+    rm -rf "$tmpdir"
+
+    # sh (LC_ALL=C): ASCII 'R' < 'r' → 1.0.0-RC.1 below min 1.0.0-rc.1 → exit 1
+    [ "$SH_STATUS" -eq 1 ]
+    # ps1 (-gt culture-insensitive): "RC.1" treated as equal to "rc.1" → exits 0 (wrong)
+    # Assertion requires exit 1 → FAILS RED until ps1 uses ordinal/case-sensitive comparison
+    [ "$PS_STATUS" -eq 1 ]
+}

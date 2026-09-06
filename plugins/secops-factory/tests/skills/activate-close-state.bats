@@ -176,9 +176,12 @@ PRISM_VERSION_CHECK="${PLUGIN_ROOT}/hooks/prism-version-check.sh"
     chmod +x "$tmpdir/prism"
     run env PATH="$tmpdir:$PATH" bash "$PRISM_VERSION_CHECK" 2>&1
     rm -rf "$tmpdir"
-    [ "$status" -ne 0 ]
-    [[ "$output" == *"does not meet minimum requirement"* ]] || \
-        [[ "$output" == *"1.0.0-rc.1"* ]]
+    # F5 tightening: require exact exit code 1 (not just non-zero; exit 2 would indicate
+    # a parse error, not a version-gate halt) and the BC-canonical halt phrase verbatim.
+    # The loose '|| *"1.0.0-rc.1"*' fallback was removed: that pattern is also satisfied by
+    # the success message, masking a hypothetical bug where the gate emits the wrong output.
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"does not meet minimum requirement"* ]]
 }
 
 @test "test_BC_6_01_001_prism_version_check_script_at_minimum (AC-008b, VP-SKILL-051)" {

@@ -90,34 +90,51 @@ Present factor breakdown, total score, priority level, SLA deadline, and rationa
 
 ## scored_priority Output (ICD-203 Field 18)
 
-<!-- NOT-IMPLEMENTED-STUB: scored_priority producer/consumer coherence not yet wired (BC-4.05.001 invariant 5, P12-004) -->
+The skill `priority` output IS `scored_priority` (verdict field 18, BC-4.05.001 Invariant 5, P12-004).
+The monitoring loop reads `verdict.scored_priority` — the skill populates this key so it is never nil.
 
-The skill `priority` output field is the producer of verdict field 18.
+Output JSON structure includes:
+
+```json
+{
+  "scored_priority": "<SCORED_PRIORITY_ENUM value>",
+  "confidence_score": 0.0,
+  "confidence": "high|medium|low"
+}
+```
 
 ## SEVERITY_TO_SCORED_PRIORITY_MAP
 
-<!-- NOT-IMPLEMENTED-STUB: mapping values are placeholders — correct enum translations not yet applied (AC-003) -->
+Maps CVSS SEVERITY_ENUM to SCORED_PRIORITY_ENUM (BC-4.05.001 Invariant 5, EC-001..EC-004).
+SEVERITY_ENUM values (CRITICAL, HIGH, MEDIUM, LOW) differ from SCORED_PRIORITY_ENUM (CRIT, HIGH, MED, LOW).
 
 | SEVERITY_ENUM (input) | SCORED_PRIORITY_ENUM (output) |
 |-----------------------|-------------------------------|
-| CRITICAL | CRITICAL |
+| CRITICAL | CRIT |
 | HIGH | HIGH |
-| MEDIUM | MEDIUM |
+| MEDIUM | MED |
 | LOW | LOW |
 
 ## Confidence Mapping (D-DEC-011)
 
-<!-- NOT-IMPLEMENTED-STUB: thresholds are placeholders — correct boundary values not yet applied (AC-009, VP-SKILL-071) -->
+Maps `confidence_score` float to `confidence` enum per D-DEC-011 thresholds (VP-SKILL-071).
+An inconsistent confidence pair (e.g. confidence_score=0.80 with confidence="low") is invalid and must be rejected.
 
 | confidence_score range | confidence enum |
 |------------------------|----------------|
-| >= 0.80 | high |
-| >= 0.50 and < 0.80 | medium |
-| < 0.50 | low |
+| >= 0.75 | high |
+| >= 0.40 and < 0.75 | medium |
+| < 0.40 | low |
 
 ## Prism-Grounded Scoring (Stage 5)
 
-<!-- NOT-IMPLEMENTED-STUB: prism availability check and org_slug scoping not yet implemented (BC-4.05.001 invariant 4, D-DEC-005, AC-008, VP-SKILL-070) -->
+All PrismQL queries MUST include an explicit `WHERE org_slug=` clause for multi-org isolation
+(BC-4.05.001 Invariant 4, D-DEC-005, VP-SKILL-070).
+
+**Degraded-mode fallback:** If `org_slug` is unavailable from the execution context, ALL
+Prism-grounded scoring stages (PC#5a through PC#5e) MUST be skipped entirely. The skill
+must proceed using only the 6-factor base score without Prism enrichment and MUST note
+"Prism scoring unavailable: org_slug not in context" in output.
 
 ### PC#5a — 30-Day Historical Baseline Query
 
@@ -126,7 +143,8 @@ SELECT COUNT(*) AS hit_count,
        COUNT(DISTINCT CASE WHEN disposition='TP' THEN event_id END) AS tp_count,
        COUNT(DISTINCT CASE WHEN disposition='FP' THEN event_id END) AS fp_count
 FROM events
-WHERE rule_id='<rule_id>'
+WHERE org_slug='<org_slug>'
+  AND rule_id='<rule_id>'
   AND timestamp > NOW() - INTERVAL '30 days'
 ```
 
@@ -134,11 +152,11 @@ WHERE rule_id='<rule_id>'
 
 ```sql
 SELECT enrich_nvd('<cve_id>') AS nvd_data
+FROM dual
+WHERE org_slug='<org_slug>'
 ```
 
 ### PC#5c — Rule-Fidelity Recalibration
-
-<!-- NOT-IMPLEMENTED-STUB: fidelity recalibration logic not yet defined -->
 
 Compute fidelity from TP/FP counts and adjust exploit_status factor score.
 
@@ -147,11 +165,10 @@ Compute fidelity from TP/FP counts and adjust exploit_status factor score.
 ```sql
 SELECT asset_criticality_score
 FROM assets
-WHERE asset_id='<asset_id>'
+WHERE org_slug='<org_slug>'
+  AND asset_id='<asset_id>'
 ```
 
 ### PC#5e — Bayesian TP/FP/BTP Disposition Estimate
-
-<!-- NOT-IMPLEMENTED-STUB: Bayesian prior logic not yet defined -->
 
 Apply prior from 30-day counts to produce advisory disposition estimate.

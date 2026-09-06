@@ -60,13 +60,14 @@ Before any other action, say verbatim:
 
 ### Priority Mapping
 
-| Score | Priority | SLA |
-|-------|----------|-----|
-| >=20 or KEV Listed | P1 - Critical | 24 hours |
-| 15-19 | P2 - High | 7 days |
-| 10-14 | P3 - Medium | 30 days |
-| 6-9 | P4 - Low | 90 days |
-| 0-5 | P5 - Informational | No SLA |
+**P1-P5 labels are INTERNAL-ONLY** — they are the skill's intermediate 6-factor scoring notation and are never emitted as `scored_priority`. The `scored_priority` output is always a member of the canonical enum `{CRIT, HIGH, MED, LOW}`.
+
+| Score (PC#6 band) | scored_priority | SLA |
+|-------------------|----------------|-----|
+| >=20 or KEV Listed | CRIT | 24 hours |
+| 14-19 | HIGH | 7 days |
+| 8-13 | MED | 30 days |
+| <8 | LOW | 90 days |
 
 ### Override Rules
 
@@ -120,21 +121,20 @@ SEVERITY_ENUM values (CRITICAL, HIGH, MEDIUM, LOW) differ from SCORED_PRIORITY_E
 Maps `confidence_score` float to `confidence` enum per D-DEC-011 thresholds (VP-SKILL-071).
 An inconsistent confidence pair (e.g. confidence_score=0.80 with confidence="low") is invalid and must be rejected.
 
-| confidence_score range | confidence enum |
-|------------------------|----------------|
-| >= 0.75 | high |
-| >= 0.40 and < 0.75 | medium |
-| < 0.40 | low |
+| confidence_score range | confidence enum | Boundary vectors |
+|------------------------|----------------|-----------------|
+| >= 0.75 | high | 0.75 → high; 0.749 → medium |
+| >= 0.40 and < 0.75 | medium | 0.40 → medium; 0.399 → low |
+| < 0.40 | low | |
 
 ## Prism-Grounded Scoring (Stage 5)
 
 All PrismQL queries MUST include an explicit `WHERE org_slug=` clause for multi-org isolation
 (BC-4.05.001 Invariant 4, D-DEC-005, VP-SKILL-070).
 
-**Degraded-mode fallback:** If `org_slug` is unavailable from the execution context, ALL
-Prism-grounded scoring stages (PC#5a through PC#5e) MUST be skipped entirely. The skill
-must proceed using only the 6-factor base score without Prism enrichment and MUST note
-"Prism scoring unavailable: org_slug not in context" in output.
+**Degraded-mode fallback (missing org_slug):** If `org_slug` is unavailable from the execution context, ALL Prism-grounded scoring stages (PC#5a through PC#5e) MUST be skipped entirely. The skill must proceed using only the 6-factor base score without Prism enrichment and MUST note "Prism scoring unavailable: org_slug not in context" in output.
+
+**Degraded mode (Prism MCP unavailable):** When Prism MCP is unavailable (connection error, timeout, or `prism_describe` returns error), skip all Prism-grounded stages (PC#5a–PC#5e), apply the 6-factor algorithm, map the base score to `{CRIT, HIGH, MED, LOW}` via PC#6 band thresholds, set `uncertainty_explicit: true`, and emit "Prism unavailable — result reflects static 6-factor scoring only" in rationale. The `scored_priority` output is always a valid enum member in degraded mode; P1-P5 are INTERNAL-ONLY and never emitted as `scored_priority`.
 
 ### PC#5a — 30-Day Historical Baseline Query
 

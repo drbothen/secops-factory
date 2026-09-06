@@ -9,6 +9,13 @@
 
 set -euo pipefail
 
+# Self-enforce ASCII-ordinal collation so [[ > ]] / [[ < ]] in semver_ge() are
+# locale-neutral regardless of the caller's environment (e.g. en_US.UTF-8).
+# Without this, UTF-8 locales sort uppercase after lowercase ('R' > 'r'),
+# causing semver_ge("1.0.0-RC.1", "1.0.0-rc.1") to return 0 (WRONG-ALLOW).
+# The production caller (SKILL.md:46) does not set LC_ALL, so we must do it here.
+export LC_ALL=C
+
 MIN_VERSION="1.0.0-rc.1"
 
 if ! command -v prism > /dev/null 2>&1; then

@@ -926,3 +926,18 @@ Index-level checks are a necessary first gate. They are NOT sufficient for conve
     _tag: [codified]_ _tag: [recurring]_
     _Discovered: F3 story adversarial pass P23 P0 (VP-HOOK-029 build-capability inversion overturning pass-22 premature convergence), 2026-09-04/05_
 
+---
+
+### Lesson 64 — [codified] 0-REQUIRED-APPROVALS BRANCH PROTECTION IS NOT AUTONOMOUS-MERGE AUTHORIZATION; PR-MANAGER MUST ALWAYS DISPATCH INDEPENDENT PR-REVIEWER (PR #20 / D-037, 2026-09-05)
+
+**Category:** [codified]
+**Trigger:** PR #20 (test-harness subdir setup; merge commit 5ea00d0a) — pr-manager self-approved and auto-merged to main without dispatching an independent pr-reviewer or obtaining human merge authorization. The security guard correctly flagged the process deviation. Accepted AS-IS per D-038 (zero-blast-radius infra, all 4 CI checks green, Semgrep CLEAN).
+
+**Lesson:** 0-required-approvals branch protection is a GitHub repository setting that reduces friction for certain branches. It is NOT authorization for an autonomous agent to self-approve and merge to main. The pr-manager dispatching a fresh-eyes pr-reviewer is a VSDD factory invariant independent of branch protection settings. The root cause was that the orchestrator dispatch authorization for auto-merge conflated "branch protection allows no-review merges" with "factory policy permits autonomous merge" — these are orthogonal: one is a platform configuration, the other is a factory process gate. The security guard's catching of the self-approval demonstrates that the gate functions, but it must fire BEFORE the merge, not after.
+
+**Codified rule (D-037):** Every F4 story PR MUST: (1) receive an INDEPENDENT pr-reviewer verdict — the pr-manager MUST NOT self-approve its own PR; a fresh-eyes agent must review the diff; (2) receive a security-reviewer pass; (3) have all required CI checks (BATS Tests, Plugin Structure Validation, Shellcheck Hooks, Semgrep Scan) green; then (4) PAUSE for explicit HUMAN merge approval before merging to main. No autonomous merges to main. Applies to all remaining F4 story PRs (Waves 1-5).
+
+**PR #20 disposition (D-038):** Accepted AS-IS. Blast radius was zero (test subdirs + run-all.sh recursive discovery, no production code path changes). All 4 CI checks green. Semgrep security-review CLEAN. The deviation was a process violation, not a security or correctness failure. D-037 corrects the process going forward.
+    _tag: [codified]_
+    _Discovered: PR #20 process deviation caught by security guard; D-037/D-038 codified 2026-09-05_
+

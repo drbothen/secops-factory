@@ -4,7 +4,7 @@ level: ops
 version: "2.40"
 status: active
 producer: state-manager
-timestamp: 2026-09-05T12:00:00Z
+timestamp: 2026-09-05T14:30:00Z
 phase: F4-IN-PROGRESS
 pipeline: FEATURE-CYCLE
 inputs: []
@@ -12,8 +12,8 @@ input-hash: "[live-state]"
 traces_to: ""
 project: secops-factory
 mode: feature
-current_step: "F4 Wave 1 delivery: S-3.01, S-4.02, S-6.03 (parallel). Pre-flight checks (toolchain/DTU/CI-CD) running. trajectory-tail F3-STORY →1→0→0→0 D-chain cite D-447 latest feature-cycle"
-awaiting: "F4 Wave 1 per-story TDD delivery"
+current_step: "F4 Wave 1 delivery: S-3.01, S-4.02, S-6.03 (parallel). D-037 merge-auth gate in force for all F4 story PRs. trajectory-tail F3-STORY →1→0→0→0 D-chain cite D-447 latest feature-cycle"
+awaiting: "F4 Wave 1 per-story TDD delivery (D-037 merge-auth gate: independent pr-reviewer + security-reviewer + CI green + human approval required before any PR merges to main)"
 current_cycle: v0.10.0-feature-prism-integration
 dtu_required: true
 dtu_assessment: "2026-07-20"
@@ -22,11 +22,11 @@ dtu_services: [prism-demo-server, jr-mock]
 ---
 
 <!--
-  STATE.md SIZE BUDGET: 192 lines (wc-l) | soft-target: 195 | margin from soft-target: 3 | margin from actual: 8
+  STATE.md SIZE BUDGET: 194 lines (wc-l) | soft-target: 195 | margin from soft-target: 1 | margin from actual: 6
   Historical content belongs in cycle files, NOT here.
   Phase Progress sub-rows (passes 38-43) archived to convergence-trajectory.md; pass-44 and burst-42 retained per D-435(b)+D-447(d).
   F3 convergence summary rows added; old F2 Current Phase Steps archived to session-checkpoints.md.
-  Process-gap deferrals DI-019..DI-023 added to Drift Items. D-036 F3-gate approval + F4 auth added.
+  Process-gap deferrals DI-019..DI-023 added to Drift Items. D-036 F3-gate approval + F4 auth added. D-037 merge-auth gate + D-038 PR #20 disposition added.
   Run /vsdd-factory:compact-state if this file grows past 195 lines.
 -->
 
@@ -43,9 +43,9 @@ dtu_services: [prism-demo-server, jr-mock]
 | **Target Workspace** | /Users/jmagady/Dev/secops-factory |
 | **Engine** | /Users/jmagady/Dev/dark-factory (vsdd-factory plugin) |
 | **Started** | 2026-07-19 |
-| **Last Updated** | 2026-09-05 — F3 gate APPROVED by human (D-036). F4 delta implementation AUTHORIZED. F4 Wave 1 dispatch underway: S-3.01, S-4.02, S-6.03 parallel. Pre-Wave-4 BLOCKERS: ASM-015 + ASM-009 BATS gate MUST pass before Wave 4 (S-10.01) dispatch per D-036. trajectory-tail F3-STORY →1→0→0→0 |
+| **Last Updated** | 2026-09-05 — D-037 F4 merge-auth gate established (independent pr-reviewer + security-reviewer + CI + human merge approval required). D-038 PR #20 accepted AS-IS (process deviation noted). trajectory-tail F3-STORY →1→0→0→0 |
 | **Current Phase** | F4: Delta Implementation — in progress (started 2026-09-05); F3 gate APPROVED 2026-09-05 (D-036); Wave 1 delivery underway |
-| **Current Step** | F4 Wave 1 delivery: S-3.01 (P0), S-4.02 (P1), S-6.03 (P0) parallel. Pre-flight checks running. Pre-Wave-4 BLOCKERS: ASM-015 + ASM-009 BATS gate before Wave 4 (S-10.01) dispatch. |
+| **Current Step** | F4 Wave 1 delivery: S-3.01 (P0), S-4.02 (P1), S-6.03 (P0) parallel. D-037 merge-auth gate in force for all F4 story PRs (independent pr-reviewer + security-reviewer + CI + human approval). Pre-Wave-4 BLOCKERS: ASM-015 + ASM-009 BATS gate before Wave 4 (S-10.01) dispatch. |
 
 ## Phase Progress
 
@@ -125,6 +125,8 @@ dtu_services: [prism-demo-server, jr-mock]
 | D-034 | "Merge Prism" = runtime MCP service + prism-dtu-demo-server DTU integration (NOT a code merge). Prism repo /Users/jmagady/Dev/prism (engine rc.22/23). CIRCULAR RC GATE: Prism rc.1 acceptance = live secops-factory demo, but demo needs rc.1 binary + demo-bundle → sequence Prism live-xDome validation + bundle publish FIRST before demo. | Prevents misunderstanding "merge Prism" as a repository merge. Circular dependency must be broken by sequencing Prism validation + bundle publish ahead of demo. | F2-gate | 2026-09-04 | human |
 | D-035 | demo-seed = Option A (STORY-DEMO-SEED-001 placeholder stub; operator tooling under scripts/demo/ per D-006). secops-factory ships the plugin; demo orchestration is the operator's concern (D-006 confirmed). STORY-DEMO-SEED-001 is a draft stub — assign canonical S-N.MM at F3 kickoff. | Clarifies demo-seed scope boundary consistent with D-006. Avoids pulling demo orchestration into the product repo. | F3-boundary | 2026-09-04 | human |
 | D-036 | F3 gate APPROVED by human 2026-09-05. F3 story adversarial convergence COMPLETE (3/3 clean, passes 27/28/29; 29 total). Gate audits PASS (consistency PASS-WITH-MINORS + spec-reviewer APPROVED-WITH-SUGGESTIONS, all remediated). F4 delta implementation AUTHORIZED. Sequencing: F4 proceeds at Wave 1 immediately; ASM-015 + ASM-009 pre-dispatch BATS validation gate MUST pass before Wave 4 (S-10.01) dispatch. | Formal human gate closure for F3. F4 authorized with explicit pre-Wave-4 sequencing constraint for ASM-015/ASM-009 BATS validation. | F3-gate | 2026-09-05 | human |
+| D-037 | F4 merge-auth gate: every F4 story PR MUST receive (1) INDEPENDENT pr-reviewer verdict (pr-manager MUST NOT self-approve) + security-reviewer, (2) all required CI checks green, then (3) PAUSE for explicit HUMAN merge approval before merging to main. No autonomous merges to main. Applies to all remaining F4 story PRs (Waves 1-5). | Corrects PR #20 process deviation; prevents autonomous merges to main in feature delivery. Verbose rationale in cycles/.../lessons.md L-064. | F4 | 2026-09-05 | human |
+| D-038 | PR #20 (F4 test-harness subdir setup; merge 5ea00d0a) ACCEPTED AS-IS despite process deviation (pr-manager self-approved + auto-merged without independent review or human gate). Accepted: zero-blast-radius infra (test subdirs + run-all.sh), all 4 CI checks green, Semgrep CLEAN. Deviation noted; corrected by D-037. Root cause: 0-required-approvals branch protection ≠ autonomous-merge authorization. | Bounded deviation accepted; D-037 corrects going forward. Security guard correctly caught self-approval. | F4 | 2026-09-05 | human |
 
 ## Skip Log
 
@@ -173,7 +175,7 @@ dtu_services: [prism-demo-server, jr-mock]
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-09-05 |
-| **Position** | F3 gate APPROVED by human (D-036). F4 delta implementation AUTHORIZED. Wave 1 dispatch ACTIVE: S-3.01 (P0), S-4.02 (P1), S-6.03 (P0) parallel. Pre-Wave-4 BLOCKERS: ASM-015 (BATS validation, permission_denials in JSON envelope) + ASM-009 (cross-hook marker filesystem visibility) MUST pass before Wave 4 (S-10.01) dispatch per D-036. Process-gap deferrals DI-019..DI-023 codified. |
+| **Position** | F3 gate APPROVED (D-036). F4 Wave 1 ACTIVE: S-3.01/S-4.02/S-6.03 parallel. D-037 merge-auth gate in force for all F4 story PRs (independent pr-reviewer + security-reviewer + CI + human approval before any merge to main). D-038 PR #20 accepted AS-IS (process deviation; D-037 corrects). Pre-Wave-4 BLOCKERS: ASM-015 + ASM-009 BATS gate before Wave 4 (S-10.01) per D-036. |
 | **Context** | Stories: 13 / 88 pts / 5 waves. Holdouts: 62 (34 baseline + 28 F3-delta). Converged spec (FROZEN post-burst-42): arch-delta v1.34 (d7bcab4), BC-10.01.001 v1.36 (742b491), BC-3.03.001 v1.42 (95fcec5), BC-3.01.001 v1.25 (96609a9), BC-4.02.001 v1.21, BC-5.01.001 v1.15, prd-delta v1.39 (1c4be4c), verif-delta v1.38 (SM 76/75), dtu-assessment v1.7. VP 41; SM 76/75; EC 24+56+80. BATS: 113. HS-060 input-hash: 71f9e5e. DI-018 ACCEPT-DEFER (rc.25+). factory/hooks/ NOT instantiated. |
 | **Convergence counter** | F3: 3/3 clean — F3 ADVERSARIAL STORY CONVERGENCE COMPLETE (passes 27/28/29). Gate: APPROVED (human 2026-09-05; D-036). F4 AUTHORIZED. |
 

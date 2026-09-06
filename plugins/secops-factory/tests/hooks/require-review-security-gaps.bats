@@ -306,21 +306,26 @@ _now_ts() {
   # BC step (8): control chars (0x00-0x1f) stripped from all attacker-influenceable fields
   # before interpolation. A marker_id containing \n must not produce a second MARKER_USED
   # line in audit.log (forged audit record).
-  # JSON \n in marker_id → jq -r emits literal LF → printf '%s...%s\n' injects second line.
-  # Current gap: marker_id not sanitized → forged line written → grep '^MARKER_USED' finds it
-  # → test assertion fails → RED Gate.
+  # JSON \n in marker_id → jq -r emits literal LF → without sanitization a second
+  # "MARKER_USED ..." line would be injected into audit.log.
+  # Implementation strips control chars via tr -d '\000-\037'; the LF is removed and only
+  # one MARKER_USED audit event is written. Assertion: exactly 1 line containing MARKER_USED.
+  # If sanitization were absent: count==2 (forged second line) → test fails → mutant killed.
   local now future
   now=$(_now_ts); future=$(_future_ts)
   # JSON \n in marker_id is interpreted by jq as a newline character
   _write_marker "link-i3-nl.marker.json" \
     '{"marker_id":"m-i3-forge\nMARKER_USED marker_id=INJECTED-LINE","ticket_id":"SEC-104","org_slug":"test","authorized_operations":["link"],"command_pattern":"^jr (--output json )?issue link SEC-104 SEC-205( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}'
   _run_hook "jr issue link SEC-104 SEC-205"
-  # If hook allows: audit.log must NOT contain a line that STARTS WITH "MARKER_USED"
-  # (a legitimate audit line always starts with a timestamp, not "MARKER_USED" directly).
+  # Hook must allow (valid marker for the pattern) and write an audit record.
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"permissionDecision":"allow"'* ]]
   [ -f "${MARKER_DIR}/audit.log" ]
-  forged_count=$(grep -c '^MARKER_USED' "${MARKER_DIR}/audit.log")
-  # Currently: forged_count=1 (second line injected) → assertion fails → RED
-  [ "${forged_count}" -eq 0 ]
+  # Count lines containing MARKER_USED; || true prevents grep exit-1-on-zero aborting under errexit.
+  # Legitimate lines start with a timestamp, so grep without ^ anchor matches them correctly.
+  forged_count=$(grep -c 'MARKER_USED' "${MARKER_DIR}/audit.log" || true)
+  # Exactly 1 line with MARKER_USED — the legitimate consume event. A forged line gives 2.
+  [ "${forged_count}" -eq 1 ]
 }
 
 # ── VP-HOOK-024 marker-coverage port (process-gap) ────────────────────────────

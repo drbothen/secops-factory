@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **activate skill** (BC-6.01.001) — setup-time validation for `jira_close_state` via `CLOSE_STATE_ALLOWLIST` = {Done, Closed, Resolved}; invalid close state now fails activation early with no partial state written (P18-005 / EC-015); `jira_project_key` charset gate confirmed at setup time (PC#12 / VP-SKILL-076 activate leg); both `jira_project_key` and `jira_close_state` persisted to plugin state in `settings.local.json`.
+- **require-review hook (BC-3.01.001 v1.25)** — link+close anti-fungibility (D-020/D-021): write-block extended to 12 entries (`jr issue link ` and `--output json issue link ` added); STEP 6 exact-type matching enforced — link commands require `["link"]` markers, close commands require `["close"]` markers; iterative marker-consume with POSIX atomic rename and audit-log write implemented; CLOSE_STATE_ALLOWLIST binding (SM-63 kill) enforced via marker command_pattern at STEP 5.
 
 ## [0.9.0] - 2026-07-14
 

@@ -51,23 +51,95 @@ fi
 
 # _validate_marker_for_command COMMAND
 #
-# NOT-IMPLEMENTED (S-3.01 stub): Phase 2 iterative marker-consume algorithm with
-# STEP 6 exact-type matching per BC-3.01.001 v1.25 D-DEC-001 v2.0.
+# Phase 2 iterative marker-consume algorithm with STEP 6 exact-type matching
+# per BC-3.01.001 v1.25 D-DEC-001 v2.0.
 #
-# When implemented this function must:
-#   - Scan ${CLAUDE_PLUGIN_DATA}/markers/*.marker.json for a valid unexpired
-#     scoped marker (path-safety, JSON-parse, TTL, anchored command_pattern checks)
-#   - Enforce STEP 6 exact-type matching:
-#       link command   → only ticket_action_type == ["link"]   (D-020, AC-005)
-#       close command  → only ticket_action_type == ["close"]  (D-021, AC-006)
-#       close command_pattern bound to CLOSE_STATE_ALLOWLIST   (SM-63 kill, AC-010)
-#   - On first successful atomic rename (mv): return 0 (allow)
-#   - All candidates exhausted or any error: return 1 (deny, fail-closed)
+# Algorithm:
+#   STEP 1  Check CLAUDE_PLUGIN_DATA is set and markers directory exists.
+#   STEP 2  Determine command type: "link" for jr issue link, "close" for jr issue move.
+#   STEP 3  Iterate over *.marker.json files in the markers directory.
+#   STEP 4  For each candidate: parse JSON, check TTL (expires_at_utc > now).
+#   STEP 5  Anchored command_pattern check: command must match marker's regex.
+#   STEP 6  Exact-type matching: link cmd → only ["link"] markers (D-020/AC-005);
+#           close cmd → only ["close"] markers (D-021/AC-006).
+#           CLOSE_STATE_ALLOWLIST binding is enforced in the marker's command_pattern
+#           by the emitter (disposition-guard); STEP 5 naturally denies non-allowlisted
+#           states (SM-63 kill / AC-010).
+#   STEP 7  Atomic POSIX rename (mv) to consume the marker (single-use, D-DEC-001).
+#   STEP 8  Append MARKER_USED entry to audit.log (Invariant #2).
 #
 # Returns: 0 = valid marker found and consumed; 1 = deny (no valid marker)
 _validate_marker_for_command() {
-  # NOT-IMPLEMENTED (S-3.01 stub): marker validation always fails until implementer
-  # provides the iterative-consume + STEP 6 exact-type logic (BC-3.01.001 v1.25).
+  local cmd="$1"
+  local plugin_data="${CLAUDE_PLUGIN_DATA:-}"
+  [[ -n "$plugin_data" ]] || return 1
+  local marker_dir="${plugin_data}/markers"
+  [[ -d "$marker_dir" ]] || return 1
+
+  # STEP 2: determine command type for STEP 6 exact-type matching (D-020/D-021)
+  local cmd_type=""
+  if [[ "$cmd" == *"jr issue link "* ]] || [[ "$cmd" == *"--output json issue link "* ]]; then
+    cmd_type="link"
+  elif [[ "$cmd" == *"jr issue move"* ]] || [[ "$cmd" == *"--output json issue move"* ]]; then
+    cmd_type="close"
+  fi
+
+  # STEP 3: iterate candidate marker files
+  local marker_file
+  for marker_file in "${marker_dir}"/*.marker.json; do
+    # Skip glob no-match expansion when no .marker.json files exist
+    [[ -f "$marker_file" ]] || continue
+    # Path safety: marker must reside directly inside marker_dir (no traversal)
+    [[ "$marker_file" == "${marker_dir}/"* ]] || continue
+
+    # STEP 4a: parse JSON into compact form for reliable string operations
+    local marker_json
+    marker_json=$(jq -c . "$marker_file" 2>/dev/null) || continue
+    [[ -n "$marker_json" ]] || continue
+
+    # STEP 4b: TTL check — expires_at_utc must be in the future (EC-017)
+    local expires_at
+    expires_at=$(printf '%s' "$marker_json" | jq -r '.expires_at_utc // empty' 2>/dev/null) || continue
+    [[ -n "$expires_at" ]] || continue
+    local now_ts
+    now_ts=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    [[ "$expires_at" > "$now_ts" ]] || continue
+
+    # STEP 5: anchored command_pattern match
+    local command_pattern
+    command_pattern=$(printf '%s' "$marker_json" | jq -r '.command_pattern // empty' 2>/dev/null) || continue
+    [[ -n "$command_pattern" ]] || continue
+    [[ "$cmd" =~ $command_pattern ]] || continue
+
+    # STEP 6: exact-type matching for link/close anti-fungibility (D-020/D-021)
+    if [[ -n "$cmd_type" ]]; then
+      local ops_count op_val
+      ops_count=$(printf '%s' "$marker_json" | jq -r '.authorized_operations | length' 2>/dev/null) || continue
+      op_val=$(printf '%s' "$marker_json" | jq -r '.authorized_operations[0] // empty' 2>/dev/null) || continue
+      # Guard: ops_count must be a non-negative integer before arithmetic comparison
+      [[ "$ops_count" =~ ^[0-9]+$ ]] || continue
+      if [[ "$cmd_type" == "link" ]]; then
+        [[ "$ops_count" -eq 1 && "$op_val" == "link" ]] || continue
+      elif [[ "$cmd_type" == "close" ]]; then
+        [[ "$ops_count" -eq 1 && "$op_val" == "close" ]] || continue
+      fi
+    fi
+
+    # STEP 7: atomic POSIX rename — single-use consume (D-DEC-001)
+    local consumed
+    consumed="${marker_file%.marker.json}.marker.used"
+    mv "$marker_file" "$consumed" 2>/dev/null || continue
+
+    # STEP 8: audit log (Invariant #2)
+    local marker_id
+    marker_id=$(printf '%s' "$marker_json" | jq -r '.marker_id // "unknown"' 2>/dev/null) || marker_id="unknown"
+    printf '%s MARKER_USED marker_id=%s\n' \
+      "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$marker_id" \
+      >> "${marker_dir}/audit.log" 2>/dev/null || true
+
+    return 0
+  done
+
   return 1
 }
 
@@ -87,28 +159,26 @@ _validate_marker_for_command() {
 # jr issue comment is blocked (SEC-001): posting to the authoritative Jira record
 # is a write operation that must go through the same review gate as field edits.
 #
-# Write-block entry count: currently 10 of 12.
-# NOT-IMPLEMENTED (S-3.01 D-020): two link write-block entries not yet added here.
-# When implemented, add the following to the condition below (→ 12 total entries):
-#   [[ "$COMMAND" == *"jr issue link "* ]]        (trailing-space guard, plain form)
-#   [[ "$COMMAND" == *"--output json issue link "* ]] (trailing-space guard, json form)
+# Write-block entry count: 12 (10 base + 2 D-020 link entries added at v1.23).
+# Plain forms (a) and --output json forms (b) are listed separately because
+# "jr issue link" is not a substring of "jr --output json issue link".
 if [[ "$COMMAND" == *"jr issue comment "* ]] || \
    [[ "$COMMAND" == *"jr issue edit"* ]] || \
    [[ "$COMMAND" == *"jr issue move"* ]] || \
    [[ "$COMMAND" == *"jr issue assign"* ]] || \
    [[ "$COMMAND" == *"jr issue create"* ]] || \
+   [[ "$COMMAND" == *"jr issue link "* ]] || \
    [[ "$COMMAND" == *"--output json issue comment "* ]] || \
    [[ "$COMMAND" == *"--output json issue edit"* ]] || \
    [[ "$COMMAND" == *"--output json issue move"* ]] || \
    [[ "$COMMAND" == *"--output json issue assign"* ]] || \
-   [[ "$COMMAND" == *"--output json issue create"* ]]; then
-  # NOT-IMPLEMENTED (S-3.01 stub): marker-validation branch (D-DEC-001 v2.0) not yet
-  # wired here. When implemented, replace this unconditional deny with:
-  #   if _validate_marker_for_command "$COMMAND"; then
-  #     emit_allow
-  #   fi
-  # The STEP 6 exact-type matching (link→["link"], close→["close"]) is enforced
-  # inside _validate_marker_for_command. Until implemented, all write operations deny.
+   [[ "$COMMAND" == *"--output json issue create"* ]] || \
+   [[ "$COMMAND" == *"--output json issue link "* ]]; then
+  # D-DEC-001 v2.0: attempt marker-consume with STEP 6 exact-type matching.
+  # _validate_marker_for_command returns 0 (allow+consume) or 1 (deny).
+  if _validate_marker_for_command "$COMMAND"; then
+    emit_allow
+  fi
   emit_deny "JIRA write operations require review approval. Run /review-enrichment or /adversarial-review-secops first to validate analysis quality. The jr issue comment/edit/move/assign/create commands are blocked until review passes quality thresholds."
 fi
 

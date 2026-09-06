@@ -85,3 +85,73 @@ Present factor breakdown, total score, priority level, SLA deadline, and rationa
 - `${CLAUDE_PLUGIN_ROOT}/data/cvss-guide.md`
 - `${CLAUDE_PLUGIN_ROOT}/data/epss-guide.md`
 - `${CLAUDE_PLUGIN_ROOT}/data/kev-catalog-guide.md`
+
+---
+
+## scored_priority Output (ICD-203 Field 18)
+
+<!-- NOT-IMPLEMENTED-STUB: scored_priority producer/consumer coherence not yet wired (BC-4.05.001 invariant 5, P12-004) -->
+
+The skill `priority` output field is the producer of verdict field 18.
+
+## SEVERITY_TO_SCORED_PRIORITY_MAP
+
+<!-- NOT-IMPLEMENTED-STUB: mapping values are placeholders — correct enum translations not yet applied (AC-003) -->
+
+| SEVERITY_ENUM (input) | SCORED_PRIORITY_ENUM (output) |
+|-----------------------|-------------------------------|
+| CRITICAL | CRITICAL |
+| HIGH | HIGH |
+| MEDIUM | MEDIUM |
+| LOW | LOW |
+
+## Confidence Mapping (D-DEC-011)
+
+<!-- NOT-IMPLEMENTED-STUB: thresholds are placeholders — correct boundary values not yet applied (AC-009, VP-SKILL-071) -->
+
+| confidence_score range | confidence enum |
+|------------------------|----------------|
+| >= 0.80 | high |
+| >= 0.50 and < 0.80 | medium |
+| < 0.50 | low |
+
+## Prism-Grounded Scoring (Stage 5)
+
+<!-- NOT-IMPLEMENTED-STUB: prism availability check and org_slug scoping not yet implemented (BC-4.05.001 invariant 4, D-DEC-005, AC-008, VP-SKILL-070) -->
+
+### PC#5a — 30-Day Historical Baseline Query
+
+```sql
+SELECT COUNT(*) AS hit_count,
+       COUNT(DISTINCT CASE WHEN disposition='TP' THEN event_id END) AS tp_count,
+       COUNT(DISTINCT CASE WHEN disposition='FP' THEN event_id END) AS fp_count
+FROM events
+WHERE rule_id='<rule_id>'
+  AND timestamp > NOW() - INTERVAL '30 days'
+```
+
+### PC#5b — NVD Enrichment via enrich_nvd() UDF
+
+```sql
+SELECT enrich_nvd('<cve_id>') AS nvd_data
+```
+
+### PC#5c — Rule-Fidelity Recalibration
+
+<!-- NOT-IMPLEMENTED-STUB: fidelity recalibration logic not yet defined -->
+
+Compute fidelity from TP/FP counts and adjust exploit_status factor score.
+
+### PC#5d — Per-Tenant Asset Criticality Weights
+
+```sql
+SELECT asset_criticality_score
+FROM assets
+WHERE asset_id='<asset_id>'
+```
+
+### PC#5e — Bayesian TP/FP/BTP Disposition Estimate
+
+<!-- NOT-IMPLEMENTED-STUB: Bayesian prior logic not yet defined -->
+
+Apply prior from 30-day counts to produce advisory disposition estimate.

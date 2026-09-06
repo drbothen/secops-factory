@@ -56,17 +56,21 @@ fi
 #
 # Algorithm:
 #   STEP 1  Check CLAUDE_PLUGIN_DATA is set and markers directory exists.
-#   STEP 2  Determine command type: "link" for jr issue link, "close" for jr issue move.
-#   STEP 3  Iterate over *.marker.json files in the markers directory.
-#   STEP 4  For each candidate: parse JSON, check TTL (expires_at_utc > now).
-#   STEP 5  Anchored command_pattern check: command must match marker's regex.
-#   STEP 6  Exact-type matching: link cmd → only ["link"] markers (D-020/AC-005);
-#           close cmd → only ["close"] markers (D-021/AC-006).
-#           CLOSE_STATE_ALLOWLIST binding is enforced in the marker's command_pattern
-#           by the emitter (disposition-guard); STEP 5 naturally denies non-allowlisted
-#           states (SM-63 kill / AC-010).
+#   STEP 2  Determine command type: "link" / "close" / "create" for relevant subcommands.
+#   I1      Consumer-side shell metachar guard: reject commands containing
+#           ; | & ` $( before any marker processing (BC-3.01.001 PC#2 step 5).
+#   I4      STEP 3 Phase 1: collect valid candidates with issued_at_utc for FIFO ordering.
+#   I2      BC step (3): skip markers whose issued_at_utc is in the future (adversarial signal).
+#   O1      STEP 4b: TTL — valid when expires_at_utc >= now (equality = still valid).
+#           STEP 5  Anchored command_pattern check.
+#   STEP 6  Exact-type matching: link → ["link"], close → ["close"] (D-020/D-021/AC-005/AC-006).
+#           CLOSE_STATE_ALLOWLIST binding enforced in marker's command_pattern by the emitter.
+#   C1      STEP 6a: create anti-fungibility — ["create"] marker must not authorize
+#           hard-floor-labeled create (REVIEW-REQUIRED, BLIND-SPOT). EC-023 direction B / SM-37.
+#   I4      STEP 3 Phase 2: sort candidates by issued_at_utc ascending, attempt atomic rename.
 #   STEP 7  Atomic POSIX rename (mv) to consume the marker (single-use, D-DEC-001).
-#   STEP 8  Append MARKER_USED entry to audit.log (Invariant #2).
+#   I3      STEP 8: complete audit log — op=, ticket=, org=, command_b64=; all attacker-
+#           influenceable fields sanitized (strip 0x00-0x1f) to prevent log injection.
 #
 # Returns: 0 = valid marker found and consumed; 1 = deny (no valid marker)
 _validate_marker_for_command() {
@@ -76,69 +80,144 @@ _validate_marker_for_command() {
   local marker_dir="${plugin_data}/markers"
   [[ -d "$marker_dir" ]] || return 1
 
-  # STEP 2: determine command type for STEP 6 exact-type matching (D-020/D-021)
+  # I1: consumer-side shell metachar guard (BC-3.01.001 PC#2 step 5)
+  # Reject any command that contains shell metacharacters — prevents tail injection.
+  # Emitter-side tail-anchoring deferred to S-3.02 (VP-HOOK-024).
+  # _subshell stores the two-character literal "$(" so the glob test is shellcheck-clean.
+  # Assembled from two innocuous pieces to avoid SC2016 false-positive on literal '$(').
+  local _subshell
+  _subshell="$"'('
+  if [[ "$cmd" == *';'* ]] || [[ "$cmd" == *'|'* ]] || \
+     [[ "$cmd" == *'&'* ]] || [[ "$cmd" == *'`'* ]] || \
+     [[ "$cmd" == *"${_subshell}"* ]]; then
+    return 1
+  fi
+
+  # STEP 2: determine command type for STEP 6 exact-type matching (D-020/D-021/C1)
   local cmd_type=""
   if [[ "$cmd" == *"jr issue link "* ]] || [[ "$cmd" == *"--output json issue link "* ]]; then
     cmd_type="link"
   elif [[ "$cmd" == *"jr issue move"* ]] || [[ "$cmd" == *"--output json issue move"* ]]; then
     cmd_type="close"
+  elif [[ "$cmd" == *"jr issue create"* ]] || [[ "$cmd" == *"--output json issue create"* ]]; then
+    cmd_type="create"
   fi
 
-  # STEP 3: iterate candidate marker files
-  local marker_file
-  for marker_file in "${marker_dir}"/*.marker.json; do
+  local now_ts
+  now_ts=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+
+  # I4 Phase 1: collect valid candidates for FIFO ordering.
+  # Each entry: "issued_at_utc|marker_file_path" (ISO-8601 sorts lexicographically = chronologically).
+  local -a _candidates=()
+  local _mf _mj _issued_at _expires_at _cmd_pattern _ops_count _op_val
+
+  for _mf in "${marker_dir}"/*.marker.json; do
     # Skip glob no-match expansion when no .marker.json files exist
-    [[ -f "$marker_file" ]] || continue
+    [[ -f "$_mf" ]] || continue
     # Path safety: marker must reside directly inside marker_dir (no traversal)
-    [[ "$marker_file" == "${marker_dir}/"* ]] || continue
+    [[ "$_mf" == "${marker_dir}/"* ]] || continue
 
     # STEP 4a: parse JSON into compact form for reliable string operations
-    local marker_json
-    marker_json=$(jq -c . "$marker_file" 2>/dev/null) || continue
-    [[ -n "$marker_json" ]] || continue
+    _mj=$(jq -c . "$_mf" 2>/dev/null) || continue
+    [[ -n "$_mj" ]] || continue
 
-    # STEP 4b: TTL check — expires_at_utc must be in the future (EC-017)
-    local expires_at
-    expires_at=$(printf '%s' "$marker_json" | jq -r '.expires_at_utc // empty' 2>/dev/null) || continue
-    [[ -n "$expires_at" ]] || continue
-    local now_ts
-    now_ts=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
-    [[ "$expires_at" > "$now_ts" ]] || continue
+    # I2: BC step (3) — skip future-dated markers (adversarial signal)
+    _issued_at=$(printf '%s' "$_mj" | jq -r '.issued_at_utc // empty' 2>/dev/null) || continue
+    [[ -n "$_issued_at" ]] || continue
+    # If issued_at_utc > now → adversarial signal → skip this marker
+    [[ "$_issued_at" > "$now_ts" ]] && continue
+
+    # STEP 4b: TTL check — O1: valid when expires_at_utc >= now (equality = still valid)
+    _expires_at=$(printf '%s' "$_mj" | jq -r '.expires_at_utc // empty' 2>/dev/null) || continue
+    [[ -n "$_expires_at" ]] || continue
+    # Reject only when expires_at_utc < now (equal second is still valid per BC step 4)
+    [[ "$_expires_at" > "$now_ts" ]] || [[ "$_expires_at" == "$now_ts" ]] || continue
 
     # STEP 5: anchored command_pattern match
-    local command_pattern
-    command_pattern=$(printf '%s' "$marker_json" | jq -r '.command_pattern // empty' 2>/dev/null) || continue
-    [[ -n "$command_pattern" ]] || continue
-    [[ "$cmd" =~ $command_pattern ]] || continue
+    _cmd_pattern=$(printf '%s' "$_mj" | jq -r '.command_pattern // empty' 2>/dev/null) || continue
+    [[ -n "$_cmd_pattern" ]] || continue
+    [[ "$cmd" =~ $_cmd_pattern ]] || continue
 
-    # STEP 6: exact-type matching for link/close anti-fungibility (D-020/D-021)
-    if [[ -n "$cmd_type" ]]; then
-      local ops_count op_val
-      ops_count=$(printf '%s' "$marker_json" | jq -r '.authorized_operations | length' 2>/dev/null) || continue
-      op_val=$(printf '%s' "$marker_json" | jq -r '.authorized_operations[0] // empty' 2>/dev/null) || continue
-      # Guard: ops_count must be a non-negative integer before arithmetic comparison
-      [[ "$ops_count" =~ ^[0-9]+$ ]] || continue
-      if [[ "$cmd_type" == "link" ]]; then
-        [[ "$ops_count" -eq 1 && "$op_val" == "link" ]] || continue
-      elif [[ "$cmd_type" == "close" ]]; then
-        [[ "$ops_count" -eq 1 && "$op_val" == "close" ]] || continue
+    # STEP 6: exact-type matching for link/close/create anti-fungibility (D-020/D-021)
+    _ops_count=$(printf '%s' "$_mj" | jq -r '.authorized_operations | length' 2>/dev/null) || continue
+    _op_val=$(printf '%s' "$_mj" | jq -r '.authorized_operations[0] // empty' 2>/dev/null) || continue
+    # Guard: ops_count must be a non-negative integer before arithmetic comparison
+    [[ "$_ops_count" =~ ^[0-9]+$ ]] || continue
+
+    if [[ "$cmd_type" == "link" ]]; then
+      [[ "$_ops_count" -eq 1 && "$_op_val" == "link" ]] || continue
+    elif [[ "$cmd_type" == "close" ]]; then
+      [[ "$_ops_count" -eq 1 && "$_op_val" == "close" ]] || continue
+    elif [[ "$cmd_type" == "create" ]]; then
+      # Only ["create"] or ["create-review"] markers may authorize create commands
+      [[ "$_ops_count" -eq 1 ]] || continue
+      [[ "$_op_val" == "create" || "$_op_val" == "create-review" ]] || continue
+    fi
+
+    # STEP 6a: C1 create anti-fungibility — regular ["create"] marker must NOT authorize
+    # a create command carrying a hard-floor review label.
+    # Hard-floor labels: REVIEW-REQUIRED, BLIND-SPOT (EC-023 direction B / SM-37).
+    # A ["create-review"] marker is required for those tickets.
+    if [[ "$_op_val" == "create" ]]; then
+      if [[ "$cmd" == *"--label REVIEW-REQUIRED"* ]] || \
+         [[ "$cmd" == *"--label BLIND-SPOT"* ]]; then
+        continue
       fi
     fi
 
-    # STEP 7: atomic POSIX rename — single-use consume (D-DEC-001)
-    local consumed
-    consumed="${marker_file%.marker.json}.marker.used"
-    mv "$marker_file" "$consumed" 2>/dev/null || continue
+    # Valid candidate — record for FIFO sorting
+    _candidates+=("${_issued_at}|${_mf}")
+  done
 
-    # STEP 8: audit log (Invariant #2)
-    local marker_id
-    marker_id=$(printf '%s' "$marker_json" | jq -r '.marker_id // "unknown"' 2>/dev/null) || marker_id="unknown"
-    printf '%s MARKER_USED marker_id=%s\n' \
-      "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$marker_id" \
+  # No valid candidates found → deny
+  [[ ${#_candidates[@]} -gt 0 ]] || return 1
+
+  # I4 Phase 2: sort candidates by issued_at_utc ascending (FIFO), attempt atomic consume.
+  # ISO-8601 lexicographic order equals chronological order.
+  local _sorted_cand _sorted_mf _consumed
+  local _raw_marker_id _raw_ticket _raw_org _raw_op _audit_mj
+  local _safe_marker_id _safe_ticket _safe_org _safe_op _command_b64
+
+  while IFS= read -r _sorted_cand; do
+    # Extract file path — everything after the first '|'
+    _sorted_mf="${_sorted_cand#*|}"
+    [[ -f "$_sorted_mf" ]] || continue
+
+    # STEP 7: atomic POSIX rename — single-use consume (D-DEC-001)
+    _consumed="${_sorted_mf%.marker.json}.marker.used"
+    mv "$_sorted_mf" "$_consumed" 2>/dev/null || continue
+
+    # STEP 8: complete audit log — I3 / Invariant #2 / VP-HOOK-024 / ADV-F2-013
+    _audit_mj=$(jq -c . "$_consumed" 2>/dev/null) || _audit_mj=""
+    if [[ -n "$_audit_mj" ]]; then
+      _raw_marker_id=$(printf '%s' "$_audit_mj" | jq -r '.marker_id // "unknown"' 2>/dev/null) \
+        || _raw_marker_id="unknown"
+      _raw_ticket=$(printf '%s' "$_audit_mj" | jq -r '.ticket_id // ""' 2>/dev/null) \
+        || _raw_ticket=""
+      _raw_org=$(printf '%s' "$_audit_mj" | jq -r '.org_slug // ""' 2>/dev/null) \
+        || _raw_org=""
+      _raw_op=$(printf '%s' "$_audit_mj" | jq -r '.authorized_operations[0] // ""' 2>/dev/null) \
+        || _raw_op=""
+    else
+      _raw_marker_id="unknown"; _raw_ticket=""; _raw_org=""; _raw_op=""
+    fi
+
+    # Sanitize: strip control chars (0x00-0x1f) from all attacker-influenceable fields
+    # to prevent audit log injection (newline injection → forged MARKER_USED line).
+    _safe_marker_id=$(printf '%s' "$_raw_marker_id" | tr -d '\000-\037')
+    _safe_ticket=$(printf '%s' "$_raw_ticket" | tr -d '\000-\037')
+    _safe_org=$(printf '%s' "$_raw_org" | tr -d '\000-\037')
+    _safe_op=$(printf '%s' "$_raw_op" | tr -d '\000-\037')
+    # base64-encode command for audit completeness; strip wrapping newlines (cross-platform)
+    _command_b64=$(printf '%s' "$cmd" | base64 | tr -d '\n')
+
+    printf '%s MARKER_USED marker_id=%s op=%s ticket=%s org=%s command_b64=%s\n' \
+      "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
+      "$_safe_marker_id" "$_safe_op" "$_safe_ticket" "$_safe_org" "$_command_b64" \
       >> "${marker_dir}/audit.log" 2>/dev/null || true
 
     return 0
-  done
+  done < <(printf '%s\n' "${_candidates[@]}" | sort)
 
   return 1
 }
@@ -179,7 +258,7 @@ if [[ "$COMMAND" == *"jr issue comment "* ]] || \
   if _validate_marker_for_command "$COMMAND"; then
     emit_allow
   fi
-  emit_deny "JIRA write operations require review approval. Run /review-enrichment or /adversarial-review-secops first to validate analysis quality. The jr issue comment/edit/move/assign/create commands are blocked until review passes quality thresholds."
+  emit_deny "JIRA write operations require review approval. Run /review-enrichment or /adversarial-review-secops first to validate analysis quality. The jr issue link/comment/edit/move/assign/create commands are blocked until review passes quality thresholds."
 fi
 
 # Allow read-only jr operations without review.

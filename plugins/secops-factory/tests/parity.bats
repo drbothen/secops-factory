@@ -238,3 +238,164 @@ assert_same_json() {
     [ "$status" -eq 1 ]
     rm -f "$dirty_mcp"
 }
+
+# ---------------------------------------------------------------------------
+# F2 parity: prism-version-check case-sensitive pre-release (VP-SKILL-051)
+# ---------------------------------------------------------------------------
+# Semver §11.4 requires case-sensitive ASCII comparison for pre-release identifiers.
+# 'R' (0x52) < 'r' (0x72), so 1.0.0-RC.1 < 1.0.0-rc.1: an installed 1.0.0-RC.1 MUST
+# NOT satisfy minimum 1.0.0-rc.1.
+#
+# sh (with LC_ALL=C): [[ "RC.1" > "rc.1" ]] is FALSE → exits 1 (correct).
+# ps1 (-gt/-lt, culture-insensitive): "RC.1" == "rc.1" → returns equal → exits 0 (wrong).
+#
+# This test is RED in CI (where pwsh is available) until ps1 is fixed to use
+# case-sensitive ordinal comparison (-cgt/-clt or CompareOrdinal).
+# Skipped locally when pwsh is not installed (CI-only enforcement).
+
+@test "parity: prism-version-check uppercase pre-release RC.1 halts on both platforms (F2, VP-SKILL-051)" {
+    require_pwsh
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    # Mock prism reporting an uppercase pre-release label (1.0.0-RC.1).
+    # The bash shebang makes this mock executable on the Linux/macOS CI environment.
+    printf '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then echo "prism 1.0.0-RC.1"; fi\n' \
+        > "$tmpdir/prism"
+    chmod +x "$tmpdir/prism"
+
+    # Run sh with LC_ALL=C to ensure ASCII-ordinal comparison (not locale-dependent).
+    SH_STATUS=0
+    env LC_ALL=C PATH="$tmpdir:$PATH" bash "$PLUGIN_ROOT/hooks/prism-version-check.sh" \
+        >/dev/null 2>&1 || SH_STATUS=$?
+
+    # Run ps1 with the mock prism accessible in PATH.
+    PS_STATUS=0
+    env PATH="$tmpdir:$PATH" pwsh -NoProfile \
+        -File "$PLUGIN_ROOT/hooks/prism-version-check.ps1" \
+        >/dev/null 2>&1 || PS_STATUS=$?
+
+    rm -rf "$tmpdir"
+
+    # sh (LC_ALL=C): ASCII 'R' < 'r' → 1.0.0-RC.1 below min 1.0.0-rc.1 → exit 1
+    [ "$SH_STATUS" -eq 1 ]
+    # ps1 (-gt culture-insensitive): "RC.1" treated as equal to "rc.1" → exits 0 (wrong)
+    # Assertion requires exit 1 → FAILS RED until ps1 uses ordinal/case-sensitive comparison
+    [ "$PS_STATUS" -eq 1 ]
+}
+
+# ---------------------------------------------------------------------------
+# F-1 parity (de-masked): prism-version-check production-invocation locale gap
+# ---------------------------------------------------------------------------
+# The existing test above forces env LC_ALL=C on the sh side, masking F-1: the
+# production caller in SKILL.md:46 invokes sh with no locale override:
+#
+#   bash "${CLAUDE_PLUGIN_ROOT}/hooks/prism-version-check.sh"
+#
+# Under the system default locale (en_US.UTF-8 on this runner), bash [[ > ]] uses
+# locale collation where uppercase letters sort AFTER lowercase ('R' > 'r'), so
+# [[ "RC" > "rc" ]] is TRUE — semver_ge returns 0 (WRONG-ALLOW).
+#
+# This test mirrors the production invocation exactly and exposes the gap.
+# Traced: F-1, BC-6.01.001 PC#8, VP-SKILL-051.
+# Does NOT require pwsh — sh-only, exposes the sh locale gap directly.
+
+@test "parity: prism-version-check production-invocation uppercase pre-release halts sh without caller locale (F-1, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    # RED (F-1): sh invoked as SKILL.md:46 does — no env LC_ALL=C override.
+    # Under en_US.UTF-8, [[ "RC" > "rc" ]] → TRUE (locale collation) so semver_ge
+    # returns 0 (WRONG-ALLOW) instead of 1. Gate must exit 1; currently exits 0.
+    # Fails RED until prism-version-check.sh self-enforces LC_ALL=C internally.
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    printf '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then echo "prism 1.0.0-RC.1"; fi\n' \
+        > "$tmpdir/prism"
+    chmod +x "$tmpdir/prism"
+
+    # Mirror SKILL.md:46 exactly — no LC_ALL override on the caller side.
+    SH_STATUS=0
+    PATH="$tmpdir:$PATH" bash "$PLUGIN_ROOT/hooks/prism-version-check.sh" \
+        >/dev/null 2>&1 || SH_STATUS=$?
+
+    rm -rf "$tmpdir"
+
+    # Must halt (exit 1): semver §11.4 ASCII ordering requires 'R' (0x52) < 'r' (0x72).
+    # RED until script self-enforces locale-neutral ordinal string comparison.
+    [ "$SH_STATUS" -eq 1 ]
+}
+
+# ---------------------------------------------------------------------------
+# Pass-2 F3 — sh semver_ge leading-zero numeric ordering (VP-SKILL-051)
+# ---------------------------------------------------------------------------
+# Replaces the coincidentally-passing "rc.08 passes gate" parity test.
+# The old test only verified rc.08 passes a gate with minimum rc.1 (8 > 1 even
+# with wrong octal interpretation) — it did not expose the real bug.
+#
+# Real bug: semver_ge uses (( _s1 > _s2 )) for numeric pre-release fields.
+# Bash's (( )) arithmetic treats numbers with a leading zero as octal.
+# '08' is not valid octal → bash emits "value too great for base (error token is
+# "08")" to stderr; the arithmetic expression evaluates as false for BOTH
+# (( 08 > 10 )) and (( 08 < 10 )), so the comparator falls through to return 0
+# (equal). Consequence: semver_ge("1.0.0-rc.08", "1.0.0-rc.10") returns 0 (WRONG:
+# should be 1, since decimal 8 < 10).
+#
+# This test extracts the semver_ge comparator directly and verifies correct ordering:
+#   rc.08 < rc.10  → semver_ge("1.0.0-rc.08", "1.0.0-rc.10") must return 1
+# and asserts that no "value too great for base" octal error is emitted.
+# Traced: pass-2 F3, BC-6.01.001 PC#8, VP-SKILL-051.
+
+@test "test_BC_6_01_001_F3_sh_semver_ge_rc08_lt_rc10_no_octal_error (pass-2 F3, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    # RED: (( 08 > 10 )) / (( 08 < 10 )) both fail with octal arithmetic error;
+    # comparator falls through and returns 0 (WRONG-ALLOW). Must return 1 (rc.08 < rc.10).
+    # Also: "value too great for base" must not appear in output.
+    local tmpscript
+    tmpscript="$(mktemp)"
+    awk '/^semver_ge\(\) \{/,/^\}$/' "$PLUGIN_ROOT/hooks/prism-version-check.sh" > "$tmpscript"
+    printf '\nsemver_ge '"'"'1.0.0-rc.08'"'"' '"'"'1.0.0-rc.10'"'"'\n' >> "$tmpscript"
+    run bash "$tmpscript" 2>&1
+    rm -f "$tmpscript"
+    # rc.08 (decimal 8) < rc.10 (decimal 10): semver_ge must return 1 (not >=)
+    [ "$status" -eq 1 ]
+    # Octal arithmetic error must not be emitted
+    [[ "$output" != *"value too great for base"* ]]
+}
+
+# ---------------------------------------------------------------------------
+# Pass-2 F2 — ps1 exit-2 reachable: Write-Error terminating under Stop
+# ---------------------------------------------------------------------------
+# BC-6.01.001 PC#8 requires exit 2 for "tool missing" and "unparseable version"
+# errors (distinguishable from exit 1 = "version too old").
+# prism-version-check.ps1 sets $ErrorActionPreference = 'Stop' and then calls
+# bare Write-Error before each 'exit 2'. Under Stop, Write-Error is TERMINATING:
+# it throws a System.Management.Automation.ErrorRecord and 'exit 2' is never
+# reached. The script exits 1 (unhandled terminating error), not 2.
+#
+# These CI-only tests verify the correct exit codes at runtime.
+# Skipped locally when pwsh is absent (CI enforces with ubuntu-latest pwsh).
+# Traced: pass-2 F2, BC-6.01.001 PC#8, VP-SKILL-051.
+
+@test "test_BC_6_01_001_F2_ps1_prism_not_found_exits_2 (pass-2 F2, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    require_pwsh
+    # RED: prism not in PATH → ps1 hits Write-Error 'not found in PATH' then exit 2.
+    # Under $ErrorActionPreference='Stop', Write-Error is terminating; exit 2 is
+    # unreachable. Script exits 1 (unhandled exception), not 2.
+    # Must exit 2 to satisfy BC-6.01.001 PC#8 exit-code contract.
+    run env PATH="/usr/bin:/bin" pwsh -NoProfile \
+        -File "$PLUGIN_ROOT/hooks/prism-version-check.ps1" 2>&1
+    [ "$status" -eq 2 ]
+}
+
+@test "test_BC_6_01_001_F2_ps1_unparseable_version_exits_2 (pass-2 F2, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    require_pwsh
+    # RED: mock prism outputs non-semver string (exits 0) → ps1 regex match fails →
+    # hits Write-Error 'could not parse' then exit 2. Under Stop, Write-Error is
+    # terminating; exit 2 is unreachable. Script exits 1 instead of 2.
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    printf '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then printf "not-a-version"; fi\n' \
+        > "$tmpdir/prism"
+    chmod +x "$tmpdir/prism"
+    run env PATH="$tmpdir:$PATH" pwsh -NoProfile \
+        -File "$PLUGIN_ROOT/hooks/prism-version-check.ps1" 2>&1
+    rm -rf "$tmpdir"
+    # Must exit 2: parse failure is an error (BC-6.01.001 PC#8), not version mismatch.
+    [ "$status" -eq 2 ]
+}

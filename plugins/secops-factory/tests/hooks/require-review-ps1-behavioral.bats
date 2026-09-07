@@ -112,7 +112,7 @@ _now_ts() {
   local now future
   now=$(_now_ts); future=$(_future_ts)
   _write_marker "link-bp001.marker.json" \
-    "{\"marker_id\":\"m-bp001-link\",\"ticket_id\":\"SEC-100\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-100 SEC-200( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-bp001-link\",\"ticket_id\":\"SEC-100\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-100 SEC-200( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   _run_ps1_hook "jr issue link SEC-100 SEC-200"
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"allow"'* ]]
@@ -128,7 +128,7 @@ _now_ts() {
   local now future
   now=$(_now_ts); future=$(_future_ts)
   _write_marker "close-bp002.marker.json" \
-    "{\"marker_id\":\"m-bp002-close\",\"ticket_id\":\"SEC-101\",\"org_slug\":\"test\",\"authorized_operations\":[\"close\"],\"command_pattern\":\"^jr (--output json )?issue move SEC-101 (Done|Closed|Resolved)( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-bp002-close\",\"ticket_id\":\"SEC-101\",\"org_slug\":\"test\",\"authorized_operations\":[\"close\"],\"command_pattern\":\"^jr (--output json )?issue move SEC-101 (Done|Closed|Resolved)( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   _run_ps1_hook "jr issue move SEC-101 Done"
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"allow"'* ]]
@@ -146,7 +146,7 @@ _now_ts() {
   local now future
   now=$(_now_ts); future=$(_future_ts)
   _write_marker "create-bp003.marker.json" \
-    "{\"marker_id\":\"m-bp003-create\",\"ticket_id\":null,\"org_slug\":\"test\",\"authorized_operations\":[\"create\"],\"command_pattern\":\"^jr (--output json )?issue create --project PRISMDEMO( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-bp003-create\",\"ticket_id\":null,\"org_slug\":\"test\",\"authorized_operations\":[\"create\"],\"command_pattern\":\"^jr (--output json )?issue create --project PRISMDEMO( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   _run_ps1_hook 'jr issue create --project PRISMDEMO --summary "FP: benign scan noise"'
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"allow"'* ]]
@@ -184,7 +184,7 @@ _now_ts() {
   local now future
   now=$(_now_ts); future=$(_future_ts)
   _write_marker "create-for-link-bp005.marker.json" \
-    "{\"marker_id\":\"m-bp005-cfl\",\"ticket_id\":null,\"org_slug\":\"test\",\"authorized_operations\":[\"create\"],\"command_pattern\":\"^jr (--output json )?issue create --project PRISMDEMO( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-bp005-cfl\",\"ticket_id\":null,\"org_slug\":\"test\",\"authorized_operations\":[\"create\"],\"command_pattern\":\"^jr (--output json )?issue create --project PRISMDEMO( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   _run_ps1_hook "jr issue link SEC-103 SEC-201"
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"deny"'* ]]
@@ -201,7 +201,7 @@ _now_ts() {
   local now future
   now=$(_now_ts); future=$(_future_ts)
   _write_marker "link-for-close-bp006.marker.json" \
-    "{\"marker_id\":\"m-bp006-lfc\",\"ticket_id\":\"SEC-104\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-104 SEC-202( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-bp006-lfc\",\"ticket_id\":\"SEC-104\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-104 SEC-202( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   _run_ps1_hook "jr issue move SEC-104 Done"
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"deny"'* ]]
@@ -220,7 +220,7 @@ _now_ts() {
   local now future
   now=$(_now_ts); future=$(_future_ts)
   _write_marker "create-bp007-ec024.marker.json" \
-    "{\"marker_id\":\"m-bp007-ec024\",\"ticket_id\":null,\"org_slug\":\"test\",\"authorized_operations\":[\"create\"],\"command_pattern\":\"^jr (--output json )?issue create --project PRISMDEMO( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-bp007-ec024\",\"ticket_id\":null,\"org_slug\":\"test\",\"authorized_operations\":[\"create\"],\"command_pattern\":\"^jr (--output json )?issue create --project PRISMDEMO( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   _run_ps1_hook 'jr issue create --project PRISMDEMO --summary "Alert mentions --label REVIEW-REQUIRED in body text"'
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"allow"'* ]]
@@ -237,7 +237,7 @@ _now_ts() {
   local now future
   now=$(_now_ts); future=$(_future_ts)
   _write_marker "create-bp008-sm40.marker.json" \
-    "{\"marker_id\":\"m-bp008-sm40\",\"ticket_id\":null,\"org_slug\":\"test\",\"authorized_operations\":[\"create\"],\"command_pattern\":\"^jr (--output json )?issue create --project PRISMDEMO( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-bp008-sm40\",\"ticket_id\":null,\"org_slug\":\"test\",\"authorized_operations\":[\"create\"],\"command_pattern\":\"^jr (--output json )?issue create --project PRISMDEMO( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   _run_ps1_hook "$(printf '%s' "jr issue create --project PRISMDEMO --label  REVIEW-REQUIRED --summary test")"
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"deny"'* ]]
@@ -255,7 +255,7 @@ _now_ts() {
   local now future
   now=$(_now_ts); future=$(_future_ts)
   _write_marker "create-bp009-sm42.marker.json" \
-    "{\"marker_id\":\"m-bp009-sm42\",\"ticket_id\":null,\"org_slug\":\"test\",\"authorized_operations\":[\"create\"],\"command_pattern\":\"^jr (--output json )?issue create --project PRISMDEMO( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-bp009-sm42\",\"ticket_id\":null,\"org_slug\":\"test\",\"authorized_operations\":[\"create\"],\"command_pattern\":\"^jr (--output json )?issue create --project PRISMDEMO( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   _run_ps1_hook "jr issue create --project PRISMDEMO --label 'REVIEW-REQUIRED' --summary test"
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"deny"'* ]]
@@ -273,7 +273,7 @@ _now_ts() {
   local now future
   now=$(_now_ts); future=$(_future_ts)
   _write_marker "create-bp010-sm43.marker.json" \
-    "{\"marker_id\":\"m-bp010-sm43\",\"ticket_id\":null,\"org_slug\":\"test\",\"authorized_operations\":[\"create\"],\"command_pattern\":\"^jr (--output json )?issue create --project PRISMDEMO( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-bp010-sm43\",\"ticket_id\":null,\"org_slug\":\"test\",\"authorized_operations\":[\"create\"],\"command_pattern\":\"^jr (--output json )?issue create --project PRISMDEMO( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   local tab_cmd
   tab_cmd=$(printf '%s\t%s' "--label" "REVIEW-REQUIRED")
   _run_ps1_hook "jr issue create --project PRISMDEMO ${tab_cmd} --summary test"
@@ -293,7 +293,7 @@ _now_ts() {
   local now future
   now=$(_now_ts); future=$(_future_ts)
   _write_marker "link-bp011-semi.marker.json" \
-    "{\"marker_id\":\"m-bp011-semi\",\"ticket_id\":\"SEC-105\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-105 SEC-203( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-bp011-semi\",\"ticket_id\":\"SEC-105\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-105 SEC-203( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   _run_ps1_hook 'jr issue link SEC-105 SEC-203 ; rm -rf /tmp/pwsh-test'
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"deny"'* ]]
@@ -309,7 +309,7 @@ _now_ts() {
   local now future
   now=$(_now_ts); future=$(_future_ts)
   _write_marker "link-bp012-pipe.marker.json" \
-    "{\"marker_id\":\"m-bp012-pipe\",\"ticket_id\":\"SEC-106\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-106 SEC-204( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-bp012-pipe\",\"ticket_id\":\"SEC-106\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-106 SEC-204( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   _run_ps1_hook 'jr issue link SEC-106 SEC-204 | cat /etc/passwd'
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"deny"'* ]]
@@ -326,7 +326,7 @@ _now_ts() {
   local now future
   now=$(_now_ts); future=$(_future_ts)
   _write_marker "link-bp013-gt.marker.json" \
-    "{\"marker_id\":\"m-bp013-gt\",\"ticket_id\":\"SEC-107\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-107 SEC-205( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-bp013-gt\",\"ticket_id\":\"SEC-107\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-107 SEC-205( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   _run_ps1_hook 'jr issue link SEC-107 SEC-205 > /tmp/exfil'
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"deny"'* ]]
@@ -343,7 +343,7 @@ _now_ts() {
   local now future
   now=$(_now_ts); future=$(_future_ts)
   _write_marker "link-bp014-sub.marker.json" \
-    "{\"marker_id\":\"m-bp014-sub\",\"ticket_id\":\"SEC-108\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-108 SEC-206( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-bp014-sub\",\"ticket_id\":\"SEC-108\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-108 SEC-206( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   _run_ps1_hook 'jr issue link SEC-108 SEC-206 $(id)'
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"deny"'* ]]
@@ -360,7 +360,7 @@ _now_ts() {
   local now future
   now=$(_now_ts); future=$(_future_ts)
   _write_marker "link-bp015-su.marker.json" \
-    "{\"marker_id\":\"m-bp015-su\",\"ticket_id\":\"SEC-109\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-109 SEC-207( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-bp015-su\",\"ticket_id\":\"SEC-109\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-109 SEC-207( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
 
   # First use — must ALLOW (marker valid)
   _run_ps1_hook "jr issue link SEC-109 SEC-207"
@@ -384,7 +384,7 @@ _now_ts() {
   local future far_future
   future=$(_future_ts); far_future=$(_far_future_ts)
   _write_marker "link-bp016-fi.marker.json" \
-    "{\"marker_id\":\"m-bp016-fi\",\"ticket_id\":\"SEC-110\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-110 SEC-208( |\\$)\",\"issued_at_utc\":\"${future}\",\"expires_at_utc\":\"${far_future}\"}"
+    "{\"marker_id\":\"m-bp016-fi\",\"ticket_id\":\"SEC-110\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-110 SEC-208( |$)\",\"issued_at_utc\":\"${future}\",\"expires_at_utc\":\"${far_future}\"}"
   _run_ps1_hook "jr issue link SEC-110 SEC-208"
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"deny"'* ]]
@@ -405,7 +405,7 @@ _now_ts() {
   local now
   now=$(_now_ts)
   _write_marker "link-bp017-malf.marker.json" \
-    "{\"marker_id\":\"m-bp017-malf\",\"ticket_id\":\"SEC-111\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-111 SEC-209( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"9999-99-99T99:99:99Z\"}"
+    "{\"marker_id\":\"m-bp017-malf\",\"ticket_id\":\"SEC-111\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-111 SEC-209( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"9999-99-99T99:99:99Z\"}"
   _run_ps1_hook "jr issue link SEC-111 SEC-209"
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"deny"'* ]]
@@ -423,7 +423,7 @@ _now_ts() {
   local now future
   now=$(_now_ts); future=$(_future_ts)
   _write_marker "link-bp018-audit.marker.json" \
-    "{\"marker_id\":\"m-bp018-audit\",\"ticket_id\":\"SEC-120\",\"org_slug\":\"testorg\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-120 SEC-210( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-bp018-audit\",\"ticket_id\":\"SEC-120\",\"org_slug\":\"testorg\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-120 SEC-210( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   _run_ps1_hook "jr issue link SEC-120 SEC-210"
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"allow"'* ]]
@@ -451,7 +451,7 @@ _now_ts() {
   local now future
   now=$(_now_ts); future=$(_future_ts)
   _write_marker "link-f1-bp019.marker.json" \
-    "{\"marker_id\":\"m-f1-bp019\",\"ticket_id\":\"SEC-1\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr issue link SEC-1 SEC-2( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-f1-bp019\",\"ticket_id\":\"SEC-1\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr issue link SEC-1 SEC-2( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   _run_ps1_hook "jr issue LINK SEC-1 SEC-2"
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"deny"'* ]]
@@ -477,7 +477,7 @@ _now_ts() {
 
   # Part A: ["comment"] marker, flexible step-5-passing pattern → DENY via STEP-6 type mismatch
   _write_marker "comment-f2-bp020.marker.json" \
-    "{\"marker_id\":\"m-f2-bp020-comment\",\"ticket_id\":\"SEC-42\",\"org_slug\":\"test\",\"authorized_operations\":[\"comment\"],\"command_pattern\":\"^jr .*issue (link|comment) SEC-42( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-f2-bp020-comment\",\"ticket_id\":\"SEC-42\",\"org_slug\":\"test\",\"authorized_operations\":[\"comment\"],\"command_pattern\":\"^jr .*issue (link|comment) SEC-42( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   _run_ps1_hook "jr issue link SEC-42 SEC-99"
   deny_output="$output"
   deny_status="$status"
@@ -485,7 +485,7 @@ _now_ts() {
   # Part B: correct ["link"] marker with same flexible pattern + link cmd → ALLOW
   rm -f "${MARKER_DIR}/comment-f2-bp020.marker.json"
   _write_marker "link-f2-bp020.marker.json" \
-    "{\"marker_id\":\"m-f2-bp020-link\",\"ticket_id\":\"SEC-42\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr .*issue (link|comment) SEC-42( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-f2-bp020-link\",\"ticket_id\":\"SEC-42\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr .*issue (link|comment) SEC-42( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   _run_ps1_hook "jr issue link SEC-42 SEC-99"
 
   # Assertions
@@ -516,7 +516,7 @@ _now_ts() {
 
   # Part A: ["link"] marker, flexible (link|move) step-5-passing pattern → DENY via STEP-6
   _write_marker "link-f2-bp021.marker.json" \
-    "{\"marker_id\":\"m-f2-bp021-link\",\"ticket_id\":\"SEC-42\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr .*issue (link|move) SEC-42( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-f2-bp021-link\",\"ticket_id\":\"SEC-42\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr .*issue (link|move) SEC-42( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   _run_ps1_hook "jr issue move SEC-42 Done"
   deny_output="$output"
   deny_status="$status"
@@ -524,7 +524,7 @@ _now_ts() {
   # Part B: correct ["close"] marker with same flexible pattern + close cmd → ALLOW
   rm -f "${MARKER_DIR}/link-f2-bp021.marker.json"
   _write_marker "close-f2-bp021.marker.json" \
-    "{\"marker_id\":\"m-f2-bp021-close\",\"ticket_id\":\"SEC-42\",\"org_slug\":\"test\",\"authorized_operations\":[\"close\"],\"command_pattern\":\"^jr .*issue (link|move) SEC-42( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-f2-bp021-close\",\"ticket_id\":\"SEC-42\",\"org_slug\":\"test\",\"authorized_operations\":[\"close\"],\"command_pattern\":\"^jr .*issue (link|move) SEC-42( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   _run_ps1_hook "jr issue move SEC-42 Done"
 
   # Assertions
@@ -559,7 +559,7 @@ _now_ts() {
   local now future
   now=$(_now_ts); future=$(_future_ts)
   _write_marker "link-bp022-scalar.marker.json" \
-    "{\"marker_id\":\"m-bp022-scalar\",\"ticket_id\":\"SEC-130\",\"org_slug\":\"test\",\"authorized_operations\":\"link\",\"command_pattern\":\"^jr (--output json )?issue link SEC-130 SEC-210( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+    "{\"marker_id\":\"m-bp022-scalar\",\"ticket_id\":\"SEC-130\",\"org_slug\":\"test\",\"authorized_operations\":\"link\",\"command_pattern\":\"^jr (--output json )?issue link SEC-130 SEC-210( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
   _run_ps1_hook "jr issue link SEC-130 SEC-210"
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"deny"'* ]]
@@ -595,7 +595,7 @@ _now_ts() {
   # to the fullwidth digit "２" (U+FF12).  The year field becomes "２100" which
   # satisfies .NET \d{4} but NOT sh's [0-9]{4}.
   _write_marker "link-bp023-unicode.marker.json" \
-    "{\"marker_id\":\"m-bp023-unicode\",\"ticket_id\":\"SEC-131\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-131 SEC-211( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"\uFF12100-01-01T00:00:00Z\"}"
+    "{\"marker_id\":\"m-bp023-unicode\",\"ticket_id\":\"SEC-131\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-131 SEC-211( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"\uFF12100-01-01T00:00:00Z\"}"
   _run_ps1_hook "jr issue link SEC-131 SEC-211"
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"deny"'* ]]

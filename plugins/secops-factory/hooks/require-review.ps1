@@ -240,7 +240,12 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
     # Each entry: "issued_at_utc|marker_file_path" (ISO-8601 sorts lexicographically)
     $candidates = [System.Collections.Generic.List[string]]::new()
 
-    $markerFiles = Get-ChildItem -Path $markerDir -Filter '*.marker.json' -File -ErrorAction SilentlyContinue
+    # Use Where-Object instead of -Filter for compound-extension matching: on Linux PS7,
+    # Get-ChildItem -Filter '*.marker.json' may return empty because the OS-level glob
+    # only matches the last extension (.json), not the full compound extension (.marker.json).
+    # PowerShell-side EndsWith is reliable on all platforms (case-sensitive, ordinal).
+    $markerFiles = Get-ChildItem -Path $markerDir -File -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name.EndsWith('.marker.json', [System.StringComparison]::Ordinal) }
     foreach ($mf in $markerFiles) {
         # Path safety: marker must reside directly inside markerDir (no traversal)
         if ($mf.DirectoryName -ne $markerDir) { continue }

@@ -26,11 +26,19 @@ fi
 version_output="$(prism --version 2>&1)" || true
 
 # Extract semver string: e.g. "prism 1.2.3-rc.4" -> "1.2.3-rc.4"
+# ANCHORED extraction: (1) look only at the first line of output so embedded log
+# lines from RUST_LOG=debug (captured via 2>&1) or banner tokens (e.g. rustc version
+# in "prism (rustc 1.75.0) version 0.5.0") cannot be matched ahead of prism's own
+# version; (2) require the match to begin with the literal "prism " prefix so that
+# banner strings of the form "prism (rustc X.Y.Z) ..." do not pass the gate.
+# A two-stage grep is used because grep -oE '^prism\s+...' includes the "prism "
+# prefix in the captured string; the second grep strips it back to the bare version.
 # Use || true so a grep-no-match (exit 1) under set -euo pipefail does not abort
 # the script before the explicit exit 2 guard below can fire.
 version="$(printf '%s' "$version_output" \
-    | grep -oE '[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?' \
-    | head -1)" || true
+    | head -1 \
+    | grep -oE '^prism[[:space:]]+[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?' \
+    | grep -oE '[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?')" || true
 
 if [[ -z "$version" ]]; then
     printf 'ERROR: could not parse prism version from output: %s\n' \

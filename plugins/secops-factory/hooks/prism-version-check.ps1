@@ -27,13 +27,19 @@ $versionOutput = (& prism --version 2>&1) | Out-String
 $ErrorActionPreference = 'Stop'
 
 # Extract semver string: e.g. "prism 1.2.3-rc.4" -> "1.2.3-rc.4"
-$match = [regex]::Match($versionOutput, '[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?')
+# ANCHORED extraction (F-A fix, mirrors prism-version-check.sh): inspect only the
+# first line and require the literal "prism " prefix so that banner strings such as
+# "prism (rustc 1.75.0) version 0.5.0" — where the rustc version appears before the
+# prism version — cannot match ahead of the real version token.  Using a capture
+# group [1] ensures the bare semver is extracted without the "prism " prefix.
+$firstLine = ($versionOutput -split '\r?\n')[0]
+$match = [regex]::Match($firstLine, '^prism\s+([0-9]+\.[0-9]+\.[0-9]+(?:-[a-zA-Z0-9.]+)?)')
 if (-not $match.Success) {
     # Use non-terminating output so exit 2 is reached under $ErrorActionPreference='Stop'.
     [Console]::Error.WriteLine(("ERROR: could not parse prism version from output: {0}" -f $versionOutput.Trim()))
     exit 2
 }
-$version = $match.Value
+$version = $match.Groups[1].Value
 
 # Split version into main and pre-release parts
 function Split-SemVer([string]$v) {

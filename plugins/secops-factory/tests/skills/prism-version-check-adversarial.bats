@@ -656,3 +656,64 @@ SKILL_MD="${PLUGIN_ROOT}/skills/activate/SKILL.md"
 
     [ "$violations" -eq 0 ]
 }
+
+# ─── R-A1 — Unanchored regex fail-open (F-A regression, PR-review cycle 2) ───
+#
+# The extraction regex was originally unanchored:
+#   grep -oE '[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?' | head -1
+#
+# This grabs the FIRST semver-like token anywhere in `prism --version 2>&1`,
+# including embedded tokens in rustc build banners, RUST_LOG debug lines, or
+# any other text preceding the real prism version.
+#
+# Reproduced on feature/S-6.03 @ 527b68e:
+#   mock: "prism (rustc 1.75.0) version 0.5.0"
+#   result: "prism 1.75.0 meets minimum requirement 1.0.0-rc.1"  exit=0
+#   (0.5.0 prism passes the 1.0.0-rc.1 gate — fail-open)
+#
+# Fix: anchor to '^prism[[:space:]]+' on the first line only.  An output string
+# that does not begin with "prism <semver>" on the first line MUST exit 2.
+#
+# Traced: F-A, BC-6.01.001 PC#8, VP-SKILL-051, PR review cycle 2.
+
+@test "test_BC_6_01_001_R_A1_sh_rustc_banner_does_not_pass_gate (F-A, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    # Regression: "prism (rustc 1.75.0) version 0.5.0" must NOT pass the gate.
+    # Unanchored regex would extract 1.75.0 (first semver token) → WRONG-ALLOW exit 0.
+    # Anchored regex: '^prism[[:space:]]+[0-9]+...' does not match (after 'prism '
+    # comes '(' not a digit) → version empty → exit 2.
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    printf '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then echo "prism (rustc 1.75.0) version 0.5.0"; fi\n' \
+        > "$tmpdir/prism"
+    chmod +x "$tmpdir/prism"
+
+    local actual_status=0
+    PATH="$tmpdir:$PATH" bash "$PRISM_VERSION_CHECK" >/dev/null 2>&1 || actual_status=$?
+
+    rm -rf "$tmpdir"
+
+    # MUST exit 2 (cannot parse) — NOT exit 0 (wrong-allow).
+    [ "$actual_status" -eq 2 ]
+}
+
+@test "test_BC_6_01_001_R_A2_sh_log_line_before_version_does_not_pass_gate (F-A, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    # Regression: a RUST_LOG=debug line on line 1 followed by "prism 0.9.9" on
+    # line 2 must NOT allow the gate to pass.  Only the first line is examined;
+    # the second line (which contains the actual prism version) is not reached.
+    # The first line ("DEBUG ... 1.75.0") would match the unanchored regex → WRONG-ALLOW.
+    # After the anchored fix: the first line does not start with "prism <semver>" → exit 2.
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    printf '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then\n  printf '"'"'DEBUG [lib/core.rs:42] transport version 1.75.0\nprism 0.9.9\n'"'"'\nfi\n' \
+        > "$tmpdir/prism"
+    chmod +x "$tmpdir/prism"
+
+    local actual_status=0
+    PATH="$tmpdir:$PATH" bash "$PRISM_VERSION_CHECK" >/dev/null 2>&1 || actual_status=$?
+
+    rm -rf "$tmpdir"
+
+    # The debug line does NOT start with "prism <semver>", so exit 2 (cannot parse first line).
+    # (The prism 0.9.9 line on line 2 is not examined — first-line-only policy.)
+    [ "$actual_status" -eq 2 ]
+}

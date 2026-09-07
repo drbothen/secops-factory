@@ -254,7 +254,7 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
         $rawText = $null
         try {
             $rawText = Get-Content -Path $mf.FullName -Raw -ErrorAction Stop
-            $mj = $rawText | ConvertFrom-Json -ErrorAction Stop
+            $mj = ($rawText.TrimEnd()) | ConvertFrom-Json -ErrorAction Stop
         }
         catch { continue }
         if ($null -eq $mj) { continue }

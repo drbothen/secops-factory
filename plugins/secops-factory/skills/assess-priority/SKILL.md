@@ -98,9 +98,14 @@ Output JSON structure includes:
 
 ```json
 {
-  "scored_priority": "<SCORED_PRIORITY_ENUM value>",
+  "scored_priority": "<CRIT|HIGH|MED|LOW>",
   "confidence_score": 0.0,
-  "confidence": "high|medium|low"
+  "confidence": "high|medium|low",
+  "disposition": "<TP|FP|BTP|Indeterminate>",
+  "rationale": "<explanation of base score, recalibration, and any overrides applied>",
+  "base_score": 0,
+  "prism_enriched": false,
+  "uncertainty_explicit": false
 }
 ```
 

@@ -27,7 +27,10 @@ run_pair() {
 # Compare stdout as normalized JSON (key order independent).
 assert_same_json() {
     [ -n "$SH_OUT" ] && [ -n "$PS_OUT" ]
-    diff <(echo "$SH_OUT" | jq -S .) <(echo "$PS_OUT" | jq -S .)
+    local ps_json
+    ps_json=$(printf '%s\n' "$PS_OUT" | grep '^{' | head -1)
+    [ -n "$ps_json" ] || ps_json="$PS_OUT"
+    diff <(echo "$SH_OUT" | jq -S .) <(echo "$ps_json" | jq -S .)
 }
 
 @test "parity: every .sh hook has a .ps1 sibling" {
@@ -432,9 +435,9 @@ run_pair_with_env() {
     cp -r "${plugin_data}/." "${sh_data}/"
     cp -r "${plugin_data}/." "${ps_data}/"
     SH_OUT=$(printf '%s' "$payload" | CLAUDE_PLUGIN_DATA="$sh_data" bash "$PLUGIN_ROOT/hooks/$hook.sh" 2>/tmp/parity-sh-err); SH_STATUS=$?
-    PS_OUT=$(printf '%s' "$payload" | CLAUDE_PLUGIN_DATA="$ps_data" PS1_DEBUG=1 pwsh -NoProfile -File "$PLUGIN_ROOT/hooks/$hook.ps1" 2>/tmp/parity-ps-err); PS_STATUS=$?
+    PS_OUT=$(printf '%s' "$payload" | CLAUDE_PLUGIN_DATA="$ps_data" PS1_DEBUG=1 pwsh -NoProfile -File "$PLUGIN_ROOT/hooks/$hook.ps1" 2>&1); PS_STATUS=$?
     SH_ERR=$(cat /tmp/parity-sh-err)
-    PS_ERR=$(cat /tmp/parity-ps-err)
+    PS_ERR=$(cat /tmp/parity-ps-err 2>/dev/null)
     rm -rf "$sh_data" "$ps_data"
 }
 

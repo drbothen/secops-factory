@@ -68,7 +68,7 @@ _run_ps1_hook() {
   local cmd="$1"
   local json
   json=$(printf '{"tool_input":{"command":%s}}' "$(printf '%s' "${cmd}" | jq -R .)")
-  run bash -c 'printf "%s" "$1" | CLAUDE_PLUGIN_DATA="$2" PS1_DEBUG=1 pwsh -NoProfile -File "$3/hooks/require-review.ps1"' \
+  run bash -c 'printf "%s" "$1" | CLAUDE_PLUGIN_DATA="$2" PS1_DEBUG=1 pwsh -NoProfile -File "$3/hooks/require-review.ps1" 2>&1' \
       -- "${json}" "${CLAUDE_PLUGIN_DATA}" "${PLUGIN_ROOT}"
 }
 

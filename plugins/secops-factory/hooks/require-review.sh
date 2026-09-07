@@ -49,6 +49,110 @@ if [[ "$COMMAND" != *"jr "* ]]; then
   emit_allow
 fi
 
+# _structural_label_check CMD — return 0 if CMD carries --label REVIEW-REQUIRED
+# or --label BLIND-SPOT as STANDALONE tokens (i.e. the actual --label argument,
+# not text embedded inside another argument such as --summary).
+#
+# Implements BC-3.01.001 PC#2 step (6a) structural_label_check v2:
+#   P9-001: backslash-escape-aware (index-based, handles \" in double-quotes)
+#   P8-002: quote-aware state machine (UNQUOTED / IN_SINGLE / IN_DOUBLE)
+#   P7-005: token-position check, not raw substring matching
+#
+# EC-024 false-deny prevention: "--label REVIEW-REQUIRED" appearing only inside
+# a quoted --summary value is NOT a standalone token → returns 1 (allow) ✓
+# SM-40 (double-space), SM-42 (single/double-quoted value), SM-43 (tab):
+# all correctly tokenize to standalone --label + value tokens → returns 0 (deny) ✓
+#
+# Uses i=$(( i + 1 )) instead of (( i++ )) throughout to avoid set -e exit when
+# the arithmetic expression evaluates to 0.
+_structural_label_check() {
+  local cmd="$1"
+  local state="UNQUOTED"
+  local cur_token=""
+  local -a tokens=()
+  local i=0 char next_char
+  local len="${#cmd}"
+
+  while [[ $i -lt $len ]]; do
+    char="${cmd:$i:1}"
+    case "$state" in
+      UNQUOTED)
+        if [[ "$char" == $'\\' ]] && [[ $(( i + 1 )) -lt $len ]]; then
+          # Backslash in UNQUOTED: next char is literal, no state toggle (P9-001).
+          # Fixes \' entering IN_SINGLE incorrectly.
+          i=$(( i + 1 ))
+          cur_token+="${cmd:$i:1}"
+        elif [[ "$char" == "'" ]]; then
+          state="IN_SINGLE"
+        elif [[ "$char" == '"' ]]; then
+          state="IN_DOUBLE"
+        elif [[ "$char" == " " || "$char" == $'\t' ]]; then
+          if [[ -n "$cur_token" ]]; then
+            tokens+=("$cur_token")
+            cur_token=""
+          fi
+        else
+          cur_token+="$char"
+        fi
+        ;;
+      IN_SINGLE)
+        # No escaping inside single-quotes (bash parity); backslash is literal.
+        if [[ "$char" == "'" ]]; then
+          state="UNQUOTED"
+        else
+          cur_token+="$char"
+        fi
+        ;;
+      IN_DOUBLE)
+        if [[ "$char" == $'\\' ]] && [[ $(( i + 1 )) -lt $len ]]; then
+          # Backslash in IN_DOUBLE: only \" and \\ are special (P9-001).
+          next_char="${cmd:$(( i + 1 )):1}"
+          if [[ "$next_char" == '"' ]]; then
+            # \" → literal ", STAY IN_DOUBLE (fixes premature exit on escaped quote).
+            cur_token+='"'
+            i=$(( i + 1 ))
+          elif [[ "$next_char" == $'\\' ]]; then
+            # \\ → literal \, STAY IN_DOUBLE.
+            cur_token+=$'\\'
+            i=$(( i + 1 ))
+          else
+            # Other \X → backslash is literal; next char processed next iteration.
+            cur_token+="$char"
+          fi
+        elif [[ "$char" == '"' ]]; then
+          state="UNQUOTED"
+        else
+          cur_token+="$char"
+        fi
+        ;;
+    esac
+    i=$(( i + 1 ))
+  done
+  # Flush any remaining token at end of string.
+  [[ -n "$cur_token" ]] && tokens+=("$cur_token")
+
+  # Scan token pairs for standalone --label followed by a hard-floor label value.
+  local j=0 ntokens="${#tokens[@]}"
+  while [[ $(( j + 1 )) -lt $ntokens ]]; do
+    if [[ "${tokens[$j]}" == "--label" ]] && \
+       { [[ "${tokens[$(( j + 1 ))]}" == "REVIEW-REQUIRED" ]] || \
+         [[ "${tokens[$(( j + 1 ))]}" == "BLIND-SPOT" ]]; }; then
+      return 0
+    fi
+    j=$(( j + 1 ))
+  done
+  return 1
+}
+
+# _is_iso8601_utc TS — return 0 if TS is a well-formed ISO-8601 UTC timestamp
+# (YYYY-MM-DDTHH:MM:SSZ) with in-range field values; return 1 otherwise.
+# Used before lexicographic comparisons to fail-closed on malformed values
+# (BC-3.01.001 PC#2 step 4b — F5 fix: malformed timestamps → skip marker → deny).
+_is_iso8601_utc() {
+  local ts="$1"
+  [[ "$ts" =~ ^[0-9]{4}-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z$ ]]
+}
+
 # _validate_marker_for_command COMMAND
 #
 # Phase 2 iterative marker-consume algorithm with STEP 6 exact-type matching
@@ -85,11 +189,15 @@ _validate_marker_for_command() {
   # Emitter-side tail-anchoring deferred to S-3.02 (VP-HOOK-024).
   # _subshell stores the two-character literal "$(" so the glob test is shellcheck-clean.
   # Assembled from two innocuous pieces to avoid SC2016 false-positive on literal '$(').
+  # F2 (MAJOR): added > < \n — covers shell redirection (> /path, < /path) and process
+  # substitution (>(cmd), <(cmd)), plus newline injection (BC-3.01.001 PC#2 step 5).
   local _subshell
   _subshell="$"'('
   if [[ "$cmd" == *';'* ]] || [[ "$cmd" == *'|'* ]] || \
      [[ "$cmd" == *'&'* ]] || [[ "$cmd" == *'`'* ]] || \
-     [[ "$cmd" == *"${_subshell}"* ]]; then
+     [[ "$cmd" == *"${_subshell}"* ]] || \
+     [[ "$cmd" == *'>'* ]] || [[ "$cmd" == *'<'* ]] || \
+     [[ "$cmd" == *$'\n'* ]]; then
     return 1
   fi
 
@@ -124,12 +232,16 @@ _validate_marker_for_command() {
     # I2: BC step (3) — skip future-dated markers (adversarial signal)
     _issued_at=$(printf '%s' "$_mj" | jq -r '.issued_at_utc // empty' 2>/dev/null) || continue
     [[ -n "$_issued_at" ]] || continue
+    # F5: validate format before lexicographic comparison (malformed → skip → fail-closed)
+    _is_iso8601_utc "$_issued_at" || continue
     # If issued_at_utc > now → adversarial signal → skip this marker
     [[ "$_issued_at" > "$now_ts" ]] && continue
 
     # STEP 4b: TTL check — O1: valid when expires_at_utc >= now (equality = still valid)
     _expires_at=$(printf '%s' "$_mj" | jq -r '.expires_at_utc // empty' 2>/dev/null) || continue
     [[ -n "$_expires_at" ]] || continue
+    # F5: validate format before lexicographic comparison (malformed → skip → fail-closed)
+    _is_iso8601_utc "$_expires_at" || continue
     # Reject only when expires_at_utc < now (equal second is still valid per BC step 4)
     [[ "$_expires_at" > "$now_ts" ]] || [[ "$_expires_at" == "$now_ts" ]] || continue
 
@@ -158,9 +270,13 @@ _validate_marker_for_command() {
     # a create command carrying a hard-floor review label.
     # Hard-floor labels: REVIEW-REQUIRED, BLIND-SPOT (EC-023 direction B / SM-37).
     # A ["create-review"] marker is required for those tickets.
+    # F1 (CRITICAL): replaced naive raw-substring match with _structural_label_check —
+    # a quote-aware (single + double), backslash-escape-aware, whitespace-collapsing
+    # tokenizer. Fixes SM-40 (double-space), SM-42 (quoted value), SM-43 (tab).
+    # EC-024 false-deny fix: the same tokenizer does NOT fire when --label text appears
+    # only inside a quoted --summary value (not a standalone token). (P9-001/P8-002/P7-005)
     if [[ "$_op_val" == "create" ]]; then
-      if [[ "$cmd" == *"--label REVIEW-REQUIRED"* ]] || \
-         [[ "$cmd" == *"--label BLIND-SPOT"* ]]; then
+      if _structural_label_check "$cmd"; then
         continue
       fi
     fi
@@ -211,10 +327,12 @@ _validate_marker_for_command() {
     # base64-encode command for audit completeness; strip wrapping newlines (cross-platform)
     _command_b64=$(printf '%s' "$cmd" | base64 | tr -d '\n')
 
+    # F4: fail-closed on audit-write failure — no allow without audit record
+    # (BC-3.01.001 PC#2 step 8 + Invariant #2 / VP-HOOK-024).
     printf '%s MARKER_USED marker_id=%s op=%s ticket=%s org=%s command_b64=%s\n' \
       "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
       "$_safe_marker_id" "$_safe_op" "$_safe_ticket" "$_safe_org" "$_command_b64" \
-      >> "${marker_dir}/audit.log" 2>/dev/null || true
+      >> "${marker_dir}/audit.log" 2>/dev/null || return 1
 
     return 0
   done < <(printf '%s\n' "${_candidates[@]}" | sort)

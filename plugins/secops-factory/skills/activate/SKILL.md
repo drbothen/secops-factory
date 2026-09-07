@@ -49,10 +49,10 @@ Before any other action, say verbatim:
 
    On native Windows (PowerShell/cmd shell, `$env:OS` = `Windows_NT`, not inside WSL or Git Bash):
    ```powershell
-   pwsh -NoProfile -File "${CLAUDE_PLUGIN_ROOT}/hooks/prism-version-check.ps1"
+   powershell.exe -NoProfile -File "${CLAUDE_PLUGIN_ROOT}/hooks/prism-version-check.ps1"
    ```
 
-   The gate is fail-closed: any non-zero exit from either script (exit 1 = version too old, exit 2 = not found or unparseable) halts activation immediately.
+   The gate is fail-closed: any non-zero exit from either script (exit 1 = version too old, exit 2 = not found or unparseable) halts activation immediately. If the launcher itself is absent (interpreter-not-found / gate-cannot-run), the shell error is treated identically — activation halts with no configuration written.
 
    If the installed prism does not meet minimum requirement `1.0.0-rc.1`, halt activation with the version-gate error and write no configuration files (`settings.local.json` and `prism.mcp.json` are NOT written).
 
@@ -71,7 +71,9 @@ Before any other action, say verbatim:
      "agent": "secops-factory:orchestrator:orchestrator",
      "secops-factory": {
        "activated_at": "<ISO 8601 timestamp with timezone>",
-       "activated_plugin_version": "<version from .claude-plugin/plugin.json>"
+       "activated_plugin_version": "<version from .claude-plugin/plugin.json>",
+       "jira_project_key": "<validated value from step 4>",
+       "jira_close_state": "<validated value from step 5>"
      }
    }
    ```

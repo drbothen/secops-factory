@@ -419,12 +419,23 @@ assert_same_json() {
 
 # run_pair_with_env HOOK PAYLOAD PLUGIN_DATA — like run_pair but injects
 # CLAUDE_PLUGIN_DATA so both hooks enter the marker-validation path.
+#
+# Each leg receives its own isolated copy of PLUGIN_DATA so that the sh
+# leg's atomic marker-consume (POSIX rename) does not deplete the ps1
+# leg's marker supply.  Without isolation, sh=allow and ps1=deny because
+# the marker file is gone by the time the ps1 hook runs.
 run_pair_with_env() {
     local hook="$1" payload="$2" plugin_data="$3"
-    SH_OUT=$(printf '%s' "$payload" | CLAUDE_PLUGIN_DATA="$plugin_data" bash "$PLUGIN_ROOT/hooks/$hook.sh" 2>/tmp/parity-sh-err); SH_STATUS=$?
-    PS_OUT=$(printf '%s' "$payload" | CLAUDE_PLUGIN_DATA="$plugin_data" pwsh -NoProfile -File "$PLUGIN_ROOT/hooks/$hook.ps1" 2>/tmp/parity-ps-err); PS_STATUS=$?
+    local sh_data ps_data
+    sh_data=$(mktemp -d)
+    ps_data=$(mktemp -d)
+    cp -r "${plugin_data}/." "${sh_data}/"
+    cp -r "${plugin_data}/." "${ps_data}/"
+    SH_OUT=$(printf '%s' "$payload" | CLAUDE_PLUGIN_DATA="$sh_data" bash "$PLUGIN_ROOT/hooks/$hook.sh" 2>/tmp/parity-sh-err); SH_STATUS=$?
+    PS_OUT=$(printf '%s' "$payload" | CLAUDE_PLUGIN_DATA="$ps_data" pwsh -NoProfile -File "$PLUGIN_ROOT/hooks/$hook.ps1" 2>/tmp/parity-ps-err); PS_STATUS=$?
     SH_ERR=$(cat /tmp/parity-sh-err)
     PS_ERR=$(cat /tmp/parity-ps-err)
+    rm -rf "$sh_data" "$ps_data"
 }
 
 # _parity_future_ts — ISO-8601 UTC +300s (cross-platform)

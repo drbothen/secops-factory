@@ -399,3 +399,133 @@ assert_same_json() {
     # Must exit 2: parse failure is an error (BC-6.01.001 PC#8), not version mismatch.
     [ "$status" -eq 2 ]
 }
+
+# ---------------------------------------------------------------------------
+# require-review marker-bearing parity tests (de-mask F3 false-greens)
+#
+# The existing parity tests above only feed marker-free vectors — no
+# CLAUDE_PLUGIN_DATA is set, so neither .sh nor .ps1 enters the marker path.
+# These new tests set up a real marker directory and feed marker-bearing
+# commands, forcing both implementations through the marker-validation path.
+# This exposes the divergence between the fully-ported .sh and the un-ported
+# .ps1 (which has no marker logic): .sh allows; .ps1 denies.
+#
+# Tests are pwsh-gated (skip locally) and RED in CI until the .ps1 port is
+# complete. They become GREEN when .sh and .ps1 emit identical JSON for
+# every marker-bearing vector.
+#
+# Traceability: BC-3.01.001 v1.25 / F3 (finding) / D-020 / EC-023 / SM-37
+# ---------------------------------------------------------------------------
+
+# run_pair_with_env HOOK PAYLOAD PLUGIN_DATA — like run_pair but injects
+# CLAUDE_PLUGIN_DATA so both hooks enter the marker-validation path.
+run_pair_with_env() {
+    local hook="$1" payload="$2" plugin_data="$3"
+    SH_OUT=$(printf '%s' "$payload" | CLAUDE_PLUGIN_DATA="$plugin_data" bash "$PLUGIN_ROOT/hooks/$hook.sh" 2>/tmp/parity-sh-err); SH_STATUS=$?
+    PS_OUT=$(printf '%s' "$payload" | CLAUDE_PLUGIN_DATA="$plugin_data" pwsh -NoProfile -File "$PLUGIN_ROOT/hooks/$hook.ps1" 2>/tmp/parity-ps-err); PS_STATUS=$?
+    SH_ERR=$(cat /tmp/parity-sh-err)
+    PS_ERR=$(cat /tmp/parity-ps-err)
+}
+
+# _parity_future_ts — ISO-8601 UTC +300s (cross-platform)
+_parity_future_ts() {
+    if date --version 2>/dev/null | grep -q GNU; then
+        date -u -d '+300 seconds' '+%Y-%m-%dT%H:%M:%SZ'
+    else
+        date -u -v+300S '+%Y-%m-%dT%H:%M:%SZ'
+    fi
+}
+
+@test "parity: require-review link command with valid link marker — marker-bearing divergence check" {
+    # BC-3.01.001 v1.25 / F3 / D-020 / AC-001 / AC-005
+    # Feeds a "jr issue link" command WITH a valid ["link"] marker to both hooks.
+    # .sh (fully ported): consumes marker → emit allow.
+    # .ps1 (un-ported): ignores marker (no marker logic) → deny from write-block.
+    # assert_same_json FAILS on the divergence → test is RED in CI until port is done.
+    # After port: both allow → JSON identical → test GREEN.
+    require_pwsh
+    local tmp marker_dir now future
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    future=$(_parity_future_ts)
+    printf '%s' "{\"marker_id\":\"m-par-link\",\"ticket_id\":\"SEC-300\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-300 SEC-400( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}" \
+        > "${marker_dir}/link-par.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue link SEC-300 SEC-400"}}' \
+        "$tmp"
+
+    # .sh must allow (marker consumed) — assert so the failure is clearly diagnosable
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    [[ "$SH_OUT" == *'"permissionDecision":"allow"'* ]]
+
+    # Parity gate: both must produce identical JSON — FAILS until ps1 port is done
+    assert_same_json
+
+    rm -rf "$tmp"
+}
+
+@test "parity: require-review create-review marker allows REVIEW-REQUIRED create — marker-bearing divergence check" {
+    # BC-3.01.001 v1.25 / F3 / C1 / EC-023 direction A / D-DEC-012
+    # Feeds "jr issue create --label REVIEW-REQUIRED" WITH a ["create-review"] marker.
+    # .sh (ported): create-review marker authorizes review-labeled create → allow.
+    # .ps1 (un-ported): no marker logic → deny from write-block → diverges.
+    # assert_same_json FAILS → RED in CI; GREEN after port.
+    require_pwsh
+    local tmp marker_dir now future
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    future=$(_parity_future_ts)
+    printf '%s' "{\"marker_id\":\"m-par-crr\",\"ticket_id\":null,\"org_slug\":\"test\",\"authorized_operations\":[\"create-review\"],\"command_pattern\":\"^jr (--output json )?issue create --project PRISMDEMO( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}" \
+        > "${marker_dir}/create-review-par.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue create --project PRISMDEMO --label REVIEW-REQUIRED --summary \"[REVIEW-REQUIRED] SEC-789 HIGH\""}}' \
+        "$tmp"
+
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    # .sh must allow (create-review marker authorizes review-labeled create)
+    [[ "$SH_OUT" == *'"permissionDecision":"allow"'* ]]
+
+    # Parity gate — RED until port is done
+    assert_same_json
+
+    rm -rf "$tmp"
+}
+
+@test "parity: require-review regular create marker anti-fungibility REVIEW-REQUIRED — both deny, mechanism must agree post-port" {
+    # BC-3.01.001 v1.25 / F3 / C1 / EC-023 direction B / SM-37 kill
+    # Feeds "jr issue create --label REVIEW-REQUIRED" WITH a regular ["create"] marker.
+    # Both .sh and .ps1 should deny (anti-fungibility: ["create"] cannot authorize
+    # review-labeled create). .sh denies via STEP-6a structural label check.
+    # .ps1 (un-ported): denies via write-block only (no marker, no STEP-6a check).
+    # assert_same_json passes for deny outcome currently (both deny, same reason text).
+    # This test ensures the parity holds for the anti-fungibility outcome post-port
+    # and provides a regression guard. It is NOT a false-green because both deny.
+    require_pwsh
+    local tmp marker_dir now future
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    future=$(_parity_future_ts)
+    printf '%s' "{\"marker_id\":\"m-par-anti\",\"ticket_id\":null,\"org_slug\":\"test\",\"authorized_operations\":[\"create\"],\"command_pattern\":\"^jr (--output json )?issue create --project PRISMDEMO( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}" \
+        > "${marker_dir}/create-anti-par.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue create --project PRISMDEMO --label REVIEW-REQUIRED --summary \"[REVIEW-REQUIRED] SEC-888 HIGH\""}}' \
+        "$tmp"
+
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    [[ "$SH_OUT" == *'"permissionDecision":"deny"'* ]]
+    [[ "$PS_OUT" == *'"permissionDecision":"deny"'* ]]
+
+    # Both implementations must produce identical JSON for the deny case
+    assert_same_json
+
+    rm -rf "$tmp"
+}

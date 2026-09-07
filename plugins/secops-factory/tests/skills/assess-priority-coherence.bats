@@ -80,10 +80,34 @@
 #   RED   (data-file fix required):  MAJOR-1 data-file coherence (×5 tests)
 #   RED   (SKILL.md fix required):   MINOR-4 JSON confidence placeholder + prism_enriched false (×2)
 #   SKIP  (pre-authorized):          MEDIUM-3 DTU behavioral multi-org test
+#
+# ADV-F4-S4.02 findings addressed in pass-5 (this file):
+#   F1 MAJOR  — priority-framework.md P-section prose carries stale score thresholds
+#               (P3: 10-14; P4: 6-9; P5: 0-5) and stale SLA/label semantics
+#               (P4: Low/90-day should be MED/30-day; P5: Informational/No-SLA should be LOW/90-day).
+#               The existing pass-4 tests anchor negative checks to the "Score to Priority Mapping"
+#               window (grep -A 12) so stale P-section prose at lines ~39-55 escapes detection.
+#               Whole-file negative assertions added. RED (×5).
+#   F2 MEDIUM — priority-framework.md Factor 3 Override Rule says "minimum P2" (line ~88).
+#               BC-4.05.001 v1.6: KEV Listed → CRIT unconditional. "minimum P2" language contradicts
+#               the unconditional KEV→CRIT mapping in both the BC and (already-correct) mapping table.
+#               Whole-file negative + positive CRIT guard added. RED (×2).
+#   F2-sibling — kev-catalog-guide.md (SKILL.md:89 reference) states "Minimum P1 or P2" (line ~59)
+#               and "minimum_priority = P2" (line ~104). Both contradict BC v1.6 KEV→CRIT
+#               unconditional. Three guards (×2 negative + ×1 positive CRIT). RED (×3).
+#   F3 OBS    — All new negative assertions scan the ENTIRE data file, not a grep -A N window,
+#               so stale prose relocated to any section still fails CI.
+#
+# Red Gate status after pass-5 additions:
+#   RED   (data-file fix required):  F1 P-section stale thresholds (×5)
+#   RED   (data-file fix required):  F2 KEV override min-P2 + missing CRIT (×2)
+#   RED   (data-file fix required):  F2-sibling kev-catalog-guide stale language (×3)
+#   SKIP  (pre-authorized):          MEDIUM-3 DTU behavioral multi-org test (unchanged)
 
 PLUGIN_ROOT="${BATS_TEST_DIRNAME}/../.."
 SKILL="${PLUGIN_ROOT}/skills/assess-priority/SKILL.md"
 DATA="${PLUGIN_ROOT}/data/priority-framework.md"
+KEV_DATA="${PLUGIN_ROOT}/data/kev-catalog-guide.md"
 
 # ── F1 / ADV-F4-S4.02 — frontmatter description drift ───────────────────────
 # BC-4.05.001 v1.6 Invariant #5 / ADV-F4-S4.02-F1
@@ -650,4 +674,154 @@ DATA="${PLUGIN_ROOT}/data/priority-framework.md"
     # degraded-mode JSON example. Either YAML-style or JSON-quoted form is accepted.
     # Red Gate: neither 'prism_enriched: false' nor '"prism_enriched": false' present → RED.
     grep -qE '"?prism_enriched"?: false' "$SKILL"
+}
+
+# ── pass-5 / ADV-F4-S4.02 — whole-file data coherence guards (F1, F2, F2-sibling, F3) ──
+# BC-4.05.001 v1.6 / ADV-F4-S4.02 pass-5
+#
+# The pass-4 tests anchor negative checks to the "Score to Priority Mapping" window
+# (grep -m 1 -A 12) which only catches stale values IN the 12 lines after that heading.
+# The P3/P4/P5 prose sections (lines ~39-55) and the Factor 3 Override Rule (~88) sit
+# OUTSIDE that window and are therefore invisible to the pass-4 negative guards.
+#
+# These tests scan the ENTIRE data files with no -A window (F3 requirement), so stale
+# prose relocated to any section still fails CI. All 10 tests are RED against the current
+# data files. SKILL.md and data files are NOT modified here — tests only.
+
+# ── F1 — priority-framework.md P-section stale score thresholds ──────────────────────
+# BC-4.05.001 v1.6 PC#6 / Invariant #5 / ADV-F4-S4.02-pass5-F1
+# BC v1.6 bands: CRIT >=20/KEV, HIGH 14-19, MED 8-13, LOW <8.
+# P3 prose says 10-14; P4 prose says 6-9; P5 prose says 0-5.
+# An implementer reading ONLY the P-section definitions (not the mapping table) would
+# mis-score base_score=8 (MED) as LOW/90-day and base_score=14 (HIGH) as MED/30-day.
+
+@test "BC_4_05_001 F1-pass5 ADV-F4-S4.02 data-file BC-v1.6-PC6: priority-framework.md must not contain stale P3 Score-Threshold 10-14 anywhere in file" {
+    # F1 MAJOR (BC-4.05.001 v1.6 PC#6 / ADV-F4-S4.02 pass-5 F1)
+    # BC v1.6: MED band = 8-13. priority-framework.md P3 prose still says "Score Threshold: 10-14".
+    # An implementer following the P3 section would mis-classify base_score=8 and 9 as LOW (90d SLA)
+    # instead of MED (30d SLA) — a 60-day SLA miss per affected CVE.
+    # Whole-file scan (no -A window): stale "Score Threshold: 10-14" anywhere in the file fails CI.
+    # Red Gate: line ~39 has '**Score Threshold:** 10-14 points' → ! grep fails → RED.
+    ! grep -qF 'Threshold:** 10-14' "$DATA"
+}
+
+@test "BC_4_05_001 F1-pass5 ADV-F4-S4.02 data-file BC-v1.6-PC6: priority-framework.md must not contain stale P4 Score-Threshold 6-9 anywhere in file" {
+    # F1 MAJOR (BC-4.05.001 v1.6 PC#6 / ADV-F4-S4.02 pass-5 F1)
+    # BC v1.6: LOW band = <8 (P5 maps to LOW). There is no "6-9" band. P4 maps to MED (30-day).
+    # priority-framework.md P4 prose says "Score Threshold: 6-9" — a non-existent range that
+    # contradicts the 8-13 MED band and trains an implementer to split MED into two wrong ranges.
+    # Whole-file scan: stale "Score Threshold: 6-9" anywhere in the file fails CI.
+    # Red Gate: line ~47 has '**Score Threshold:** 6-9 points' → ! grep fails → RED.
+    ! grep -qF 'Threshold:** 6-9' "$DATA"
+}
+
+@test "BC_4_05_001 F1-pass5 ADV-F4-S4.02 data-file BC-v1.6-PC6: priority-framework.md must not contain stale P5 Score-Threshold 0-5 anywhere in file" {
+    # F1 MAJOR (BC-4.05.001 v1.6 PC#6 / ADV-F4-S4.02 pass-5 F1)
+    # BC v1.6: LOW band = <8. P5 maps to LOW/90-day. priority-framework.md P5 prose says
+    # "Score Threshold: 0-5" — wrong upper bound (should be <8, i.e., 0-7).
+    # NOTE: '0-5' appears legitimately in '### Factor 3: CISA KEV Status (0-5 points, OVERRIDE)'.
+    # Guard is anchored to '**Score Threshold:**' prefix (unique to P-section score declarations)
+    # so the Factor 3 heading is not a false match; this remains a whole-file scan with no -A window.
+    # Red Gate: line ~55 has '**Score Threshold:** 0-5 points' → ! grep fails → RED.
+    ! grep -qF 'Threshold:** 0-5' "$DATA"
+}
+
+@test "BC_4_05_001 F1-pass5 ADV-F4-S4.02 data-file BC-v1.6-Inv5: priority-framework.md P4 must NOT carry Low/90-day label (BC maps P4 to MED/30-day)" {
+    # F1 MAJOR (BC-4.05.001 v1.6 Invariant #5 / ADV-F4-S4.02 pass-5 F1)
+    # BC v1.6 Invariant #5: P4 → MED (scored_priority), 30-day SLA.
+    # priority-framework.md P4 section header is '### P4 - Low (90 Day SLA)' — wrong on both:
+    #   (a) label 'Low' contradicts P4→MED mapping;
+    #   (b) '90 Day SLA' contradicts MED's 30-day SLA.
+    # An implementer reading this header would produce P4→LOW with 90d SLA, violating BC.
+    # Whole-file negative scan (no -A window).
+    # Red Gate: line ~43 has 'P4 - Low (90 Day SLA)' → ! grep fails → RED.
+    ! grep -qiE 'P4[^|]*(Low|90[[:space:]]*Day)' "$DATA"
+}
+
+@test "BC_4_05_001 F1-pass5 ADV-F4-S4.02 data-file BC-v1.6-Inv5: priority-framework.md P5 must NOT carry Informational/No-SLA label (BC maps P5 to LOW/90-day)" {
+    # F1 MAJOR (BC-4.05.001 v1.6 Invariant #5 / ADV-F4-S4.02 pass-5 F1)
+    # BC v1.6 Invariant #5: P5 → LOW (scored_priority), 90-day SLA.
+    # priority-framework.md P5 section header is '### P5 - Informational (No SLA)' — wrong on both:
+    #   (a) label 'Informational' contradicts P5→LOW mapping;
+    #   (b) 'No SLA' contradicts LOW's 90-day SLA.
+    # An implementer reading this header would produce P5→INFORMATIONAL with no SLA, making
+    # scored_priority a non-member of {CRIT, HIGH, MED, LOW} and breaking every consumer.
+    # Whole-file negative scan (no -A window).
+    # Red Gate: line ~51 has 'P5 - Informational (No SLA)' → ! grep fails → RED.
+    ! grep -qiE 'P5[^|]*(Informational|No[[:space:]]*SLA)' "$DATA"
+}
+
+# ── F2 — priority-framework.md KEV override stale language ───────────────────────────
+# BC-4.05.001 v1.6 PC#6 / Invariant #5 / ADV-F4-S4.02-pass5-F2
+# BC v1.6: KEV Listed → CRIT unconditional. The Factor 3 Override Rule currently says
+# "minimum P2" which contradicts the unconditional KEV→CRIT mapping in the Score to
+# Priority Mapping table (already correct) and in BC v1.6 PC#6.
+
+@test "BC_4_05_001 F2-pass5 ADV-F4-S4.02 data-file BC-v1.6-PC6: priority-framework.md must not contain minimum-P1-or-P2 language for KEV anywhere in file" {
+    # F2 MEDIUM (BC-4.05.001 v1.6 PC#6 / ADV-F4-S4.02 pass-5 F2)
+    # BC v1.6: KEV Listed → CRIT unconditional (the >= 20 or KEV → CRIT row in the mapping table).
+    # priority-framework.md Factor 3 Override Rule (line ~88) contradicts this with
+    # "KEV Listed = minimum P2 regardless of other factors" — an incoherent minimum-floor
+    # statement when the correct contract is an unconditional ceiling: KEV always → CRIT.
+    # An implementer could read this and implement a KEV floor at P2 (HIGH) instead of CRIT,
+    # causing an under-prioritization for any KEV-listed CVE that scores below the CRIT band.
+    # Whole-file negative scan (no -A window) catches "minimum P2" or "minimum P1" anywhere.
+    # Red Gate: line ~88 has 'minimum P2' → ! grep fails → RED.
+    ! grep -qiE 'minimum[[:space:]]+P[12]' "$DATA"
+}
+
+@test "BC_4_05_001 F2-pass5 ADV-F4-S4.02 data-file BC-v1.6-PC6: priority-framework.md Factor 3 KEV override rule must map to CRIT not a P-level label" {
+    # F2 MEDIUM (BC-4.05.001 v1.6 PC#6 / ADV-F4-S4.02 pass-5 F2)
+    # Positive companion to the negative guard above. After removing "minimum P2", the Factor 3
+    # Override Rule line must affirmatively state that KEV Listed maps to CRIT so the implementer
+    # has the correct value from the section they are most likely to read.
+    # The Score to Priority Mapping table already carries 'CRIT' (pass-4 MAJOR-1 guard); this
+    # guard adds the Override Rule line requirement — both locations must be correct.
+    #
+    # Implementation note: pattern is CASE-SENSITIVE 'CRIT' (-qF, not -qiE) to avoid a false
+    # positive from 'Asset Criticality Rating' (Factor 4 heading, line ~90, which lies within
+    # a grep -A 10 window of the 'Factor 3' heading). The scored_priority enum value is always
+    # uppercase 'CRIT'; 'Criticality' is mixed-case and does not contain uppercase 'CRIT'.
+    # Anchored to '**Override Rule:**' line — there is exactly one such line in the file.
+    # Red Gate: Override Rule line says 'minimum P2' with no uppercase 'CRIT' → grep fails → RED.
+    grep "Override Rule" "$DATA" | grep -qF 'CRIT'
+}
+
+# ── F2-sibling — kev-catalog-guide.md KEV stale language (SKILL.md:89 reference) ─────
+# BC-4.05.001 v1.6 PC#6 / ADV-F4-S4.02-pass5-F2-sibling
+# SKILL.md cites kev-catalog-guide.md (SKILL.md:89) as the KEV reference.
+# That file uses "Minimum P1 or P2" (line ~59) and "minimum_priority = P2" (line ~104)
+# — both contradict BC v1.6's KEV→CRIT unconditional rule.
+# An implementer consulting this guide would implement a P2 floor instead of CRIT.
+
+@test "BC_4_05_001 F2-sibling-pass5 ADV-F4-S4.02 kev-guide BC-v1.6-PC6: kev-catalog-guide.md must not contain Minimum-P1-or-P2 language anywhere in file" {
+    # F2-sibling (BC-4.05.001 v1.6 PC#6 / ADV-F4-S4.02 pass-5 F2-sibling)
+    # kev-catalog-guide.md Priority Override section (line ~59) says:
+    #   "- Minimum P1 or P2 regardless of other factor scores"
+    # This contradicts BC v1.6 KEV→CRIT unconditional. An implementer consulting this file
+    # would apply a P1/P2 floor rather than unconditional CRIT elevation.
+    # Whole-file negative scan (no -A window).
+    # Red Gate: line ~59 has 'Minimum P1 or P2' → ! grep fails → RED.
+    ! grep -qiE 'minimum[[:space:]]+(P1|P2|P1[[:space:]]+or[[:space:]]+P2)' "$KEV_DATA"
+}
+
+@test "BC_4_05_001 F2-sibling-pass5 ADV-F4-S4.02 kev-guide BC-v1.6-PC6: kev-catalog-guide.md must not contain minimum_priority=P2 anywhere in file" {
+    # F2-sibling (BC-4.05.001 v1.6 PC#6 / ADV-F4-S4.02 pass-5 F2-sibling)
+    # kev-catalog-guide.md KEV Override Rules code block (line ~104) says:
+    #   "minimum_priority = P2  (cannot go below P2)"
+    # This code-block example trains an implementer to hard-code a P2 floor for KEV.
+    # Per BC v1.6, KEV Listed unconditionally maps to CRIT; there is no P2 floor.
+    # Whole-file negative scan (no -A window).
+    # Red Gate: line ~104 has 'minimum_priority = P2' → ! grep fails → RED.
+    ! grep -qF 'minimum_priority = P2' "$KEV_DATA"
+}
+
+@test "BC_4_05_001 F2-sibling-pass5 ADV-F4-S4.02 kev-guide BC-v1.6-PC6: kev-catalog-guide.md Priority Override must state CRIT (unconditional KEV elevation)" {
+    # F2-sibling (BC-4.05.001 v1.6 PC#6 / ADV-F4-S4.02 pass-5 F2-sibling)
+    # Positive companion to the two negative guards above. After removing the P1/P2 floor language,
+    # the kev-catalog-guide.md Priority Override section must affirmatively state that KEV Listed
+    # maps to CRIT so an implementer consulting this guide gets the correct contract.
+    # Anchored to 'Priority Override' heading with 5 context lines (covers the key bullet).
+    # Red Gate: Priority Override section has no 'CRIT' — file uses only P1/P2 labels → grep fails → RED.
+    grep -m 1 -A 5 "Priority Override" "$KEV_DATA" | grep -qiE 'CRIT'
 }

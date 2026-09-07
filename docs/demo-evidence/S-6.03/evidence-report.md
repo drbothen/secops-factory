@@ -57,11 +57,11 @@ validation) are LLM-executed prose procedures in `skills/activate/SKILL.md`. The
 is verified by doc-presence assertions in the BATS suite
 (`plugins/secops-factory/tests/skills/activate-close-state.bats`):
 
-- `test_BC_6_01_001_close_state_allowlist_constant_present` — CLOSE_STATE_ALLOWLIST = {Done, Closed, Resolved} documented
-- `test_BC_6_01_001_close_state_allowlist_invalid_error_message_present` — EC-015 error string present
-- `test_BC_6_01_001_close_state_case_sensitive_documented` — case sensitivity documented
-- `test_BC_6_01_001_close_state_validation_activation_path_only` — setup-time guard (D-021)
-- `test_BC_6_01_001_close_state_hardcoded_set_documented` — hardcoded set (not env var)
+- `test_BC_6_01_001_close_state_allowlist_constant_declared` — CLOSE_STATE_ALLOWLIST = {Done, Closed, Resolved} documented
+- `test_BC_6_01_001_invalid_close_state_error_prefix` — EC-015 error string present
+- `test_BC_6_01_001_invariant_case_sensitive_match` — case sensitivity documented
+- `test_BC_6_01_001_invariant_d021_config_side_reference` — setup-time guard (D-021)
+- `test_BC_6_01_001_allowlist_complete_set_declared` — hardcoded set (not env var)
 - `test_BC_6_01_001_project_key_charset_regex_present` — `^[A-Z][A-Z0-9]+$` in SKILL.md (AC-007)
 
 Additionally, `prism-version-check-adversarial.bats` (22 tests) provides executable behavioral

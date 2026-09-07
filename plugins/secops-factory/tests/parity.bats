@@ -607,3 +607,86 @@ _parity_future_ts() {
 
     rm -rf "$tmp"
 }
+
+# ---------------------------------------------------------------------------
+# pass-4 adversarial findings: scalar-string authorized_operations (F1) and
+# Unicode digit in expires_at_utc (F2).
+#
+# Both tests are PWSH-GATED and RED in CI until the ps1 bugs are fixed.
+# Traceability: BC-3.01.001 STEP-6 / STEP-4b / pass-4 Finding-1 / Finding-2
+# ---------------------------------------------------------------------------
+
+@test "parity: require-review pass-4 F1 scalar-string authorized_operations — sh deny vs ps1 fail-open allow" {
+    # pass-4 / BC-3.01.001 STEP-6 / Finding-1 MEDIUM (fail-open)
+    #
+    # Marker with "authorized_operations":"link" (JSON string, not array).
+    # sh: jq length on a string = 4 (char count of "link") ≠ 1 → ops_count check
+    #     fails → marker skipped → DENY (correct).
+    # ps1: @($mj.authorized_operations) wraps string into 1-element array →
+    #     opsCount=1, opVal="link" → STEP-6 passes → ALLOW (BUG, fail-open).
+    # assert_same_json FAILS → RED in CI until ps1 validates authorized_operations
+    # is a proper JSON array before STEP-6 processing.
+    require_pwsh
+    local tmp marker_dir now future
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    future=$(_parity_future_ts)
+    printf '%s' "{\"marker_id\":\"m-p4f1-scalar\",\"ticket_id\":\"SEC-320\",\"org_slug\":\"test\",\"authorized_operations\":\"link\",\"command_pattern\":\"^jr (--output json )?issue link SEC-320 SEC-420( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}" \
+        > "${marker_dir}/p4f1-scalar.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue link SEC-320 SEC-420"}}' \
+        "$tmp"
+
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    # sh must deny: jq length of string "link" = 4, not 1 → marker skipped
+    [[ "$SH_OUT" == *'"permissionDecision":"deny"'* ]]
+
+    # Parity gate: sh denies (correct), ps1 allows (fail-open bug) → FAILS in CI
+    assert_same_json
+
+    rm -rf "$tmp"
+}
+
+@test "parity: require-review pass-4 F2 unicode-digit expires_at_utc — sh deny vs ps1 lax-iso allow" {
+    # pass-4 / BC-3.01.001 STEP-4b / Finding-2 MINOR (lax ISO)
+    #
+    # Marker with expires_at_utc containing U+FF12 (FULLWIDTH DIGIT TWO) in the year
+    # via JSON Unicode escape ２.  Both jq and ConvertFrom-Json decode this to
+    # the string "２100-01-01T00:00:00Z".
+    #
+    # sh _is_iso8601_utc: [0-9] is ASCII-only; "２" does not match → format check
+    #     fails → marker skipped → DENY (correct, fail-closed).
+    # ps1 Test-Iso8601Utc: .NET \d matches Unicode digits including U+FF12 →
+    #     format check passes.  Ordinal comparison: "２100..." > current date
+    #     (U+FF12=65298 > U+0032=50) → not expired → all checks pass → ALLOW (BUG).
+    # assert_same_json FAILS → RED in CI until ps1 uses ASCII-only [0-9] in
+    #     Test-Iso8601Utc to match sh's fail-closed behaviour.
+    require_pwsh
+    local tmp marker_dir now
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    # The expires_at_utc value embeds the UTF-8 character U+FF12 (FULLWIDTH DIGIT
+    # TWO, "２") directly in the printf string.  The character passes jq and
+    # ConvertFrom-Json as-is; its code point (65298) is lexicographically greater
+    # than ASCII "2" (50) so the marker is not considered expired by ps1.
+    printf '%s' "{\"marker_id\":\"m-p4f2-unicode\",\"ticket_id\":\"SEC-321\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-321 SEC-421( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"２100-01-01T00:00:00Z\"}" \
+        > "${marker_dir}/p4f2-unicode.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue link SEC-321 SEC-421"}}' \
+        "$tmp"
+
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    # sh must deny: [0-9]{4} rejects fullwidth "２" in year position
+    [[ "$SH_OUT" == *'"permissionDecision":"deny"'* ]]
+
+    # Parity gate: sh denies (fail-closed), ps1 allows (lax \d) → FAILS in CI
+    assert_same_json
+
+    rm -rf "$tmp"
+}

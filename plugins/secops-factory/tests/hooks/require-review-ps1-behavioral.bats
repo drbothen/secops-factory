@@ -31,6 +31,10 @@
 #   BP-017  Malformed expires_at_utc → DENY (F5 / BC step 4b)
 #   BP-018  Audit record written on allow (VP-HOOK-024 / Invariant #2)
 #
+# Pass-4 adversarial findings (added after pass-4 review):
+#   BP-022  pass-4 F1 MEDIUM: scalar-string authorized_operations → DENY (fail-open guard)
+#   BP-023  pass-4 F2 MINOR:  Unicode digit in expires_at_utc → DENY (lax ISO regex guard)
+#
 # Test naming: test_BC_S_SS_NNN_<tier>_<vector>_<assertion>
 
 PLUGIN_ROOT="${BATS_TEST_DIRNAME}/../.."
@@ -529,4 +533,70 @@ _now_ts() {
   [[ "${deny_output}" == *"review approval"* ]]
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"allow"'* ]]
+}
+
+# ── pass-4 F1 BP-022: scalar-string authorized_operations → DENY (MEDIUM fail-open) ──
+
+@test "test_BC_3_01_001_pass4_BP022_ps1_scalar_string_authorized_operations_denied" {
+  # pass-4 / BC-3.01.001 STEP-6 / Finding-1 MEDIUM (fail-open)
+  #
+  # Marker whose authorized_operations field is a JSON STRING "link" rather than
+  # the required array ["link"].
+  #
+  # ps1 STEP-6 (require-review.ps1:237): @($mj.authorized_operations) wraps the
+  # string into a 1-element PowerShell array → opsCount=1, opVal="link" → the
+  # exact-type check (opsCount -eq 1 -and opVal -ceq 'link') passes → ALLOW (BUG).
+  #
+  # sh (require-review.sh:254-257): jq '.authorized_operations | length' on a
+  # JSON string returns the character count (4 for "link"), not 1 → ops_count=4;
+  # jq '.authorized_operations[0]' on a string returns null/empty → op_val="".
+  # Guard [[ ops_count -eq 1 ]] fails → marker skipped → DENY (correct).
+  #
+  # This test asserts ps1 DENIES a link command paired with a scalar-string
+  # authorized_operations marker → RED in CI until ps1 validates that
+  # authorized_operations is a JSON array (not a scalar string) before STEP-6.
+  require_pwsh
+  local now future
+  now=$(_now_ts); future=$(_future_ts)
+  _write_marker "link-bp022-scalar.marker.json" \
+    "{\"marker_id\":\"m-bp022-scalar\",\"ticket_id\":\"SEC-130\",\"org_slug\":\"test\",\"authorized_operations\":\"link\",\"command_pattern\":\"^jr (--output json )?issue link SEC-130 SEC-210( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+  _run_ps1_hook "jr issue link SEC-130 SEC-210"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+# ── pass-4 F2 BP-023: Unicode digit in expires_at_utc → DENY (MINOR lax ISO) ─────
+
+@test "test_BC_3_01_001_pass4_BP023_ps1_unicode_digit_expires_at_utc_rejected" {
+  # pass-4 / BC-3.01.001 STEP-4b / Finding-2 MINOR (lax ISO)
+  #
+  # Marker whose expires_at_utc contains a Unicode (non-ASCII) digit character in
+  # the year position via JSON Unicode escape \uFF12 (U+FF12 FULLWIDTH DIGIT TWO,
+  # "２").  The JSON value stored in the marker file is "\uFF12100-01-01T00:00:00Z"
+  # which both jq and ConvertFrom-Json decode to the string "２100-01-01T00:00:00Z".
+  #
+  # ps1 Test-Iso8601Utc (require-review.ps1:43): regex uses .NET \d which matches
+  # any Unicode decimal digit including U+FF12 → returns $true → expires_at_utc
+  # passes format validation.  Ordinal comparison: "２100..." > current date
+  # (U+FF12=65298 > U+0032=50) → marker not expired → all other checks pass → ALLOW (BUG).
+  #
+  # sh _is_iso8601_utc (require-review.sh:153): uses POSIX [0-9] which is ASCII-only;
+  # "２100-01-01T00:00:00Z" does not match ^[0-9]{4}-... → validation fails →
+  # marker skipped → DENY (correct, fail-closed).
+  #
+  # This test asserts ps1 DENIES (skips) the marker → RED in CI until ps1 uses
+  # an ASCII-only digit class ([0-9] or (?-u:\d)) in Test-Iso8601Utc, preventing
+  # Unicode digit bypass of timestamp format validation.
+  require_pwsh
+  local now
+  now=$(_now_ts)
+  # \uFF12 is a literal JSON Unicode escape — bash does NOT interpret \u, so the
+  # escape is written as-is to the file.  jq and ConvertFrom-Json both decode it
+  # to the fullwidth digit "２" (U+FF12).  The year field becomes "２100" which
+  # satisfies .NET \d{4} but NOT sh's [0-9]{4}.
+  _write_marker "link-bp023-unicode.marker.json" \
+    "{\"marker_id\":\"m-bp023-unicode\",\"ticket_id\":\"SEC-131\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-131 SEC-211( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"\uFF12100-01-01T00:00:00Z\"}"
+  _run_ps1_hook "jr issue link SEC-131 SEC-211"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"permissionDecision":"deny"'* ]]
 }

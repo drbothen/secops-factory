@@ -101,7 +101,7 @@ function Compare-SemVer([string]$v1, [string]$v2) {
 
 $cmp = Compare-SemVer $version $MinVersion
 if ($cmp -ge 0) {
-    Write-Host ("prism {0} meets minimum requirement {1}" -f $version, $MinVersion)
+    Write-Output ("prism {0} meets minimum requirement {1}" -f $version, $MinVersion)
     exit 0
 } else {
     # Use non-terminating output so exit 1 is reached under $ErrorActionPreference='Stop'.

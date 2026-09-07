@@ -430,3 +430,103 @@ _now_ts() {
   grep -q " org="         "${MARKER_DIR}/audit.log"
   grep -q " command_b64=" "${MARKER_DIR}/audit.log"
 }
+
+# ── F-1: BP-019 — uppercase LINK subcommand with marker → ps1 must DENY ──────────
+
+@test "test_BC_3_01_001_F1_BP019_ps1_uppercase_LINK_subcommand_with_marker_denied" {
+  # F-1 / BC-3.01.001 STEP-2 write-block / SM-57 / case-sensitivity divergence (pass-2)
+  #
+  # "jr issue LINK SEC-1 SEC-2" (uppercase subcommand) WITH a valid ["link"] marker.
+  # sh: case-sensitive write-block (*"jr issue link "*) misses uppercase LINK →
+  #     falls through read-only list → fail-closed → DENY.
+  # ps1 SHOULD deny to match sh, but currently:
+  #   -like operator is case-insensitive → "LINK" matches "link" → write-block fires →
+  #   marker consumed (STEP-5 case-insensitive match passes) → ALLOW (BUG).
+  # This test asserts ps1 DENIES uppercase command → RED in CI until ps1 uses -clike/-cmatch.
+  require_pwsh
+  local now future
+  now=$(_now_ts); future=$(_future_ts)
+  _write_marker "link-f1-bp019.marker.json" \
+    "{\"marker_id\":\"m-f1-bp019\",\"ticket_id\":\"SEC-1\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr issue link SEC-1 SEC-2( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+  _run_ps1_hook "jr issue LINK SEC-1 SEC-2"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+# ── F-2: BP-020 — ps1 STEP-6 isolation: ["comment"] flexible pattern + link cmd ──
+
+@test "test_BC_3_01_001_F2_BP020_ps1_step6_comment_flexible_pattern_link_cmd_denied_and_link_marker_allows" {
+  # F-2 / BC-3.01.001 STEP-6 exact-type / SM-58 ps1 analog / mutation-coverage gap (pass-2)
+  #
+  # SM-58 kill vector for ps1: a ["comment"] marker whose command_pattern DELIBERATELY
+  # matches "jr issue link SEC-42 SEC-99" at STEP 5 (flexible (link|comment) pattern).
+  # Correct ps1 STEP-6: cmdType='link', opVal='comment' → type mismatch → CONTINUE → DENY.
+  # Mutation deleting the ps1 STEP-6 link block: STEP-5 passes, no rejection → ALLOW (wrong).
+  #
+  # Part A: ["comment"] marker with flexible pattern + link cmd → DENY via STEP-6.
+  # Part B: correct ["link"] marker with same pattern + link cmd → ALLOW (step-5-passing path).
+  #
+  # Both parts GREEN with correct ps1 STEP-6. Part A is RED only if STEP-6 is deleted.
+  require_pwsh
+  local now future deny_output deny_status
+  now=$(_now_ts); future=$(_future_ts)
+
+  # Part A: ["comment"] marker, flexible step-5-passing pattern → DENY via STEP-6 type mismatch
+  _write_marker "comment-f2-bp020.marker.json" \
+    "{\"marker_id\":\"m-f2-bp020-comment\",\"ticket_id\":\"SEC-42\",\"org_slug\":\"test\",\"authorized_operations\":[\"comment\"],\"command_pattern\":\"^jr .*issue (link|comment) SEC-42( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+  _run_ps1_hook "jr issue link SEC-42 SEC-99"
+  deny_output="$output"
+  deny_status="$status"
+
+  # Part B: correct ["link"] marker with same flexible pattern + link cmd → ALLOW
+  rm -f "${MARKER_DIR}/comment-f2-bp020.marker.json"
+  _write_marker "link-f2-bp020.marker.json" \
+    "{\"marker_id\":\"m-f2-bp020-link\",\"ticket_id\":\"SEC-42\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr .*issue (link|comment) SEC-42( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+  _run_ps1_hook "jr issue link SEC-42 SEC-99"
+
+  # Assertions
+  [ "${deny_status}" -eq 0 ]
+  [[ "${deny_output}" == *'"permissionDecision":"deny"'* ]]
+  [[ "${deny_output}" == *"review approval"* ]]
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"permissionDecision":"allow"'* ]]
+}
+
+# ── F-2: BP-021 — ps1 STEP-6 isolation: ["link"] flexible pattern + close cmd ────
+
+@test "test_BC_3_01_001_F2_BP021_ps1_step6_link_marker_flexible_pattern_close_cmd_denied_and_close_marker_allows" {
+  # F-2 / BC-3.01.001 STEP-6 exact-type / AC-006 ps1 analog / mutation-coverage gap (pass-2)
+  #
+  # SM-58 kill vector (close direction) for ps1: a ["link"] marker whose command_pattern
+  # DELIBERATELY matches "jr issue move SEC-42 Done" at STEP 5 (flexible (link|move) pattern).
+  # Correct ps1 STEP-6: cmdType='close', opVal='link' → type mismatch → CONTINUE → DENY.
+  # Mutation deleting the ps1 STEP-6 close block: STEP-5 passes, no rejection → ALLOW (wrong).
+  #
+  # Part A: ["link"] marker with (link|move) flexible pattern + close cmd → DENY via STEP-6.
+  # Part B: correct ["close"] marker with same pattern + close cmd → ALLOW (confirms path).
+  #
+  # Both parts GREEN with correct ps1 STEP-6. Part A is RED only if STEP-6 is deleted.
+  require_pwsh
+  local now future deny_output deny_status
+  now=$(_now_ts); future=$(_future_ts)
+
+  # Part A: ["link"] marker, flexible (link|move) step-5-passing pattern → DENY via STEP-6
+  _write_marker "link-f2-bp021.marker.json" \
+    "{\"marker_id\":\"m-f2-bp021-link\",\"ticket_id\":\"SEC-42\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr .*issue (link|move) SEC-42( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+  _run_ps1_hook "jr issue move SEC-42 Done"
+  deny_output="$output"
+  deny_status="$status"
+
+  # Part B: correct ["close"] marker with same flexible pattern + close cmd → ALLOW
+  rm -f "${MARKER_DIR}/link-f2-bp021.marker.json"
+  _write_marker "close-f2-bp021.marker.json" \
+    "{\"marker_id\":\"m-f2-bp021-close\",\"ticket_id\":\"SEC-42\",\"org_slug\":\"test\",\"authorized_operations\":[\"close\"],\"command_pattern\":\"^jr .*issue (link|move) SEC-42( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}"
+  _run_ps1_hook "jr issue move SEC-42 Done"
+
+  # Assertions
+  [ "${deny_status}" -eq 0 ]
+  [[ "${deny_output}" == *'"permissionDecision":"deny"'* ]]
+  [[ "${deny_output}" == *"review approval"* ]]
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"permissionDecision":"allow"'* ]]
+}

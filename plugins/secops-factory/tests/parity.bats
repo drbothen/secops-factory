@@ -529,3 +529,81 @@ _parity_future_ts() {
 
     rm -rf "$tmp"
 }
+
+# ---------------------------------------------------------------------------
+# F-1 (pass-2): case-sensitivity parity — mixed-case subcommand / pattern divergence
+#
+# Finding F-1: ps1 uses case-insensitive PowerShell operators (-like, -match, -eq)
+# while sh uses case-sensitive bash operators (==, =~).
+#
+# Both tests are PWSH-GATED and RED in CI until ps1 is made case-sensitive.
+# Traceability: BC-3.01.001 STEP-2 write-block + STEP-5 command_pattern / F-1 / SM-57
+# ---------------------------------------------------------------------------
+
+@test "parity: require-review F-1 uppercase LINK subcommand — sh fail-closed deny vs ps1 case-insensitive allow" {
+    # F-1 / BC-3.01.001 STEP-2 / SM-57 write-block / case-sensitivity divergence (pass-2)
+    #
+    # Command: "jr issue LINK SEC-1 SEC-2" (uppercase subcommand), valid ["link"] marker.
+    # sh (case-sensitive): write-block pattern *"jr issue link "* does NOT match uppercase
+    #   LINK → falls through read-only list (no match) → fail-closed → DENY.
+    # ps1 (case-insensitive): -like "*jr issue link *" MATCHES uppercase LINK →
+    #   enters marker path → STEP-5 -match (case-insensitive) passes → ALLOW.
+    # assert_same_json FAILS → RED in CI until ps1 uses case-sensitive operators.
+    require_pwsh
+    local tmp marker_dir now future
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    future=$(_parity_future_ts)
+    printf '%s' "{\"marker_id\":\"m-f1-uplink\",\"ticket_id\":\"SEC-1\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr issue link SEC-1 SEC-2( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}" \
+        > "${marker_dir}/f1-upper-subcommand.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue LINK SEC-1 SEC-2"}}' \
+        "$tmp"
+
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    # sh must deny: case-sensitive write-block misses uppercase LINK → fail-closed
+    [[ "$SH_OUT" == *'"permissionDecision":"deny"'* ]]
+
+    # Parity gate: sh denies (fail-closed), ps1 allows (case-insensitive) → FAILS in CI
+    assert_same_json
+
+    rm -rf "$tmp"
+}
+
+@test "parity: require-review F-1 uppercase LINK in command_pattern — sh STEP-5 miss vs ps1 case-insensitive match" {
+    # F-1 / BC-3.01.001 STEP-5 command_pattern match / case-sensitivity divergence (pass-2)
+    #
+    # Command: "jr issue link SEC-5 SEC-6" (normal lowercase), marker command_pattern
+    # contains uppercase "LINK": ^jr issue LINK SEC-5 SEC-6( |$).
+    # sh: write-block matches (lowercase ok), enters marker path, STEP-5 bash =~ is
+    #   case-sensitive → "link" does NOT match "LINK" in pattern → marker skipped → DENY.
+    # ps1: write-block matches, STEP-5 -match is case-insensitive → "link" MATCHES
+    #   "LINK" pattern → ALLOW.
+    # assert_same_json FAILS → RED in CI until ps1 uses case-sensitive -cmatch.
+    require_pwsh
+    local tmp marker_dir now future
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    future=$(_parity_future_ts)
+    # Uppercase "LINK" in command_pattern — matches case-insensitively in ps1, not in sh
+    printf '%s' "{\"marker_id\":\"m-f1-uppatt\",\"ticket_id\":\"SEC-5\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr issue LINK SEC-5 SEC-6( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}" \
+        > "${marker_dir}/f1-upper-pattern.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue link SEC-5 SEC-6"}}' \
+        "$tmp"
+
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    # sh must deny: STEP-5 bash =~ is case-sensitive, "link" does not match "LINK" pattern
+    [[ "$SH_OUT" == *'"permissionDecision":"deny"'* ]]
+
+    # Parity gate: sh denies (STEP-5 miss), ps1 allows (case-insensitive -match) → FAILS in CI
+    assert_same_json
+
+    rm -rf "$tmp"
+}

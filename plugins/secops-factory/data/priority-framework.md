@@ -10,6 +10,8 @@ This framework uses **multi-factor risk assessment** to prioritize vulnerabiliti
 
 ## Priority Levels (P1-P5)
 
+> **Note:** P1-P5 are INTERNAL-ONLY intermediate scoring labels used within this framework. The emitted `scored_priority` output is always a member of the enum `{CRIT, HIGH, MED, LOW}` — P1-P5 are never emitted as `scored_priority` (BC-4.05.001 v1.6 Invariant #5).
+
 ### P1 - Critical (24 Hour SLA)
 
 **Definition:** Immediate action required. Critical vulnerabilities with high exploitability affecting critical systems.
@@ -26,7 +28,7 @@ This framework uses **multi-factor risk assessment** to prioritize vulnerabiliti
 
 **Definition:** Urgent remediation required. High severity with significant exploitation risk.
 
-**Score Threshold:** 15-19 points (or KEV Listed without P1 criteria)
+**Score Threshold:** 14-19 points (note: KEV Listed → CRIT unconditional per Override Rule; see Score to Priority Mapping)
 
 **Actions:** Urgent patching in next sprint, security team notification, staging validation
 
@@ -34,23 +36,23 @@ This framework uses **multi-factor risk assessment** to prioritize vulnerabiliti
 
 **Definition:** Planned remediation. Moderate severity with limited exploitation risk.
 
-**Score Threshold:** 10-14 points
+**Score Threshold:** 8-13 points (P3 → MED band; scored_priority emitted as MED, 30-day SLA)
 
 **Actions:** Next maintenance window, non-production testing, change request scheduling
 
-### P4 - Low (90 Day SLA)
+### P4 - Medium (30 Day SLA)
 
-**Definition:** Routine patching. Low severity or low-criticality systems.
+**Definition:** Routine patching. Low-criticality systems with moderate risk profile.
 
-**Score Threshold:** 6-9 points
+**Score Threshold:** 8-13 points (P4 → MED band; scored_priority emitted as MED, 30-day SLA)
 
-**Actions:** Routine patch schedule, batch with other low-priority patches
+**Actions:** Routine patch schedule, batch with other medium-priority patches
 
-### P5 - Informational (No SLA)
+### P5 - Low (90 Day SLA)
 
 **Definition:** Awareness only. Minimal risk.
 
-**Score Threshold:** 0-5 points
+**Score Threshold:** <8 points (P5 → LOW band; scored_priority emitted as LOW, 90-day SLA)
 
 **Actions:** Document for awareness, optional patching, risk acceptance consideration
 
@@ -83,7 +85,7 @@ This framework uses **multi-factor risk assessment** to prioritize vulnerabiliti
 | Listed | 5 | Automatic priority elevation |
 | Not Listed | 0 | No bonus |
 
-**Override Rule:** KEV Listed = minimum P2 regardless of other factors.
+**Override Rule:** KEV Listed = CRIT unconditional (24-hour SLA regardless of other factors; overrides base-score band). KEV Listed → CRIT is a hard ceiling; the compensating controls −1 reduction applies only to non-KEV scored_priority determinations.
 
 ### Factor 4: Asset Criticality Rating (0-4 points)
 
@@ -117,17 +119,16 @@ This framework uses **multi-factor risk assessment** to prioritize vulnerabiliti
 total_score = cvss_points + epss_points + kev_points + acr_points + exposure_points + exploit_points
 ```
 
-**Score Range:** 6-24 points
+**Score Range:** 0-24 points
 
 ### Score to Priority Mapping
 
-| Score | Priority | SLA |
-|-------|----------|-----|
-| >= 20 or KEV | P1 | 24 hours |
-| 15-19 | P2 | 7 days |
-| 10-14 | P3 | 30 days |
-| 6-9 | P4 | 90 days |
-| 0-5 | P5 | No SLA |
+| Score | scored_priority (emitted enum) | SLA |
+|-------|-------------------------------|-----|
+| >= 20 or KEV | CRIT | 24 hours |
+| 14-19 | HIGH | 7 days |
+| 8-13 | MED | 30 days |
+| <8 | LOW | 90 days |
 
 ---
 
@@ -145,6 +146,8 @@ total_score = cvss_points + epss_points + kev_points + acr_points + exposure_poi
 - Customer-facing system with data breach potential
 
 ### Priority Reduction (-1 level)
+
+**Note:** KEV Listed → CRIT is a hard ceiling; the compensating controls −1 reduction applies only to non-KEV scored_priority determinations.
 
 - Effective compensating controls (documented and tested)
 - System scheduled for decommission within 30 days

@@ -1,6 +1,6 @@
 ---
 name: assess-priority
-description: "Use when calculating multi-factor vulnerability priority. Combines CVSS severity, EPSS exploitation probability, CISA KEV status, asset criticality, system exposure, and exploit availability into P1-P5 with SLA."
+description: "Use when calculating multi-factor vulnerability priority. Combines CVSS severity, EPSS exploitation probability, CISA KEV status, asset criticality, system exposure, and exploit availability to emit scored_priority: CRIT | HIGH | MED | LOW."
 argument-hint: "<ticket-id>"
 ---
 
@@ -60,20 +60,23 @@ Before any other action, say verbatim:
 
 ### Priority Mapping
 
-| Score | Priority | SLA |
-|-------|----------|-----|
-| >=20 or KEV Listed | P1 - Critical | 24 hours |
-| 15-19 | P2 - High | 7 days |
-| 10-14 | P3 - Medium | 30 days |
-| 6-9 | P4 - Low | 90 days |
-| 0-5 | P5 - Informational | No SLA |
+**P1-P5 labels are INTERNAL-ONLY** — they are the skill's intermediate 6-factor scoring notation and are never emitted as `scored_priority`. The `scored_priority` output is always a member of the canonical enum `{CRIT, HIGH, MED, LOW}`.
+
+| Score (PC#6 band) | scored_priority | SLA |
+|-------------------|----------------|-----|
+| >=20 or KEV Listed | CRIT | 24 hours |
+| 14-19 | HIGH | 7 days |
+| 8-13 | MED | 30 days |
+| <8 | LOW | 90 days |
 
 ### Override Rules
 
-- KEV Listed + Internet + Critical ACR = automatic P1
-- Active Exploitation + CVSS >=9.0 + High/Critical ACR = automatic P1
+- KEV Listed + Internet + Critical ACR = automatic CRIT (internal P1)
+- Active Exploitation + CVSS >=9.0 + High/Critical ACR = automatic CRIT (internal P1)
 - Compliance requirement = elevate +1 level
 - Documented compensating controls = reduce -1 level
+- KEV Listed → CRIT is a hard ceiling; the compensating controls −1 reduction applies only to non-KEV scored_priority determinations.
+- Adjustments clamp at enum boundaries: +1 on CRIT stays CRIT (ceiling); −1 on LOW stays LOW (floor). `scored_priority` is always a member of {CRIT, HIGH, MED, LOW}.
 
 ## Output
 
@@ -85,3 +88,94 @@ Present factor breakdown, total score, priority level, SLA deadline, and rationa
 - `${CLAUDE_PLUGIN_ROOT}/data/cvss-guide.md`
 - `${CLAUDE_PLUGIN_ROOT}/data/epss-guide.md`
 - `${CLAUDE_PLUGIN_ROOT}/data/kev-catalog-guide.md`
+
+---
+
+## scored_priority Output (ICD-203 Field 18)
+
+The skill `priority` output IS `scored_priority` (verdict field 18, BC-4.05.001 Invariant 5, P12-004).
+The monitoring loop reads `verdict.scored_priority` — the skill populates this key so it is never nil.
+
+Output JSON structure includes:
+
+```json
+{
+  "scored_priority": "<CRIT|HIGH|MED|LOW>",
+  "confidence_score": "<0.0-1.0>",
+  "confidence": "high|medium|low",
+  "disposition": "<TP|FP|BTP|Indeterminate>",
+  "rationale": "<explanation of base score, recalibration, and any overrides applied>",
+  "base_score": 0,
+  "prism_enriched": true,
+  "uncertainty_explicit": false
+}
+```
+
+## SEVERITY_TO_SCORED_PRIORITY_MAP
+
+Maps CVSS SEVERITY_ENUM to SCORED_PRIORITY_ENUM (BC-4.05.001 Invariant 5, EC-001..EC-004).
+SEVERITY_ENUM values (CRITICAL, HIGH, MEDIUM, LOW) differ from SCORED_PRIORITY_ENUM (CRIT, HIGH, MED, LOW).
+
+| SEVERITY_ENUM (input) | SCORED_PRIORITY_ENUM (output) |
+|-----------------------|-------------------------------|
+| CRITICAL | CRIT |
+| HIGH | HIGH |
+| MEDIUM | MED |
+| LOW | LOW |
+
+## Confidence Mapping (D-DEC-011)
+
+Maps `confidence_score` float to `confidence` enum per D-DEC-011 thresholds (VP-SKILL-071).
+An inconsistent confidence pair (e.g. confidence_score=0.80 with confidence="low") is invalid and must be rejected.
+
+| confidence_score range | confidence enum | Boundary vectors |
+|------------------------|----------------|-----------------|
+| >= 0.75 | high | 0.75 → high; 0.749 → medium |
+| >= 0.40 and < 0.75 | medium | 0.40 → medium; 0.399 → low |
+| < 0.40 | low | |
+
+## Prism-Grounded Scoring (Stage 5)
+
+Org-specific PrismQL queries (PC#5a, PC#5d) MUST include an explicit org_slug constraint for
+multi-org isolation (BC-4.05.001 Invariant 4, D-DEC-005, VP-SKILL-070). PC#5b (NVD/CVE global
+UDF) is EXEMPT — NVD data has no org dimension; enrich_nvd() keys on CVE ID only.
+
+**Degraded-mode fallback (missing org_slug):** If `org_slug` is unavailable from the execution context, ALL Prism-grounded scoring stages (PC#5a through PC#5e) MUST be skipped entirely. The skill must proceed using only the 6-factor base score without Prism enrichment, map the base score to `{CRIT, HIGH, MED, LOW}` via PC#6 band thresholds, set `prism_enriched: false` and `uncertainty_explicit: true`, and MUST note "Prism scoring unavailable: org_slug not in context" in output (BC-4.05.001 v1.6 Invariant #4 / PC#7).
+
+**Degraded mode (Prism MCP unavailable):** When Prism MCP is unavailable (connection error, timeout, or `prism_describe` returns error), skip all Prism-grounded stages (PC#5a–PC#5e), apply the 6-factor algorithm, map the base score to `{CRIT, HIGH, MED, LOW}` via PC#6 band thresholds, set `prism_enriched: false` and `uncertainty_explicit: true`, and emit "Prism unavailable — result reflects static 6-factor scoring only" in rationale. The `scored_priority` output is always a valid enum member in degraded mode; P1-P5 are INTERNAL-ONLY and never emitted as `scored_priority`. PC#5e (Bayesian posterior) is skipped in degraded mode; `confidence_score` reflects the absence of posterior enrichment and falls below 0.40, mapping to `confidence: "low"` per the < 0.40 tier of D-DEC-011.
+
+### PC#5a — 30-Day Historical Baseline Query
+
+```sql
+SELECT COUNT(*) AS hit_count,
+       COUNT(DISTINCT CASE WHEN disposition='TP' THEN event_id END) AS tp_count,
+       COUNT(DISTINCT CASE WHEN disposition='FP' THEN event_id END) AS fp_count
+FROM events
+WHERE org_slug='<org_slug>'
+  AND rule_id='<rule_id>'
+  AND timestamp > NOW() - INTERVAL '30 days'
+```
+
+### PC#5b — NVD Enrichment via enrich_nvd() UDF
+
+```sql
+SELECT enrich_nvd('<cve_id>') AS nvd_data
+FROM dual
+```
+
+### PC#5c — Rule-Fidelity Recalibration
+
+Compute fidelity from TP/FP counts and adjust exploit_status factor score.
+
+### PC#5d — Per-Tenant Asset Criticality Weights
+
+```sql
+SELECT asset_criticality_score
+FROM assets
+WHERE org_slug='<org_slug>'
+  AND asset_id='<asset_id>'
+```
+
+### PC#5e — Bayesian TP/FP/BTP Disposition Estimate
+
+Apply prior from 30-day counts to produce advisory disposition estimate.

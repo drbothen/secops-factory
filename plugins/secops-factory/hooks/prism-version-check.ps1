@@ -17,14 +17,14 @@ if (-not (Get-Command 'prism' -ErrorAction SilentlyContinue)) {
     exit 2
 }
 
-# Capture prism --version output
-try {
-    $versionOutput = (& prism --version 2>&1) | Out-String
-} catch {
-    # Use non-terminating output so exit 2 is reached under $ErrorActionPreference='Stop'.
-    [Console]::Error.WriteLine("ERROR: failed to run prism --version: $_")
-    exit 2
-}
+# Capture prism --version output.
+# Mirror sh '|| true': lower ErrorActionPreference to Continue for this call so
+# a non-zero exit from prism does NOT become a terminating error — the version
+# string may still be parseable (e.g. a debug build that exits 3 after printing
+# its version). Only exit 2 when the version is genuinely absent or unparseable.
+$ErrorActionPreference = 'Continue'
+$versionOutput = (& prism --version 2>&1) | Out-String
+$ErrorActionPreference = 'Stop'
 
 # Extract semver string: e.g. "prism 1.2.3-rc.4" -> "1.2.3-rc.4"
 $match = [regex]::Match($versionOutput, '[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?')
@@ -104,6 +104,7 @@ if ($cmp -ge 0) {
     Write-Host ("prism {0} meets minimum requirement {1}" -f $version, $MinVersion)
     exit 0
 } else {
-    Write-Error ("ERROR: prism {0} does not meet minimum requirement {1}" -f $version, $MinVersion)
+    # Use non-terminating output so exit 1 is reached under $ErrorActionPreference='Stop'.
+    [Console]::Error.WriteLine(("ERROR: prism {0} does not meet minimum requirement {1}" -f $version, $MinVersion))
     exit 1
 }

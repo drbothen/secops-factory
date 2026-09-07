@@ -66,17 +66,18 @@ semver_ge() {
     IFS='.' read -r maj1 min1 pat1 <<< "$v1_main"
     IFS='.' read -r maj2 min2 pat2 <<< "$v2_main"
 
-    # Compare major
-    if (( maj1 > maj2 )); then return 0; fi
-    if (( maj1 < maj2 )); then return 1; fi
+    # Compare major (10# prefix: force base-10, avoids octal parse of leading-zero segments
+    # such as "08" or "09" — mirrors the 10# fix already applied to pre-release fields).
+    if (( 10#$maj1 > 10#$maj2 )); then return 0; fi
+    if (( 10#$maj1 < 10#$maj2 )); then return 1; fi
 
     # Compare minor
-    if (( min1 > min2 )); then return 0; fi
-    if (( min1 < min2 )); then return 1; fi
+    if (( 10#$min1 > 10#$min2 )); then return 0; fi
+    if (( 10#$min1 < 10#$min2 )); then return 1; fi
 
     # Compare patch
-    if (( pat1 > pat2 )); then return 0; fi
-    if (( pat1 < pat2 )); then return 1; fi
+    if (( 10#$pat1 > 10#$pat2 )); then return 0; fi
+    if (( 10#$pat1 < 10#$pat2 )); then return 1; fi
 
     # Same major.minor.patch — compare pre-release.
     # Semver: no pre-release > any pre-release  (1.0.0 > 1.0.0-rc.1)

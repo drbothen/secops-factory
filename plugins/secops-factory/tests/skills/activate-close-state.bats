@@ -248,32 +248,21 @@ PRISM_VERSION_CHECK="${PLUGIN_ROOT}/hooks/prism-version-check.sh"
     grep -qF '"jira_close_state":' "$SKILL"
 }
 
-# ─── OBS-1 | BC-6.01.001 VP-SKILL-051 ─ Windows launcher consistency + fail-closed coverage ─
-# pass-5 finding: two independent issues in step 6's Windows version gate path:
+# ─── OBS-1 | BC-6.01.001 VP-SKILL-051 ─ Windows version-gate fail-closed coverage ─────────────
+# pass-5 finding: fail-closed prose gap — step 6's fail-closed sentence covers exit 1 (version
+# too old) and exit 2 (prism not found or unparseable) but does not name the case where the
+# launcher itself is absent. Without explicit coverage the skill could be interpreted as
+# "if the script returns non-zero" — which is never satisfied if the launcher errors before
+# the script runs, opening a fail-open path where activation silently completes without a
+# version check.
 #
-#   (a) Launcher inconsistency — step 6 invokes prism-version-check.ps1 via `pwsh`
-#       (PowerShell 7+, optional install), while step 8 / hooks.json.windows use
-#       `powershell.exe` (Windows PowerShell 5.1, guaranteed present on Windows 10+).
-#       A machine that ships only inbox PowerShell 5.1 (common on locked-down enterprise
-#       endpoints) passes the hooks step but silently cannot run the version gate.
-#
-#   (b) Fail-closed prose gap — the current fail-closed sentence covers exit 1 (version
-#       too old) and exit 2 (prism not found or unparseable) but does not name the
-#       case where the launcher itself is absent. Without explicit coverage, the
-#       skill could be interpreted as "if the script returns non-zero" — which is
-#       never satisfied if the launcher errors before the script runs, opening a
-#       fail-open path where activation silently completes without a version check.
-
-@test "test_BC_6_01_001_obs1_windows_version_gate_launcher_is_powershell_exe (OBS-1, VP-SKILL-051)" {
-    # OBS-1(a) launcher consistency: step 6's Windows invocation of prism-version-check.ps1
-    # MUST use powershell.exe (Windows PowerShell 5.1, always present on Windows 10+),
-    # matching the launcher used in step 8 / hooks.json.windows throughout.
-    # Using pwsh (PowerShell 7+, optional) creates a launcher split: a machine without
-    # pwsh passes hooks but cannot run the prism version gate, producing an inconsistent
-    # activation state that is silent and hard to diagnose.
-    # RED: current step 6 uses `pwsh -NoProfile -File`, not `powershell.exe -NoProfile -File`.
-    grep -qF "powershell.exe -NoProfile -File" "$SKILL"
-}
+# NOTE: OBS-1(a) (launcher uses powershell.exe, not pwsh) was superseded by the pass-7 test
+# test_BC_6_01_001_version_gate_windows_launcher_execution_policy_bypass which greps for the
+# full canonical flag string `powershell.exe -NoProfile -ExecutionPolicy Bypass -File` and is
+# a strictly stronger discriminant. The OBS-1(a) test body grepped only for
+# `powershell.exe -NoProfile -File`, which after the pass-7 launcher fix matched only explanatory
+# prose on SKILL.md line 55 — making it inert (a pwsh revert would not have failed it).
+# Removed to avoid a redundant/tautological assertion; bats:308 is the single canonical guard.
 
 @test "test_BC_6_01_001_obs1_version_gate_fail_closed_covers_launcher_not_found (OBS-1, VP-SKILL-051)" {
     # OBS-1(b) fail-closed coverage: step 6's fail-closed prose must explicitly cover a

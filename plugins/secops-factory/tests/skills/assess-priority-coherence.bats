@@ -81,6 +81,19 @@
 #   RED   (SKILL.md fix required):   MINOR-4 JSON confidence placeholder + prism_enriched false (×2)
 #   SKIP  (pre-authorized):          MEDIUM-3 DTU behavioral multi-org test
 #
+# ADV-F4-S4.02 findings addressed in pass-8 (this file):
+#   MINOR-1  — missing-org_slug degraded paragraph (~SKILL.md:142) omits the output contract
+#               required by BC-4.05.001 v1.6 Invariant #4 / PC#7: (1) map the base score to
+#               {CRIT,HIGH,MED,LOW} via PC#6 band thresholds, and (2) set prism_enriched: false
+#               + uncertainty_explicit: true. The parallel "Degraded mode (Prism MCP unavailable)"
+#               paragraph (~SKILL.md:144) already carries both clauses; the missing-org_slug
+#               paragraph does not.
+#               RED (SKILL.md line ~142 has neither clause; ×3 assertions in one test).
+#
+# Red Gate status after pass-8 additions:
+#   RED   (SKILL.md fix required):  MINOR-1 missing-org_slug output contract (×3 assertions)
+#   SKIP  (pre-authorized):          MEDIUM-3 DTU behavioral multi-org test (unchanged)
+#
 # ADV-F4-S4.02 findings addressed in pass-5 (this file):
 #   F1 MAJOR  — priority-framework.md P-section prose carries stale score thresholds
 #               (P3: 10-14; P4: 6-9; P5: 0-5) and stale SLA/label semantics
@@ -824,4 +837,56 @@ KEV_DATA="${PLUGIN_ROOT}/data/kev-catalog-guide.md"
     # Anchored to 'Priority Override' heading with 5 context lines (covers the key bullet).
     # Red Gate: Priority Override section has no 'CRIT' — file uses only P1/P2 labels → grep fails → RED.
     grep -m 1 -A 5 "Priority Override" "$KEV_DATA" | grep -qiE 'CRIT'
+}
+
+# ── MINOR-1 / ADV-F4-S4.02 pass-8 — missing-org_slug degraded paragraph output contract ──
+# BC-4.05.001 v1.6 Invariant #4 / PC#7 / ADV-F4-S4.02 pass-8 MINOR-1
+#
+# The "Degraded mode (Prism MCP unavailable)" paragraph (~SKILL.md:144) correctly documents the
+# full PC#7 output contract:
+#   (1) map the base score to {CRIT, HIGH, MED, LOW} via PC#6 band thresholds
+#   (2) set prism_enriched: false and uncertainty_explicit: true
+#
+# The parallel "Degraded-mode fallback (missing org_slug)" paragraph (~SKILL.md:142) describes
+# what to SKIP (all PC#5a-5e) but omits both output-contract clauses.
+# BC-4.05.001 v1.6 Invariant #4 explicitly treats missing org_slug as a PC#7 degradation path
+# with the SAME output contract. An implementer reading only the org_slug paragraph would skip
+# Prism enrichment but leave scored_priority undefined (no band-mapping instruction) and omit
+# the required output flags — producing a result that violates PC#6 and PC#7.
+#
+# Test is anchored to the missing-org_slug paragraph exclusively via grep -m 1 "missing org_slug":
+# that returns only SKILL.md line ~142, which does NOT contain the required clauses.
+# The MCP-unavailable paragraph at line ~144 DOES contain both clauses but CANNOT satisfy this
+# test because it does not contain "missing org_slug" and is not returned by the anchor grep.
+
+@test "BC_4_05_001 MINOR-1-pass8 ADV-F4-S4.02 BC-v1.6-Inv4-PC7: missing-org_slug degraded paragraph must document PC#6 band mapping and prism_enriched false + uncertainty_explicit true" {
+    # MINOR-1 (BC-4.05.001 v1.6 Invariant #4 / PC#7 / ADV-F4-S4.02 pass-8 MINOR-1)
+    #
+    # BC-4.05.001 v1.6 Invariant #4: when org_slug is missing, the degradation path is PC#7 —
+    # the same output contract as the Prism-MCP-unavailable path. The output contract requires:
+    #   (1) Map the 6-factor base score to {CRIT, HIGH, MED, LOW} via PC#6 band thresholds
+    #   (2) Set prism_enriched: false (skill operated without Prism enrichment)
+    #   (3) Set uncertainty_explicit: true (required by BC-4.05.001 v1.6 Invariant #4 / PC#7)
+    #
+    # The "Degraded-mode fallback (missing org_slug)" paragraph (~SKILL.md:142) documents the
+    # skip behaviour but omits all three output-contract clauses. The "Degraded mode (Prism MCP
+    # unavailable)" paragraph (~SKILL.md:144) has all three — but is a DIFFERENT code path.
+    #
+    # Anchor: grep -m 1 "missing org_slug" returns ONLY SKILL.md line ~142 (the org_slug
+    # paragraph). The MCP-unavailable paragraph does not contain "missing org_slug" and therefore
+    # cannot satisfy this test regardless of its content.
+    #
+    # Red Gate: SKILL.md line ~142 contains none of the three required clauses → all assertions
+    # below fail → test RED. The implementer must add the output contract to the org_slug paragraph.
+    org_slug_para=$(grep -m 1 "missing org_slug" "$SKILL")
+
+    # (1) PC#6 band mapping: paragraph must reference PC#6 band thresholds or explicitly name
+    #     {CRIT,HIGH,MED,LOW} in the context of scoring/mapping the base score.
+    echo "$org_slug_para" | grep -qiE 'PC.?6|band.*(CRIT|HIGH|MED|LOW)|(CRIT|HIGH|MED|LOW).*band|(map|mapping).*base.?score'
+
+    # (2) prism_enriched: false must appear in the org_slug degraded paragraph.
+    echo "$org_slug_para" | grep -qE '"?prism_enriched"?:[[:space:]]*false'
+
+    # (3) uncertainty_explicit: true must appear in the org_slug degraded paragraph.
+    echo "$org_slug_para" | grep -qE '"?uncertainty_explicit"?:[[:space:]]*true'
 }

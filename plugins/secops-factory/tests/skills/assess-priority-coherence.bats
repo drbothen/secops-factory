@@ -59,9 +59,31 @@
 #   GREEN (new guard, not red):       MEDIUM-1 low-tier inversion guard (SKILL.md already correct)
 #   GREEN (arrow-agnostic, not red):  OBS-4 boundary vector patterns (SKILL.md arrow unchanged)
 #   RED   (new, impl required):       MINOR-2 override clamp (SKILL.md has no clamp language)
+#
+# ADV-F4-S4.02 findings addressed in pass-4 (this file):
+#   MAJOR-1   — data-file coherence: priority-framework.md band boundaries and score range
+#               must match BC-4.05.001 v1.6 PC#6 (HIGH=14-19, MED=8-13, range 0-24).
+#               P1-P5 must be declared INTERNAL-ONLY; Score to Priority Mapping must emit
+#               CRIT/HIGH/MED/LOW not P1-P5. RED (data file still has 15-19/10-14/6-9/6-24).
+#   MEDIUM-2  — VP-SKILL-070 leg (c) guard: SKILL.md org_slug-missing degraded skip must document
+#               that ALL PC#5a-PC#5e are skipped when org_slug is unavailable.
+#               GREEN: SKILL.md line ~142 already contains the required text. Guard protects it.
+#   MINOR-4   — JSON example coherence: confidence_score must not use literal 0.0 (incoherent
+#               with high tier); degraded-mode section must document prism_enriched: false.
+#               RED (SKILL.md has "confidence_score": 0.0 and no prism_enriched: false).
+#   MEDIUM-3  — Pre-authorized DTU deferral: updated skip annotation on DTU behavioral test to
+#               clearly mark VP-SKILL-070 behavioral multi-org leg as PRE-AUTHORIZED xfail pending
+#               the prism-demo-bundle DTU (dtu_clones_built: pending; pre-W2 wave-gate tracking).
+#
+# Red Gate status after pass-4 additions:
+#   GREEN (guard, already correct):  MEDIUM-2 org_slug-missing ALL-PC5a-5e skip guard
+#   RED   (data-file fix required):  MAJOR-1 data-file coherence (×5 tests)
+#   RED   (SKILL.md fix required):   MINOR-4 JSON confidence placeholder + prism_enriched false (×2)
+#   SKIP  (pre-authorized):          MEDIUM-3 DTU behavioral multi-org test
 
 PLUGIN_ROOT="${BATS_TEST_DIRNAME}/../.."
 SKILL="${PLUGIN_ROOT}/skills/assess-priority/SKILL.md"
+DATA="${PLUGIN_ROOT}/data/priority-framework.md"
 
 # ── F1 / ADV-F4-S4.02 — frontmatter description drift ───────────────────────
 # BC-4.05.001 v1.6 Invariant #5 / ADV-F4-S4.02-F1
@@ -256,7 +278,16 @@ SKILL="${PLUGIN_ROOT}/skills/assess-priority/SKILL.md"
     # Behavioral assertion: an org-a assess-priority invocation must return zero org-b/c rows.
     # Requires the prism-demo-bundle DTU to be downloaded and wired into CI.
     # STATIC portion (WHERE org_slug= presence) is verified by the three tests above.
-    skip "prism-demo-bundle DTU download pending (pre-W2); behavioral multi-org fixture not yet wired into CI"
+    #
+    # MEDIUM-3 / ADV-F4-S4.02 pass-4 — PRE-AUTHORIZED DEFERRAL:
+    # VP-SKILL-070 leg (b) behavioral multi-org fixture is xfail per wave-gate decision recorded in
+    # ADV-F4-S4.02-MEDIUM-3. dtu_clones_built: pending. This skip is explicitly authorized as a
+    # pre-W2 wave-gate tracking item and must NOT be unskipped until:
+    #   (a) prism-demo-bundle DTU bundle is downloaded and unpacked to the test fixtures directory,
+    #   (b) CI harness is wired to the DTU fixture path, AND
+    #   (c) the wave-gate tracking item is closed (pre-W2).
+    # Do NOT remove this skip to make a green suite — re-enable only after the DTU is fully wired.
+    skip "[PRE-AUTHORIZED DEFERRAL — MEDIUM-3/ADV-F4-S4.02] VP-SKILL-070 behavioral multi-org leg is xfail pending prism-demo-bundle DTU (dtu_clones_built: pending; pre-W2 wave-gate tracking item)"
 }
 
 @test "BC_4_05_001 MEDIUM-4 ADV-F4-S4.02 PC7 EC-009: degraded-mode documents uncertainty_explicit and prism-unavailable path" {
@@ -487,4 +518,136 @@ SKILL="${PLUGIN_ROOT}/skills/assess-priority/SKILL.md"
     grep -qF '"base_score"' "$SKILL"
     grep -qF '"prism_enriched"' "$SKILL"
     grep -qF '"uncertainty_explicit"' "$SKILL"
+}
+
+# ── MAJOR-1 / ADV-F4-S4.02 pass-4 — data-file coherence ─────────────────────
+# BC-4.05.001 v1.6 PC#6 / Invariant #5 / ADV-F4-S4.02-MAJOR-1
+# SKILL.md:86 cites plugins/secops-factory/data/priority-framework.md as its scoring reference.
+# That data file documents stale band thresholds (HIGH=15-19, MED split into 10-14+6-9),
+# a wrong score range (6-24 vs 0-24), and presents P1-P5 as the emitted priority with no
+# INTERNAL-ONLY caveat. An implementer reading the data file would produce incorrect scored_priority
+# outputs. These tests guard the data file directly so stale data-file content fails CI.
+# All five tests are RED until the data file is updated to match BC-4.05.001 v1.6 PC#6.
+
+@test "BC_4_05_001 MAJOR-1-pass4 ADV-F4-S4.02 data-file BC-v1.6-PC6: priority-framework.md HIGH band boundary is 14-19 not 15-19" {
+    # MAJOR-1 (BC-4.05.001 v1.6 PC#6 / ADV-F4-S4.02 pass-4)
+    # BC v1.6 PC#6: HIGH band = score 14-19 (7-day SLA). priority-framework.md currently documents
+    # '15-19' (wrong lower bound — off by one). An implementer reading this data file mis-scores
+    # base_score=14 as MED (30d SLA) instead of HIGH (7d SLA): a 23-day SLA miss on a genuine
+    # HIGH-priority CVE.
+    # Positive: '14-19' must be present in the data file.
+    # Negative: '15-19' must NOT be present (stale wrong boundary fully replaced).
+    # Red Gate: data file has '15-19' and no '14-19' → positive grep fails → RED.
+    grep -qF '14-19' "$DATA"
+    ! grep -qF '15-19' "$DATA"
+}
+
+@test "BC_4_05_001 MAJOR-1-pass4 ADV-F4-S4.02 data-file BC-v1.6-PC6: priority-framework.md MED band boundary is 8-13" {
+    # MAJOR-1 (BC-4.05.001 v1.6 PC#6 / ADV-F4-S4.02 pass-4)
+    # BC v1.6 PC#6: MED band = score 8-13 (30-day SLA). priority-framework.md currently splits
+    # this as '10-14' (P3-Medium) and '6-9' (P4-Low) — two wrong ranges that mis-classify
+    # base_score 8-9 (should be MED/30d) as LOW/90d SLA.
+    # Anchored to the "Score to Priority Mapping" heading (12 context lines) so P3/P4 section
+    # headers carrying the old thresholds as prose do not independently satisfy or break the test.
+    # Positive: '8-13' must appear in the mapping table.
+    # Negative: '10-14' and '6-9' must NOT appear in the mapping table.
+    # Red Gate: mapping has '10-14' and '6-9' but no '8-13' → positive grep fails → RED.
+    grep -m 1 -A 12 "Score to Priority Mapping" "$DATA" | grep -qF '8-13'
+    ! grep -m 1 -A 12 "Score to Priority Mapping" "$DATA" | grep -qF '10-14'
+    ! grep -m 1 -A 12 "Score to Priority Mapping" "$DATA" | grep -qF '6-9'
+}
+
+@test "BC_4_05_001 MAJOR-1-pass4 ADV-F4-S4.02 data-file BC-v1.6-PC6: priority-framework.md score range is 0-24 not 6-24" {
+    # MAJOR-1 (BC-4.05.001 v1.6 PC#6 / ADV-F4-S4.02 pass-4)
+    # BC v1.6 PC#6: score range 0-24. priority-framework.md currently states 'Score Range: 6-24
+    # points' which is wrong — the minimum achievable score is 0 (no factors applicable) not 6.
+    # Positive: '0-24' must be present.
+    # Negative: '6-24' must NOT be present (stale wrong range fully replaced).
+    # Red Gate: data file has '6-24' and no '0-24' → positive grep fails → RED.
+    grep -qF '0-24' "$DATA"
+    ! grep -qF '6-24' "$DATA"
+}
+
+@test "BC_4_05_001 MAJOR-1-pass4 ADV-F4-S4.02 data-file BC-v1.6-Inv5: priority-framework.md P1-P5 must be declared INTERNAL-ONLY" {
+    # MAJOR-1 (BC-4.05.001 v1.6 Invariant #5 / ADV-F4-S4.02 pass-4)
+    # BC v1.6 Invariant #5: P1-P5 are INTERNAL-ONLY intermediate labels; the emitted scored_priority
+    # is always from {CRIT, HIGH, MED, LOW}. priority-framework.md is cited by SKILL.md:86 as the
+    # reference; an implementer reading this file must not be misled into emitting P1-P5 as the
+    # scored_priority output value. The file must carry an explicit INTERNAL-ONLY declaration so the
+    # enum mapping (P1→CRIT, P2→HIGH, P3→MED, P4→MED, P5→LOW) is unambiguous.
+    # Red Gate: 'INTERNAL-ONLY' (case-insensitive) absent from data file → grep fails → RED.
+    grep -qiE 'INTERNAL.?ONLY' "$DATA"
+}
+
+@test "BC_4_05_001 MAJOR-1-pass4 ADV-F4-S4.02 data-file BC-v1.6-Inv5: Score to Priority Mapping must emit CRIT not P1" {
+    # MAJOR-1 (BC-4.05.001 v1.6 Invariant #5 / ADV-F4-S4.02 pass-4)
+    # BC v1.6 Invariant #5: scored_priority is always a member of {CRIT, HIGH, MED, LOW}.
+    # The Score to Priority Mapping table in priority-framework.md currently uses P1-P5 in the
+    # output (Priority) column — an implementer copying this table would emit P1 not CRIT,
+    # breaking every consumer reading verdict.scored_priority (ICD-203 field 18).
+    # Positive: 'CRIT' must appear in the Score to Priority Mapping section (12 context lines).
+    # Negative: '| P1 |' must NOT appear in the mapping table output column (replaced by CRIT).
+    # Red Gate: mapping has '| P1 |' and no 'CRIT' → positive grep fails → RED.
+    grep -m 1 -A 12 "Score to Priority Mapping" "$DATA" | grep -qF 'CRIT'
+    ! grep -m 1 -A 12 "Score to Priority Mapping" "$DATA" | grep -qF '| P1 |'
+}
+
+# ── MEDIUM-2 / ADV-F4-S4.02 pass-4 — VP-SKILL-070 org_slug-missing degraded skip guard ──
+# BC-4.05.001 v1.6 PC#5 / VP-SKILL-070 / ADV-F4-S4.02-MEDIUM-2
+# SKILL.md must document that when org_slug is unavailable ALL PC#5a-PC#5e stages are skipped.
+# This test is a GREEN guard: the text already exists at SKILL.md:~142; the guard ensures
+# deleting that line fails CI — protecting VP-SKILL-070 leg (c).
+
+@test "BC_4_05_001 MEDIUM-2-pass4 ADV-F4-S4.02 VP-SKILL-070 PC5: SKILL.md documents ALL PC5a-PC5e skipped when org_slug unavailable" {
+    # MEDIUM-2 (BC-4.05.001 v1.6 PC#5 / VP-SKILL-070 / ADV-F4-S4.02 pass-4 MEDIUM-2)
+    # VP-SKILL-070 leg (c) guard: SKILL.md must document that when org_slug is not available
+    # from execution context, ALL Prism-grounded scoring stages (PC#5a through PC#5e) MUST be
+    # skipped entirely. This is the spec-in-code for the degraded-without-org_slug path; deleting
+    # it removes the implementer's authoritative instruction for this code path.
+    # Two-clause guard:
+    #   (1) org_slug unavailable / missing / not in context must be documented.
+    #   (2) ALL PC#5a through PC#5e must be documented as skipped for that case.
+    # Deleting either clause from SKILL.md line ~142 fails the corresponding assertion.
+    # GREEN: SKILL.md line ~142 already contains both clauses → guard (not red test).
+    grep -qiE 'org_slug.*(unavailable|not in context|missing)' "$SKILL"
+    grep -qiE 'ALL.*Prism.*scoring.*stages.*(MUST.*skip|skip)|PC.?5a.*PC.?5e.*MUST.*skip' "$SKILL"
+}
+
+# ── MINOR-4 / ADV-F4-S4.02 pass-4 — JSON example coherence ──────────────────
+# BC-4.05.001 v1.6 PC#6 / VP-SKILL-071 / PC#7 / ADV-F4-S4.02-MINOR-4
+# The SKILL.md output JSON example has two coherence defects:
+#   (a) '"confidence_score": 0.0' is a semantically incoherent placeholder — under D-DEC-011,
+#       0.0 maps to confidence="low" (< 0.40 tier), but the example shows "high|medium|low"
+#       as the confidence value, training the implementer to associate 0.0 with "high".
+#   (b) Degraded-mode prose (line ~144) documents uncertainty_explicit:true but omits
+#       prism_enriched:false, leaving the implementer without the degraded-mode JSON contract.
+# Both tests are RED until the implementer fixes SKILL.md.
+
+@test "BC_4_05_001 MINOR-4-pass4 ADV-F4-S4.02 VP-SKILL-071 PC6: JSON example confidence_score must not use literal 0.0" {
+    # MINOR-4 (BC-4.05.001 v1.6 PC#6 / VP-SKILL-071 / D-DEC-011 / ADV-F4-S4.02 pass-4 MINOR-4)
+    # SKILL.md output JSON example currently has '"confidence_score": 0.0'. Under D-DEC-011,
+    # confidence_score=0.0 maps to confidence="low" (< 0.40 tier). The example pairs this with
+    # '"confidence": "high|medium|low"' which includes "high" — an incoherent combination that
+    # trains the implementer to accept 0.0 with any confidence tier, including high.
+    # Per BC v1.6, the JSON example must use either:
+    #   (a) angle-bracket placeholder notation matching scored_priority's '<CRIT|HIGH|MED|LOW>'
+    #       style — e.g., '"confidence_score": "<0.0-1.0>"',
+    #   (b) or a concrete coherent score/tier pair — e.g., 0.80 paired with "high".
+    # The literal '0.0' placeholder paired with the "high" option is incoherent per D-DEC-011.
+    # Red Gate: '"confidence_score": 0.0' IS present in SKILL.md → ! grep fails → RED.
+    ! grep -qF '"confidence_score": 0.0' "$SKILL"
+}
+
+@test "BC_4_05_001 MINOR-4-pass4 ADV-F4-S4.02 PC7: degraded-mode must document prism_enriched false" {
+    # MINOR-4 (BC-4.05.001 v1.6 PC#7 / ADV-F4-S4.02 pass-4 MINOR-4)
+    # In degraded mode (Prism MCP unavailable), the skill operates without Prism enrichment.
+    # The output JSON must set prism_enriched: false to distinguish degraded-mode results from
+    # Prism-grounded results. SKILL.md's main JSON example shows '"prism_enriched": true'
+    # (happy-path). The degraded-mode section (line ~144) documents uncertainty_explicit:true
+    # but does not state prism_enriched:false — leaving implementers without the degraded-mode
+    # JSON contract for this field.
+    # The implementer must add 'prism_enriched: false' to the degraded-mode section or a
+    # degraded-mode JSON example. Either YAML-style or JSON-quoted form is accepted.
+    # Red Gate: neither 'prism_enriched: false' nor '"prism_enriched": false' present → RED.
+    grep -qE '"?prism_enriched"?: false' "$SKILL"
 }

@@ -71,8 +71,8 @@ Before any other action, say verbatim:
 
 ### Override Rules
 
-- KEV Listed + Internet + Critical ACR = automatic P1
-- Active Exploitation + CVSS >=9.0 + High/Critical ACR = automatic P1
+- KEV Listed + Internet + Critical ACR = automatic CRIT (internal P1)
+- Active Exploitation + CVSS >=9.0 + High/Critical ACR = automatic CRIT (internal P1)
 - Compliance requirement = elevate +1 level
 - Documented compensating controls = reduce -1 level
 
@@ -104,7 +104,7 @@ Output JSON structure includes:
   "disposition": "<TP|FP|BTP|Indeterminate>",
   "rationale": "<explanation of base score, recalibration, and any overrides applied>",
   "base_score": 0,
-  "prism_enriched": false,
+  "prism_enriched": true,
   "uncertainty_explicit": false
 }
 ```

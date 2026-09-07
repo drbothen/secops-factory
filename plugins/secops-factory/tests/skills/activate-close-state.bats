@@ -210,3 +210,78 @@ PRISM_VERSION_CHECK="${PLUGIN_ROOT}/hooks/prism-version-check.sh"
     rm -rf "$tmpdir"
     [ "$status" -eq 0 ]
 }
+
+# ─── MEDIUM | BC-6.01.001 PC#12/PC#13 ─ config-write block must persist both collected keys ──
+# pass-5 finding: step 7 merge block writes only activated_at / activated_plugin_version into
+# the secops-factory plugin state object. jira_project_key and jira_close_state are collected
+# in steps 4–5 but never appear in the JSON template shown in step 7.
+#
+# Blast radius if these keys are absent from settings.local.json:
+#   PC#12 — cron reads jira_project_key at loop start; missing → PROJECT-KEY-UNBINDABLE
+#            livelock on every create-review marker (HARD-FLOOR-UNBINDABLE class).
+#   PC#13 — disposition-guard reads jira_close_state at runtime; missing → CLOSE-STATE-DENY
+#            silently blocks every FP/BTP auto-close verdict.
+#
+# Discriminating pattern: grep for '"jira_project_key":' / '"jira_close_state":' (JSON key
+# syntax with trailing colon) to distinguish state-block inclusion from the plain-text
+# mentions already present in step 4 and step 5 prose — those plain-text mentions are NOT
+# sufficient; only a JSON key in the step 7 template causes the value to be written.
+# RED: current step 7 block contains only activated_at and activated_plugin_version.
+
+@test "test_BC_6_01_001_config_block_persists_jira_project_key (MEDIUM, BC-6.01.001 PC#12)" {
+    # BC-6.01.001 PC#12: jira_project_key MUST be written into the secops-factory plugin
+    # state block in settings.local.json (cron reads this key at monitoring-loop start).
+    # The step 7 JSON template must include '"jira_project_key":' as a state-block key.
+    # Plain-text occurrences of jira_project_key in step 4 prose do NOT satisfy this
+    # requirement — only JSON key syntax in the config template does.
+    # RED: step 7 JSON block does not contain jira_project_key.
+    grep -qF '"jira_project_key":' "$SKILL"
+}
+
+@test "test_BC_6_01_001_config_block_persists_jira_close_state (MEDIUM, BC-6.01.001 PC#13)" {
+    # BC-6.01.001 PC#13: jira_close_state MUST be written into the secops-factory plugin
+    # state block in settings.local.json alongside jira_project_key. disposition-guard
+    # reads this value at monitoring runtime to interpolate the close-state marker command;
+    # a missing key silently prevents every auto-close verdict from executing (livelock).
+    # The step 7 JSON template must include '"jira_close_state":' as a state-block key.
+    # RED: step 7 JSON block does not contain jira_close_state.
+    grep -qF '"jira_close_state":' "$SKILL"
+}
+
+# ─── OBS-1 | BC-6.01.001 VP-SKILL-051 ─ Windows launcher consistency + fail-closed coverage ─
+# pass-5 finding: two independent issues in step 6's Windows version gate path:
+#
+#   (a) Launcher inconsistency — step 6 invokes prism-version-check.ps1 via `pwsh`
+#       (PowerShell 7+, optional install), while step 8 / hooks.json.windows use
+#       `powershell.exe` (Windows PowerShell 5.1, guaranteed present on Windows 10+).
+#       A machine that ships only inbox PowerShell 5.1 (common on locked-down enterprise
+#       endpoints) passes the hooks step but silently cannot run the version gate.
+#
+#   (b) Fail-closed prose gap — the current fail-closed sentence covers exit 1 (version
+#       too old) and exit 2 (prism not found or unparseable) but does not name the
+#       case where the launcher itself is absent. Without explicit coverage, the
+#       skill could be interpreted as "if the script returns non-zero" — which is
+#       never satisfied if the launcher errors before the script runs, opening a
+#       fail-open path where activation silently completes without a version check.
+
+@test "test_BC_6_01_001_obs1_windows_version_gate_launcher_is_powershell_exe (OBS-1, VP-SKILL-051)" {
+    # OBS-1(a) launcher consistency: step 6's Windows invocation of prism-version-check.ps1
+    # MUST use powershell.exe (Windows PowerShell 5.1, always present on Windows 10+),
+    # matching the launcher used in step 8 / hooks.json.windows throughout.
+    # Using pwsh (PowerShell 7+, optional) creates a launcher split: a machine without
+    # pwsh passes hooks but cannot run the prism version gate, producing an inconsistent
+    # activation state that is silent and hard to diagnose.
+    # RED: current step 6 uses `pwsh -NoProfile -File`, not `powershell.exe -NoProfile -File`.
+    grep -qF "powershell.exe -NoProfile -File" "$SKILL"
+}
+
+@test "test_BC_6_01_001_obs1_version_gate_fail_closed_covers_launcher_not_found (OBS-1, VP-SKILL-051)" {
+    # OBS-1(b) fail-closed coverage: step 6's fail-closed prose must explicitly cover a
+    # launcher-not-found / gate-cannot-run condition so that activation halts when the
+    # interpreter itself is absent — not just when the script exits 1 (version too old)
+    # or 2 (prism not found / unparseable). Without this, the fail-closed guarantee is
+    # incomplete: a missing launcher produces a shell error before the script runs, which
+    # is not covered by the exit-code description, enabling a silent fail-open path.
+    # RED: no phrase matching the launcher-absent / gate-cannot-run class in SKILL.md.
+    grep -qiE "launcher.not.found|interpreter.not.found|launcher.unavailable|interpreter.unavailable|gate.cannot.run|launcher.absent|interpreter.absent" "$SKILL"
+}

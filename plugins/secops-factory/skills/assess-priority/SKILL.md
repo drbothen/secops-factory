@@ -75,6 +75,7 @@ Before any other action, say verbatim:
 - Active Exploitation + CVSS >=9.0 + High/Critical ACR = automatic CRIT (internal P1)
 - Compliance requirement = elevate +1 level
 - Documented compensating controls = reduce -1 level
+- KEV Listed → CRIT is a hard ceiling; the compensating controls −1 reduction applies only to non-KEV scored_priority determinations.
 - Adjustments clamp at enum boundaries: +1 on CRIT stays CRIT (ceiling); −1 on LOW stays LOW (floor). `scored_priority` is always a member of {CRIT, HIGH, MED, LOW}.
 
 ## Output

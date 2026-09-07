@@ -85,7 +85,7 @@ This framework uses **multi-factor risk assessment** to prioritize vulnerabiliti
 | Listed | 5 | Automatic priority elevation |
 | Not Listed | 0 | No bonus |
 
-**Override Rule:** KEV Listed = CRIT unconditional (24-hour SLA regardless of other factors; overrides base-score band).
+**Override Rule:** KEV Listed = CRIT unconditional (24-hour SLA regardless of other factors; overrides base-score band). KEV Listed → CRIT is a hard ceiling; the compensating controls −1 reduction applies only to non-KEV scored_priority determinations.
 
 ### Factor 4: Asset Criticality Rating (0-4 points)
 
@@ -146,6 +146,8 @@ total_score = cvss_points + epss_points + kev_points + acr_points + exposure_poi
 - Customer-facing system with data breach potential
 
 ### Priority Reduction (-1 level)
+
+**Note:** KEV Listed → CRIT is a hard ceiling; the compensating controls −1 reduction applies only to non-KEV scored_priority determinations.
 
 - Effective compensating controls (documented and tested)
 - System scheduled for decommission within 30 days

@@ -40,7 +40,7 @@ function Emit-Deny([string]$Reason) {
 # Used before lexicographic comparisons to fail-closed on malformed values
 # (BC-3.01.001 PC#2 step 4b — F5 fix: malformed timestamps → skip marker → deny).
 function Test-Iso8601Utc([string]$Ts) {
-    if (-not ($Ts -match '^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\dZ$')) {
+    if (-not ($Ts -cmatch '^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\dZ$')) {
         return $false
     }
     return $true
@@ -138,8 +138,8 @@ function Test-StructuralLabelCheck([string]$Cmd) {
     $j = 0
     $ntokens = $tokens.Count
     while (($j + 1) -lt $ntokens) {
-        if ($tokens[$j] -eq '--label' -and
-            ($tokens[$j + 1] -eq 'REVIEW-REQUIRED' -or $tokens[$j + 1] -eq 'BLIND-SPOT')) {
+        if ($tokens[$j] -ceq '--label' -and
+            ($tokens[$j + 1] -ceq 'REVIEW-REQUIRED' -or $tokens[$j + 1] -ceq 'BLIND-SPOT')) {
             return $true
         }
         $j++
@@ -184,13 +184,13 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
 
     # STEP 2: determine command type for STEP 6 exact-type matching (D-020/D-021/C1)
     $cmdType = ''
-    if ($Cmd -like '*jr issue link *' -or $Cmd -like '*--output json issue link *') {
+    if ($Cmd -clike '*jr issue link *' -or $Cmd -clike '*--output json issue link *') {
         $cmdType = 'link'
     }
-    elseif ($Cmd -like '*jr issue move*' -or $Cmd -like '*--output json issue move*') {
+    elseif ($Cmd -clike '*jr issue move*' -or $Cmd -clike '*--output json issue move*') {
         $cmdType = 'close'
     }
-    elseif ($Cmd -like '*jr issue create*' -or $Cmd -like '*--output json issue create*') {
+    elseif ($Cmd -clike '*jr issue create*' -or $Cmd -clike '*--output json issue create*') {
         $cmdType = 'create'
     }
 
@@ -231,7 +231,7 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
         # STEP 5: anchored command_pattern match
         $cmdPattern = [string]$mj.command_pattern
         if ([string]::IsNullOrEmpty($cmdPattern)) { continue }
-        if ($Cmd -notmatch $cmdPattern) { continue }
+        if ($Cmd -cnotmatch $cmdPattern) { continue }
 
         # STEP 6: exact-type matching for link/close/create anti-fungibility (D-020/D-021)
         $ops = @($mj.authorized_operations)
@@ -240,15 +240,15 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
         # Guard: opsCount must be a non-negative integer
         if ($opsCount -lt 0) { continue }
 
-        if ($cmdType -eq 'link') {
-            if (-not ($opsCount -eq 1 -and $opVal -eq 'link')) { continue }
+        if ($cmdType -ceq 'link') {
+            if (-not ($opsCount -eq 1 -and $opVal -ceq 'link')) { continue }
         }
-        elseif ($cmdType -eq 'close') {
-            if (-not ($opsCount -eq 1 -and $opVal -eq 'close')) { continue }
+        elseif ($cmdType -ceq 'close') {
+            if (-not ($opsCount -eq 1 -and $opVal -ceq 'close')) { continue }
         }
-        elseif ($cmdType -eq 'create') {
+        elseif ($cmdType -ceq 'create') {
             if ($opsCount -ne 1) { continue }
-            if ($opVal -ne 'create' -and $opVal -ne 'create-review') { continue }
+            if ($opVal -cne 'create' -and $opVal -cne 'create-review') { continue }
         }
 
         # STEP 6a: C1 create anti-fungibility — regular ["create"] marker must NOT authorize
@@ -259,7 +259,7 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
         # backslash-escape-aware, whitespace-collapsing tokenizer.
         # Fixes SM-40 (double-space), SM-42 (quoted value), SM-43 (tab).
         # EC-024 false-deny fix: label text inside a quoted --summary is NOT a standalone token.
-        if ($opVal -eq 'create') {
+        if ($opVal -ceq 'create') {
             if (Test-StructuralLabelCheck $Cmd) { continue }
         }
 
@@ -339,7 +339,7 @@ if ($payload -and $payload.tool_input -and $payload.tool_input.command) {
 }
 
 # Fast path: not a jr command -> allow immediately
-if ($command -notlike '*jr *') { Emit-Allow }
+if ($command -cnotlike '*jr *') { Emit-Allow }
 
 # Block all jr write operations — requires review approval.
 # ORDERING: write-block is evaluated BEFORE the read-only allowlist to prevent
@@ -375,7 +375,7 @@ $blocked = @(
     '--output json issue link '
 )
 foreach ($op in $blocked) {
-    if ($command -like "*$op*") {
+    if ($command -clike "*$op*") {
         # D-DEC-001 v2.0: attempt marker-consume with STEP 6 exact-type matching.
         # Invoke-ValidateMarkerForCommand returns $true (allow+consume) or $false (deny).
         $markerValid = $false
@@ -409,7 +409,7 @@ $readOnly = @(
     '--output json assets search', '--output json assets view'
 )
 foreach ($op in $readOnly) {
-    if ($command -like "*$op*") { Emit-Allow }
+    if ($command -clike "*$op*") { Emit-Allow }
 }
 
 # Unknown jr subcommand — fail-closed (SEC-002): deny rather than allow to prevent

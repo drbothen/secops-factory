@@ -262,7 +262,10 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
         if ($null -eq $mj) { continue }
 
         # I2: BC step (3) — skip future-dated markers (adversarial signal)
-        $issuedAt = [string]$mj.issued_at_utc
+        # ConvertFrom-Json on PS7 auto-converts ISO-8601 strings to DateTime objects.
+        # Cast back to canonical ISO-8601 UTC string for lexicographic timestamp comparison.
+        $rawIssuedAt = $mj.issued_at_utc
+        $issuedAt = if ($rawIssuedAt -is [DateTime]) { $rawIssuedAt.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ') } else { [string]$rawIssuedAt }
         if ([string]::IsNullOrEmpty($issuedAt)) { continue }
         # F5: validate format before lexicographic comparison (malformed → skip → fail-closed)
         if (-not (Test-Iso8601Utc $issuedAt)) { continue }
@@ -270,7 +273,8 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
         if ([string]::CompareOrdinal($issuedAt, $nowTs) -gt 0) { continue }
 
         # STEP 4b: TTL check — O1: valid when expires_at_utc >= now (equality = still valid)
-        $expires_at_utc = [string]$mj.expires_at_utc
+        $rawExpiresAt = $mj.expires_at_utc
+        $expires_at_utc = if ($rawExpiresAt -is [DateTime]) { $rawExpiresAt.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ') } else { [string]$rawExpiresAt }
         if ([string]::IsNullOrEmpty($expires_at_utc)) { continue }
         # F5: validate format before lexicographic comparison (malformed → skip → fail-closed)
         if (-not (Test-Iso8601Utc $expires_at_utc)) { continue }

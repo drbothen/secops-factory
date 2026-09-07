@@ -18,7 +18,7 @@ Story: Delta — Activate Skill CLOSE_STATE_ALLOWLIST Setup-Time Validation (BC-
 | `AC-008b-at-minimum.gif/.webm` | AC-008 (success path) | prism 1.0.0-rc.1 = minimum → exit 0 + "meets minimum requirement" |
 | `AC-008c-above-minimum.gif/.webm` | AC-008 (success path) | prism 2.0.0 > minimum → exit 0 + "meets minimum requirement" |
 | `AC-008d-not-found.gif/.webm` | AC-008 (error path) | prism not in PATH → exit 2 + "prism binary not found in PATH" |
-| `AC-001-007-bats-suite.gif/.webm` | AC-001..007, AC-008 (full) | Full BATS suite green run — "=== All tests passed ===" |
+| `AC-001-007-bats-suite.gif/.webm` | AC-001..007, AC-008 (partial) | S-6.03 BATS suites green run (activate-close-state + prism-version-check-adversarial, 50 tests) — TAP output ends at "ok 50" |
 
 ## AC-008 (VP-SKILL-051): Prism Version Gate — Four Test Vectors
 
@@ -64,12 +64,17 @@ is verified by doc-presence assertions in the BATS suite
 - `test_BC_6_01_001_allowlist_complete_set_declared` — hardcoded set (not env var)
 - `test_BC_6_01_001_project_key_charset_regex_present` — `^[A-Z][A-Z0-9]+$` in SKILL.md (AC-007)
 
-Additionally, `prism-version-check-adversarial.bats` (22 tests) provides executable behavioral
-coverage of all 4 AC-008 vectors including locale/utf-8 edge cases and semver corner cases.
+Additionally, `prism-version-check-adversarial.bats` (24 tests, including R-A1/R-A2 regression
+vectors added in this story) provides executable behavioral coverage of all 4 AC-008 vectors
+including locale/utf-8 edge cases, semver corner cases, and the F-A anchored-extraction regression.
 
-Full suite result: **all tests passed** (`=== All tests passed ===`).
+BATS suite result: **50 tests passed** (26 from activate-close-state.bats + 24 from
+prism-version-check-adversarial.bats; 4 skipped — ps1 parity tests require pwsh, run in CI).
+The recording runs `bats <2 suites> | tail -35` and ends at "ok 50" in the final frame.
+Note: the "=== All tests passed ===" summary line is only emitted by `tests/run-all.sh`
+(not raw bats TAP output); the recording uses bats directly and shows TAP "ok N" lines.
 
-- **Demo**: `AC-001-007-bats-suite.gif` (shows tail -30 of test output, including final summary)
+- **Demo**: `AC-001-007-bats-suite.gif` (shows tail -35 of TAP output; final frame shows "ok 50")
 
 ## PowerShell Parity Note
 

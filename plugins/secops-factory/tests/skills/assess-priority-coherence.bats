@@ -37,6 +37,15 @@
 # Regression VPs VP-SKILL-029..034 are already covered by skills.bats and are
 # NOT duplicated here per Architecture Context Discipline (DF-021).
 #
+# ADV-F4-S4.02 findings addressed in pass-3 (this file):
+#   MEDIUM-1  — low-tier inversion guard: symmetric to 0.75/high and 0.40/medium guards;
+#               '< 0.40' row must bind to 'low' and NOT to 'high' or 'medium'
+#   MINOR-2   — Override clamp documented: +1 on CRIT stays CRIT; −1 on LOW stays LOW;
+#               scored_priority always in {CRIT,HIGH,MED,LOW} — RED until implementer adds text
+#   OBS-4     — Arrow-agnostic boundary matching: 0.749/0.399 binding assertions use
+#               [^0-9]+ separator pattern instead of literal U+2192 (→) to survive
+#               editor normalization to '->'
+#
 # Red Gate status against HEAD c54b770 (BC-4.05.001 v1.5 implementation):
 #   GREEN (pre-existing, unaffected): AC-001..AC-007, AC-009 stub/inconsistent,
 #                                     OBS-1 re-anchor, MEDIUM-2 0.75/high tier-inversion guard,
@@ -45,6 +54,11 @@
 #                                     MEDIUM-2 boundary vectors (0.749/0.399)
 #   GREEN (new guard, not red):       F2 medium-tier inversion guard (SKILL.md already correct)
 #   RED   (new/tightened in v1.6):    F1, F3 PC#5b reversal, F3 count==2, F6
+#
+# Red Gate status after pass-3 additions:
+#   GREEN (new guard, not red):       MEDIUM-1 low-tier inversion guard (SKILL.md already correct)
+#   GREEN (arrow-agnostic, not red):  OBS-4 boundary vector patterns (SKILL.md arrow unchanged)
+#   RED   (new, impl required):       MINOR-2 override clamp (SKILL.md has no clamp language)
 
 PLUGIN_ROOT="${BATS_TEST_DIRNAME}/../.."
 SKILL="${PLUGIN_ROOT}/skills/assess-priority/SKILL.md"
@@ -272,14 +286,14 @@ SKILL="${PLUGIN_ROOT}/skills/assess-priority/SKILL.md"
     # D-DEC-011: high iff confidence_score >= 0.75; the just-below boundary 0.749 maps to medium
     # and MUST be explicitly documented alongside the threshold for implementer clarity.
     # Both the threshold value (>= 0.75) AND the boundary vector (0.749) must appear in SKILL.md.
-    # ADV-F4-S4.02 pass-2 F-3 (OBS): strengthened binding — 0.749 must bind to 'medium' not 'high'.
-    # A mutant that documents '0.749 → high' passes the literal-presence check but fails the
-    # binding guard below. Mirrors tier-association guard style used for 0.75/0.40 threshold rows.
+    # OBS-4 (ADV-F4-S4.02 pass-3): arrow-agnostic binding pattern — an editor normalizing U+2192
+    # to ASCII '->' must not flip the test RED with no semantic change. Uses [^0-9]+ to match any
+    # separator (→, ->, →, whitespace + separator) between the value and the tier name.
     # Red Gate: '0.749' absent from SKILL.md (boundary not documented) → second grep fails → RED.
     grep -qF '>= 0.75' "$SKILL"
     grep -qF '0.749' "$SKILL"
-    grep -qF '0.749 → medium' "$SKILL"
-    ! grep -qF '0.749 → high' "$SKILL"
+    grep -qE '0\.749[^0-9]+medium' "$SKILL"
+    ! grep -qE '0\.749[^0-9]+high' "$SKILL"
 }
 
 @test "BC_4_05_001 AC-009 VP-SKILL-071: >= 0.40 binds to medium with boundary vector 0.399 documented" {
@@ -288,14 +302,14 @@ SKILL="${PLUGIN_ROOT}/skills/assess-priority/SKILL.md"
     # D-DEC-011: medium iff 0.40 <= score < 0.75; the just-below boundary 0.399 maps to low
     # and MUST be explicitly documented alongside the threshold for implementer clarity.
     # Both the threshold value (>= 0.40) AND the boundary vector (0.399) must appear in SKILL.md.
-    # ADV-F4-S4.02 pass-2 F-3 (OBS): strengthened binding — 0.399 must bind to 'low' not 'medium'.
-    # A mutant that documents '0.399 → medium' passes the literal-presence check but fails the
-    # binding guard below. Mirrors tier-association guard style used for 0.75/0.40 threshold rows.
+    # OBS-4 (ADV-F4-S4.02 pass-3): arrow-agnostic binding pattern — an editor normalizing U+2192
+    # to ASCII '->' must not flip the test RED with no semantic change. Uses [^0-9]+ to match any
+    # separator (→, ->, →, whitespace + separator) between the value and the tier name.
     # Red Gate: '0.399' absent from SKILL.md (boundary not documented) → second grep fails → RED.
     grep -qF '>= 0.40' "$SKILL"
     grep -qF '0.399' "$SKILL"
-    grep -qF '0.399 → low' "$SKILL"
-    ! grep -qF '0.399 → medium' "$SKILL"
+    grep -qE '0\.399[^0-9]+low' "$SKILL"
+    ! grep -qE '0\.399[^0-9]+medium' "$SKILL"
 }
 
 @test "BC_4_05_001 AC-009 VP-SKILL-071: confidence threshold placeholder stub is removed" {
@@ -341,6 +355,31 @@ SKILL="${PLUGIN_ROOT}/skills/assess-priority/SKILL.md"
     # (green guard-strengthening test; goal is mutant-resistance, not requiring red).
     grep -qE '>= 0.40[^|]*\|[[:space:]]*medium' "$SKILL"
     ! grep -qE '>= 0.40[^|]*\|[[:space:]]*(low|high)' "$SKILL"
+}
+
+@test "BC_4_05_001 MEDIUM-1-ADV-F4-S4.02-pass3 VP-SKILL-071: < 0.40 binds to low tier — low-tier inversion mutant guard" {
+    # MEDIUM-1 (BC-4.05.001 v1.6 PC#6 / VP-SKILL-071 / D-DEC-011 / ADV-F4-S4.02 pass-3 MEDIUM-1)
+    # Symmetric guard for the low tier: D-DEC-011 defines low as confidence_score < 0.40.
+    # The high and medium tiers each have an inversion guard (tests above); the low tier had none.
+    # This adds the missing symmetric guard to close the mutant-resistance gap.
+    # A mutant that rebinds '< 0.40' to 'high' or 'medium' passes all literal-presence tests above
+    # but fails the positive assertion here (< 0.40 row must bind to 'low') and the negative guard.
+    # Current SKILL.md: '| < 0.40 | low |' is correct → PASSES
+    # (green guard-strengthening test; goal is mutant-resistance, not requiring red).
+    grep -qE '< 0\.40[[:space:]]*\|[[:space:]]*low' "$SKILL"
+    ! grep -qE '< 0\.40[[:space:]]*\|[[:space:]]*(high|medium)' "$SKILL"
+}
+
+@test "BC_4_05_001 MINOR-2-ADV-F4-S4.02-pass3 PC3 EC-007: Override +1/-1 adjustments must clamp at CRIT ceiling and LOW floor" {
+    # MINOR-2 (BC-4.05.001 PC#3 / EC-007 / ADV-F4-S4.02 pass-3 MINOR-2)
+    # BC-4.05.001 PC#3 defines Override Rules (+1/−1 level adjustments to scored_priority).
+    # Without an explicit clamp, a +1 on CRIT could overflow to a non-enum token, and a −1 on LOW
+    # could underflow — both violate Invariant 5 (scored_priority always in {CRIT,HIGH,MED,LOW}).
+    # SKILL.md Override Rules section must document that +1 is clamped at CRIT (ceiling) and
+    # −1 is clamped at LOW (floor) so that scored_priority is always a valid enum member.
+    # Red Gate: SKILL.md does not currently document clamp behaviour → grep fails → RED.
+    # The implementer will add clamp text to the Override Rules section.
+    grep -m 1 -A 10 "### Override Rules" "$SKILL" | grep -qiE 'clamp|ceiling|floor|stays CRIT|stays LOW|cannot.*exceed|max.*CRIT|min.*LOW'
 }
 
 # ── MAJOR-1 / ADV-F4-S4.02 — degraded-mode scored_priority enum alignment ───

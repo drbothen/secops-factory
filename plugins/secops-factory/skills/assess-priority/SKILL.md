@@ -129,8 +129,9 @@ An inconsistent confidence pair (e.g. confidence_score=0.80 with confidence="low
 
 ## Prism-Grounded Scoring (Stage 5)
 
-All PrismQL queries MUST include an explicit `WHERE org_slug=` clause for multi-org isolation
-(BC-4.05.001 Invariant 4, D-DEC-005, VP-SKILL-070).
+Org-specific PrismQL queries (PC#5a, PC#5d) MUST include an explicit org_slug constraint for
+multi-org isolation (BC-4.05.001 Invariant 4, D-DEC-005, VP-SKILL-070). PC#5b (NVD/CVE global
+UDF) is EXEMPT — NVD data has no org dimension; enrich_nvd() keys on CVE ID only.
 
 **Degraded-mode fallback (missing org_slug):** If `org_slug` is unavailable from the execution context, ALL Prism-grounded scoring stages (PC#5a through PC#5e) MUST be skipped entirely. The skill must proceed using only the 6-factor base score without Prism enrichment and MUST note "Prism scoring unavailable: org_slug not in context" in output.
 
@@ -153,7 +154,6 @@ WHERE org_slug='<org_slug>'
 ```sql
 SELECT enrich_nvd('<cve_id>') AS nvd_data
 FROM dual
-WHERE org_slug='<org_slug>'
 ```
 
 ### PC#5c — Rule-Fidelity Recalibration

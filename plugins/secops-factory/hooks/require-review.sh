@@ -191,7 +191,7 @@ _is_iso8601_utc() {
 #   O1      STEP 4b: TTL — valid when expires_at_utc >= now (equality = still valid).
 #           STEP 5  Anchored command_pattern check.
 #   STEP 6  Exact-type matching: link → ["link"], close → ["close"] (D-020/D-021/AC-005/AC-006).
-#           CLOSE_STATE_ALLOWLIST binding enforced in marker's command_pattern by the emitter.
+#           Close-state binding (Done/Closed/Resolved) enforced in the marker's command_pattern by the emitter.
 #   C1      STEP 6a: create anti-fungibility — ["create"] marker must not authorize
 #           hard-floor-labeled create (REVIEW-REQUIRED, BLIND-SPOT). EC-023 direction B / SM-37.
 #   I4      STEP 3 Phase 2: sort candidates by issued_at_utc ascending, attempt atomic rename.

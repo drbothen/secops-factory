@@ -198,6 +198,9 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
     $markerDir = Join-Path $pluginData 'markers'
     if (-not (Test-Path $markerDir -PathType Container)) { return $false }
 
+    $debugMode = ($env:PS1_DEBUG -eq '1')
+    if ($debugMode) { Write-Error "DEBUG: pluginData=$pluginData markerDir=$markerDir dirExists=$(Test-Path $markerDir -PathType Container)" }
+
     # I1: consumer-side shell metachar guard (BC-3.01.001 PC#2 step 5)
     # Reject any command that contains shell metacharacters — prevents tail injection.
     # F2 (MAJOR): added > < \n — covers shell redirection and newline injection.
@@ -246,9 +249,13 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
     # PowerShell-side EndsWith is reliable on all platforms (case-sensitive, ordinal).
     $markerFiles = Get-ChildItem -Path $markerDir -File -ErrorAction SilentlyContinue |
         Where-Object { $_.Name.EndsWith('.marker.json', [System.StringComparison]::Ordinal) }
+    if ($debugMode) { Write-Error "DEBUG: markerFiles count=$(@($markerFiles).Count)" }
     foreach ($mf in $markerFiles) {
         # Path safety: marker must reside directly inside markerDir (no traversal)
-        if ($mf.DirectoryName -ne $markerDir) { continue }
+        if ($mf.DirectoryName -ne $markerDir) {
+            if ($debugMode) { Write-Error "DEBUG: path-mismatch dir=$($mf.DirectoryName) expected=$markerDir" }
+            continue
+        }
 
         $mj = $null
         $rawText = $null
@@ -256,7 +263,7 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
             $rawText = Get-Content -Path $mf.FullName -Raw -ErrorAction Stop
             $mj = ($rawText.TrimEnd()) | ConvertFrom-Json -ErrorAction Stop
         }
-        catch { continue }
+        catch { Write-Error "DEBUG: parse-fail file=$($mf.Name) err=$($_.Exception.Message)"; continue }
         if ($null -eq $mj) { continue }
 
         # I2: BC step (3) — skip future-dated markers (adversarial signal)
@@ -266,6 +273,7 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
         if (-not (Test-Iso8601Utc $issuedAt)) { continue }
         # If issued_at_utc > now → adversarial signal → skip this marker
         if ([string]::CompareOrdinal($issuedAt, $nowTs) -gt 0) { continue }
+        if ($debugMode) { Write-Error "DEBUG: file=$($mf.Name) issuedAt=$issuedAt nowTs=$nowTs iso8601ok=$(Test-Iso8601Utc $issuedAt) future=$([string]::CompareOrdinal($issuedAt, $nowTs) -gt 0)" }
 
         # STEP 4b: TTL check — O1: valid when expires_at_utc >= now (equality = still valid)
         $expires_at_utc = [string]$mj.expires_at_utc
@@ -279,6 +287,7 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
         $cmdPattern = [string]$mj.command_pattern
         if ([string]::IsNullOrEmpty($cmdPattern)) { continue }
         if ($Cmd -cnotmatch $cmdPattern) { continue }
+        if ($debugMode) { Write-Error "DEBUG: file=$($mf.Name) cmdPattern=$cmdPattern matchFail=$($Cmd -cnotmatch $cmdPattern)" }
 
         # STEP 6: exact-type matching for link/close/create anti-fungibility (D-020/D-021)
         # F1 (pass-4 MEDIUM fail-open): authorized_operations must be a genuine JSON array.
@@ -291,6 +300,7 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
         # Raw-text check is reliable across all PS7 versions and preserves the fail-closed
         # semantic: a scalar JSON string "link" never has a `[` after the key colon.
         if ($rawText -cnotmatch '"authorized_operations"\s*:\s*\[') { continue }
+        if ($debugMode) { Write-Error "DEBUG: file=$($mf.Name) rawTextSnippet=$($rawText.Substring(0, [Math]::Min(100, $rawText.Length))) arrayCheckFail=$($rawText -cnotmatch '\"authorized_operations\"\s*:\s*\[')" }
         $ops = @($mj.authorized_operations)
         $opsCount = $ops.Count
         $opVal = if ($opsCount -gt 0) { [string]($ops[0]) } else { '' }
@@ -315,6 +325,7 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
             # cmdType is empty — unknown write op → fail-closed (SEC-001)
             continue
         }
+        if ($debugMode) { Write-Error "DEBUG: file=$($mf.Name) cmdType=$cmdType opsCount=$opsCount opVal=$opVal" }
 
         # STEP 6a: C1 create anti-fungibility — regular ["create"] marker must NOT authorize
         # a create command carrying a hard-floor review label.
@@ -329,11 +340,15 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
         }
 
         # Valid candidate — record for FIFO sorting
+        if ($debugMode) { Write-Error "DEBUG: adding candidate file=$($mf.Name)" }
         $candidates.Add("${issuedAt}|$($mf.FullName)")
     }
 
     # No valid candidates found → deny
-    if ($candidates.Count -eq 0) { return $false }
+    if ($candidates.Count -eq 0) {
+        if ($debugMode) { Write-Error "DEBUG: no candidates found, returning false" }
+        return $false
+    }
 
     # I4 Phase 2: sort candidates by issued_at_utc ascending (FIFO), attempt atomic consume.
     # ISO-8601 lexicographic order equals chronological order.

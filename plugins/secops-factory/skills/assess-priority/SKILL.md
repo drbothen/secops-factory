@@ -1,6 +1,6 @@
 ---
 name: assess-priority
-description: "Use when calculating multi-factor vulnerability priority. Combines CVSS severity, EPSS exploitation probability, CISA KEV status, asset criticality, system exposure, and exploit availability into P1-P5 with SLA."
+description: "Use when calculating multi-factor vulnerability priority. Combines CVSS severity, EPSS exploitation probability, CISA KEV status, asset criticality, system exposure, and exploit availability to emit scored_priority: CRIT | HIGH | MED | LOW."
 argument-hint: "<ticket-id>"
 ---
 

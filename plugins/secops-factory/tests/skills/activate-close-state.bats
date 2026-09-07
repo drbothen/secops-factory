@@ -285,3 +285,50 @@ PRISM_VERSION_CHECK="${PLUGIN_ROOT}/hooks/prism-version-check.sh"
     # RED: no phrase matching the launcher-absent / gate-cannot-run class in SKILL.md.
     grep -qiE "launcher.not.found|interpreter.not.found|launcher.unavailable|interpreter.unavailable|gate.cannot.run|launcher.absent|interpreter.absent" "$SKILL"
 }
+
+# ─── MEDIUM (pass-7) | BC-6.01.001 VP-SKILL-051 ─ Windows version-gate launcher execution-policy gap ─
+# pass-7 finding: step 6's Windows version-gate invocation uses `powershell.exe -NoProfile -File`
+# but omits `-ExecutionPolicy Bypass`. All sibling launchers in hooks.json.windows use the full
+# flag set `powershell.exe -NoProfile -ExecutionPolicy Bypass -File`. On a Windows host whose
+# default execution policy is Restricted (the Windows system default), the version-gate script
+# silently fails to launch while every other hook in hooks.json.windows runs correctly — producing
+# an inconsistent activation state that is invisible to the operator (no explicit error, gate skipped).
+# Discriminating pattern: grep for the full canonical flag sequence used by sibling launchers.
+# RED: SKILL.md line 52 has `powershell.exe -NoProfile -File` (missing -ExecutionPolicy Bypass).
+
+@test "test_BC_6_01_001_version_gate_windows_launcher_execution_policy_bypass (MEDIUM-pass7, VP-SKILL-051)" {
+    # MEDIUM pass-7 finding: the Windows version-gate launcher in step 6 MUST include
+    # -ExecutionPolicy Bypass, matching the flag set used by ALL sibling hook launchers in
+    # hooks.json.windows (`powershell.exe -NoProfile -ExecutionPolicy Bypass -File`).
+    # Without this flag, a Windows host with the default Restricted execution policy silently
+    # cannot run the version-gate script while every other hook executes correctly. This creates
+    # a fail-open path where the prism version gate is skipped without any error visible to the
+    # operator. The fix is mechanical: add -ExecutionPolicy Bypass to the step-6 launcher string.
+    # RED: SKILL.md step 6 currently reads `powershell.exe -NoProfile -File` (flag omitted).
+    grep -qF "powershell.exe -NoProfile -ExecutionPolicy Bypass -File" "$SKILL"
+}
+
+# ─── MINOR (pass-7) | S-6.03 task 11 ─ CHANGELOG [Unreleased] section missing ─────────────────
+# pass-7 finding: story task 11 (S-6.03 spec ~line 211) requires an [Unreleased] > Changed entry
+# in CHANGELOG.md documenting the activate CLOSE_STATE_ALLOWLIST validation introduced by S-6.03.
+# The CHANGELOG.md currently has no [Unreleased] section; the top versioned entry is [0.9.0].
+# Keep a Changelog convention: unreleased changes must appear in an [Unreleased] section above
+# all versioned entries, so consumers can see what is in main before the next release tag.
+# CHANGELOG is at repo root; PLUGIN_ROOT is plugins/secops-factory → ../../CHANGELOG.md.
+
+CHANGELOG="${PLUGIN_ROOT}/../../CHANGELOG.md"
+
+@test "test_BC_6_01_001_changelog_has_unreleased_section (MINOR-pass7, S-6.03 task 11)" {
+    # S-6.03 task 11: CHANGELOG.md must contain an [Unreleased] section header (Keep a Changelog
+    # convention) so the activate CLOSE_STATE_ALLOWLIST change is visible before release.
+    # RED: no [Unreleased] section exists; top entry is [0.9.0].
+    grep -qF "[Unreleased]" "$CHANGELOG"
+}
+
+@test "test_BC_6_01_001_changelog_unreleased_documents_close_state_allowlist (MINOR-pass7, S-6.03 task 11, VP-SKILL-076)" {
+    # S-6.03 task 11 / VP-SKILL-076: the [Unreleased] section must document the S-6.03 change
+    # by naming one of the canonical identifiers: jira_close_state, CLOSE_STATE_ALLOWLIST, or
+    # VP-SKILL-076. A bare [Unreleased] header with no content does not satisfy task 11.
+    # RED: CHANGELOG.md has no [Unreleased] section and therefore no such entry.
+    grep -qE "jira_close_state|CLOSE_STATE_ALLOWLIST|VP-SKILL-076" "$CHANGELOG"
+}

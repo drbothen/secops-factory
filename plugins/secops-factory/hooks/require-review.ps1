@@ -193,10 +193,11 @@ function Test-StructuralLabelCheck([string]$Cmd) {
 #
 # Returns $true = valid marker found and consumed; $false = deny.
 function Invoke-ValidateMarkerForCommand([string]$Cmd) {
+    Write-Error "PS1_ENTRY cmd=[$Cmd] pluginData=[$($env:CLAUDE_PLUGIN_DATA)] ps1debug=[$($env:PS1_DEBUG)]"
     $pluginData = $env:CLAUDE_PLUGIN_DATA
-    if ([string]::IsNullOrEmpty($pluginData)) { return $false }
+    if ([string]::IsNullOrEmpty($pluginData)) { Write-Error "PS1_BAIL empty-pluginData"; return $false }
     $markerDir = Join-Path $pluginData 'markers'
-    if (-not (Test-Path $markerDir -PathType Container)) { return $false }
+    if (-not (Test-Path $markerDir -PathType Container)) { Write-Error "PS1_BAIL no-markerDir=[$markerDir]"; return $false }
 
     $debugMode = ($env:PS1_DEBUG -eq '1')
     if ($debugMode) { Write-Error "DEBUG: pluginData=$pluginData markerDir=$markerDir dirExists=$(Test-Path $markerDir -PathType Container)" }
@@ -250,6 +251,7 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
     $markerFiles = Get-ChildItem -Path $markerDir -File -ErrorAction SilentlyContinue |
         Where-Object { $_.Name.EndsWith('.marker.json', [System.StringComparison]::Ordinal) }
     if ($debugMode) { Write-Error "DEBUG: markerFiles count=$(@($markerFiles).Count)" }
+    Write-Error "PS1_FILES count=$(@($markerFiles).Count) markerDir=[$markerDir]"
     foreach ($mf in $markerFiles) {
         # Path safety: marker must reside directly inside markerDir (no traversal)
         if ($mf.DirectoryName -ne $markerDir) {
@@ -263,7 +265,7 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
             $rawText = Get-Content -Path $mf.FullName -Raw -ErrorAction Stop
             $mj = ($rawText.TrimEnd()) | ConvertFrom-Json -ErrorAction Stop
         }
-        catch { Write-Error "DEBUG: parse-fail file=$($mf.Name) err=$($_.Exception.Message)"; continue }
+        catch { Write-Error "PS1_PARSE_ERR file=[$($mf.Name)] err=[$($_.Exception.Message)]"; continue }
         if ($null -eq $mj) { continue }
 
         # I2: BC step (3) — skip future-dated markers (adversarial signal)
@@ -344,6 +346,7 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
         $candidates.Add("${issuedAt}|$($mf.FullName)")
     }
 
+    Write-Error "PS1_CANDIDATES count=$($candidates.Count)"
     # No valid candidates found → deny
     if ($candidates.Count -eq 0) {
         if ($debugMode) { Write-Error "DEBUG: no candidates found, returning false" }

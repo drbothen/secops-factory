@@ -424,3 +424,149 @@ _now_ts() {
     | grep -cE '"jr issue (comment |edit|move|assign|create|link )|"--output json issue (comment |edit|move|assign|create|link )' || true)
   [ "${count}" -eq 12 ]
 }
+
+# ── SEC-001: STEP-6 anti-fungibility gap for edit/assign/comment/update/label/delete ──
+#
+# BC-3.01.001 v1.25 STEP 6 exact-type matching must cover ALL write operations, not
+# just link/close/create. Before this fix, cmd_type was "" for edit/assign/comment/
+# update/label/delete. STEP 6 had no branch for "", so any marker with a broad
+# command_pattern could authorize those operations regardless of authorized_operations.
+#
+# Fix: STEP 2 now assigns cmd_type for update/comment/assign/label/delete. STEP 6 adds
+# a generic elif for non-empty cmd_type (exact single-type match) and an else fail-closed
+# (cmd_type="" → continue → deny) for any unrecognized write op (e.g. edit).
+
+@test "test_BC_3_01_001_SEC001_close_marker_cannot_authorize_edit" {
+  # SEC-001 / STEP-6 anti-fungibility gap — edit has no cmd_type assignment.
+  # A ["close"] marker with a broad command_pattern matches "jr issue edit PROJ-123"
+  # at STEP 5, but STEP 6 must reject it. After fix: cmd_type="" → else fail-closed
+  # → continue → no valid candidate → DENY.
+  local now future
+  now=$(_now_ts); future=$(_future_ts)
+  _write_marker "close-sec001-edit.marker.json" \
+    '{"marker_id":"m-sec001-edit","ticket_id":"PROJ-123","org_slug":"test","authorized_operations":["close"],"command_pattern":"^jr issue .* PROJ-123","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}'
+  _run_hook "jr issue edit PROJ-123 --summary exploit"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"permissionDecision":"deny"'* ]]
+  [[ "$output" == *"review approval"* ]]
+}
+
+@test "test_BC_3_01_001_SEC001_link_marker_cannot_authorize_assign" {
+  # SEC-001 / STEP-6 anti-fungibility gap — assign gets cmd_type="assign" after fix.
+  # A ["link"] marker with a broad pattern matches "jr issue assign PROJ-123 --user alice"
+  # at STEP 5, but STEP 6 generic branch requires authorized_operations==["assign"].
+  # ["link"] != "assign" → continue → no valid candidate → DENY.
+  local now future
+  now=$(_now_ts); future=$(_future_ts)
+  _write_marker "link-sec001-assign.marker.json" \
+    '{"marker_id":"m-sec001-assign","ticket_id":"PROJ-123","org_slug":"test","authorized_operations":["link"],"command_pattern":"^jr issue .* PROJ-123","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}'
+  _run_hook "jr issue assign PROJ-123 --user alice"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"permissionDecision":"deny"'* ]]
+  [[ "$output" == *"review approval"* ]]
+}
+
+@test "test_BC_3_01_001_SEC001_assign_marker_can_authorize_assign" {
+  # SEC-001 positive case / STEP-6 generic branch — assign cmd_type.
+  # A ["assign"] marker with matching pattern and a valid "jr issue assign" command →
+  # STEP 6 generic elif [[ -n "$cmd_type" ]]: ops_count==1 and op_val=="assign"==cmd_type
+  # → consume → ALLOW. Verifies the generic branch grants the right operation.
+  local now future
+  now=$(_now_ts); future=$(_future_ts)
+  _write_marker "assign-sec001-pos.marker.json" \
+    '{"marker_id":"m-sec001-asgn-pos","ticket_id":"PROJ-123","org_slug":"test","authorized_operations":["assign"],"command_pattern":"^jr issue assign PROJ-123","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}'
+  _run_hook "jr issue assign PROJ-123 --user alice"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"permissionDecision":"allow"'* ]]
+}
+
+@test "test_BC_3_01_001_SEC001_close_marker_cannot_authorize_comment" {
+  # SEC-001 / STEP-6 anti-fungibility gap — comment gets cmd_type="comment" after fix.
+  # A ["close"] marker with a broad pattern matches "jr issue comment PROJ-123" at STEP 5,
+  # but STEP 6 generic branch requires authorized_operations==["comment"].
+  # ["close"] != "comment" → continue → no valid candidate → DENY.
+  local now future
+  now=$(_now_ts); future=$(_future_ts)
+  _write_marker "close-sec001-comment.marker.json" \
+    '{"marker_id":"m-sec001-cmt","ticket_id":"PROJ-123","org_slug":"test","authorized_operations":["close"],"command_pattern":"^jr issue .* PROJ-123","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}'
+  _run_hook "jr issue comment PROJ-123 --body exploit"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"permissionDecision":"deny"'* ]]
+  [[ "$output" == *"review approval"* ]]
+}
+
+# ── Finding 2: _structural_label_check label-form coverage ─────────────────
+#
+# BC-3.01.001 PC#2 step (6a) _structural_label_check previously only handled
+# the two-token space-separated form "--label REVIEW-REQUIRED". The following
+# forms ALL bypassed the check and allowed a ["create"] marker to authorize a
+# review-labeled create:
+#
+#   --label=REVIEW-REQUIRED     (equals form, single token)
+#   -l REVIEW-REQUIRED          (short flag, two tokens)
+#   -lREVIEW-REQUIRED           (short flag, no space, single token)
+#   --label REVIEW-REQUIRED,triage  (comma-joined value)
+#
+# Fix: the scanning loop now extracts the value for all four forms and splits
+# on "," before matching against the hard-floor set.
+#
+# RED-first: these tests fail on the old code (raw substring check) and pass
+# after the enhanced tokenizer is deployed.
+
+@test "test_BC_3_01_001_FIND2_equals_form_review_required_must_deny" {
+  # Finding 2 / BC-3.01.001 PC#2 step (6a) / equals-form bypass
+  # ["create"] marker + "--label=REVIEW-REQUIRED" (no space, equals sign) → must DENY.
+  # Old code: raw substring *"--label REVIEW-REQUIRED"* (with space) does not match
+  # the equals form → step 6a skip missed → ALLOW (BUG) → RED.
+  local now future
+  now=$(_now_ts); future=$(_future_ts)
+  _write_marker "create-find2-eq.marker.json" \
+    '{"marker_id":"m-find2-eq","ticket_id":null,"org_slug":"test","authorized_operations":["create"],"command_pattern":"^jr (--output json )?issue create --project PRISMDEMO( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}'
+  _run_hook "jr issue create --project PRISMDEMO --label=REVIEW-REQUIRED --summary test"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"permissionDecision":"deny"'* ]]
+  [[ "$output" == *"review approval"* ]]
+}
+
+@test "test_BC_3_01_001_FIND2_short_flag_space_review_required_must_deny" {
+  # Finding 2 / BC-3.01.001 PC#2 step (6a) / short-flag two-token bypass
+  # ["create"] marker + "-l REVIEW-REQUIRED" (short flag with space) → must DENY.
+  # Old code: only checks "--label" token → "-l" is not matched → ALLOW (BUG) → RED.
+  local now future
+  now=$(_now_ts); future=$(_future_ts)
+  _write_marker "create-find2-lspc.marker.json" \
+    '{"marker_id":"m-find2-lspc","ticket_id":null,"org_slug":"test","authorized_operations":["create"],"command_pattern":"^jr (--output json )?issue create --project PRISMDEMO( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}'
+  _run_hook "jr issue create --project PRISMDEMO -l REVIEW-REQUIRED --summary test"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"permissionDecision":"deny"'* ]]
+  [[ "$output" == *"review approval"* ]]
+}
+
+@test "test_BC_3_01_001_FIND2_short_flag_nospace_review_required_must_deny" {
+  # Finding 2 / BC-3.01.001 PC#2 step (6a) / short-flag no-space bypass
+  # ["create"] marker + "-lREVIEW-REQUIRED" (no space) → must DENY.
+  # Old code: "-lREVIEW-REQUIRED" is one token; check only fires on "--label" → ALLOW (BUG).
+  local now future
+  now=$(_now_ts); future=$(_future_ts)
+  _write_marker "create-find2-lns.marker.json" \
+    '{"marker_id":"m-find2-lns","ticket_id":null,"org_slug":"test","authorized_operations":["create"],"command_pattern":"^jr (--output json )?issue create --project PRISMDEMO( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}'
+  _run_hook "jr issue create --project PRISMDEMO -lREVIEW-REQUIRED --summary test"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"permissionDecision":"deny"'* ]]
+  [[ "$output" == *"review approval"* ]]
+}
+
+@test "test_BC_3_01_001_FIND2_comma_joined_review_required_must_deny" {
+  # Finding 2 / BC-3.01.001 PC#2 step (6a) / comma-joined value bypass
+  # ["create"] marker + "--label REVIEW-REQUIRED,triage" (comma-joined) → must DENY.
+  # Old code: checks "${tokens[j+1]} == REVIEW-REQUIRED" (exact), "REVIEW-REQUIRED,triage"
+  # is not equal to "REVIEW-REQUIRED" → step 6a skip missed → ALLOW (BUG) → RED.
+  local now future
+  now=$(_now_ts); future=$(_future_ts)
+  _write_marker "create-find2-csv.marker.json" \
+    '{"marker_id":"m-find2-csv","ticket_id":null,"org_slug":"test","authorized_operations":["create"],"command_pattern":"^jr (--output json )?issue create --project PRISMDEMO( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}'
+  _run_hook "jr issue create --project PRISMDEMO --label REVIEW-REQUIRED,triage --summary test"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"permissionDecision":"deny"'* ]]
+  [[ "$output" == *"review approval"* ]]
+}

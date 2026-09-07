@@ -134,13 +134,38 @@ function Test-StructuralLabelCheck([string]$Cmd) {
         $tokens.Add($curToken)
     }
 
-    # Scan token pairs for standalone --label followed by a hard-floor label value
+    # Scan tokens for any --label form carrying a hard-floor label value.
+    # Handled forms (Finding 2 / SEC-001 fix):
+    #   --label REVIEW-REQUIRED / --label BLIND-SPOT    (two-token space-separated form)
+    #   --label=REVIEW-REQUIRED                         (equals form, one token)
+    #   -l REVIEW-REQUIRED                              (short flag, two tokens)
+    #   -lREVIEW-REQUIRED                               (short flag, no space)
+    #   --label REVIEW-REQUIRED,triage                  (comma-joined value)
     $j = 0
     $ntokens = $tokens.Count
-    while (($j + 1) -lt $ntokens) {
-        if ($tokens[$j] -ceq '--label' -and
-            ($tokens[$j + 1] -ceq 'REVIEW-REQUIRED' -or $tokens[$j + 1] -ceq 'BLIND-SPOT')) {
-            return $true
+    while ($j -lt $ntokens) {
+        $tok = $tokens[$j]
+        $val = ''
+        if ($tok -clike '--label=*') {
+            # Form: --label=VALUE (one token, equals sign)
+            $val = $tok.Substring('--label='.Length)
+        }
+        elseif ($tok.Length -gt 2 -and $tok.StartsWith('-l', [System.StringComparison]::Ordinal)) {
+            # Form: -lVALUE (short flag, no space, one token)
+            $val = $tok.Substring(2)
+        }
+        elseif ($tok -ceq '--label' -or $tok -ceq '-l') {
+            # Form: --label VALUE or -l VALUE (two tokens; next token is value)
+            if (($j + 1) -lt $ntokens) {
+                $val = $tokens[$j + 1]
+            }
+        }
+        if ($val.Length -gt 0) {
+            foreach ($part in ($val -csplit ',')) {
+                if ($part -ceq 'REVIEW-REQUIRED' -or $part -ceq 'BLIND-SPOT') {
+                    return $true
+                }
+            }
         }
         $j++
     }
@@ -192,6 +217,21 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
     }
     elseif ($Cmd -clike '*jr issue create*' -or $Cmd -clike '*--output json issue create*') {
         $cmdType = 'create'
+    }
+    elseif ($Cmd -clike '*jr issue update*' -or $Cmd -clike '*--output json issue update*') {
+        $cmdType = 'update'
+    }
+    elseif ($Cmd -clike '*jr issue comment *' -or $Cmd -clike '*--output json issue comment *') {
+        $cmdType = 'comment'
+    }
+    elseif ($Cmd -clike '*jr issue assign*' -or $Cmd -clike '*--output json issue assign*') {
+        $cmdType = 'assign'
+    }
+    elseif ($Cmd -clike '*jr issue label*' -or $Cmd -clike '*--output json issue label*') {
+        $cmdType = 'label'
+    }
+    elseif ($Cmd -clike '*jr issue delete*' -or $Cmd -clike '*--output json issue delete*') {
+        $cmdType = 'delete'
     }
 
     $nowTs = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
@@ -256,6 +296,14 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
         elseif ($cmdType -ceq 'create') {
             if ($opsCount -ne 1) { continue }
             if ($opVal -cne 'create' -and $opVal -cne 'create-review') { continue }
+        }
+        elseif ($cmdType -cne '') {
+            # All other write ops: require exact single-entry authorized_operations matching cmdType
+            if (-not ($opsCount -eq 1 -and $opVal -ceq $cmdType)) { continue }
+        }
+        else {
+            # cmdType is empty — unknown write op → fail-closed (SEC-001)
+            continue
         }
 
         # STEP 6a: C1 create anti-fungibility — regular ["create"] marker must NOT authorize

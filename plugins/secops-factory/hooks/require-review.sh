@@ -131,13 +131,36 @@ _structural_label_check() {
   # Flush any remaining token at end of string.
   [[ -n "$cur_token" ]] && tokens+=("$cur_token")
 
-  # Scan token pairs for standalone --label followed by a hard-floor label value.
+  # Scan tokens for any --label form carrying a hard-floor label value.
+  # Handled forms (Finding 2 / SEC-001 fix):
+  #   --label REVIEW-REQUIRED / --label BLIND-SPOT    (two-token space-separated form)
+  #   --label=REVIEW-REQUIRED                         (equals form, one token)
+  #   -l REVIEW-REQUIRED                              (short flag, two tokens)
+  #   -lREVIEW-REQUIRED                               (short flag, no space)
+  #   --label REVIEW-REQUIRED,triage                  (comma-joined value)
   local j=0 ntokens="${#tokens[@]}"
-  while [[ $(( j + 1 )) -lt $ntokens ]]; do
-    if [[ "${tokens[$j]}" == "--label" ]] && \
-       { [[ "${tokens[$(( j + 1 ))]}" == "REVIEW-REQUIRED" ]] || \
-         [[ "${tokens[$(( j + 1 ))]}" == "BLIND-SPOT" ]]; }; then
-      return 0
+  while [[ $j -lt $ntokens ]]; do
+    local _tok="${tokens[$j]}"
+    local _val=""
+    if [[ "$_tok" == "--label="* ]]; then
+      # Form: --label=VALUE (one token, equals sign)
+      _val="${_tok#--label=}"
+    elif [[ "${#_tok}" -gt 2 && "${_tok:0:2}" == "-l" ]]; then
+      # Form: -lVALUE (short flag, no space, one token)
+      _val="${_tok:2}"
+    elif [[ "$_tok" == "--label" || "$_tok" == "-l" ]]; then
+      # Form: --label VALUE or -l VALUE (two tokens; next token is value)
+      if [[ $(( j + 1 )) -lt $ntokens ]]; then
+        _val="${tokens[$(( j + 1 ))]}"
+      fi
+    fi
+    if [[ -n "$_val" ]]; then
+      local _part
+      while IFS= read -r _part; do
+        if [[ "$_part" == "REVIEW-REQUIRED" || "$_part" == "BLIND-SPOT" ]]; then
+          return 0
+        fi
+      done < <(printf '%s\n' "$_val" | tr ',' '\n')
     fi
     j=$(( j + 1 ))
   done
@@ -209,6 +232,16 @@ _validate_marker_for_command() {
     cmd_type="close"
   elif [[ "$cmd" == *"jr issue create"* ]] || [[ "$cmd" == *"--output json issue create"* ]]; then
     cmd_type="create"
+  elif [[ "$cmd" == *"jr issue update"* ]] || [[ "$cmd" == *"--output json issue update"* ]]; then
+    cmd_type="update"
+  elif [[ "$cmd" == *"jr issue comment "* ]] || [[ "$cmd" == *"--output json issue comment "* ]]; then
+    cmd_type="comment"
+  elif [[ "$cmd" == *"jr issue assign"* ]] || [[ "$cmd" == *"--output json issue assign"* ]]; then
+    cmd_type="assign"
+  elif [[ "$cmd" == *"jr issue label"* ]] || [[ "$cmd" == *"--output json issue label"* ]]; then
+    cmd_type="label"
+  elif [[ "$cmd" == *"jr issue delete"* ]] || [[ "$cmd" == *"--output json issue delete"* ]]; then
+    cmd_type="delete"
   fi
 
   local now_ts
@@ -264,6 +297,12 @@ _validate_marker_for_command() {
       # Only ["create"] or ["create-review"] markers may authorize create commands
       [[ "$_ops_count" -eq 1 ]] || continue
       [[ "$_op_val" == "create" || "$_op_val" == "create-review" ]] || continue
+    elif [[ -n "$cmd_type" ]]; then
+      # All other write ops: require exact single-entry authorized_operations matching cmd_type
+      [[ "$_ops_count" -eq 1 && "$_op_val" == "$cmd_type" ]] || continue
+    else
+      # cmd_type is empty — unknown write op → fail-closed (SEC-001)
+      continue
     fi
 
     # STEP 6a: C1 create anti-fungibility — regular ["create"] marker must NOT authorize

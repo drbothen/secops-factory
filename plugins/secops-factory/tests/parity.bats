@@ -450,7 +450,7 @@ _parity_future_ts() {
     mkdir -p "$marker_dir"
     now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
     future=$(_parity_future_ts)
-    printf '%s' "{\"marker_id\":\"m-par-link\",\"ticket_id\":\"SEC-300\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-300 SEC-400( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}" \
+    printf '%s' '{"marker_id":"m-par-link","ticket_id":"SEC-300","org_slug":"test","authorized_operations":["link"],"command_pattern":"^jr (--output json )?issue link SEC-300 SEC-400( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}' \
         > "${marker_dir}/link-par.marker.json"
 
     run_pair_with_env require-review \
@@ -480,7 +480,7 @@ _parity_future_ts() {
     mkdir -p "$marker_dir"
     now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
     future=$(_parity_future_ts)
-    printf '%s' "{\"marker_id\":\"m-par-crr\",\"ticket_id\":null,\"org_slug\":\"test\",\"authorized_operations\":[\"create-review\"],\"command_pattern\":\"^jr (--output json )?issue create --project PRISMDEMO( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}" \
+    printf '%s' '{"marker_id":"m-par-crr","ticket_id":null,"org_slug":"test","authorized_operations":["create-review"],"command_pattern":"^jr (--output json )?issue create --project PRISMDEMO( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}' \
         > "${marker_dir}/create-review-par.marker.json"
 
     run_pair_with_env require-review \
@@ -513,7 +513,7 @@ _parity_future_ts() {
     mkdir -p "$marker_dir"
     now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
     future=$(_parity_future_ts)
-    printf '%s' "{\"marker_id\":\"m-par-anti\",\"ticket_id\":null,\"org_slug\":\"test\",\"authorized_operations\":[\"create\"],\"command_pattern\":\"^jr (--output json )?issue create --project PRISMDEMO( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}" \
+    printf '%s' '{"marker_id":"m-par-anti","ticket_id":null,"org_slug":"test","authorized_operations":["create"],"command_pattern":"^jr (--output json )?issue create --project PRISMDEMO( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}' \
         > "${marker_dir}/create-anti-par.marker.json"
 
     run_pair_with_env require-review \
@@ -556,7 +556,7 @@ _parity_future_ts() {
     mkdir -p "$marker_dir"
     now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
     future=$(_parity_future_ts)
-    printf '%s' "{\"marker_id\":\"m-f1-uplink\",\"ticket_id\":\"SEC-1\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr issue link SEC-1 SEC-2( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}" \
+    printf '%s' '{"marker_id":"m-f1-uplink","ticket_id":"SEC-1","org_slug":"test","authorized_operations":["link"],"command_pattern":"^jr issue link SEC-1 SEC-2( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}' \
         > "${marker_dir}/f1-upper-subcommand.marker.json"
 
     run_pair_with_env require-review \
@@ -567,8 +567,11 @@ _parity_future_ts() {
     # sh must deny: case-sensitive write-block misses uppercase LINK → fail-closed
     [[ "$SH_OUT" == *'"permissionDecision":"deny"'* ]]
 
-    # Parity gate: sh denies (fail-closed), ps1 allows (case-insensitive) → FAILS in CI
-    assert_same_json
+    # Parity gate: both must deny. The unknown-subcommand deny reason embeds the script
+    # filename (require-review.sh vs require-review.ps1), so byte-identical JSON comparison
+    # would fail even when both hooks are correct. Compare permissionDecision only.
+    [[ "$(echo "$SH_OUT" | jq -r '.hookSpecificOutput.permissionDecision')" == "deny" ]]
+    [[ "$(echo "$PS_OUT" | jq -r '.hookSpecificOutput.permissionDecision')" == "deny" ]]
 
     rm -rf "$tmp"
 }
@@ -591,7 +594,7 @@ _parity_future_ts() {
     now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
     future=$(_parity_future_ts)
     # Uppercase "LINK" in command_pattern — matches case-insensitively in ps1, not in sh
-    printf '%s' "{\"marker_id\":\"m-f1-uppatt\",\"ticket_id\":\"SEC-5\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr issue LINK SEC-5 SEC-6( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}" \
+    printf '%s' '{"marker_id":"m-f1-uppatt","ticket_id":"SEC-5","org_slug":"test","authorized_operations":["link"],"command_pattern":"^jr issue LINK SEC-5 SEC-6( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}' \
         > "${marker_dir}/f1-upper-pattern.marker.json"
 
     run_pair_with_env require-review \
@@ -633,7 +636,7 @@ _parity_future_ts() {
     mkdir -p "$marker_dir"
     now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
     future=$(_parity_future_ts)
-    printf '%s' "{\"marker_id\":\"m-p4f1-scalar\",\"ticket_id\":\"SEC-320\",\"org_slug\":\"test\",\"authorized_operations\":\"link\",\"command_pattern\":\"^jr (--output json )?issue link SEC-320 SEC-420( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"${future}\"}" \
+    printf '%s' '{"marker_id":"m-p4f1-scalar","ticket_id":"SEC-320","org_slug":"test","authorized_operations":"link","command_pattern":"^jr (--output json )?issue link SEC-320 SEC-420( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}' \
         > "${marker_dir}/p4f1-scalar.marker.json"
 
     run_pair_with_env require-review \
@@ -674,7 +677,7 @@ _parity_future_ts() {
     # TWO, "２") directly in the printf string.  The character passes jq and
     # ConvertFrom-Json as-is; its code point (65298) is lexicographically greater
     # than ASCII "2" (50) so the marker is not considered expired by ps1.
-    printf '%s' "{\"marker_id\":\"m-p4f2-unicode\",\"ticket_id\":\"SEC-321\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-321 SEC-421( |\\$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"２100-01-01T00:00:00Z\"}" \
+    printf '%s' '{"marker_id":"m-p4f2-unicode","ticket_id":"SEC-321","org_slug":"test","authorized_operations":["link"],"command_pattern":"^jr (--output json )?issue link SEC-321 SEC-421( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"２100-01-01T00:00:00Z"}' \
         > "${marker_dir}/p4f2-unicode.marker.json"
 
     run_pair_with_env require-review \

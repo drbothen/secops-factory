@@ -412,3 +412,247 @@ SKILL_MD="${PLUGIN_ROOT}/skills/activate/SKILL.md"
     [ "$status" -eq 0 ]
     [[ "$output" == *"meets minimum requirement"* ]]
 }
+
+# ─── Pass-3 findings (adversarial pass 3, S-6.03) ────────────────────────────
+#
+# M-2 (MEDIUM) — ps1 below/at/above + numeric-ordering triplet:
+#   Mirrors the sh triplet for prism-version-check.ps1. pwsh-guarded (CI-only).
+#   Kills boundary mutant: replacing -ge 0 with -gt 0 at ps1:103 causes the
+#   at-minimum test to fail (cmp=0 would exit 1 instead of 0).
+#   Traced: M-2, BC-6.01.001 PC#8, VP-SKILL-051.
+#
+# M-1 (MEDIUM) — ps1 valid-version-nonzero-exit:
+#   Mirrors sh pass-2 F4. Mock prism outputs valid above-minimum version then
+#   exits non-zero; ps1 must honor the printed version (exit 0). pwsh-guarded.
+#   RED-in-CI: current ps1 try/catch exits 2 instead of 0. Traced: M-1, VP-SKILL-051.
+#
+# L-1 (LOW) — ps1 below-min clean stderr:
+#   Static assertion: the below-min branch uses bare Write-Error before exit 1.
+#   Under $ErrorActionPreference='Stop', Write-Error is terminating — exit 1 is
+#   unreachable. Must use [Console]::Error.WriteLine (matching exit-2 paths).
+#   RED now. Traced: L-1, BC-6.01.001 PC#8, VP-SKILL-051.
+#
+# L-2 (LOW) — sh main-version leading-zero patch:
+#   E2E: mock prism 1.0.08 vs default MIN 1.0.0-rc.1. The patch comparison
+#   (( pat1 > pat2 )) lacks 10# prefix; (( 08 > 0 )) is invalid octal → stderr
+#   error. Gate exits 0 by accident (falls through to pre-release check), but
+#   emits "value too great for base" to stderr. RED now. Traced: L-2, BC-6.01.001 PC#8.
+#
+# O-2 (process-gap) — broaden D-021 forbidden-dependency guard:
+#   Extends the existing skills/ scan to also cover agents/**/*.md and hooks/.
+#   PASSES now (CLOSE_STATE_ALLOWLIST only in activate + tests); guards future regressions.
+#   Traced: O-2, D-021, BC-6.01.001 invariant.
+
+# ─── M-2 — ps1 below/at/above triplet + numeric ordering (pwsh-guarded) ─────
+
+@test "test_BC_6_01_001_M2_ps1_below_min_exits_1 (M-2, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    # pwsh-guarded: SKIP locally, enforce in CI.
+    # GREEN in CI: installed 0.9.9 is below minimum 1.0.0-rc.1 → ps1 must exit 1.
+    # Part of boundary mutant triplet: kills -ge 0 → -gt 0 mutation at ps1:103 via
+    # the at-min sibling. This test verifies the below-min reject path is correct.
+    if ! command -v pwsh &>/dev/null; then
+        skip "pwsh not installed — ps1 parity tests run in CI"
+    fi
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    printf '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then echo "prism 0.9.9"; fi\n' \
+        > "$tmpdir/prism"
+    chmod +x "$tmpdir/prism"
+    run env PATH="$tmpdir:$PATH" pwsh -NoProfile -File "$PRISM_VERSION_CHECK_PS1" 2>&1
+    rm -rf "$tmpdir"
+    [ "$status" -eq 1 ]
+}
+
+@test "test_BC_6_01_001_M2_ps1_at_min_exits_0 (M-2, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    # pwsh-guarded: SKIP locally, enforce in CI.
+    # GREEN in CI: installed 1.0.0-rc.1 (exactly equals minimum) → ps1 must exit 0.
+    # KILLS BOUNDARY MUTANT: replacing -ge 0 with -gt 0 at ps1:103 makes
+    # Compare-SemVer return 0 (equal) fail the -gt check → exits 1 (wrong).
+    # The at-minimum case is the canonical mutation target for -ge vs -gt.
+    if ! command -v pwsh &>/dev/null; then
+        skip "pwsh not installed — ps1 parity tests run in CI"
+    fi
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    printf '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then echo "prism 1.0.0-rc.1"; fi\n' \
+        > "$tmpdir/prism"
+    chmod +x "$tmpdir/prism"
+    run env PATH="$tmpdir:$PATH" pwsh -NoProfile -File "$PRISM_VERSION_CHECK_PS1" 2>&1
+    rm -rf "$tmpdir"
+    [ "$status" -eq 0 ]
+}
+
+@test "test_BC_6_01_001_M2_ps1_above_min_exits_0 (M-2, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    # pwsh-guarded: SKIP locally, enforce in CI.
+    # GREEN in CI: installed 2.0.0 is above minimum 1.0.0-rc.1 → ps1 must exit 0.
+    # Completes the below/at/above triplet, mirroring the sh F5 coverage vectors.
+    if ! command -v pwsh &>/dev/null; then
+        skip "pwsh not installed — ps1 parity tests run in CI"
+    fi
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    printf '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then echo "prism 2.0.0"; fi\n' \
+        > "$tmpdir/prism"
+    chmod +x "$tmpdir/prism"
+    run env PATH="$tmpdir:$PATH" pwsh -NoProfile -File "$PRISM_VERSION_CHECK_PS1" 2>&1
+    rm -rf "$tmpdir"
+    [ "$status" -eq 0 ]
+}
+
+@test "test_BC_6_01_001_M2_ps1_numeric_ordering_rc2_lt_rc10 (M-2, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    # pwsh-guarded: SKIP locally, enforce in CI.
+    # GREEN in CI: Compare-SemVer("1.0.0-rc.2", "1.0.0-rc.10") must return -1 (rc.2 < rc.10).
+    # Numeric segment comparison: [int]2 < [int]10. Verifies ps1 does NOT use lexicographic
+    # comparison (string "2" > "10" — wrong) but integer comparison (2 < 10 — correct).
+    # Mirrors sh test_BC_6_01_001_F1_semver_ge_rc2_not_gte_rc10 using function extraction.
+    # Traced: M-2, BC-6.01.001 PC#8, VP-SKILL-051.
+    if ! command -v pwsh &>/dev/null; then
+        skip "pwsh not installed — ps1 parity tests run in CI"
+    fi
+    local tmpscript
+    tmpscript="$(mktemp /tmp/ps1-cmp-XXXXXX.ps1)"
+    # Extract Split-SemVer and Compare-SemVer function definitions from ps1
+    awk '/^function Split-SemVer/,/^\}$/' "$PRISM_VERSION_CHECK_PS1" > "$tmpscript"
+    awk '/^function Compare-SemVer/,/^\}$/' "$PRISM_VERSION_CHECK_PS1" >> "$tmpscript"
+    # Invoke comparator: rc.2 < rc.10 → returns -1 → exit 0 (test pass)
+    printf '\n$cmp = Compare-SemVer "1.0.0-rc.2" "1.0.0-rc.10"\nif ($cmp -lt 0) { exit 0 } else { exit 1 }\n' \
+        >> "$tmpscript"
+    run pwsh -NoProfile -File "$tmpscript"
+    rm -f "$tmpscript"
+    # Compare-SemVer("rc.2","rc.10"): numeric [int]2 < [int]10 → returns -1 → exit 0
+    [ "$status" -eq 0 ]
+}
+
+# ─── M-1 — ps1 valid-version-nonzero-exit (pwsh-guarded, RED in CI) ──────────
+
+@test "test_BC_6_01_001_M1_ps1_valid_version_nonzero_prism_exit_passes (M-1, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    # pwsh-guarded: SKIP locally, RED in CI.
+    # Mirrors sh pass-2 F4: mock prism outputs valid above-minimum version "prism 2.0.0"
+    # then exits non-zero (exit 3). ps1 must honor the printed version and exit 0.
+    # RED: current ps1 try/catch block exits 2 when prism exits non-zero under
+    # $ErrorActionPreference='Stop', discarding the valid version string before
+    # the semver comparison is reached.
+    # Fix: add error-suppression equivalent of '|| true' for the prism --version call
+    # (e.g., wrap exit-code in try/catch that only catches terminating errors, or
+    # check $LASTEXITCODE separately from the captured output).
+    # Traced: M-1, BC-6.01.001 PC#8, VP-SKILL-051.
+    if ! command -v pwsh &>/dev/null; then
+        skip "pwsh not installed — ps1 parity tests run in CI"
+    fi
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    printf '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then echo "prism 2.0.0"; exit 3; fi\n' \
+        > "$tmpdir/prism"
+    chmod +x "$tmpdir/prism"
+    run env PATH="$tmpdir:$PATH" pwsh -NoProfile -File "$PRISM_VERSION_CHECK_PS1" 2>&1
+    rm -rf "$tmpdir"
+    # 2.0.0 >= minimum 1.0.0-rc.1: gate MUST exit 0.
+    # RED until ps1 handles prism non-zero exit without discarding the version output.
+    [ "$status" -eq 0 ]
+}
+
+# ─── L-1 — ps1 below-min clean stderr (static, RED now) ──────────────────────
+
+@test "test_BC_6_01_001_L1_ps1_below_min_uses_nonterminating_error_output (L-1, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    # RED: the below-min verdict branch (ps1 line 107) uses bare Write-Error before
+    # exit 1. Under $ErrorActionPreference='Stop', Write-Error is a TERMINATING error —
+    # it throws a System.Management.Automation.ErrorRecord exception and exit 1 is
+    # never reached. The script exits with an unhandled exception code instead of 1,
+    # preventing callers from distinguishing "version too old" (exit 1) from other errors.
+    #
+    # The exit-2 paths already use [Console]::Error.WriteLine (non-terminating) correctly.
+    # The exit-1 path must be fixed to match that pattern.
+    #
+    # Static assertion: no bare Write-Error (without -ErrorAction qualifier) appears
+    # on the line immediately before an exit statement in the ps1.
+    # Fails RED until ps1 replaces Write-Error with [Console]::Error.WriteLine before exit 1.
+    # Traced: L-1, BC-6.01.001 PC#8, VP-SKILL-051.
+    run awk '
+        /Write-Error/ && !/ErrorAction/ { flag = 1; next }
+        flag && /^[[:space:]]*exit [0-9]/ { found = 1 }
+        { flag = 0 }
+        END { exit found ? 1 : 0 }
+    ' "$PRISM_VERSION_CHECK_PS1"
+    # awk exits 1 when violation found (bare Write-Error before exit) → test FAILS RED.
+    # awk exits 0 when no violation (non-terminating output used) → test PASSES GREEN.
+    [ "$status" -eq 0 ]
+}
+
+# ─── L-2 — sh main-version leading-zero patch (e2e, RED now) ──────────────────
+
+@test "test_BC_6_01_001_L2_sh_main_version_leading_zero_patch_no_octal_error (L-2, BC-6.01.001 PC#8, VP-SKILL-051)" {
+    # RED: semver_ge() uses (( pat1 > pat2 )) at lines 78-79 without the 10# base prefix.
+    # When prism reports version 1.0.08, pat1="08". bash (( )) treats leading-zero
+    # numerals as octal; 08 is invalid octal → bash emits "value too great for base
+    # (error token is "08")" to stderr and the arithmetic expression returns 1 (false).
+    # Both (( 08 > 0 )) and (( 08 < 0 )) fail → comparator falls through to the
+    # pre-release check where the release (no pre-release) trivially beats the minimum
+    # pre-release tag, so the gate exits 0 "by accident". But the octal error IS emitted.
+    #
+    # Contrast: pre-release numeric segments already use 10#$_s1 (lines 108-109).
+    # The same fix must be applied to the main-version maj/min/pat comparisons.
+    #
+    # This test verifies two things:
+    #   1. Gate exits 0 (1.0.8 decimal > 1.0.0-rc.1 — correct pass verdict).
+    #   2. No "value too great for base" octal error in merged stderr.
+    # Currently the gate exits 0 (accidental) but ALSO emits the octal error → FAILS RED
+    # on assertion 2.
+    # Traced: L-2, BC-6.01.001 PC#8, VP-SKILL-051.
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    printf '#!/usr/bin/env bash\nif [ "$1" = "--version" ]; then echo "prism 1.0.08"; fi\n' \
+        > "$tmpdir/prism"
+    chmod +x "$tmpdir/prism"
+    run env PATH="$tmpdir:$PATH" bash "$PRISM_VERSION_CHECK" 2>&1
+    rm -rf "$tmpdir"
+    # 1.0.8 (decimal) > 1.0.0-rc.1: gate MUST exit 0.
+    [ "$status" -eq 0 ]
+    # No octal arithmetic error must appear in merged output.
+    # RED until (( 10#$pat1 > 10#$pat2 )) is used in semver_ge() main-version comparison.
+    [[ "$output" != *"value too great for base"* ]]
+}
+
+# ─── O-2 — broaden D-021 guard to agents/ and hooks/ (PASSES now, regression guard) ──
+
+@test "test_BC_6_01_001_O2_d021_close_state_allowlist_no_verdict_path_anywhere (O-2, D-021, BC-6.01.001 invariant, GUARD)" {
+    # GREEN (permanent regression guard — must PASS now and always):
+    # CLOSE_STATE_ALLOWLIST is a CONFIG-side constant (D-021) that belongs ONLY in
+    # skills/activate/SKILL.md. It must NEVER appear in any verdict-emitting path:
+    #   - other skills/**/SKILL.md (excluding activate)
+    #   - agents/**/*.md (any agent spec)
+    #   - hooks/ (any hook file, .sh or .ps1 or JSON)
+    # Presence in those paths creates an LLM-injectable verdict path (CWE-20 / P18-005).
+    #
+    # This test extends the scope of the existing D-021 guard (which only scanned
+    # skills/) to also cover agents/ and hooks/ — catching future regressions anywhere
+    # in the verdict-emitting surface.
+    # Traced: O-2, D-021, BC-6.01.001 invariant.
+    local violations=0
+
+    # Scan skills/ (all SKILL.md files except activate)
+    while IFS= read -r -d '' skill_file; do
+        [[ "$skill_file" == *"/activate/SKILL.md" ]] && continue
+        if grep -qF "CLOSE_STATE_ALLOWLIST" "$skill_file"; then
+            printf 'D-021 VIOLATION in skill verdict path: %s\n' "$skill_file" >&2
+            violations=$((violations + 1))
+        fi
+    done < <(find "$PLUGIN_ROOT/skills" -name "SKILL.md" -print0 2>/dev/null)
+
+    # Scan agents/ (all .md files)
+    while IFS= read -r -d '' agent_file; do
+        if grep -qF "CLOSE_STATE_ALLOWLIST" "$agent_file"; then
+            printf 'D-021 VIOLATION in agent path: %s\n' "$agent_file" >&2
+            violations=$((violations + 1))
+        fi
+    done < <(find "$PLUGIN_ROOT/agents" -name "*.md" -print0 2>/dev/null)
+
+    # Scan hooks/ (all files: .sh, .ps1, .json)
+    while IFS= read -r -d '' hook_file; do
+        if grep -qF "CLOSE_STATE_ALLOWLIST" "$hook_file"; then
+            printf 'D-021 VIOLATION in hook: %s\n' "$hook_file" >&2
+            violations=$((violations + 1))
+        fi
+    done < <(find "$PLUGIN_ROOT/hooks" -type f -print0 2>/dev/null)
+
+    [ "$violations" -eq 0 ]
+}

@@ -40,7 +40,7 @@ function Emit-Deny([string]$Reason) {
 # Used before lexicographic comparisons to fail-closed on malformed values
 # (BC-3.01.001 PC#2 step 4b — F5 fix: malformed timestamps → skip marker → deny).
 function Test-Iso8601Utc([string]$Ts) {
-    if (-not ($Ts -cmatch '^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\dZ$')) {
+    if (-not ($Ts -cmatch '^[0-9]{4}-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z\z')) {
         return $false
     }
     return $true
@@ -234,6 +234,13 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
         if ($Cmd -cnotmatch $cmdPattern) { continue }
 
         # STEP 6: exact-type matching for link/close/create anti-fungibility (D-020/D-021)
+        # F1 (pass-4 MEDIUM fail-open): authorized_operations must be a genuine JSON array.
+        # sh: jq length on a scalar string returns the string's character count (e.g. 4 for
+        # "link"), which fails the ops_count==1 check → marker skipped → deny (fail-closed).
+        # ps1 guard: if ConvertFrom-Json yields a non-array type (e.g. [string] "link"), the
+        # @() constructor would wrap it into a 1-element array and let STEP-6 pass (fail-open).
+        # Reject outright: only a genuine array may proceed to STEP-6.
+        if ($mj.authorized_operations -isnot [System.Array]) { continue }
         $ops = @($mj.authorized_operations)
         $opsCount = $ops.Count
         $opVal = if ($opsCount -gt 0) { [string]($ops[0]) } else { '' }

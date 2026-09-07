@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- **activate skill** (BC-6.01.001) — setup-time validation for `jira_close_state` via `CLOSE_STATE_ALLOWLIST` = {Done, Closed, Resolved}; invalid close state now fails activation early with no partial state written (P18-005 / EC-015); `jira_project_key` charset gate confirmed at setup time (PC#12 / VP-SKILL-076 activate leg); both `jira_project_key` and `jira_close_state` persisted to plugin state in `settings.local.json`.
+
 ## [0.9.0] - 2026-07-14
 
 Concrete recipes for all Jira ground-truth metrics in generate-metrics.

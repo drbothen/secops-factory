@@ -251,8 +251,10 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
         if ($mf.DirectoryName -ne $markerDir) { continue }
 
         $mj = $null
+        $rawText = $null
         try {
-            $mj = Get-Content -Path $mf.FullName -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+            $rawText = Get-Content -Path $mf.FullName -Raw -ErrorAction Stop
+            $mj = $rawText | ConvertFrom-Json -ErrorAction Stop
         }
         catch { continue }
         if ($null -eq $mj) { continue }
@@ -282,10 +284,13 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
         # F1 (pass-4 MEDIUM fail-open): authorized_operations must be a genuine JSON array.
         # sh: jq length on a scalar string returns the string's character count (e.g. 4 for
         # "link"), which fails the ops_count==1 check → marker skipped → deny (fail-closed).
-        # ps1 guard: if ConvertFrom-Json yields a non-array type (e.g. [string] "link"), the
-        # @() constructor would wrap it into a 1-element array and let STEP-6 pass (fail-open).
-        # Reject outright: only a genuine array may proceed to STEP-6.
-        if ($mj.authorized_operations -isnot [System.Array]) { continue }
+        # ps1 guard: check the RAW JSON text for the opening bracket instead of the parsed
+        # object type. Some PS7 versions (7.0–7.2 on Ubuntu CI) unbox single-element arrays
+        # ["link"] → scalar "link", making -isnot [System.Array] TRUE for valid markers and
+        # causing every allowed operation to be silently skipped (fail-open to deny).
+        # Raw-text check is reliable across all PS7 versions and preserves the fail-closed
+        # semantic: a scalar JSON string "link" never has a `[` after the key colon.
+        if ($rawText -cnotmatch '"authorized_operations"\s*:\s*\[') { continue }
         $ops = @($mj.authorized_operations)
         $opsCount = $ops.Count
         $opVal = if ($opsCount -gt 0) { [string]($ops[0]) } else { '' }

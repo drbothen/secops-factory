@@ -262,10 +262,13 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
         if ($null -eq $mj) { continue }
 
         # I2: BC step (3) — skip future-dated markers (adversarial signal)
-        # ConvertFrom-Json on PS7 auto-converts ISO-8601 strings to DateTime objects.
-        # Cast back to canonical ISO-8601 UTC string for lexicographic timestamp comparison.
-        $rawIssuedAt = $mj.issued_at_utc
-        $issuedAt = if ($rawIssuedAt -is [DateTime]) { $rawIssuedAt.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ') } else { [string]$rawIssuedAt }
+        # Extract timestamps from RAW JSON text, not from the parsed object.
+        # ConvertFrom-Json on PS7 converts ISO-8601 strings to DateTime objects whose
+        # Kind can be Unspecified on some runners; ToUniversalTime() on Kind=Unspecified
+        # shifts by the runner's UTC offset, corrupting the comparison in non-UTC zones.
+        # Raw-text extraction mirrors jq -r in require-review.sh: plain string, no coercion.
+        if ($rawText -cnotmatch '"issued_at_utc"\s*:\s*"([^"]*)"') { continue }
+        $issuedAt = $Matches[1]
         if ([string]::IsNullOrEmpty($issuedAt)) { continue }
         # F5: validate format before lexicographic comparison (malformed → skip → fail-closed)
         if (-not (Test-Iso8601Utc $issuedAt)) { continue }
@@ -273,8 +276,8 @@ function Invoke-ValidateMarkerForCommand([string]$Cmd) {
         if ([string]::CompareOrdinal($issuedAt, $nowTs) -gt 0) { continue }
 
         # STEP 4b: TTL check — O1: valid when expires_at_utc >= now (equality = still valid)
-        $rawExpiresAt = $mj.expires_at_utc
-        $expires_at_utc = if ($rawExpiresAt -is [DateTime]) { $rawExpiresAt.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ') } else { [string]$rawExpiresAt }
+        if ($rawText -cnotmatch '"expires_at_utc"\s*:\s*"([^"]*)"') { continue }
+        $expires_at_utc = $Matches[1]
         if ([string]::IsNullOrEmpty($expires_at_utc)) { continue }
         # F5: validate format before lexicographic comparison (malformed → skip → fail-closed)
         if (-not (Test-Iso8601Utc $expires_at_utc)) { continue }

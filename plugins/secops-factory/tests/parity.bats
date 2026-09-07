@@ -707,3 +707,89 @@ _parity_future_ts() {
 
     rm -rf "$tmp"
 }
+
+# ---------------------------------------------------------------------------
+# datetime-coercion hardening: non-canonical timestamp forms
+#
+# These tests verify sh and ps1 agree that non-canonical ISO-8601 forms in
+# expires_at_utc cause the marker to be skipped (fail-closed), regardless of
+# whether DateTime coercion is in play on the PS7 side.
+# Traceability: BC-3.01.001 STEP-4b / F5 / datetime-coercion hardening
+# ---------------------------------------------------------------------------
+
+@test "parity: require-review non-canonical expires_at_utc (no Z suffix) — both deny agree" {
+    # sh _is_iso8601_utc requires ^...[0-5][0-9]Z$ → "2099-12-31T23:59:59" fails → deny.
+    # ps1 raw-text extraction + Test-Iso8601Utc: same canonical-Z check → deny.
+    # Previously with DateTime coercion on ps1, ConvertFrom-Json parsed the no-Z string
+    # as Kind=Unspecified; ToUniversalTime shifted by TZ offset → valid-looking ISO-8601
+    # string → ALLOW (TZ-dependent bug). After fix: both deny, assert_same_json passes.
+    require_pwsh
+    local tmp marker_dir now
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    printf '%s' '{"marker_id":"m-par-noz","ticket_id":"SEC-143","org_slug":"test","authorized_operations":["link"],"command_pattern":"^jr (--output json )?issue link SEC-143 SEC-223( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"2099-12-31T23:59:59"}' \
+        > "${marker_dir}/noz-par.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue link SEC-143 SEC-223"}}' \
+        "$tmp"
+
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    [[ "$SH_OUT" == *'"permissionDecision":"deny"'* ]]
+    [[ "$PS_OUT" == *'"permissionDecision":"deny"'* ]]
+    assert_same_json
+
+    rm -rf "$tmp"
+}
+
+@test "parity: require-review non-canonical expires_at_utc (fractional seconds) — both deny agree" {
+    # sh: "2099-12-31T23:59:59.000Z" does not match ...[0-5][0-9]Z$ → deny.
+    # ps1 raw-text: same string extracted → Test-Iso8601Utc fails → deny.
+    # DateTime coercion would silently normalize the fractional seconds away → ALLOW bug.
+    require_pwsh
+    local tmp marker_dir now
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    printf '%s' '{"marker_id":"m-par-frac","ticket_id":"SEC-144","org_slug":"test","authorized_operations":["link"],"command_pattern":"^jr (--output json )?issue link SEC-144 SEC-224( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"2099-12-31T23:59:59.000Z"}' \
+        > "${marker_dir}/frac-par.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue link SEC-144 SEC-224"}}' \
+        "$tmp"
+
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    [[ "$SH_OUT" == *'"permissionDecision":"deny"'* ]]
+    [[ "$PS_OUT" == *'"permissionDecision":"deny"'* ]]
+    assert_same_json
+
+    rm -rf "$tmp"
+}
+
+@test "parity: require-review non-canonical expires_at_utc (explicit +00:00 offset) — both deny agree" {
+    # sh: "2099-12-31T23:59:59+00:00" does not match ...Z$ → deny.
+    # ps1 raw-text: same string extracted → Test-Iso8601Utc fails → deny.
+    # DateTime coercion would convert to Utc and return canonical "2099-12-31T23:59:59Z" → ALLOW bug.
+    require_pwsh
+    local tmp marker_dir now
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    printf '%s' '{"marker_id":"m-par-offset","ticket_id":"SEC-145","org_slug":"test","authorized_operations":["link"],"command_pattern":"^jr (--output json )?issue link SEC-145 SEC-225( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"2099-12-31T23:59:59+00:00"}' \
+        > "${marker_dir}/offset-par.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue link SEC-145 SEC-225"}}' \
+        "$tmp"
+
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    [[ "$SH_OUT" == *'"permissionDecision":"deny"'* ]]
+    [[ "$PS_OUT" == *'"permissionDecision":"deny"'* ]]
+    assert_same_json
+
+    rm -rf "$tmp"
+}

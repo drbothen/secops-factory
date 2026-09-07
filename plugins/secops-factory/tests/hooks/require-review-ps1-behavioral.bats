@@ -600,3 +600,67 @@ _now_ts() {
   [ "$status" -eq 0 ]
   [[ "$output" == *'"permissionDecision":"deny"'* ]]
 }
+
+# ── BP-024: non-canonical expires_at_utc — no trailing Z → DENY fail-closed ────
+
+@test "test_BC_3_01_001_BP024_ps1_noncanonical_expires_no_z_denied" {
+  # BP-024 / BC-3.01.001 STEP-4b / datetime-coercion hardening
+  #
+  # Marker with expires_at_utc="2099-12-31T23:59:59" (no trailing Z).
+  # With ConvertFrom-Json DateTime coercion (old approach), PS7 parses this as
+  # a DateTime with Kind=Unspecified; ToUniversalTime() shifts by the runner's
+  # local UTC offset, producing a valid-looking ISO-8601 string that passes
+  # Test-Iso8601Utc -> ALLOW (TZ-dependent silent bug).
+  # With raw-text extraction (new approach), the literal string
+  # "2099-12-31T23:59:59" is extracted and fed to Test-Iso8601Utc which requires
+  # the exact pattern ...Z\z -> fails -> marker skipped -> DENY (fail-closed).
+  require_pwsh
+  local now
+  now=$(_now_ts)
+  _write_marker "link-bp024-noz.marker.json" \
+    "{\"marker_id\":\"m-bp024-noz\",\"ticket_id\":\"SEC-140\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-140 SEC-220( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"2099-12-31T23:59:59\"}"
+  _run_ps1_hook "jr issue link SEC-140 SEC-220"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+# ── BP-025: non-canonical expires_at_utc — fractional seconds → DENY ───────────
+
+@test "test_BC_3_01_001_BP025_ps1_noncanonical_expires_fractional_seconds_denied" {
+  # BP-025 / BC-3.01.001 STEP-4b / datetime-coercion hardening
+  #
+  # Marker with expires_at_utc="2099-12-31T23:59:59.000Z" (fractional seconds).
+  # With DateTime coercion, PS7 parses this as a valid DateTime and ToUniversalTime
+  # returns "2099-12-31T23:59:59Z" -> passes Test-Iso8601Utc -> ALLOW (wrong).
+  # With raw-text extraction, "2099-12-31T23:59:59.000Z" is fed to Test-Iso8601Utc
+  # which requires exactly [0-5][0-9]Z at the end -> ".000Z" does not match -> DENY.
+  require_pwsh
+  local now
+  now=$(_now_ts)
+  _write_marker "link-bp025-frac.marker.json" \
+    "{\"marker_id\":\"m-bp025-frac\",\"ticket_id\":\"SEC-141\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-141 SEC-221( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"2099-12-31T23:59:59.000Z\"}"
+  _run_ps1_hook "jr issue link SEC-141 SEC-221"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}
+
+# ── BP-026: non-canonical expires_at_utc — explicit +00:00 offset → DENY ────────
+
+@test "test_BC_3_01_001_BP026_ps1_noncanonical_expires_explicit_offset_denied" {
+  # BP-026 / BC-3.01.001 STEP-4b / datetime-coercion hardening
+  #
+  # Marker with expires_at_utc="2099-12-31T23:59:59+00:00" (explicit UTC offset).
+  # With DateTime coercion, PS7 parses this as a Utc DateTime and ToUniversalTime
+  # returns "2099-12-31T23:59:59Z" -> passes Test-Iso8601Utc -> ALLOW (wrong).
+  # With raw-text extraction, the literal "+00:00" suffix is preserved; Test-Iso8601Utc
+  # requires Z at end -> fails -> DENY (correct, fail-closed).
+  # Same logic applies to explicit negative offsets (e.g. -05:00).
+  require_pwsh
+  local now
+  now=$(_now_ts)
+  _write_marker "link-bp026-offset.marker.json" \
+    "{\"marker_id\":\"m-bp026-offset\",\"ticket_id\":\"SEC-142\",\"org_slug\":\"test\",\"authorized_operations\":[\"link\"],\"command_pattern\":\"^jr (--output json )?issue link SEC-142 SEC-222( |$)\",\"issued_at_utc\":\"${now}\",\"expires_at_utc\":\"2099-12-31T23:59:59+00:00\"}"
+  _run_ps1_hook "jr issue link SEC-142 SEC-222"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"permissionDecision":"deny"'* ]]
+}

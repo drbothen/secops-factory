@@ -214,8 +214,12 @@ SKILL="${PLUGIN_ROOT}/skills/assess-priority/SKILL.md"
 @test "BC_4_05_001 AC-008 VP-SKILL-070: PC#5d asset criticality SQL includes WHERE org_slug= clause" {
     # VP-SKILL-070 static leg (traces to BC-4.05.001 Invariant 4, D-DEC-005, vd:427)
     # PC#5d assets query must have an explicit org_slug constraint in the WHERE clause.
+    # ADV-F4-S4.02 pass-2 F-1 (MEDIUM): re-anchored from prose 'PC#5d' mention (line ~137, which
+    # also mentions PC#5a and incidentally captured PC#5a's WHERE clause) to the '### PC#5d' query
+    # heading. Mirrors the OBS-1 fix applied to PC#5a. Doc reordering can no longer falsely satisfy
+    # this test via the prose reference; only PC#5d's actual query block can satisfy it.
     # Red Gate: stub PC#5d SQL has 'WHERE asset_id=...' with no org_slug → grep fails → FAILS.
-    grep -m 1 -A 15 "PC#5d" "$SKILL" | grep -q "WHERE org_slug="
+    grep -m 1 -A 15 "### PC#5d" "$SKILL" | grep -q "WHERE org_slug="
 }
 
 @test "BC_4_05_001 F3-ADV-F4-S4.02 BC-v1.6-Inv4 VP-SKILL-070: exactly two PrismQL queries carry WHERE org_slug= (PC#5a and PC#5d only)" {
@@ -268,9 +272,14 @@ SKILL="${PLUGIN_ROOT}/skills/assess-priority/SKILL.md"
     # D-DEC-011: high iff confidence_score >= 0.75; the just-below boundary 0.749 maps to medium
     # and MUST be explicitly documented alongside the threshold for implementer clarity.
     # Both the threshold value (>= 0.75) AND the boundary vector (0.749) must appear in SKILL.md.
+    # ADV-F4-S4.02 pass-2 F-3 (OBS): strengthened binding — 0.749 must bind to 'medium' not 'high'.
+    # A mutant that documents '0.749 → high' passes the literal-presence check but fails the
+    # binding guard below. Mirrors tier-association guard style used for 0.75/0.40 threshold rows.
     # Red Gate: '0.749' absent from SKILL.md (boundary not documented) → second grep fails → RED.
     grep -qF '>= 0.75' "$SKILL"
     grep -qF '0.749' "$SKILL"
+    grep -qF '0.749 → medium' "$SKILL"
+    ! grep -qF '0.749 → high' "$SKILL"
 }
 
 @test "BC_4_05_001 AC-009 VP-SKILL-071: >= 0.40 binds to medium with boundary vector 0.399 documented" {
@@ -279,9 +288,14 @@ SKILL="${PLUGIN_ROOT}/skills/assess-priority/SKILL.md"
     # D-DEC-011: medium iff 0.40 <= score < 0.75; the just-below boundary 0.399 maps to low
     # and MUST be explicitly documented alongside the threshold for implementer clarity.
     # Both the threshold value (>= 0.40) AND the boundary vector (0.399) must appear in SKILL.md.
+    # ADV-F4-S4.02 pass-2 F-3 (OBS): strengthened binding — 0.399 must bind to 'low' not 'medium'.
+    # A mutant that documents '0.399 → medium' passes the literal-presence check but fails the
+    # binding guard below. Mirrors tier-association guard style used for 0.75/0.40 threshold rows.
     # Red Gate: '0.399' absent from SKILL.md (boundary not documented) → second grep fails → RED.
     grep -qF '>= 0.40' "$SKILL"
     grep -qF '0.399' "$SKILL"
+    grep -qF '0.399 → low' "$SKILL"
+    ! grep -qF '0.399 → medium' "$SKILL"
 }
 
 @test "BC_4_05_001 AC-009 VP-SKILL-071: confidence threshold placeholder stub is removed" {

@@ -49,8 +49,10 @@ Before any other action, say verbatim:
 
    On native Windows (PowerShell/cmd shell, `$env:OS` = `Windows_NT`, not inside WSL or Git Bash):
    ```powershell
-   powershell.exe -NoProfile -File "${CLAUDE_PLUGIN_ROOT}/hooks/prism-version-check.ps1"
+   powershell.exe -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/hooks/prism-version-check.ps1"
    ```
+
+   The `-ExecutionPolicy Bypass` flag is required: the Windows system default (Restricted) prevents unsigned scripts from running under a bare `powershell.exe -NoProfile -File` invocation. All sibling launchers in `hooks.json.windows` use the full flag set for the same reason.
 
    The gate is fail-closed: any non-zero exit from either script (exit 1 = version too old, exit 2 = not found or unparseable) halts activation immediately. If the launcher itself is absent (interpreter-not-found / gate-cannot-run), the shell error is treated identically — activation halts with no configuration written.
 

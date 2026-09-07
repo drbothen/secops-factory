@@ -56,7 +56,7 @@ For a vulnerability to be added, it must meet **three criteria:**
 
 KEV-listed vulnerabilities receive automatic priority elevation in the multi-factor framework:
 - KEV Listed = 5 points (maximum single factor score)
-- Minimum P1 or P2 regardless of other factor scores
+- KEV Listed = CRIT unconditional (scored_priority always CRIT regardless of other factor scores; 24-hour SLA)
 - Per CISA BOD 22-01: federal agencies must remediate within mandated timelines
 
 ---
@@ -101,10 +101,10 @@ KEV-listed vulnerabilities receive automatic priority elevation in the multi-fac
 ```
 IF kev_status == "Listed":
     kev_points = 5  (automatic high priority)
-    minimum_priority = P2  (cannot go below P2)
+    scored_priority = CRIT  (unconditional KEV → CRIT elevation, 24-hour SLA)
 
 IF kev_status == "Listed" AND exposure == "Internet" AND acr == "Critical":
-    priority = P1  (automatic P1 override)
+    scored_priority = CRIT  (same outcome — KEV unconditionally elevates to CRIT)
 ```
 
 ### SLA Impact

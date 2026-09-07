@@ -28,7 +28,7 @@ This framework uses **multi-factor risk assessment** to prioritize vulnerabiliti
 
 **Definition:** Urgent remediation required. High severity with significant exploitation risk.
 
-**Score Threshold:** 14-19 points (or KEV Listed without P1 criteria)
+**Score Threshold:** 14-19 points (note: KEV Listed → CRIT unconditional per Override Rule; see Score to Priority Mapping)
 
 **Actions:** Urgent patching in next sprint, security team notification, staging validation
 
@@ -36,23 +36,23 @@ This framework uses **multi-factor risk assessment** to prioritize vulnerabiliti
 
 **Definition:** Planned remediation. Moderate severity with limited exploitation risk.
 
-**Score Threshold:** 10-14 points
+**Score Threshold:** 8-13 points (P3 → MED band; scored_priority emitted as MED, 30-day SLA)
 
 **Actions:** Next maintenance window, non-production testing, change request scheduling
 
-### P4 - Low (90 Day SLA)
+### P4 - Medium (30 Day SLA)
 
-**Definition:** Routine patching. Low severity or low-criticality systems.
+**Definition:** Routine patching. Low-criticality systems with moderate risk profile.
 
-**Score Threshold:** 6-9 points
+**Score Threshold:** 8-13 points (P4 → MED band; scored_priority emitted as MED, 30-day SLA)
 
-**Actions:** Routine patch schedule, batch with other low-priority patches
+**Actions:** Routine patch schedule, batch with other medium-priority patches
 
-### P5 - Informational (No SLA)
+### P5 - Low (90 Day SLA)
 
 **Definition:** Awareness only. Minimal risk.
 
-**Score Threshold:** 0-5 points
+**Score Threshold:** <8 points (P5 → LOW band; scored_priority emitted as LOW, 90-day SLA)
 
 **Actions:** Document for awareness, optional patching, risk acceptance consideration
 
@@ -85,7 +85,7 @@ This framework uses **multi-factor risk assessment** to prioritize vulnerabiliti
 | Listed | 5 | Automatic priority elevation |
 | Not Listed | 0 | No bonus |
 
-**Override Rule:** KEV Listed = minimum P2 regardless of other factors.
+**Override Rule:** KEV Listed = CRIT unconditional (24-hour SLA regardless of other factors; overrides base-score band).
 
 ### Factor 4: Asset Criticality Rating (0-4 points)
 

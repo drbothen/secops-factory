@@ -109,11 +109,13 @@ IF kev_status == "Listed" AND exposure == "Internet" AND acr == "Critical":
 
 ### SLA Impact
 
-| KEV Status | Standard SLA | With KEV Override |
-|------------|-------------|-------------------|
-| Not Listed | Per multi-factor score | Normal SLA |
-| Listed | BOD 22-01 deadline | 14-21 days (federal) |
-| Listed + Ransomware | Emergency | 48-72 hours |
+**Note:** The federal BOD 22-01 deadline (14-21 days) is a compliance requirement for U.S. federal civilian executive branch agencies. The `assess-priority` skill uses the **internal SLA** (24 hours for KEV Listed = CRIT). These are distinct axes — BOD 22-01 compliance is tracked separately.
+
+| KEV Status | Internal SLA (assess-priority skill) | Federal BOD 22-01 deadline |
+|------------|--------------------------------------|---------------------------|
+| Not Listed | Per multi-factor score | N/A |
+| Listed | 24 hours (CRIT) | 14-21 days |
+| Listed + Ransomware | 24 hours (CRIT — KEV hard ceiling applies regardless) | Emergency (48-72 hours) |
 
 ---
 

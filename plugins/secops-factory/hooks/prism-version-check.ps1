@@ -12,7 +12,8 @@ $MinVersion = '1.0.0-rc.1'
 
 # Locate prism
 if (-not (Get-Command 'prism' -ErrorAction SilentlyContinue)) {
-    Write-Error 'ERROR: prism binary not found in PATH'
+    # Use non-terminating output so exit 2 is reached under $ErrorActionPreference='Stop'.
+    [Console]::Error.WriteLine('ERROR: prism binary not found in PATH')
     exit 2
 }
 
@@ -20,14 +21,16 @@ if (-not (Get-Command 'prism' -ErrorAction SilentlyContinue)) {
 try {
     $versionOutput = (& prism --version 2>&1) | Out-String
 } catch {
-    Write-Error "ERROR: failed to run prism --version: $_"
+    # Use non-terminating output so exit 2 is reached under $ErrorActionPreference='Stop'.
+    [Console]::Error.WriteLine("ERROR: failed to run prism --version: $_")
     exit 2
 }
 
 # Extract semver string: e.g. "prism 1.2.3-rc.4" -> "1.2.3-rc.4"
 $match = [regex]::Match($versionOutput, '[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?')
 if (-not $match.Success) {
-    Write-Error ("ERROR: could not parse prism version from output: {0}" -f $versionOutput.Trim())
+    # Use non-terminating output so exit 2 is reached under $ErrorActionPreference='Stop'.
+    [Console]::Error.WriteLine(("ERROR: could not parse prism version from output: {0}" -f $versionOutput.Trim()))
     exit 2
 }
 $version = $match.Value

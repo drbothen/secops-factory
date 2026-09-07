@@ -23,7 +23,7 @@ if ! command -v prism > /dev/null 2>&1; then
     exit 2
 fi
 
-version_output="$(prism --version 2>&1)"
+version_output="$(prism --version 2>&1)" || true
 
 # Extract semver string: e.g. "prism 1.2.3-rc.4" -> "1.2.3-rc.4"
 # Use || true so a grep-no-match (exit 1) under set -euo pipefail does not abort
@@ -102,10 +102,11 @@ semver_ge() {
         # One side exhausted: longer (more fields) is greater
         if [[ -z "$_s1" ]]; then return 1; fi
         if [[ -z "$_s2" ]]; then return 0; fi
-        # Both purely numeric → numeric comparison
+        # Both purely numeric → numeric comparison (force base-10 to avoid
+        # treating leading-zero identifiers such as rc.08 as octal).
         if [[ "$_s1" =~ ^[0-9]+$ ]] && [[ "$_s2" =~ ^[0-9]+$ ]]; then
-            if (( _s1 > _s2 )); then return 0; fi
-            if (( _s1 < _s2 )); then return 1; fi
+            if (( 10#$_s1 > 10#$_s2 )); then return 0; fi
+            if (( 10#$_s1 < 10#$_s2 )); then return 1; fi
         else
             # numeric < alphanumeric (semver §11.4.1)
             if [[ "$_s1" =~ ^[0-9]+$ ]]; then return 1; fi

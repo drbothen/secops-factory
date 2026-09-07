@@ -40,11 +40,19 @@ Before any other action, say verbatim:
 
    (BC-6.01.001 PC#13/EC-015; P18-005; D-021)
 
-6. **Run the prism version gate.** Before writing any MCP configuration, verify the installed prism binary meets the minimum required version `1.0.0-rc.1`. Use the subprocess call `prism --version` (not MCP ping — MCP is not yet configured at this point) and run the bundled version gate helper:
+6. **Run the prism version gate.** Before writing any MCP configuration, verify the installed prism binary meets the minimum required version `1.0.0-rc.1`. Use the subprocess call `prism --version` (not MCP ping — MCP is not yet configured at this point) and run the bundled version gate helper for the current platform:
 
+   On macOS/Linux/WSL/Git Bash:
    ```bash
    bash "${CLAUDE_PLUGIN_ROOT}/hooks/prism-version-check.sh"
    ```
+
+   On native Windows (PowerShell/cmd shell, `$env:OS` = `Windows_NT`, not inside WSL or Git Bash):
+   ```powershell
+   pwsh -NoProfile -File "${CLAUDE_PLUGIN_ROOT}/hooks/prism-version-check.ps1"
+   ```
+
+   The gate is fail-closed: any non-zero exit from either script (exit 1 = version too old, exit 2 = not found or unparseable) halts activation immediately.
 
    If the installed prism does not meet minimum requirement `1.0.0-rc.1`, halt activation with the version-gate error and write no configuration files (`settings.local.json` and `prism.mcp.json` are NOT written).
 

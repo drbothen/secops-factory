@@ -100,7 +100,7 @@ Output JSON structure includes:
 ```json
 {
   "scored_priority": "<CRIT|HIGH|MED|LOW>",
-  "confidence_score": 0.0,
+  "confidence_score": "<0.0-1.0>",
   "confidence": "high|medium|low",
   "disposition": "<TP|FP|BTP|Indeterminate>",
   "rationale": "<explanation of base score, recalibration, and any overrides applied>",
@@ -141,7 +141,7 @@ UDF) is EXEMPT — NVD data has no org dimension; enrich_nvd() keys on CVE ID on
 
 **Degraded-mode fallback (missing org_slug):** If `org_slug` is unavailable from the execution context, ALL Prism-grounded scoring stages (PC#5a through PC#5e) MUST be skipped entirely. The skill must proceed using only the 6-factor base score without Prism enrichment and MUST note "Prism scoring unavailable: org_slug not in context" in output.
 
-**Degraded mode (Prism MCP unavailable):** When Prism MCP is unavailable (connection error, timeout, or `prism_describe` returns error), skip all Prism-grounded stages (PC#5a–PC#5e), apply the 6-factor algorithm, map the base score to `{CRIT, HIGH, MED, LOW}` via PC#6 band thresholds, set `uncertainty_explicit: true`, and emit "Prism unavailable — result reflects static 6-factor scoring only" in rationale. The `scored_priority` output is always a valid enum member in degraded mode; P1-P5 are INTERNAL-ONLY and never emitted as `scored_priority`. PC#5e (Bayesian posterior) is skipped in degraded mode; `confidence_score` reflects the absence of posterior enrichment and falls below 0.40, mapping to `confidence: "low"` per the < 0.40 tier of D-DEC-011.
+**Degraded mode (Prism MCP unavailable):** When Prism MCP is unavailable (connection error, timeout, or `prism_describe` returns error), skip all Prism-grounded stages (PC#5a–PC#5e), apply the 6-factor algorithm, map the base score to `{CRIT, HIGH, MED, LOW}` via PC#6 band thresholds, set `prism_enriched: false` and `uncertainty_explicit: true`, and emit "Prism unavailable — result reflects static 6-factor scoring only" in rationale. The `scored_priority` output is always a valid enum member in degraded mode; P1-P5 are INTERNAL-ONLY and never emitted as `scored_priority`. PC#5e (Bayesian posterior) is skipped in degraded mode; `confidence_score` reflects the absence of posterior enrichment and falls below 0.40, mapping to `confidence: "low"` per the < 0.40 tier of D-DEC-011.
 
 ### PC#5a — 30-Day Historical Baseline Query
 

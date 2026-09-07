@@ -10,6 +10,8 @@ This framework uses **multi-factor risk assessment** to prioritize vulnerabiliti
 
 ## Priority Levels (P1-P5)
 
+> **Note:** P1-P5 are INTERNAL-ONLY intermediate scoring labels used within this framework. The emitted `scored_priority` output is always a member of the enum `{CRIT, HIGH, MED, LOW}` — P1-P5 are never emitted as `scored_priority` (BC-4.05.001 v1.6 Invariant #5).
+
 ### P1 - Critical (24 Hour SLA)
 
 **Definition:** Immediate action required. Critical vulnerabilities with high exploitability affecting critical systems.
@@ -26,7 +28,7 @@ This framework uses **multi-factor risk assessment** to prioritize vulnerabiliti
 
 **Definition:** Urgent remediation required. High severity with significant exploitation risk.
 
-**Score Threshold:** 15-19 points (or KEV Listed without P1 criteria)
+**Score Threshold:** 14-19 points (or KEV Listed without P1 criteria)
 
 **Actions:** Urgent patching in next sprint, security team notification, staging validation
 
@@ -117,17 +119,16 @@ This framework uses **multi-factor risk assessment** to prioritize vulnerabiliti
 total_score = cvss_points + epss_points + kev_points + acr_points + exposure_points + exploit_points
 ```
 
-**Score Range:** 6-24 points
+**Score Range:** 0-24 points
 
 ### Score to Priority Mapping
 
-| Score | Priority | SLA |
-|-------|----------|-----|
-| >= 20 or KEV | P1 | 24 hours |
-| 15-19 | P2 | 7 days |
-| 10-14 | P3 | 30 days |
-| 6-9 | P4 | 90 days |
-| 0-5 | P5 | No SLA |
+| Score | scored_priority (emitted enum) | SLA |
+|-------|-------------------------------|-----|
+| >= 20 or KEV | CRIT | 24 hours |
+| 14-19 | HIGH | 7 days |
+| 8-13 | MED | 30 days |
+| <8 | LOW | 90 days |
 
 ---
 

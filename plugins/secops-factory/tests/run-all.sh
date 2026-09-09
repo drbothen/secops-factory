@@ -89,7 +89,10 @@ if command -v pwsh &>/dev/null; then
 else
     echo "  pwsh not installed — .ps1 syntax checks will run in CI"
 fi
-bats "$SCRIPT_DIR/parity.bats"
+# Capture parity exit code without triggering set -e so subsequent subdir
+# tests always run even when parity tests fail.
+PARITY_RC=0
+bats "$SCRIPT_DIR/parity.bats" || PARITY_RC=$?
 echo ""
 
 # Subdirectory bats tests (hooks/ and skills/ — populated by Wave-1+ stories)
@@ -108,4 +111,8 @@ else
 fi
 echo ""
 
+if [ "${PARITY_RC}" -ne 0 ]; then
+    echo "=== FAIL: parity tests had failures (see output above) ==="
+    exit "${PARITY_RC}"
+fi
 echo "=== All tests passed ==="

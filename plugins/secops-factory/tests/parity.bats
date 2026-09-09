@@ -27,7 +27,10 @@ run_pair() {
 # Compare stdout as normalized JSON (key order independent).
 assert_same_json() {
     [ -n "$SH_OUT" ] && [ -n "$PS_OUT" ]
-    diff <(echo "$SH_OUT" | jq -S .) <(echo "$PS_OUT" | jq -S .)
+    local ps_json
+    ps_json=$(printf '%s\n' "$PS_OUT" | grep '^{' | head -1)
+    [ -n "$ps_json" ] || ps_json="$PS_OUT"
+    diff <(echo "$SH_OUT" | jq -S .) <(echo "$ps_json" | jq -S .)
 }
 
 @test "parity: every .sh hook has a .ps1 sibling" {
@@ -398,4 +401,395 @@ assert_same_json() {
     rm -rf "$tmpdir"
     # Must exit 2: parse failure is an error (BC-6.01.001 PC#8), not version mismatch.
     [ "$status" -eq 2 ]
+}
+
+# ---------------------------------------------------------------------------
+# require-review marker-bearing parity tests (de-mask F3 false-greens)
+#
+# The existing parity tests above only feed marker-free vectors — no
+# CLAUDE_PLUGIN_DATA is set, so neither .sh nor .ps1 enters the marker path.
+# These new tests set up a real marker directory and feed marker-bearing
+# commands, forcing both implementations through the marker-validation path.
+# This exposes the divergence between the fully-ported .sh and the un-ported
+# .ps1 (which has no marker logic): .sh allows; .ps1 denies.
+#
+# Tests are pwsh-gated (skip locally) and RED in CI until the .ps1 port is
+# complete. They become GREEN when .sh and .ps1 emit identical JSON for
+# every marker-bearing vector.
+#
+# Traceability: BC-3.01.001 v1.25 / F3 (finding) / D-020 / EC-023 / SM-37
+# ---------------------------------------------------------------------------
+
+# run_pair_with_env HOOK PAYLOAD PLUGIN_DATA — like run_pair but injects
+# CLAUDE_PLUGIN_DATA so both hooks enter the marker-validation path.
+#
+# Each leg receives its own isolated copy of PLUGIN_DATA so that the sh
+# leg's atomic marker-consume (POSIX rename) does not deplete the ps1
+# leg's marker supply.  Without isolation, sh=allow and ps1=deny because
+# the marker file is gone by the time the ps1 hook runs.
+run_pair_with_env() {
+    local hook="$1" payload="$2" plugin_data="$3"
+    local sh_data ps_data
+    sh_data=$(mktemp -d)
+    ps_data=$(mktemp -d)
+    cp -r "${plugin_data}/." "${sh_data}/"
+    cp -r "${plugin_data}/." "${ps_data}/"
+    SH_OUT=$(printf '%s' "$payload" | CLAUDE_PLUGIN_DATA="$sh_data" bash "$PLUGIN_ROOT/hooks/$hook.sh" 2>/tmp/parity-sh-err); SH_STATUS=$?
+    PS_OUT=$(printf '%s' "$payload" | CLAUDE_PLUGIN_DATA="$ps_data" PS1_DEBUG=1 pwsh -NoProfile -File "$PLUGIN_ROOT/hooks/$hook.ps1" 2>&1); PS_STATUS=$?
+    SH_ERR=$(cat /tmp/parity-sh-err)
+    PS_ERR=$(cat /tmp/parity-ps-err 2>/dev/null)
+    rm -rf "$sh_data" "$ps_data"
+}
+
+# _parity_future_ts — ISO-8601 UTC +300s (cross-platform)
+_parity_future_ts() {
+    if date --version 2>/dev/null | grep -q GNU; then
+        date -u -d '+300 seconds' '+%Y-%m-%dT%H:%M:%SZ'
+    else
+        date -u -v+300S '+%Y-%m-%dT%H:%M:%SZ'
+    fi
+}
+
+@test "parity: require-review link command with valid link marker — marker-bearing divergence check" {
+    # BC-3.01.001 v1.25 / F3 / D-020 / AC-001 / AC-005
+    # Feeds a "jr issue link" command WITH a valid ["link"] marker to both hooks.
+    # .sh (fully ported): consumes marker → emit allow.
+    # .ps1 (un-ported): ignores marker (no marker logic) → deny from write-block.
+    # assert_same_json FAILS on the divergence → test is RED in CI until port is done.
+    # After port: both allow → JSON identical → test GREEN.
+    require_pwsh
+    local tmp marker_dir now future
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    future=$(_parity_future_ts)
+    printf '%s' '{"marker_id":"m-par-link","ticket_id":"SEC-300","org_slug":"test","authorized_operations":["link"],"command_pattern":"^jr (--output json )?issue link SEC-300 SEC-400( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}' \
+        > "${marker_dir}/link-par.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue link SEC-300 SEC-400"}}' \
+        "$tmp"
+
+    # .sh must allow (marker consumed) — assert so the failure is clearly diagnosable
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    [[ "$SH_OUT" == *'"permissionDecision":"allow"'* ]]
+
+    # Parity gate: both must produce identical JSON — FAILS until ps1 port is done
+    assert_same_json
+
+    rm -rf "$tmp"
+}
+
+@test "parity: require-review create-review marker allows REVIEW-REQUIRED create — marker-bearing divergence check" {
+    # BC-3.01.001 v1.25 / F3 / C1 / EC-023 direction A / D-DEC-012
+    # Feeds "jr issue create --label REVIEW-REQUIRED" WITH a ["create-review"] marker.
+    # .sh (ported): create-review marker authorizes review-labeled create → allow.
+    # .ps1 (un-ported): no marker logic → deny from write-block → diverges.
+    # assert_same_json FAILS → RED in CI; GREEN after port.
+    require_pwsh
+    local tmp marker_dir now future
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    future=$(_parity_future_ts)
+    printf '%s' '{"marker_id":"m-par-crr","ticket_id":null,"org_slug":"test","authorized_operations":["create-review"],"command_pattern":"^jr (--output json )?issue create --project PRISMDEMO( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}' \
+        > "${marker_dir}/create-review-par.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue create --project PRISMDEMO --label REVIEW-REQUIRED --summary \"[REVIEW-REQUIRED] SEC-789 HIGH\""}}' \
+        "$tmp"
+
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    # .sh must allow (create-review marker authorizes review-labeled create)
+    [[ "$SH_OUT" == *'"permissionDecision":"allow"'* ]]
+
+    # Parity gate — RED until port is done
+    assert_same_json
+
+    rm -rf "$tmp"
+}
+
+@test "parity: require-review regular create marker anti-fungibility REVIEW-REQUIRED — both deny, mechanism must agree post-port" {
+    # BC-3.01.001 v1.25 / F3 / C1 / EC-023 direction B / SM-37 kill
+    # Feeds "jr issue create --label REVIEW-REQUIRED" WITH a regular ["create"] marker.
+    # Both .sh and .ps1 should deny (anti-fungibility: ["create"] cannot authorize
+    # review-labeled create). .sh denies via STEP-6a structural label check.
+    # .ps1 (un-ported): denies via write-block only (no marker, no STEP-6a check).
+    # assert_same_json passes for deny outcome currently (both deny, same reason text).
+    # This test ensures the parity holds for the anti-fungibility outcome post-port
+    # and provides a regression guard. It is NOT a false-green because both deny.
+    require_pwsh
+    local tmp marker_dir now future
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    future=$(_parity_future_ts)
+    printf '%s' '{"marker_id":"m-par-anti","ticket_id":null,"org_slug":"test","authorized_operations":["create"],"command_pattern":"^jr (--output json )?issue create --project PRISMDEMO( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}' \
+        > "${marker_dir}/create-anti-par.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue create --project PRISMDEMO --label REVIEW-REQUIRED --summary \"[REVIEW-REQUIRED] SEC-888 HIGH\""}}' \
+        "$tmp"
+
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    [[ "$SH_OUT" == *'"permissionDecision":"deny"'* ]]
+    [[ "$PS_OUT" == *'"permissionDecision":"deny"'* ]]
+
+    # Both implementations must produce identical JSON for the deny case
+    assert_same_json
+
+    rm -rf "$tmp"
+}
+
+# ---------------------------------------------------------------------------
+# F-1 (pass-2): case-sensitivity parity — mixed-case subcommand / pattern divergence
+#
+# Finding F-1: ps1 uses case-insensitive PowerShell operators (-like, -match, -eq)
+# while sh uses case-sensitive bash operators (==, =~).
+#
+# Both tests are PWSH-GATED and RED in CI until ps1 is made case-sensitive.
+# Traceability: BC-3.01.001 STEP-2 write-block + STEP-5 command_pattern / F-1 / SM-57
+# ---------------------------------------------------------------------------
+
+@test "parity: require-review F-1 uppercase LINK subcommand — sh fail-closed deny vs ps1 case-insensitive allow" {
+    # F-1 / BC-3.01.001 STEP-2 / SM-57 write-block / case-sensitivity divergence (pass-2)
+    #
+    # Command: "jr issue LINK SEC-1 SEC-2" (uppercase subcommand), valid ["link"] marker.
+    # sh (case-sensitive): write-block pattern *"jr issue link "* does NOT match uppercase
+    #   LINK → falls through read-only list (no match) → fail-closed → DENY.
+    # ps1 (case-insensitive): -like "*jr issue link *" MATCHES uppercase LINK →
+    #   enters marker path → STEP-5 -match (case-insensitive) passes → ALLOW.
+    # assert_same_json FAILS → RED in CI until ps1 uses case-sensitive operators.
+    require_pwsh
+    local tmp marker_dir now future
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    future=$(_parity_future_ts)
+    printf '%s' '{"marker_id":"m-f1-uplink","ticket_id":"SEC-1","org_slug":"test","authorized_operations":["link"],"command_pattern":"^jr issue link SEC-1 SEC-2( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}' \
+        > "${marker_dir}/f1-upper-subcommand.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue LINK SEC-1 SEC-2"}}' \
+        "$tmp"
+
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    # sh must deny: case-sensitive write-block misses uppercase LINK → fail-closed
+    [[ "$SH_OUT" == *'"permissionDecision":"deny"'* ]]
+
+    # Parity gate: both must deny. The unknown-subcommand deny reason embeds the script
+    # filename (require-review.sh vs require-review.ps1), so byte-identical JSON comparison
+    # would fail even when both hooks are correct. Compare permissionDecision only.
+    [[ "$(echo "$SH_OUT" | jq -r '.hookSpecificOutput.permissionDecision')" == "deny" ]]
+    [[ "$(echo "$PS_OUT" | jq -r '.hookSpecificOutput.permissionDecision')" == "deny" ]]
+
+    rm -rf "$tmp"
+}
+
+@test "parity: require-review F-1 uppercase LINK in command_pattern — sh STEP-5 miss vs ps1 case-insensitive match" {
+    # F-1 / BC-3.01.001 STEP-5 command_pattern match / case-sensitivity divergence (pass-2)
+    #
+    # Command: "jr issue link SEC-5 SEC-6" (normal lowercase), marker command_pattern
+    # contains uppercase "LINK": ^jr issue LINK SEC-5 SEC-6( |$).
+    # sh: write-block matches (lowercase ok), enters marker path, STEP-5 bash =~ is
+    #   case-sensitive → "link" does NOT match "LINK" in pattern → marker skipped → DENY.
+    # ps1: write-block matches, STEP-5 -match is case-insensitive → "link" MATCHES
+    #   "LINK" pattern → ALLOW.
+    # assert_same_json FAILS → RED in CI until ps1 uses case-sensitive -cmatch.
+    require_pwsh
+    local tmp marker_dir now future
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    future=$(_parity_future_ts)
+    # Uppercase "LINK" in command_pattern — matches case-insensitively in ps1, not in sh
+    printf '%s' '{"marker_id":"m-f1-uppatt","ticket_id":"SEC-5","org_slug":"test","authorized_operations":["link"],"command_pattern":"^jr issue LINK SEC-5 SEC-6( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}' \
+        > "${marker_dir}/f1-upper-pattern.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue link SEC-5 SEC-6"}}' \
+        "$tmp"
+
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    # sh must deny: STEP-5 bash =~ is case-sensitive, "link" does not match "LINK" pattern
+    [[ "$SH_OUT" == *'"permissionDecision":"deny"'* ]]
+
+    # Parity gate: sh denies (STEP-5 miss), ps1 allows (case-insensitive -match) → FAILS in CI
+    assert_same_json
+
+    rm -rf "$tmp"
+}
+
+# ---------------------------------------------------------------------------
+# pass-4 adversarial findings: scalar-string authorized_operations (F1) and
+# Unicode digit in expires_at_utc (F2).
+#
+# Both tests are PWSH-GATED and RED in CI until the ps1 bugs are fixed.
+# Traceability: BC-3.01.001 STEP-6 / STEP-4b / pass-4 Finding-1 / Finding-2
+# ---------------------------------------------------------------------------
+
+@test "parity: require-review pass-4 F1 scalar-string authorized_operations — sh deny vs ps1 fail-open allow" {
+    # pass-4 / BC-3.01.001 STEP-6 / Finding-1 MEDIUM (fail-open)
+    #
+    # Marker with "authorized_operations":"link" (JSON string, not array).
+    # sh: jq length on a string = 4 (char count of "link") ≠ 1 → ops_count check
+    #     fails → marker skipped → DENY (correct).
+    # ps1: @($mj.authorized_operations) wraps string into 1-element array →
+    #     opsCount=1, opVal="link" → STEP-6 passes → ALLOW (BUG, fail-open).
+    # assert_same_json FAILS → RED in CI until ps1 validates authorized_operations
+    # is a proper JSON array before STEP-6 processing.
+    require_pwsh
+    local tmp marker_dir now future
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    future=$(_parity_future_ts)
+    printf '%s' '{"marker_id":"m-p4f1-scalar","ticket_id":"SEC-320","org_slug":"test","authorized_operations":"link","command_pattern":"^jr (--output json )?issue link SEC-320 SEC-420( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"'"${future}"'"}' \
+        > "${marker_dir}/p4f1-scalar.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue link SEC-320 SEC-420"}}' \
+        "$tmp"
+
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    # sh must deny: jq length of string "link" = 4, not 1 → marker skipped
+    [[ "$SH_OUT" == *'"permissionDecision":"deny"'* ]]
+
+    # Parity gate: sh denies (correct), ps1 allows (fail-open bug) → FAILS in CI
+    assert_same_json
+
+    rm -rf "$tmp"
+}
+
+@test "parity: require-review pass-4 F2 unicode-digit expires_at_utc — sh deny vs ps1 lax-iso allow" {
+    # pass-4 / BC-3.01.001 STEP-4b / Finding-2 MINOR (lax ISO)
+    #
+    # Marker with expires_at_utc containing U+FF12 (FULLWIDTH DIGIT TWO) in the year
+    # via JSON Unicode escape ２.  Both jq and ConvertFrom-Json decode this to
+    # the string "２100-01-01T00:00:00Z".
+    #
+    # sh _is_iso8601_utc: [0-9] is ASCII-only; "２" does not match → format check
+    #     fails → marker skipped → DENY (correct, fail-closed).
+    # ps1 Test-Iso8601Utc: .NET \d matches Unicode digits including U+FF12 →
+    #     format check passes.  Ordinal comparison: "２100..." > current date
+    #     (U+FF12=65298 > U+0032=50) → not expired → all checks pass → ALLOW (BUG).
+    # assert_same_json FAILS → RED in CI until ps1 uses ASCII-only [0-9] in
+    #     Test-Iso8601Utc to match sh's fail-closed behaviour.
+    require_pwsh
+    local tmp marker_dir now
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    # The expires_at_utc value embeds the UTF-8 character U+FF12 (FULLWIDTH DIGIT
+    # TWO, "２") directly in the printf string.  The character passes jq and
+    # ConvertFrom-Json as-is; its code point (65298) is lexicographically greater
+    # than ASCII "2" (50) so the marker is not considered expired by ps1.
+    printf '%s' '{"marker_id":"m-p4f2-unicode","ticket_id":"SEC-321","org_slug":"test","authorized_operations":["link"],"command_pattern":"^jr (--output json )?issue link SEC-321 SEC-421( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"２100-01-01T00:00:00Z"}' \
+        > "${marker_dir}/p4f2-unicode.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue link SEC-321 SEC-421"}}' \
+        "$tmp"
+
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    # sh must deny: [0-9]{4} rejects fullwidth "２" in year position
+    [[ "$SH_OUT" == *'"permissionDecision":"deny"'* ]]
+
+    # Parity gate: sh denies (fail-closed), ps1 allows (lax \d) → FAILS in CI
+    assert_same_json
+
+    rm -rf "$tmp"
+}
+
+# ---------------------------------------------------------------------------
+# datetime-coercion hardening: non-canonical timestamp forms
+#
+# These tests verify sh and ps1 agree that non-canonical ISO-8601 forms in
+# expires_at_utc cause the marker to be skipped (fail-closed), regardless of
+# whether DateTime coercion is in play on the PS7 side.
+# Traceability: BC-3.01.001 STEP-4b / F5 / datetime-coercion hardening
+# ---------------------------------------------------------------------------
+
+@test "parity: require-review non-canonical expires_at_utc (no Z suffix) — both deny agree" {
+    # sh _is_iso8601_utc requires ^...[0-5][0-9]Z$ → "2099-12-31T23:59:59" fails → deny.
+    # ps1 raw-text extraction + Test-Iso8601Utc: same canonical-Z check → deny.
+    # Previously with DateTime coercion on ps1, ConvertFrom-Json parsed the no-Z string
+    # as Kind=Unspecified; ToUniversalTime shifted by TZ offset → valid-looking ISO-8601
+    # string → ALLOW (TZ-dependent bug). After fix: both deny, assert_same_json passes.
+    require_pwsh
+    local tmp marker_dir now
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    printf '%s' '{"marker_id":"m-par-noz","ticket_id":"SEC-143","org_slug":"test","authorized_operations":["link"],"command_pattern":"^jr (--output json )?issue link SEC-143 SEC-223( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"2099-12-31T23:59:59"}' \
+        > "${marker_dir}/noz-par.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue link SEC-143 SEC-223"}}' \
+        "$tmp"
+
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    [[ "$SH_OUT" == *'"permissionDecision":"deny"'* ]]
+    [[ "$PS_OUT" == *'"permissionDecision":"deny"'* ]]
+    assert_same_json
+
+    rm -rf "$tmp"
+}
+
+@test "parity: require-review non-canonical expires_at_utc (fractional seconds) — both deny agree" {
+    # sh: "2099-12-31T23:59:59.000Z" does not match ...[0-5][0-9]Z$ → deny.
+    # ps1 raw-text: same string extracted → Test-Iso8601Utc fails → deny.
+    # DateTime coercion would silently normalize the fractional seconds away → ALLOW bug.
+    require_pwsh
+    local tmp marker_dir now
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    printf '%s' '{"marker_id":"m-par-frac","ticket_id":"SEC-144","org_slug":"test","authorized_operations":["link"],"command_pattern":"^jr (--output json )?issue link SEC-144 SEC-224( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"2099-12-31T23:59:59.000Z"}' \
+        > "${marker_dir}/frac-par.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue link SEC-144 SEC-224"}}' \
+        "$tmp"
+
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    [[ "$SH_OUT" == *'"permissionDecision":"deny"'* ]]
+    [[ "$PS_OUT" == *'"permissionDecision":"deny"'* ]]
+    assert_same_json
+
+    rm -rf "$tmp"
+}
+
+@test "parity: require-review non-canonical expires_at_utc (explicit +00:00 offset) — both deny agree" {
+    # sh: "2099-12-31T23:59:59+00:00" does not match ...Z$ → deny.
+    # ps1 raw-text: same string extracted → Test-Iso8601Utc fails → deny.
+    # DateTime coercion would convert to Utc and return canonical "2099-12-31T23:59:59Z" → ALLOW bug.
+    require_pwsh
+    local tmp marker_dir now
+    tmp=$(mktemp -d)
+    marker_dir="${tmp}/markers"
+    mkdir -p "$marker_dir"
+    now=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    printf '%s' '{"marker_id":"m-par-offset","ticket_id":"SEC-145","org_slug":"test","authorized_operations":["link"],"command_pattern":"^jr (--output json )?issue link SEC-145 SEC-225( |$)","issued_at_utc":"'"${now}"'","expires_at_utc":"2099-12-31T23:59:59+00:00"}' \
+        > "${marker_dir}/offset-par.marker.json"
+
+    run_pair_with_env require-review \
+        '{"tool_input":{"command":"jr issue link SEC-145 SEC-225"}}' \
+        "$tmp"
+
+    [ "$SH_STATUS" -eq 0 ] && [ "$PS_STATUS" -eq 0 ]
+    [[ "$SH_OUT" == *'"permissionDecision":"deny"'* ]]
+    [[ "$PS_OUT" == *'"permissionDecision":"deny"'* ]]
+    assert_same_json
+
+    rm -rf "$tmp"
 }

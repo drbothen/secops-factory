@@ -29,35 +29,35 @@ SecOps Factory connects directly to your JIRA instance for ticket intake and enr
 
 ### 1. Install the plugin
 
-**From the drbothen marketplace (recommended):**
+**From the Bohica Labs marketplace (recommended):**
 
-`drbothen/claude-mp` is the shared marketplace for all drbothen plugins (secops-factory, vsdd-factory, ...). Register it once and install/update any plugin from it.
+`bohica-labs/claude-mp` is the shared marketplace for all Bohica Labs plugins (secops-factory, vsdd-factory, ...). Register it once and install/update any plugin from it.
 
 ```shell
-/plugin marketplace add drbothen/claude-mp
+/plugin marketplace add bohica-labs/claude-mp
 /plugin install secops-factory@claude-mp
 ```
 
 **Update to latest version:**
 
 ```shell
-/plugin marketplace update drbothen/claude-mp
+/plugin marketplace update bohica-labs/claude-mp
 /plugin update secops-factory@claude-mp
 ```
 
 **Alternative: from the secops-factory repo directly:**
 
-Useful if you only want secops-factory and don't want the wider drbothen marketplace registered.
+Useful if you only want secops-factory and don't want the wider Bohica Labs marketplace registered.
 
 ```shell
-/plugin marketplace add drbothen/secops-factory
+/plugin marketplace add bohica-labs/secops-factory
 /plugin install secops-factory@secops-factory
 ```
 
 **From source (local development):**
 
 ```bash
-git clone https://github.com/drbothen/secops-factory.git
+git clone https://github.com/bohica-labs/secops-factory.git
 claude --plugin-dir ./secops-factory/plugins/secops-factory
 ```
 

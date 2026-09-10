@@ -18,7 +18,7 @@ git push -u origin release/vX.Y.Z && gh pr create
 gh pr merge <N> --squash --delete-branch
 git tag -a vX.Y.Z -m "vX.Y.Z: <summary>" <merge-commit-sha>
 git push origin vX.Y.Z
-# Watch release.yml; verify the GitHub Release; then bump drbothen/claude-mp.
+# Watch release.yml; verify the GitHub Release; then bump bohica-labs/claude-mp.
 ```
 
 ## Why this procedure exists in this exact shape
@@ -32,7 +32,7 @@ git push origin vX.Y.Z
 - **The tag must match the version files exactly.** The release workflow
   (`.github/workflows/release.yml`) validates the tag against both
   `plugin.json` and `marketplace.json` and fails the release on mismatch.
-- **The marketplace is a separate repo.** `drbothen/claude-mp` advertises a
+- **The marketplace is a separate repo.** `bohica-labs/claude-mp` advertises a
   pinned `version` for secops-factory. Its `source` tracks `main` via
   git-subdir, so *content* updates automatically — but the advertised version
   goes stale until bumped. A release is not done until claude-mp is bumped.
@@ -49,7 +49,7 @@ git push origin vX.Y.Z
    (without pwsh those 12 tests silently skip).
 5. Release commits are `chore: release vX.Y.Z — <summary>`. No Claude/AI
    attribution in commits.
-6. After the GitHub Release exists, bump `drbothen/claude-mp` via PR.
+6. After the GitHub Release exists, bump `bohica-labs/claude-mp` via PR.
 
 ## Step-by-step: cutting a release
 
@@ -133,7 +133,7 @@ git push -u origin chore/secops-factory-X.Y.Z
 gh pr create ... && gh pr merge ...
 ```
 
-Verify: `gh api repos/drbothen/claude-mp/contents/.claude-plugin/marketplace.json --jq '.content' | base64 -d | jq -r '.plugins[].version'`
+Verify: `gh api repos/bohica-labs/claude-mp/contents/.claude-plugin/marketplace.json --jq '.content' | base64 -d | jq -r '.plugins[].version'`
 
 ## Recovery
 

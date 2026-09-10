@@ -44,35 +44,35 @@ Before you begin, ensure you have:
 
 ## Installation
 
-### From the drbothen marketplace (recommended)
+### From the Bohica Labs marketplace (recommended)
 
-`drbothen/claude-mp` is the shared marketplace for all drbothen plugins. Register it once, install any plugin from it.
+`bohica-labs/claude-mp` is the shared marketplace for all Bohica Labs plugins. Register it once, install any plugin from it.
 
 ```shell
-/plugin marketplace add drbothen/claude-mp
+/plugin marketplace add bohica-labs/claude-mp
 /plugin install secops-factory@claude-mp
 ```
 
 To update later:
 
 ```shell
-/plugin marketplace update drbothen/claude-mp
+/plugin marketplace update bohica-labs/claude-mp
 /plugin update secops-factory@claude-mp
 ```
 
 ### Alternative: from the secops-factory repo directly
 
-Useful if you only want secops-factory and don't want the wider drbothen marketplace registered.
+Useful if you only want secops-factory and don't want the wider Bohica Labs marketplace registered.
 
 ```shell
-/plugin marketplace add drbothen/secops-factory
+/plugin marketplace add bohica-labs/secops-factory
 /plugin install secops-factory@secops-factory
 ```
 
 ### From source (local development)
 
 ```bash
-git clone https://github.com/drbothen/secops-factory.git
+git clone https://github.com/bohica-labs/secops-factory.git
 claude --plugin-dir ./secops-factory/plugins/secops-factory
 ```
 

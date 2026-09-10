@@ -890,3 +890,28 @@ KEV_DATA="${PLUGIN_ROOT}/data/kev-catalog-guide.md"
     # (3) uncertainty_explicit: true must appear in the org_slug degraded paragraph.
     echo "$org_slug_para" | grep -qE '"?uncertainty_explicit"?:[[:space:]]*true'
 }
+
+# ── MINOR (wave1-adv) | S-4.02 ─ CHANGELOG [Unreleased] section regression guard ─────────────
+# Wave-1 adversarial finding: CHANGELOG.md lacked any entry for S-4.02, creating a 2-of-3
+# asymmetry in [Unreleased] coverage (S-6.03 and S-3.01 documented; S-4.02 absent).
+# Keep a Changelog convention: every unreleased change must be documented before release.
+# Mirrors the pattern from tests/skills/activate-close-state.bats
+# (test_BC_6_01_001_changelog_has_unreleased_section and
+#  test_BC_6_01_001_changelog_unreleased_documents_close_state_allowlist).
+# CHANGELOG is at repo root; PLUGIN_ROOT is plugins/secops-factory → ../../CHANGELOG.md.
+
+CHANGELOG="${PLUGIN_ROOT}/../../CHANGELOG.md"
+
+@test "test_BC_4_05_001_changelog_has_unreleased_section (MINOR-wave1-adv, S-4.02)" {
+    # S-4.02 regression guard: CHANGELOG.md must contain an [Unreleased] section header
+    # (Keep a Changelog convention) so the assess-priority scored_priority change is
+    # visible before the next release tag.
+    grep -qF "[Unreleased]" "$CHANGELOG"
+}
+
+@test "test_BC_4_05_001_changelog_unreleased_documents_s4_02_scoring_change (MINOR-wave1-adv, S-4.02, BC-4.05.001)" {
+    # S-4.02 regression guard: the [Unreleased] section must document the S-4.02 change
+    # by naming one of the canonical identifiers: scored_priority or BC-4.05.001.
+    # A bare [Unreleased] header with no S-4.02 content does not satisfy this requirement.
+    grep -qE "scored_priority|BC-4\.05\.001" "$CHANGELOG"
+}

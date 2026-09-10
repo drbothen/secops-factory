@@ -1,7 +1,7 @@
 {
   "name": "secops-factory",
   "owner": {
-    "name": "bohica-labs"
+    "name": "Bohica Labs"
   },
   "metadata": {
     "description": "SecOps Factory marketplace — ICS/OT security operations plugins for Claude Code."
